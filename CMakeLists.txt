@@ -1,0 +1,5 @@
+cmake_minimum_required(VERSION 2.8)
+message("Processing mvstore server ")
+project(server)
+SET(MVSTORED_TARGET_NAME "server")
+add_subdirectory(src)

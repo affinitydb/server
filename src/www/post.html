@@ -1,0 +1,39 @@
+<html>
+<head><title>mvstore built-in post form</title></head>
+<body>
+
+<form method="post" action="/db">
+Output format: 
+
+<select name="output">
+  <option value="json">json</option>
+  <option value="proto">protobuf</option>
+</select>
+
+<select name="type">
+  <option value="query">query</option>
+  <option value="expression">expression</option>
+  <option value="count">count</option>
+  <option value="plan">plan</option>
+  <option value="display">display</option>
+</select>
+
+<br>
+
+<textarea cols=80 rows=5 name="query">
+select *
+</textarea><br>
+params: 
+<input type="text" name="p0" size=5/>
+<input type="text" name="p1" size=5/>
+<input type="text" name="p2" size=5/>
+pagination:
+<input type="text" name="offset" value=0 size=5/>
+<input type="text" name="limit" value="unlimited" size=10/>
+
+<br>
+<input type="submit" value="execute">
+</form>
+
+</body>
+</html>

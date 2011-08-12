@@ -1,0 +1,54 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+  <link href='css/mvstored.css' rel='stylesheet' type='text/css' />
+  <script src='js/jquery.js' type='text/javascript'></script>
+  <script src='js/mvstored.js' type='text/javascript'></script>
+  <title>mvStore Console</title>
+</head>
+<body>
+
+<div id='left'>
+  <div id='logo'><img src='images/mvlogo.png' alt='mvstore logo' id='logo_img'></div>
+  <div id='nav'></div>
+</div>
+
+<div id='content'>
+  <div id='content_title'>
+    <h1>mvStore Console</h1>
+  </div>
+  <div id='content_left'>
+    <div id='query_spec'>
+      <form id='form' method="get" action="/db">
+        <input id='query' name='query' size='80' /> <button> go </button>
+        <select name="type" id='querytype'>
+          <option value="query">query</option>
+          <option value="expression">expression</option>
+          <option value="count">count</option>
+          <option value="plan">plan</option>
+          <option value="display">display</option>
+        </select>
+      </form>
+      <br/>
+    </div>
+    <div id='result_list'></div>
+    <div id='result_pin'>Execute a query and select a row to see PIN details.</div>
+  </div>
+  <div id='content_right'>
+    <h3>Classes</h3>
+    <select name="classes" id="classes" size="5"></select>
+    <br/>
+    <p id='class_doc'></p>
+    <h3>Properties</h3>
+    <select name="class_properties" id="class_properties" size="5"></select>
+    <br/>
+    <p id='property_doc'></p>
+    <h3>QNames</h3>
+    <select name="qnames" id="qnames" size="5"></select>
+  </div>
+</div>
+
+<div id='bottom'>mvStore</div>
+
+</body>
+</html>

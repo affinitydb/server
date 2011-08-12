@@ -1,0 +1,1398 @@
+/* -*- Mode: C; c-file-style: "stroustrup"; indent-tabs-mode:nil; -*- */
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <errno.h>
+#include <time.h>
+#include <sys/types.h>
+#include <fcntl.h>
+#include <time.h>
+#include <assert.h>
+#include "portability.h"
+#include "socket.h"
+#include "storecmd.h"
+#include "http.h"
+#include "mvhttp.h"
+#include "mvdaemon.h"
+#include "intr.h"
+
+/* MVSTORED: an embedded server - simple, threading so allowing
+   blocking, CPU and IO intensive DB calls, also includes a static web
+   server and basic mime support */
+
+int mvd_verbose = 0;
+int www_service = 0;
+
+#define MVD_SERVER "mvstored"
+#define MVD_ENGINE "mvengine"
+
+#define MVD_NAME_MAX 100
+char MVD_NAME[MVD_NAME_MAX] = MVD_SERVER;
+
+#define BUF_SIZE 16384
+
+char docroot[PATH_MAX+1];
+size_t docroot_len = 0;
+
+int match_alias( const char* cgi, const char* sep, const char* path ) {
+    size_t cgi_len = strlen(cgi);
+    size_t path_len = strlen(path);
+    if ( path_len < cgi_len ) { return 0; }
+    if ( strncmp( cgi, path, cgi_len ) != 0 ) { return 0; }
+    if ( strchr( sep, path[cgi_len] ) == NULL ) { return 0; }
+    return 1;
+}
+
+#define HELLO "hello world\n"
+#define MAX_POST (1024*1024)
+
+ssize_t http_resp( int sock, int code, const char* desc, const char* header,
+                   const char* explain, size_t expl_len ) {
+    char err[BUF_SIZE+1], conlen[20+1];
+    int elen;
+    ssize_t r, rt;
+    
+    if ( explain ) { 
+        if ( expl_len == 0 ) { expl_len = strlen( explain ); }
+        snprintf( conlen, 20, "%d", expl_len ); 
+    }
+    elen = snprintf( err, BUF_SIZE, 
+		     "HTTP/1.1 %d %s" CRLF
+		     "Server: %s %1.2f" CRLF
+		     "%s"       /* extra headers */
+                     "%s%s%s"   /* optional Content-length: %d \r\n */
+                     CRLF,
+                     code, desc, MVD_NAME, MVD_VERS, 
+		     header ? header : "", explain ? LENGTH : "", 
+                     explain ? conlen : "", explain ? CRLF : "" );
+    if ( code >= 300 ) {		/* only log on error codes */
+	fprintf( stderr, "[%s] %s\n", ltime(), explain?explain : "" );
+    }
+    if ( mvd_verbose ) {
+        fprintf( stderr, "[%s] response headers: %s\n", ltime(), err );
+    }
+    r = sock_write( sock, err, elen );
+    if ( explain && r == elen ) {
+        rt = sock_write( sock, explain, expl_len );
+        if ( rt > 0 ) {
+            r += rt;
+        }
+        if ( mvd_verbose > 1 ) {
+            fprintf( stderr, "[%s] response body (len = %d): ", 
+                     ltime(), expl_len );
+            fwrite( explain, expl_len, 1, stderr );
+        }
+    }
+    return r;
+}
+
+off_t fdsize( int fd ) {
+    struct stat stats;
+
+    if ( fstat( fd, &stats ) != 0 ) { 
+	return -1;              /* -1 means no such file */
+    }
+    return stats.st_size;
+}
+
+const char* mime_type( const char* e ) {
+    if ( !e ) { return MIME_OCTET; }
+    if ( strcasecmp( e, "htm" ) == 0 || strcasecmp( e, "html" ) == 0 ) {
+        return MIME_HTML;
+    } else if ( strcasecmp( e, "js" ) == 0 ) {
+        return MIME_JSCRIPT;
+    } else if ( strcasecmp( e, "ico" ) == 0 ) {
+        return MIME_ICO;
+    } else if ( strcasecmp( e, "gif" ) == 0 ) {
+        return MIME_GIF;
+    } else if ( strcasecmp( e, "jpg") == 0 || strcasecmp( e, "jpeg" ) == 0) {
+        return MIME_JPG;
+    } else if ( strcasecmp( e, "png" ) == 0 ) {
+        return MIME_PNG;
+    } else if ( strcasecmp( e, "json" ) == 0 ) {
+        return MIME_JSON;
+    } else if ( strcasecmp( e, "css" ) == 0 ) {
+        return MIME_CSS;
+    } else {                    /* "bin" is OCTET also! */
+        return MIME_OCTET;
+    }
+}
+
+/* static web server */
+ssize_t sock_web( int sock, const char* path ) {
+    ssize_t res;
+    const char* file = "";
+    size_t elen, plen, fullpath_len;
+    int fd, index = 0;
+    off_t flen;
+    char exp[BUF_SIZE+1], *ext = NULL;
+    const char* mime = NULL;
+
+    if ( path[0] == '/' ) { path++; } /* open relative to docroot */
+    plen = strlen( path );
+    if ( path[0] == '\0' || path[plen-1] == '/' ) {
+        index = 1;
+        strncpy( exp, path, BUF_SIZE );
+        file = "index.html";
+    } else if ( fisdir( path ) ) {
+        index = 1;
+        strncpy( exp, path, BUF_SIZE );
+        file = "/index.html";
+    }
+    if ( index ) { 
+        strncpy( exp+plen, file, BUF_SIZE-plen );
+    }
+    if ( docroot_len ) {
+        fullpath_len = MIN( strlen(index ? exp : path), PATH_MAX-docroot_len );
+        strncpy( docroot + docroot_len, index ? exp : path, fullpath_len+1 );
+        docroot[docroot_len+fullpath_len] = '\0';
+    }
+    fd = open( docroot_len ? docroot : (index ? exp : path), O_RDONLY );
+
+    if ( fd < 0 ) {
+	if ( errno == ENOENT ) {
+	    elen = snprintf( exp, BUF_SIZE, "%d file %s%s not found: %s",
+			     HTTP_NOT_FOUND, path, file, strerror(errno) );
+	    return http_resp( sock, HTTP_NOT_FOUND, HTTP_NOT_FOUND_DESC, 
+                              NULL, exp, 0 );
+	} else {
+	    elen = snprintf( exp, BUF_SIZE, 
+                             "%d file access %s%s forbidden: %s",
+			     HTTP_FORBID, path, file, strerror(errno) );
+	    return http_resp( sock, HTTP_FORBID, HTTP_FORBID_DESC, 
+                              NULL, exp, 0 );
+	}
+    }
+    
+    ext = strrchr( index ? exp : path, '.' ); if ( ext ) { ext++; }
+    mime = mime_type( ext );
+    flen = fdsize( fd );        /* limit to 2GB files for now */
+    elen = snprintf( exp, BUF_SIZE, 
+                     TYPE "%s" CRLF
+                     LENGTH "%ld" CRLF, mime, (long int)flen );
+    http_resp( sock, HTTP_OK, HTTP_OK_DESC, exp, NULL, 0 );
+    res = sendfile( sock, fd, NULL, flen );
+    close( fd );
+    if ( res < flen ) { return 0; }
+    return res;
+}
+
+#define METHOD_GET 0
+#define METHOD_POST 1
+
+int parse_command( const char* cmd ) { 
+    if ( strncmp( GET, cmd, strlen( GET ) ) == 0 ) {
+	return METHOD_GET;
+    } else if ( strncmp( POST, cmd, strlen( POST ) ) == 0 ) {
+	return METHOD_POST;
+    } 
+    return -1;
+}
+
+void parse_frag( char* req, char** query, char** frag ) {
+    *frag = req;
+    *query = strsep( frag, "#" );	/* frag points to char after # */
+}
+
+const char* param_strs[] = {
+    "p",
+    "query",
+    "expression",
+    "input",
+    "output",
+    "iformat",
+    "oformat",
+    "offset",
+    "limit",
+    "type",
+    "notifparam",
+    "clientid",
+    "timeout",
+};
+
+#define PARAMS (sizeof(param_strs)/sizeof(const char*))
+
+#define ARG_QPARAM 0
+#define ARG_QUERY 1
+#define ARG_EXPRESSION 2
+#define ARG_INPUT 3
+#define ARG_OUTPUT 4
+#define ARG_IFORMAT 5
+#define ARG_OFORMAT 6
+#define ARG_OFFSET 7
+#define ARG_LIMIT 8
+#define ARG_TYPE 9
+#define ARG_NOTIFPARAM 10
+#define ARG_CLIENTID 11
+#define ARG_TIMEOUT 12
+
+typedef struct cgi_params_s {
+    char *query, *input, *output, *type, *notifparam, *clientid;
+    int timeout;
+} cgi_params_t;
+
+#define INPUT_DEFAULT "mvsql"
+#define OUTPUT_DEFAULT "json"
+
+#define cgi_init( cgi ) do {                    \
+        (cgi)->query = NULL;                    \
+        (cgi)->input = INPUT_DEFAULT;           \
+        (cgi)->output = OUTPUT_DEFAULT;         \
+        (cgi)->type = NULL;                     \
+        (cgi)->notifparam = NULL;               \
+        (cgi)->clientid = NULL;                 \
+        (cgi)->timeout = 0;                     \
+    } while (0)
+
+typedef struct page_params_s {
+    unsigned off, lim; 
+} page_params_t;
+
+#define page_init( page ) \
+    do { (page)->off = 0; (page)->lim = ~0u; } while (0)
+
+#define QUERY_PARAMS_MAX 10
+
+typedef struct query_params_s {
+    char* params_static[QUERY_PARAMS_MAX];
+    char** params;
+    unsigned n, max;
+    int alloced;
+} query_params_t;
+
+#define query_init( q ) do {                    \
+        (q)->params = (q)->params_static;       \
+        (q)->n = 0;                             \
+        (q)->max = QUERY_PARAMS_MAX;            \
+        (q)->alloced = 0;                       \
+    } while (0)
+
+int query_print( query_params_t* q, FILE* f ) {
+    unsigned i;
+    char* p;
+    fprintf( f, "params[%u] = [", q->n );
+    for ( i = 0; i < q->n; i++ ) {
+        p = q->params[i];
+        if ( p ) { fprintf( f, "\"%s\"", p ); }
+        else { fprintf( f, "-" ); }
+        fprintf( f, "%s", i+1 < q->n ? "," : "" );
+    }
+    fprintf( f, "]\n" );
+    return 1;
+}
+
+int query_add( query_params_t* q, unsigned i, const char* val ) {
+    unsigned new_max;
+    char** params = NULL;
+    if ( i+1 > q->max ) {
+        new_max = q->max+q->max/2;
+        if ( q->alloced ) { 
+            params = realloc( q->params, sizeof(char*) * new_max );
+            if ( !params ) { return 0; }
+        } else {
+            params = malloc( sizeof(char*) * new_max );
+            if ( !params ) { return 0; }
+            memcpy( params, q->params, sizeof(char*) * q->n );
+        }
+        q->params = params;
+    }
+    if ( i+1 > q->n ) {
+        memset( q->params + q->n, 0, sizeof(char*) * (i - q->n) );
+        q->n = i+1;
+    }
+    q->params[i] = (char*)val;
+    return 1;
+}
+
+#define query_free( q ) do {                                            \
+        if ( (q)->alloced ) { free( (q)->params ); (q)->alloced = 0; }  \
+    } while (0)
+
+int parse_params( char* str, cgi_params_t* cgi, query_params_t* params,
+                  page_params_t* page ) {
+    size_t len;
+    unsigned i, n;
+    int find;
+    unsigned off = 0, lim = ~0u;
+    char *sp, *ap, *arg, *val = 0, *endp;
+    for ( n = 0, sp = strsep( &str, "&" ); sp; sp = strsep( &str, "&" ) ) {
+        ap = sp;
+	arg = strsep( &ap, "=" );
+        len = strcspn( arg, "0123456789" );
+        if ( len > 0 ) {
+            for ( find = -1, i = 0; find < 0 && i < PARAMS; i++ ) {
+                if ( strncmp( arg, param_strs[i], len ) == 0 ) {
+                    val = strsep( &ap, "=" );
+                    if ( val ) { url_decode( val, val, 0 ); }
+                    find = i;
+                    n++;
+                }
+            }
+            switch ( find ) {
+            case ARG_QPARAM: 
+                if ( params ) { 
+                    query_add( params, atoi(arg+1), val ); 
+                }
+                break;
+            case ARG_QUERY: if ( cgi ) { cgi->query = val; } break;
+            case ARG_EXPRESSION: if ( cgi ) { cgi->query = val; } break;
+            case ARG_INPUT:
+            case ARG_IFORMAT: if ( cgi ) { cgi->input = val; } break;
+            case ARG_OUTPUT:
+            case ARG_OFORMAT: if ( cgi ) { cgi->output = val; } break;
+            case ARG_TYPE: if ( cgi ) { cgi->type = val; } break;
+            case ARG_OFFSET: 
+                if ( page ) { 
+                    errno = 0;
+                    off = strtoul( val, &endp, 10 );
+                    if ( errno == 0 && endp != val ) { page->off = off; }
+                }
+                break;
+            case ARG_LIMIT: 
+                if ( page ) { 
+                    errno = 0;
+                    lim = strtoul( val, &endp, 10 );
+                    page->lim = (errno || endp == val) ? ~0u : lim;
+                }
+                break;
+            case ARG_NOTIFPARAM: if ( cgi ) { cgi->notifparam = val; } break;
+            case ARG_CLIENTID: if ( cgi ) { cgi->clientid = val; } break;
+            case ARG_TIMEOUT: if ( cgi ) { cgi->timeout = atoi(val); } break;
+            }
+        }
+    }
+    return n;
+}
+
+ssize_t mvs_read( mvs_stream_t* ctx, void* in, size_t in_len ) {
+    if ( !ctx || !in ) { return -2; }   /* internal error */
+    if ( ctx->clen == 0 ) { return -1; } /* eof */
+    if ( ctx->clen >= 0 ) { in_len = MIN( in_len, (size_t)ctx->clen ); }
+    if ( ctx->len > 0 ) {
+        if ( !ctx->buf ) { return -2; } /* internal error */
+        in_len = MIN( in_len, (size_t)ctx->len );
+        memcpy( in, ctx->buf, in_len );
+        ctx->len -= in_len; ctx->clen -= in_len;
+        ctx->buf = (char*)ctx->buf+in_len;
+        return in_len;
+    }
+    if ( ctx->sock < 0 ) { return -1; }
+        
+    return recv( ctx->sock, in, in_len, 0 );
+}
+
+ssize_t mvs_write( mvs_stream_t* ctx, const void* out, size_t out_len ) {
+    return sock_write( ctx->sock, out, out_len );
+}
+
+const char* alias[] = {
+    "",
+    MVD_QUERY_ALIAS,
+    MVD_CREATE_ALIAS,
+    MVD_DROP_ALIAS
+};
+
+#define CGI_STATIC 0
+#define CGI_QUERY 1
+#define CGI_CREATE 2
+#define CGI_DROP 3
+
+int match_cgi( const char* sep, const char* path ) {
+    if ( match_alias( MVD_QUERY_ALIAS, sep, path ) ) {
+        return CGI_QUERY;
+    } else if ( match_alias( MVD_CREATE_ALIAS, sep, path ) ) {
+        return CGI_CREATE;
+    } else if ( match_alias( MVD_DROP_ALIAS, sep, path ) ) {
+        return CGI_DROP;
+    } else {
+        return CGI_STATIC;
+    }
+}
+
+typedef struct thread_arg_s {
+    int sock;
+    void* db;
+    int auto_create;
+} thread_arg_t;
+
+pthread_mutex_t thread_mutex;
+
+pthread_mutex_t main_mutex;
+void* volatile main_db = NULL;
+void* external_db = NULL;
+
+/* this thread structure is inefficient - needs to be improved */
+
+#define THREAD_MAX 10000
+pthread_t* thread = NULL;
+pthread_t thread_main = 0;
+int thread_max = 0, thread_size = 0, thread_start = 0;
+volatile int thread_running = 0;
+
+int thread_tracked( pthread_t th ) {
+    int i;
+    for ( i = 0; i <= thread_max; i++ ) {
+        if ( thread[i] == th ) { return 1; }
+    }
+    return 0;
+}
+
+int thread_killall( pthread_t exclude, uint32_t usec ) {
+    int i, target;
+    uint32_t elapsed ;
+    pthread_t self = pthread_self();
+    pthread_t self_tracked;
+    pthread_mutex_lock( &thread_mutex );
+    self_tracked = thread_tracked( self ) ? self : 0;
+    target = (exclude ? 1 : 0) + (self_tracked ? 1 : 0);
+    intr = 1;
+    for ( i = 0; i <= thread_max; i++ ) {
+        if ( thread[i] && thread[i] != exclude && thread[i] != self_tracked ) {
+            pthread_kill( thread[i], SIGUSR1 );
+        }
+    }
+    pthread_mutex_unlock( &thread_mutex );
+
+    elapsed = 0;
+    fprintf( stderr, "thread_killall target = %d\n", target );
+    for ( i = thread_running; thread_running > target && elapsed < usec ; ) {
+        usleep( 10 );
+        elapsed += 10;
+        if ( thread_running < i ) {
+            i = thread_running;
+            fprintf( stderr, "threads left = %d\n", i );
+        }
+    }
+    fprintf( stderr, "done left = %d\n", i );
+
+    intr = 0;
+
+    return thread_running <= target ? 1 : 0;
+}
+
+int thread_cancelall( pthread_t exclude ) {
+    int i;
+    pthread_t self = pthread_self();
+    pthread_t self_tracked;
+    pthread_mutex_lock( &thread_mutex );
+    self_tracked = thread_tracked( self ) ? self : 0;
+    
+    for ( i = 0; i <= thread_max; i++ ) {
+        if ( thread[i] && thread[i] != exclude && thread[i] != self_tracked ) {
+            pthread_cancel( thread[i] );
+        }
+    }
+    pthread_mutex_unlock( &thread_mutex );
+    return 1;
+}
+
+int thread_init( int n ) {
+    int ret;
+    thread = (pthread_t*)malloc( sizeof(pthread_t) * n );
+    if ( thread == NULL ) { ret = 0; goto unlock; }
+    memset( thread, 0, sizeof(pthread_t) * n );
+    thread_size = n;
+    thread_main = pthread_self();
+    thread[0] = thread_main;
+    thread_max = 0;
+    thread_running = 1;
+    pthread_mutex_init( &thread_mutex, NULL );
+    pthread_mutex_init( &main_mutex, NULL );
+    ret = 1;
+unlock:
+    return ret;
+}
+
+int thread_close( void ) {
+    pthread_mutex_destroy( &main_mutex );
+    pthread_mutex_destroy( &thread_mutex );
+    return 1;
+}
+
+int thread_grow( int by ) {
+    pthread_t* grow;
+    grow = (pthread_t*)realloc( thread, sizeof(pthread_t) * (thread_size+by) );
+    if ( grow == NULL ) { return 0; }
+    memset( thread+thread_size, 0, sizeof(pthread_t) * by );
+    thread_size += by;
+    return 1;
+}
+
+int thread_add( pthread_t th ) {      /* self-record ID */
+    int  i, ret;
+    pthread_mutex_lock( &thread_mutex );
+    if ( thread_running >= thread_size ) {
+        if ( !thread_grow( thread_size/2 ) ) { ret = 0; goto unlock; }
+    }
+    for ( i = thread_start; i < thread_size; i++ ) {
+        if ( thread[i] == 0 ) {
+            thread[i] = th;
+            thread_start = i+1;
+            thread_running++;
+            if ( i > thread_max ) { thread_max = i; }
+            break;
+        }
+    }
+    ret = 1;
+unlock:
+    pthread_mutex_unlock( &thread_mutex );
+    return ret;
+}
+
+int thread_delete( pthread_t th ) {
+    int i, deleted;
+    pthread_mutex_lock( &thread_mutex );
+    for ( i = 0, deleted = 0; i <= thread_max; i++ ) {
+        if ( thread[i] == th ) { 
+            if ( i == thread_max ) { thread_max--; }
+            if ( i < thread_start ) { thread_start = i; }
+            thread[i] = 0; 
+            thread_running--;
+            deleted = 1;
+            break;
+        }
+    }
+    pthread_mutex_unlock( &thread_mutex );
+    return deleted;
+}
+
+int sock_cgi( int sock, int method, int action, char* path, char* body, 
+              int blen, int bsz, int clen, void* db,  int auto_create,
+              session_t* sess, char* req, 
+              const char* user, const char* pass ) {
+    char *query = NULL, *frag = NULL, *buf = NULL;
+    char exp[BUF_SIZE+1];
+    int elen = 0, isclose = 0, alloc = 0;
+    mvs_stream_t ctx;
+    cgi_params_t cgi;
+    query_params_t qparams;
+    page_params_t page;
+#ifdef MVSTORE_LINK
+    int rc;
+    ssize_t rd;
+    char* res = NULL;
+    void *val = NULL;
+    size_t ret;
+    uint64_t count;
+    char numstr[20+1];
+
+    numstr[0] = '\0';
+    cgi_init( &cgi );
+    query_init( &qparams );
+    page_init( &page );
+    fprintf( stderr, "raw: %s\n", req );
+    parse_frag( req, &query, &frag );
+    fprintf( stderr, "path: %s, query: %s, frag: %s\n", 
+             path?path:"", query?query:"", frag?frag:"" );
+    parse_params( query, &cgi, &qparams, &page );
+    fprintf( stderr, "query: %s, input: %s, output: %s, type: %s\n", 
+             cgi.query?cgi.query:"", cgi.input, cgi.output,
+             cgi.type?cgi.type:"query");
+    query_print( &qparams, stderr );
+    fprintf( stderr, "page off=%u\n", page.off );
+    if ( page.lim != ~0u ) {
+        fprintf( stderr, "page limit=%u\n", page.lim );
+    }
+    if ( action == CGI_DROP ) {
+        if ( external_db ) {
+            http_resp( sock, HTTP_INT, "can not DROP mvengine store",
+                       TYPE MIME_HTML CRLF, 
+                       "can not DROP mveninge managed store", 0 );
+            return 0;
+        }
+        pthread_mutex_lock( &main_mutex );
+        if ( main_db == NULL ) {
+            http_resp( sock, HTTP_INT, "store missing for DROP",
+                       TYPE MIME_HTML CRLF,
+                       "can not DROP non-existant store", 0 );
+            pthread_mutex_unlock( &main_mutex );
+            return 0;
+        }
+        if ( !thread_killall( thread_main, 1000000 ) ) { /* 1 sec */
+            /* not at all safe... */
+/*            thread_cancelall( thread_main ); */
+        }
+        mvs_close( sess );
+        mvs_term( main_db );
+        main_db = NULL;
+        elen = MIN( strlen(storedir), BUF_SIZE - 1 - strlen("mv.store")-1 );
+        strncpy( exp, storedir, elen+1 );
+        if ( elen > 0 && exp[elen-1] != '/' ) { exp[elen++] = '/'; }
+        strcpy( exp+elen, "mv.store" );
+        if ( mvd_verbose ) { 
+            fprintf( stderr, "[%s] dropping store \"%s\"\n", ltime(), exp );
+        }
+        rc = unlink( exp ) == 0;
+        http_resp( sock, rc ? HTTP_OK : HTTP_INT,
+                   rc ? HTTP_OK_DESC : "drop error",
+                   TYPE MIME_HTML CRLF,
+                   rc ? "drop succeeded" : "drop failed", 0 );
+        pthread_mutex_unlock( &main_mutex );
+        return 1;
+    } else if ( action == CGI_CREATE ) {
+        rc = 0;
+        if ( external_db ) {
+            http_resp( sock, HTTP_INT, "can not CREATE mvengine store",
+                       TYPE MIME_HTML CRLF, 
+                       "can not CREATE mveninge managed store", 0 );
+            return 0;
+        }
+        pthread_mutex_lock( &main_mutex );
+        main_db = mvs_init( NULL, 1  ); /* create */
+        pthread_mutex_unlock( &main_mutex );
+        http_resp( sock, HTTP_OK, HTTP_OK_DESC,
+                   TYPE MIME_HTML CRLF, "create succeeded", 0 );
+        return 1;
+    }
+
+    /* auto-open if no previous requests opened */
+    if ( sess->ptr == NULL ) {
+        pthread_mutex_lock( &main_mutex );
+        if ( main_db == NULL && external_db == NULL ) {
+            /* if auto_create is true, creates store file if missing */
+            main_db = mvs_init( NULL, auto_create );
+        }
+        pthread_mutex_unlock( &main_mutex );
+        if ( main_db ) { mvs_session( main_db, sess ); }
+    }
+
+    if ( sess->ptr == NULL ) {
+        fprintf( stderr, "[%s] db request, but db not CREATEd\n", ltime() );
+        http_resp( sock, HTTP_INT, "missing store", TYPE MIME_HTML CRLF,
+                   "missing store, must CREATE first", 0 );
+        return 0;
+    }
+
+    if ( method == METHOD_GET ) {
+        if ( strcmp( cgi.input, "proto" ) == 0 ) {
+            /* unsupported */
+            http_resp( sock, HTTP_INT, HTTP_INT_DESC, NULL,
+                       "GET with input=proto unsupported\n", 0 );
+            return 1;
+        } 
+        if ( strcmp( cgi.input, "regnotif" ) == 0 ) {
+            if ( cgi.type && 
+                 ( strcmp( cgi.type, "class" ) == 0 || 
+                   strcmp( cgi.type, "pin" ) == 0 ) ) {
+                rc = mvs_regNotif( db, sess, user, pass, cgi.type, 
+                                   cgi.notifparam, cgi.clientid, &res );
+                http_resp( sock, rc ? HTTP_OK : HTTP_INT, 
+                           rc ? HTTP_OK_DESC : "mvstore error", 
+                           TYPE MIME_HTML CRLF, res, 0 );
+                return 1;
+            }
+            /* unsupported */
+            elen = snprintf( exp, BUF_SIZE, 
+                             "unrecognized type for regnotif: %s\n", 
+                             cgi.type );
+            http_resp( sock, HTTP_INT, HTTP_INT_DESC, NULL, exp, 0 );
+            return 1;
+        }
+        if ( strcmp( cgi.input, "unregnotif" ) == 0 ) {
+            rc = mvs_unregNotif( db, sess, user, pass, 
+                                 cgi.notifparam, cgi.clientid, &res );
+            http_resp( sock, rc ? HTTP_OK : HTTP_INT, 
+                       rc ? HTTP_OK_DESC : "mvstore error", 
+                       TYPE MIME_HTML CRLF, res, 0 );
+            return 1;
+        }
+        if ( strcmp( cgi.input, "waitnotif" ) == 0 ) {
+            rc = mvs_waitNotif( db, sess, user, pass, cgi.notifparam, 
+                                cgi.clientid, cgi.timeout, &res );
+            http_resp( sock, rc ? HTTP_OK : HTTP_INT, 
+                       rc ? HTTP_OK_DESC : "mvstore error", 
+                       TYPE MIME_HTML CRLF, res, 0 );
+            return 1;
+        }
+        if ( strcmp( cgi.input, "mvsql" ) != 0 ) {
+            elen = snprintf( exp, BUF_SIZE, 
+                             "unrecognized input format: %s\n", cgi.input );
+            http_resp( sock, HTTP_INT, HTTP_INT_DESC, NULL, exp, 0 );
+            return 1;
+        }
+        if ( !cgi.query ) {
+            http_resp( sock, HTTP_INT, HTTP_INT_DESC, NULL,
+                       "GET with no query argument\n", 0 );
+            return 1;
+        }
+
+        if ( strcmp( cgi.output, "json" ) == 0 ) {
+            if ( cgi.type && strcmp( cgi.type, "count" ) == 0 ) {
+                rc = mvs_sql2count( sess, user, pass, cgi.query, &res, NULL,
+                                    qparams.params, qparams.n, &count );
+                if ( rc ) { sprintf( numstr, "%llu", count ); }
+            } else if ( cgi.type && strcmp( cgi.type, "plan" ) == 0 ) {
+                rc = mvs_sql2plan( sess, user, pass, cgi.query, &res,
+                                   qparams.params, qparams.n );
+            } else if ( cgi.type && strcmp( cgi.type, "display" ) == 0 ) {
+                rc = mvs_sql2display( sess, user, pass, cgi.query, &res );
+            } else if ( cgi.type && strcmp( cgi.type, "expression" ) == 0 ) {
+                rc = mvs_expr2json( sess, user, pass, cgi.query, &res, NULL,
+                                    qparams.params, qparams.n, &val );
+                if ( val ) { res = (char*)mvs_val2str( val ); }
+            } else if ( !cgi.type || strcmp( cgi.type, "query" ) == 0 ) {
+                rc = mvs_sql2json( sess, user, pass, cgi.query, &res, NULL, 
+                                   qparams.params, qparams.n,
+                                   page.off, page.lim );
+            } else {
+                elen = snprintf( exp, BUF_SIZE,
+                                 "invalid query type: \"%s\"\n", 
+                                 cgi.type );
+                http_resp( sock, HTTP_INT, "invalid query type",
+                           CONNECTION CLOSE CRLF, exp, 0 );
+                return 0;
+            }
+            query_free( &qparams );
+            http_resp( sock, rc ? HTTP_OK : HTTP_INT, 
+                       rc ? HTTP_OK_DESC : "mvstore error", 
+                       rc && ( !cgi.type || strcmp( cgi.type, "query" )==0 ) ? 
+                       TYPE MIME_JSON CRLF : TYPE MIME_HTML CRLF,
+                       numstr[0] ? numstr : (res?res:""), 0 );
+            if ( res && !val ) { mvs_free( sess, res ); }
+            if ( val ) { mvs_freev( sess, val ); }
+            return 1;
+        } else if ( strcmp( cgi.output, "proto" ) == 0 ) {
+            ctx.sock = sock;
+#ifdef STREAM_CLOSE
+            http_resp( sock, HTTP_OK, HTTP_OK_DESC, 
+                       CONNECTION CLOSE CRLF
+                       TYPE MIME_PROTO CRLF, NULL );
+#endif
+            rd = mvs_sql2raw( sess, user, pass, cgi.query, &res, &ctx, 
+                              &mvs_write, qparams.params, qparams.n, 
+                              page.off, page.lim );
+            query_free( &qparams );
+#ifndef STREAM_CLOSE
+            if ( rd < 0 ) {
+                http_resp( sock, HTTP_INT, "query failed",
+                           TYPE MIME_HTML CRLF,
+                           "query failed", 0 );
+            } else {
+                http_resp( sock, HTTP_OK, HTTP_OK_DESC,
+                           TYPE MIME_PROTO CRLF,
+                           res ? res : "", rd );
+            }
+            mvs_free( sess, res );
+            return 1;
+#else
+            return 0;
+#endif
+        } else {
+            elen = snprintf( exp, BUF_SIZE, 
+                             "unrecognized output format: %s\n", cgi.output );
+            http_resp( sock, HTTP_INT, HTTP_INT_DESC, NULL, exp, 0 );
+            return 1;
+        }
+    } else if ( method == METHOD_POST ) { 
+        /* if the input is mvsql we have to read it all into a string */
+	if ( strcmp( cgi.input, "mvsql" ) == 0 ) {
+            if ( clen < 0 ) {
+                isclose = 1;
+                buf = malloc( MAX_POST+1 ); 
+                if ( !buf ) {
+                    http_resp( sock, HTTP_UNAVAIL, HTTP_UNAVAIL_DESC, 
+                               NULL, "out of memory\n", 0 );
+                    return 0;
+                }
+                alloc = 1;
+                if ( blen > MAX_POST ) {
+                    http_resp( sock, HTTP_INT, HTTP_INT_DESC, NULL, 
+                               "assert\n", 0 );
+                }
+                memcpy( buf, body, blen );
+                body = buf;
+                rd = sock_read( sock, body+blen, MAX_POST-blen );
+                if ( rd < 0 ) {
+                    http_resp( sock, HTTP_BAD, HTTP_BAD_DESC, NULL,
+                               "read error on POST\n", 0 );
+                    if ( alloc ) { free( body ); }
+                    return 0;
+                }
+                clen = blen + rd;
+                if ( clen >= bsz-blen ) {
+                    /* @@ 1MB is hardcoded to match MAX_POST */
+		    http_resp( sock, HTTP_LARGE, HTTP_LARGE_DESC, NULL, 
+                               "http POST too large > 1MB\n", 0 );
+                    if ( alloc ) { free( body ); }
+                    return 0;
+                }
+            } else if ( blen < clen ) { /* need to read more */
+                /* if there is enough space, but it in the callers buffer */
+		if ( clen-blen > bsz-blen ) {
+		    buf = malloc( clen+1 ); 
+                    if ( !buf ) {
+                        http_resp( sock, HTTP_UNAVAIL, HTTP_UNAVAIL_DESC, 
+                                   NULL, "out of memory\n", 0 );
+                        return 0;
+                    }
+                    alloc = 1;
+		    memcpy( buf, body, blen ); /* copy what we have */
+                    body = buf;
+		}
+                rd = sock_read( sock, body+blen, clen-blen );
+                if ( rd < clen-blen ) {
+                    http_resp( sock, HTTP_BAD, HTTP_BAD_DESC, NULL,
+                               "data received less than content-length", 0 );
+                    if ( alloc ) { free( body ); }
+                    return 0;
+                }
+	    }
+            body[clen] = '\0';
+            if ( mvd_verbose > 1 ) {
+                fprintf( stderr, "[%s] request post: %s \n", ltime(), body );
+            }
+	    parse_params( body, &cgi, &qparams, &page );
+            query_print( &qparams, stderr );
+
+            if ( !cgi.query ) {
+                http_resp( sock, HTTP_INT, HTTP_INT_DESC, NULL,
+                           "missing query param\n", 0 );
+                if ( alloc ) { free( body ); }
+                return 0;
+            }
+            if ( strcmp( cgi.output, "json" ) == 0 || 
+                 (cgi.type && strcmp( cgi.type, "query" ) != 0) ) {
+                if ( cgi.type && strcmp( cgi.type, "count" ) == 0 ) {
+                    rc = mvs_sql2count( sess, user,pass, cgi.query, &res,NULL,
+                                        qparams.params, qparams.n, &count );
+                    if ( rc ) { sprintf( numstr, "%llu", count ); }
+                } else if ( cgi.type && strcmp( cgi.type, "plan" ) == 0 ) {
+                    rc = mvs_sql2plan( sess, user, pass, cgi.query, &res,
+                                       qparams.params, qparams.n );
+                } else if ( cgi.type && strcmp( cgi.type, "display" ) == 0 ) {
+                    rc = mvs_sql2display( sess, user, pass, cgi.query, &res );
+                } else if ( cgi.type && strcmp( cgi.type, "expression" )==0 ) {
+                    rc = mvs_expr2json( sess, user,pass,cgi.query, &res, NULL,
+                                        qparams.params, qparams.n, &val );
+                    if ( val ) { res = (char*)mvs_val2str( val ); }
+                } else if ( !cgi.type || strcmp( cgi.type, "query" ) == 0 ) {
+                    rc = mvs_sql2json( sess, user,pass, cgi.query, &res,NULL, 
+                                       qparams.params, qparams.n,
+                                       page.off, page.lim );
+                } else {
+                    elen = snprintf( exp, BUF_SIZE,
+                                     "invalid query type: \"%s\"\n", 
+                                     cgi.type );
+                    http_resp( sock, HTTP_INT, "invalid query type",
+                               CONNECTION CLOSE CRLF, exp, 0 );
+                    return 0;
+                }
+                query_free( &qparams );
+                ret = http_resp( sock, rc ? HTTP_OK : HTTP_INT, 
+                                 rc ? HTTP_OK_DESC : "mvstore error", 
+                                 rc && 
+                                 ( !cgi.type||strcmp(cgi.type,"query")==0 ) ?
+                                 TYPE MIME_JSON CRLF : TYPE MIME_HTML CRLF,
+                                 isclose ? NULL : (numstr[0] ? numstr : 
+                                                   (res?res:"")), 0 );
+                if ( ret && isclose ) {
+                    ret = sock_write( sock, 
+                                      numstr[0] ? numstr : (res?res:""),
+                                      strlen( numstr[0] ? numstr : 
+                                              (res?res:"") ) );
+                }
+                if ( res && !val ) { mvs_free( sess, res ); }
+                if ( val ) { mvs_freev( sess, val ); }
+                if ( alloc ) { free( body ); }
+                return isclose ? 0 : ret;
+            } else if ( strcmp( cgi.output, "proto" ) == 0 ) {
+                ctx.sock = sock;
+#ifdef STREAM_CLOSE
+                http_resp( sock, HTTP_OK, HTTP_OK_DESC, 
+                           CONNECTION CLOSE CRLF
+                           TYPE MIME_PROTO CRLF, NULL );
+#endif
+                rd = mvs_sql2raw( sess, user, pass, cgi.query, &res, &ctx, 
+                                  &mvs_write, qparams.params, qparams.n,
+                                  page.off, page.lim );
+                if ( alloc ) { free( body ); }
+#ifndef STREAM_CLOSE
+                if ( rd < 0 ) {
+                    http_resp( sock, HTTP_INT, "query failed",
+                               TYPE MIME_HTML CRLF,
+                               "query failed", 0 );
+                } else {
+                    http_resp( sock, HTTP_OK, HTTP_OK_DESC,
+                               TYPE MIME_PROTO CRLF,
+                               res ? res : "", rd );
+                }
+                mvs_free( sess, res );
+                return 1;
+#else
+                return 0;
+#endif
+            }
+	} else if ( strcmp( cgi.input, "proto" ) == 0 ) {
+            if ( strcmp( cgi.output, "proto" ) == 0 ) {
+                ctx.sock = sock;
+                ctx.buf = body;
+                ctx.len = blen;
+                ctx.clen = clen;
+                http_resp( sock, HTTP_OK, HTTP_OK_DESC, CONNECTION CLOSE CRLF, NULL, 0 );
+                mvs_raw2raw( sess, user,pass, &ctx, &mvs_read, &mvs_write );
+                return 0;
+            } else if ( strcmp( cgi.output, "json" ) == 0 ) {
+                /* unsupported */
+            }
+        }
+    } else {
+	fprintf( stderr, "[%s] invalid command, internal error\n", ltime() );
+    }
+#else
+    sock_write( sock, HELLO, strlen( HELLO ) );
+#endif
+    return 1;
+}
+
+int alpha[256] = {
+    -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,62,-1,-1,-1,63,
+    52,53,54,55,56,57,58,59,60,61,-1,-1,-1,0,-1,-1,
+    -1,0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,
+    15,16,17,18,19,20,21,22,23,24,25,-1,-1,-1,-1,-1,
+    -1,26,27,28,29,30,31,32,33,34,35,36,37,38,39,40,
+    41,42,43,44,45,46,47,48,49,50,51,-1,-1,-1,-1,-1,
+    -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+    -1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,-1,
+};
+
+int auth_extract( char* auth, char** user, char** pass ) {
+    int alen, slen, i, j;
+    char* res = NULL, *ptr = NULL;
+    if ( !user || !pass || !auth ) { return 0; } /* internal error, really */
+    
+    alen = (int)strlen(auth);
+    for ( i = 0, j = 0; i < alen; i++ ) { /* strip non b64 chars in-place */
+	if ( alpha[(int)auth[i]] >= 0 ) {
+	    auth[j] = auth[i];
+	    j++;
+	}
+    }
+    alen = j;
+    slen = alen/4;
+    if ( slen*4 != alen ) { return 0; } /* not a multiple of 4 */
+    
+    /* convert in place */
+    /* abcd -> 123 */
+    for ( i = 0, res = auth, ptr = auth; i < slen; i++, ptr += 4, res += 3 ) {
+	res[0] = alpha[(int)ptr[0]]<<2|alpha[(int)ptr[1]]>>4; /* 6+2 */
+	res[1] = alpha[(int)ptr[1]]<<4|alpha[(int)ptr[2]]>>2; /* 4+4 */
+	res[2] = alpha[(int)ptr[2]]<<6|alpha[(int)ptr[3]];	  /* 2+6 */
+    }
+    auth[slen*3] = '\0';
+    
+    *user = auth;
+    *pass = strchr( *user, ':' );
+    if ( !*pass ) { return 0; }
+    **pass = '\0';
+    (*pass)++;
+    return 1;
+}
+
+ssize_t sock_server( int client, void* db, session_t* sess,int auto_create ) {
+    int res, rlen, elen, blen = 0, cmd, clen = -1, cgi = 0;
+    char req[BUF_SIZE+1], exp[BUF_SIZE+1];
+    char *body = NULL, *path = NULL, *space = NULL, *headers = NULL;
+    char *auth = NULL, *method = NULL, *user = NULL, *pass = NULL;
+    char *pend = NULL, pold, *aend = NULL, aold, *mend = NULL, mold;
+    char *vers = NULL, *vend = NULL, *end = NULL, *end2 = NULL, undo;
+    char *content_len = NULL, *query = NULL;
+
+    strncpy( exp, "Internal Error\n", BUF_SIZE ); /* just in case! */
+
+    /* can return less than full request, but in practice typically not
+       technically, it depends on the client and NAGLE algo, but web
+       clients, for performance reasons try to send in one shot */
+    
+    for ( res = 1, rlen = 0, body = NULL; 
+          res > 0 && !body && rlen < BUF_SIZE; 
+          rlen += res) {
+        res = recv( client, req+rlen, BUF_SIZE-rlen, 0 );
+        if ( res > 0 ) {
+            req[rlen+res] = '\0';
+            body = strstr( req, CRLF CRLF );    /* find request boundary */
+        }
+    }
+
+    if ( !body ) {
+        if ( rlen >= BUF_SIZE ) {
+            http_resp( client, HTTP_LARGE, HTTP_LARGE_DESC, NULL, 
+                       "http request header > 16KB unsupported", 0 );
+        }
+        return 0;
+    }
+
+    /* skip \r\n\r\n */
+    body += 2;                  /* keep \r\n for last header! */
+    *body = '\0';		/* end of header marker */
+    body += 2; 
+    blen = rlen - (int)(body - req);
+
+    /* parse request line comments show ^ for parsing stage */
+    space = strchr( req, ' ' );	/* GET^/path HTTP/1.1 */
+    if ( space ) { 
+	*space = '\0'; 
+    } else {
+	http_resp( client, HTTP_INT, HTTP_INT_DESC, NULL, exp, 0 );
+	return 0;
+    }
+    cmd = parse_command( req );
+    if ( cmd < 0 ) {
+	elen = snprintf( exp, BUF_SIZE, 
+			 "unsupported HTTP command: %s\n", req );
+	http_resp( client, HTTP_UNIMPL, HTTP_UNIMPL_DESC, NULL, exp, 0 );
+	*space = ' ';		/* undo edit? */
+	return 0;
+    }
+
+    path = space+1;		/* GET /path^HTTP/1.1 */
+    pend = strpbrk( path, " " );
+    if ( !pend ) { 
+	http_resp( client, HTTP_INT, HTTP_INT_DESC, NULL, exp, 0 );
+	return 0;
+    }
+
+    pold = *pend; *pend = '\0';
+    vers = pend+1;              /* audit this line: eg buf init to 0? */
+    vend = strpbrk( vers, CRLF );
+    if ( vend ) {
+        headers = vend;         /* preserve the CRLF before headers */
+    } else {
+        headers = vers+strlen(vers); /* audit: an editable empty string */
+    }
+  
+    cgi = match_cgi( CGI_SEP, path );
+
+    /* if not matching /db/ path alias, serve via static web server */
+    if ( !cgi ) {
+        if ( !www_service ) { 
+	    http_resp( client, HTTP_FORBID, HTTP_FORBID_DESC, NULL, 
+                       "no static web service as docroot unspecified\n", 0 );
+            return 0;
+        }
+        fprintf( stderr, "[%s] static request: %s\n", ltime(), path );
+        res = sock_web( client, path ); /* static web server */
+        return res;
+    } else {
+        fprintf( stderr, "[%s] db request: %s %s\n", ltime(), req, path );
+        if ( mvd_verbose ) {
+            fprintf( stderr, "[%s] request headers: %s\n", ltime(), headers );
+        }
+
+	clen = -1;    /* POST uses Content-Length header if present */
+	if ( cmd == METHOD_POST ) {
+            content_len = http_parse( headers, CRLF LENGTH,strlen(CRLF LENGTH),
+                                      &undo, &end );
+            if ( content_len ) {
+                clen = strtol( content_len, &end2, 10 );
+                if ( end != end2 || end2 == content_len ) {
+		    http_resp( client, HTTP_INT, HTTP_INT_DESC, NULL, exp, 0 );
+		    return 0;
+                }
+		if ( clen > MAX_POST ) {
+		    http_resp( client, HTTP_LARGE, HTTP_LARGE_DESC, NULL, 
+                               "http POST too large > 1MB\n", 0 );
+		    return 0;
+		}
+                undo_parse( undo, end );
+            }
+	}
+
+        /* parse auth header if present  */
+	auth = strstr( headers, CRLF AUTH );
+        if ( auth ) {
+            auth += strlen(CRLF AUTH); /* Authorization: ^ */
+            method = auth;
+            mend = strpbrk( auth, " " CRLF ); /* Authorization: <method>^ */
+            if ( !mend ) {
+                http_resp( client, HTTP_UNAUTH, HTTP_UNAUTH_DESC, 
+                           WWW_AUTH BASIC CRLF, "invalid auth", 0 );
+                return 0;
+            }
+            mold = *mend; *mend = '\0';
+            if ( strncasecmp( method, BASIC, strlen(BASIC) ) != 0 ) {
+                http_resp( client, HTTP_UNAUTH, HTTP_UNAUTH_DESC, 
+                           WWW_AUTH BASIC CRLF, 
+                           "unsupported auth method, only " BASIC 
+                           " supported", 0 );
+                return 0;
+            }
+	
+            auth = mend+1;
+            aend = strpbrk( auth, " " CRLF ); /* Authorization: <method>^ */
+            if ( aend ) { aold = *aend; *aend = '\0'; }
+            if ( !aend || !auth_extract( auth, &user, &pass ) ) {
+                http_resp( client, HTTP_UNAUTH, HTTP_UNAUTH_DESC, 
+                           WWW_AUTH BASIC CRLF, "malformed user/pass", 0 );
+                return 0;
+            }
+        }
+	
+#if 0
+        /* temporarily disable this until we have auth support in mvclient */
+        /* auth is mandatory for CGI_CREATE & CGI_DROP */
+	if ( !auth && ( cgi == CGI_CREATE || cgi == CGI_DROP ) ) { 
+	    http_resp( client, HTTP_UNAUTH, HTTP_UNAUTH_DESC, 
+                       WWW_AUTH BASIC CRLF, NULL, 0 );
+	    return 0;
+	}
+#endif
+
+	/* dont undo auth edits its more complex so do it last */
+	/* *mend = mold; *aend = aold; */ 
+
+	/* no HTTP Keep-Alive for now */
+
+        query = path + strlen( alias[cgi] );
+        query += strspn( query, CGI_SEP ); /* skip "/?" chars */
+        if ( intr ) { return 0; }
+	return sock_cgi( client, cmd, cgi, path, 
+                         body, blen, BUF_SIZE-(int)(body-req), 
+                         clen, db, auto_create, sess, query, user, pass );
+    }
+}
+
+void* thread_container( void* arg ) {
+    thread_arg_t* ctx;
+    pthread_t me = pthread_self();
+    session_t sess;
+
+    sess.ptr = NULL;
+    if ( !arg ) { return NULL; }
+    thread_add( me );
+
+    ctx = (thread_arg_t*)arg;
+    mvs_session( ctx->db, &sess );
+    do {} 
+    while ( !intr && 
+            sock_server( ctx->sock, ctx->db, &sess, ctx->auto_create ) );
+    sock_close( ctx->sock );
+    if ( main_db ) { mvs_close( &sess ); }
+    free( arg );
+
+    thread_delete( me );
+    pthread_detach( me );
+    return NULL;			/* exit thread */
+}
+
+int storedir_alloc;
+
+int validate_dir( const char* dir, const char* desc ) {
+    size_t dlen = strlen(dir);
+    if ( (dlen > 0 && dir[dlen-1] == PATH_SEP) || fisdir( dir ) ) {
+        return 1;
+    } else {
+        fprintf( stderr, "[%s] %s \"%s\" is not a dir\n", 
+                 ltime(), desc, dir );
+        return 0;
+    }
+}
+
+const char* abs_dir( const char* dir, const char* curdir ) {
+    size_t curdir_len;
+    char* res = NULL;
+
+    curdir_len = strlen(curdir);
+    res = (char*)malloc( strlen(curdir) + 1 + strlen(dir) + 1 );
+    if ( res == NULL ) { return NULL; }
+    strcpy( res, curdir );
+    /* join with '/' if neccessary */
+    if ( curdir_len && res[curdir_len-1] != PATH_SEP ) { 
+        res[curdir_len++] = PATH_SEP;
+        res[curdir_len] = '\0';
+    }
+    strcpy( res+curdir_len, dir );
+    curdir_len += strlen(dir);
+     /* cop off trailing '/' */
+    if ( curdir_len && res[curdir_len-1] == PATH_SEP ) {
+        res[--curdir_len] = '\0';
+    }
+
+    return res;
+}
+
+int mvdaemon_stop( uint32_t usec ) {
+    if ( !thread_killall( 0, usec ) ) {
+        thread_cancelall( 0 );
+        return 0;
+    }
+    return 1;
+}
+
+int mvdaemon( void *ctx, const char* www, const char* store, 
+              uint16_t port, int verbose, int auto_create ) {
+    int list;
+    int elen, res, www_alloc = 0;
+    size_t dlen;
+    char exp[BUF_SIZE+1], *envdir = NULL, *curdir = NULL;
+    const char *wwwdir = NULL;
+    int client;
+    pthread_t child;
+    thread_arg_t* arg = NULL;
+    
+    external_db = ctx;
+
+    /* if called from mvengine, start with a different server string */
+    if ( ctx ) {
+        dlen = MIN( strlen( MVD_ENGINE ), MVD_NAME_MAX );
+        strncpy( MVD_NAME, MVD_ENGINE, dlen );
+        MVD_NAME[dlen] = '\0';
+    }
+
+    docroot[0] = '\0';
+    mvd_verbose = verbose;
+
+    if ( port == 0 ) { port = MVD_PORT; }
+    
+    curdir = getcwd( exp, BUF_SIZE );
+    if ( curdir == NULL ) {
+        fprintf( stderr, "[%s] cant determine current dir\n", ltime() );
+        return 0;
+    }
+
+    fprintf( stderr, "[%s] starting with current dir \"%s\"\n", 
+             ltime(), curdir );
+    storedir = store;
+
+    /* ok intention here:
+     * 
+     * 1. if storedir given but no www given try storedir/www/
+     * 2a. if no wwwdir given, default to current dir
+     *  b.  then if also no storedir given default to wwwdir/..
+     *  c.  or if relative storedir given use relative to curdir
+     * 3a. if wwwdir given, use it and
+     *  b. then if no storedir given default to wwwdir/..
+     *  c. or if relative storedir given use relative to wwwdir
+     *
+     * and wwwdir can be given via arg, and overridden by envvar $DOCROOT
+     * and defaults to current dir
+     */
+
+    envdir = getenv( "DOCROOT" );
+    if ( envdir ) { www = envdir; } /* override with $DOCROOT */
+    wwwdir = www;
+    if ( !wwwdir ) { wwwdir = "."; } /* 2a. no wwwdir, default curdir */
+    www_service = 0;
+    /* 1. !storedir, try storedir/www/ */
+    if ( storedir && !www ) { wwwdir = "www"; } 
+    if ( wwwdir ) {
+        if ( !ABS_PATH( wwwdir ) ) { 
+            wwwdir = abs_dir( wwwdir, curdir ); 
+            if ( wwwdir == NULL ) {
+                fprintf( stderr, "[%s] out of memory\n", ltime() ); 
+                return 0;
+            }
+            www_alloc = 1; 
+        }
+        www_service = validate_dir( wwwdir, "docroot" );
+
+        if ( www_service ) {    /* in mvdaemon use abs path */
+            if ( ctx ) {        /* as cannot chdir  */
+                docroot_len = MIN( strlen( wwwdir ), PATH_MAX );
+                strncpy( docroot, wwwdir, docroot_len+1 );
+                docroot[docroot_len] = '\0';
+                if ( docroot_len && docroot[docroot_len-1] != PATH_SEP ) {
+                    docroot[docroot_len++] = PATH_SEP;
+                    docroot[docroot_len] = '\0';
+                }
+                fprintf( stderr, "[%s] started with docroot \"%s\"\n", 
+                         ltime(), docroot );
+            } else {            /* in mvstored use relative path */
+                res = chdir( wwwdir );
+                if ( res < 0 ) {
+                    fprintf( stderr, "[%s] cant open docroot \"%s\"\n", 
+                             ltime(), wwwdir );
+                    www_service = 0;
+                } else {
+                    fprintf( stderr, "[%s] started with docroot \"%s\"\n", 
+                             ltime(), wwwdir );
+                }
+            }
+        }
+    }
+    if ( !www_service ) {
+        fprintf( stderr, "[%s] warning: static web service disabled\n",
+                 ltime() );
+    }
+
+    if ( storedir == NULL ) { 
+        storedir = ".."; 
+        fprintf( stderr, "[%s] storedir defaulting to wwwdir%c..\n",
+                 ltime(), PATH_SEP );
+    }
+    if ( !ABS_PATH( storedir ) ) { 
+        storedir = abs_dir( storedir, store ? curdir : wwwdir );
+        if ( storedir == NULL ) {
+            fprintf( stderr, "[%s] out of memory\n", ltime() ); 
+            if ( www_alloc ) { free( (void*)wwwdir ); www_alloc = 0; }
+            return 0;
+        }
+        storedir_alloc = 1;
+    } 
+
+    if ( www_alloc ) { free( (void*)wwwdir ); www_alloc = 0; }
+
+    if ( !validate_dir( storedir, "storedir" ) ) {
+        if ( storedir_alloc ) { free( (void*)storedir ); }
+        return 0;
+    }
+    
+    fprintf( stderr, "[%s] started with storedir \"%s\"\n", 
+             ltime(), storedir );
+
+    sock_init();
+    list = sock_listener( port );
+/*    main_db = mvs_init( ctx, auto_create ); */
+
+    intr_hook( 0 );
+    thread_init( THREAD_MAX );
+
+    while ( 1 ) {
+        pthread_mutex_lock( &main_mutex ); /* barrier stop accepting */
+        pthread_mutex_unlock( &main_mutex ); /* connections until done */
+	/* wait for next client */
+	client = accept( list, NULL, NULL );
+        if ( client < 0 ) { continue; }
+	
+	arg = (thread_arg_t*)malloc( sizeof(thread_arg_t) );
+	if ( !arg ) { 
+	    fprintf( stderr, "[%s] out of memory\n", ltime() ); 
+            return 0;
+	}
+	arg->db = main_db;
+	arg->sock = client;
+        arg->auto_create = auto_create;
+	/* no thread pooling, create/exit on each request */
+	res = pthread_create( &child, NULL, thread_container, (void*)arg );
+	if ( res != 0 ) {
+	    elen = snprintf( exp, BUF_SIZE, "pthread_create failed: %s", 
+			     strerror(errno) );
+	    /* overloaded? */
+	    http_resp( client, HTTP_UNAVAIL, HTTP_UNAVAIL_DESC, NULL, exp, 0 );
+	    closesocket( client );
+	}
+    }
+    if ( storedir_alloc ) { free( (void*)storedir ); }
+#ifdef MVSTORE_LINK
+    mvs_term( main_db );
+#endif
+    intr_unhook();
+}
+
+#ifdef DYNAMIC_LIBRARY
+void attr_init dl_init( void ) {
+    fprintf( stderr, "mvdaemon starting up...\n" );
+}
+
+void attr_fini dl_fini( void ) {
+    fprintf( stderr, "mvdaemon shutting down...\n" );
+}
+#endif

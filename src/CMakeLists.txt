@@ -1,0 +1,119 @@
+cmake_minimum_required(VERSION 2.8)
+
+message("Processing mvstore server/src ...")
+SET(MVSTORED_TARGET_NAME "mvstored")
+SET(MVDAEMON_TARGET_NAME "mvdaemon")
+SET(MVCLIENT_TARGET_NAME "mvclient")
+SET(MVCTEST_TARGET_NAME "mvctest")
+message("Project dir: " ${PROJECT_SOURCE_DIR})
+
+if (NOT CMAKE_BUILD_TYPE)
+set (CMAKE_BUILD_TYPE "Debug")
+endif (NOT CMAKE_BUILD_TYPE)
+
+message("System: ${CMAKE_SYSTEM}")
+message("CPU type: ${CMAKE_SYSTEM_PROCESSOR}")
+message("CMAKE_BUILD_TYPE: " ${CMAKE_BUILD_TYPE})
+
+SET(MVSTORED_SRC_DIR ${PROJECT_SOURCE_DIR}/src)
+SET(MVSTORED_INC_DIR ${PROJECT_SOURCE_DIR}/include)
+
+SET(MVSTORE_PRJ "${PROJECT_SOURCE_DIR}/../kernel")
+SET(MVSTORE_INC_DIR "${MVSTORE_PRJ}/include/")
+
+INCLUDE_DIRECTORIES(${MVSTORED_SRC_DIR} ${MVSTORED_INC_DIR} ${MVSTORE_INC_DIR})
+
+SET(LIBRARY_OUTPUT_PATH "${PROJECT_SOURCE_DIR}/lib")
+SET(EXECUTABLE_OUTPUT_PATH "${PROJECT_SOURCE_DIR}/bin")
+
+ADD_DEFINITIONS(-DMVSTORE_LINK)
+
+IF(CMAKE_BUILD_TYPE MATCHES Debug)
+	ADD_DEFINITIONS(-D_DEBUG)
+	ADD_DEFINITIONS(-DDEBUG)
+ELSE(CMAKE_BUILD_TYPE MATCHES Debug)
+	ADD_DEFINITIONS(-DNDEBUG)
+ENDIF(CMAKE_BUILD_TYPE MATCHES Debug)
+
+IF(CMAKE_SYSTEM_NAME MATCHES Windows)
+	ADD_DEFINITIONS(-DWIN32)
+	ADD_DEFINITIONS(-D_WINDOWS)
+	ADD_DEFINITIONS(-D_USRDLL)
+	ADD_DEFINITIONS(-DPISTORE_EXPORTS)
+	ADD_DEFINITIONS(-D_WINDLL)
+	ADD_DEFINITIONS(-D_MBCS)
+	ADD_DEFINITIONS(-D_CRT_SECURE_NO_DEPRECATE)
+	ADD_DEFINITIONS(-D_CRT_NONSTDC_NO_DEPRECATE)
+	SET( CMAKE_C_FLAGS  "/Gm /Zi /EHsc /GS /W3 /nologo /c /Gd /TP ")
+	SET( CMAKE_CXX_FLAGS ${CMAKE_C_FLAGS})
+ENDIF(CMAKE_SYSTEM_NAME MATCHES Windows)
+
+IF(CMAKE_SYSTEM_NAME MATCHES Linux)
+	ADD_DEFINITIONS(-D_LINUX)
+	ADD_DEFINITIONS(-DPOSIX)
+	ADD_DEFINITIONS(-DIA32)
+
+IF(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
+	SET( ARCH_C_FLAGS  "-march=nocona -m128bit-long-double -m64" )
+ELSE(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
+	SET( ARCH_C_FLAGS  "-march=i686 -m32" )
+ENDIF(CMAKE_SYSTEM_PROCESSOR MATCHES "x86_64")
+
+IF(CMAKE_BUILD_TYPE MATCHES Debug)
+	SET( OPT_C_FLAGS "-g -O0" )
+ELSE(CMAKE_BUILD_TYPE MATCHES Debug)
+	SET( OPT_C_FLAGS "-g -O3" )
+ENDIF(CMAKE_BUILD_TYPE MATCHES Debug)
+
+SET( CMAKE_C_FLAGS "${ARCH_C_FLAGS} ${OPT_C_FLAGS} -W -Wall -fno-strict-aliasing -Wno-parentheses -Wno-unused-parameter -Wno-write-strings -Wpointer-arith" )
+SET( CMAKE_CXX_FLAGS "${CMAKE_C_FLAGS} -fnon-call-exceptions -Wno-non-virtual-dtor -Wno-deprecated")
+
+ENDIF(CMAKE_SYSTEM_NAME MATCHES Linux)
+
+IF(CMAKE_SYSTEM_NAME MATCHES Darwin)
+	ADD_DEFINITIONS(-D_LINUX)
+	ADD_DEFINITIONS(-DPOSIX)
+	ADD_DEFINITIONS(-DDarwin)
+	ADD_DEFINITIONS(-DIA32)
+	SET(CMAKE_C_FLAGS  "-m64  -g -O0 -fexceptions -fno-strict-aliasing -W -Wall -Wno-unused-parameter -fnon-call-exceptions -Wno-non-virtual-dtor -Wpointer-arith")
+	SET(CMAKE_CXX_FLAGS  "-m64  -g -O0 -fexceptions -fno-strict-aliasing -W -Wall -Wno-unused-parameter -fnon-call-exceptions -Wno-non-virtual-dtor")
+ENDIF(CMAKE_SYSTEM_NAME MATCHES Darwin)
+
+SET(MVDAEMON_SRCS mvdaemon.c portability.c socket.c http.c storecmd.cpp storenotifier.cpp intr.c intr.h http.h portability.h socket.h storecmd.h storenotifier.h ../include/mvdaemon.h ../include/mvhttp.h )
+SET(MVSTORED_SRCS ${MVDAEMON_SRCS} mvstored.c)
+
+SET(MVCLIENT_SRCS mvclient.c portability.c socket.c http.c intr.c intr.h http.h portability.h socket.h ../include/mvclient.h ../include/mvdaemon.h)
+SET(MVCTEST_SRCS ${MVCLIENT_SRCS} mvctest.c)
+
+IF(CMAKE_SYSTEM_NAME MATCHES Windows)
+	SET(MVSTORED_SRCS ${MVSTORED_SRCS} ucgetopt.c)
+	SET(MVCTEST_SRCS ${MVCTEST_SRCS} ucgetopt.c)
+ENDIF(CMAKE_SYSTEM_NAME MATCHES Windows)
+
+add_executable (${MVCTEST_TARGET_NAME} ${MVCTEST_SRCS})
+SET_TARGET_PROPERTIES(${MVCTEST_TARGET_NAME} PROPERTIES LINKER_LANGUAGE C)
+
+link_directories("${MVSTORE_PRJ}/lib")
+add_executable (${MVSTORED_TARGET_NAME} ${MVSTORED_SRCS})
+SET_TARGET_PROPERTIES(${MVSTORED_TARGET_NAME} PROPERTIES LINKER_LANGUAGE CXX)
+
+#adding the build target - mvstored dynamic library...
+add_library (${MVDAEMON_TARGET_NAME} SHARED ${MVDAEMON_SRCS})
+SET_TARGET_PROPERTIES(${MVDAEMON_TARGET_NAME} PROPERTIES COMPILE_DEFINITIONS LIBRARY)
+# COMPILE_DEFINITION also DYNAMIC_LIRBARY only not implemented yet
+
+#adding the build target - mvclient dynamic library...
+add_library (${MVCLIENT_TARGET_NAME} SHARED ${MVCLIENT_SRCS})
+SET_TARGET_PROPERTIES(${MVCLIENT_TARGET_NAME} PROPERTIES COMPILE_DEFINITIONS LIBRARY)
+SET_TARGET_PROPERTIES(${MVCLIENT_TARGET_NAME} PROPERTIES LINKER_LANGUAGE C)
+
+
+IF(CMAKE_SYSTEM_NAME MATCHES Linux)
+target_link_libraries (${MVSTORED_TARGET_NAME} mvstore rt dl pthread)
+target_link_libraries (${MVDAEMON_TARGET_NAME} mvstore rt dl pthread)
+ELSE(CMAKE_SYSTEM_NAME MATCHES Linux)
+target_link_libraries (${MVSTORED_TARGET_NAME} mvstore Ws2_32)
+target_link_libraries (${MVDAEMON_TARGET_NAME} mvstore Ws2_32)
+target_link_libraries (${MVCTEST_TARGET_NAME} Ws2_32)
+target_link_libraries (${MVCLIENT_TARGET_NAME} Ws2_32)
+ENDIF(CMAKE_SYSTEM_NAME MATCHES Linux)
