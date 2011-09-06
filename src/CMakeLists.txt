@@ -1,4 +1,6 @@
-cmake_minimum_required(VERSION 2.8)
+IF(CMAKE_SYSTEM_NAME MATCHES Windows)
+        cmake_minimum_required(VERSION 2.8)
+ENDIF(CMAKE_SYSTEM_NAME MATCHES Windows)
 
 message("Processing mvstore server/src ...")
 SET(MVSTORED_TARGET_NAME "mvstored")
