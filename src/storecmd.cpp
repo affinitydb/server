@@ -283,17 +283,17 @@ int mvs_raw2rawi( ISession& sess, mvs_stream_t* ctx,
     ssize_t lRead = 1, got = 0, use, need;
     RC res = RC_OK;
     if ( ctx->len > 0 ) {
-	use = MIN( abs(ctx->clen), ctx->len ); /* abs(-1) = MAX_INT */
-	res = in->next( (unsigned char*)ctx->buf, use );
-	got += use;
+        use = ctx->clen > 0 ? ( MIN( ctx->clen, ctx->len ) ) : ctx->len;
+        res = in->next( (unsigned char*)ctx->buf, use );
+        got += use;
     }
     while ( !intr && res == RC_OK && lRead > 0 && ( ctx->clen >= 0 ? got < (ssize_t)ctx->clen : 1 ) ) {
-	need = ctx->clen >= got ? ctx->clen - got : sizeof(buf);
-	lRead = reader( ctx, buf, MIN( need, (ssize_t)sizeof(buf) ) );
-	if ( lRead > 0 ) {
-	    got += lRead;
-	    res = in->next( buf, lRead );
-	}
+        need = ctx->clen >= got ? ctx->clen - got : sizeof(buf);
+        lRead = reader( ctx, buf, MIN( need, (ssize_t)sizeof(buf) ) );
+        if ( lRead > 0 ) {
+            got += lRead;
+            res = in->next( buf, lRead );
+        }
     }
     if ( lRead < 0 ) { res = RC_OTHER; }
     /* this completes a pin insertion */
