@@ -67,10 +67,10 @@ ssize_t http_resp( int sock, int code, const char* desc, const char* header,
 		     header ? header : "", explain ? LENGTH : "", 
                      explain ? conlen : "", explain ? CRLF : "" );
     if ( code >= 300 ) {		/* only log on error codes */
-	fprintf( stderr, "[%s] %s\n", ltime(), explain?explain : "" );
+	LOG_LINE( kLogError, explain );
     }
     if ( mvd_verbose ) {
-        fprintf( stderr, "[%s] response headers: %s\n", ltime(), err );
+        LOG_LINE( kLogInfo, "response headers: %s", err );
     }
     r = sock_write( sock, err, elen );
     if ( explain && r == elen ) {
@@ -79,9 +79,7 @@ ssize_t http_resp( int sock, int code, const char* desc, const char* header,
             r += rt;
         }
         if ( mvd_verbose > 1 ) {
-            fprintf( stderr, "[%s] response body (len = %d): ", 
-                     ltime(), expl_len );
-            fwrite( explain, expl_len, 1, stderr );
+            LOG_LINE( kLogInfo, "response body (len = %d): %s", expl_len, explain );
         }
     }
     return r;
@@ -172,7 +170,7 @@ ssize_t sock_web( int sock, const char* path ) {
                      TYPE "%s" CRLF
                      LENGTH "%ld" CRLF, mime, (long int)flen );
     http_resp( sock, HTTP_OK, HTTP_OK_DESC, exp, NULL, 0 );
-    res = sendfile( sock, fd, NULL, flen );
+    res = mv_sendfile( sock, fd, NULL, flen );
     close( fd );
     if ( res < flen ) { return 0; }
     return res;
@@ -268,17 +266,16 @@ typedef struct query_params_s {
         (q)->alloced = 0;                       \
     } while (0)
 
-int query_print( query_params_t* q, FILE* f ) {
+int query_print( query_params_t* q, enum eLogLevel level ) {
     unsigned i;
     char* p;
-    fprintf( f, "params[%u] = [", q->n );
+    LOG_LINE( level, "params[%u] = [", q->n );
     for ( i = 0; i < q->n; i++ ) {
         p = q->params[i];
-        if ( p ) { fprintf( f, "\"%s\"", p ); }
-        else { fprintf( f, "-" ); }
-        fprintf( f, "%s", i+1 < q->n ? "," : "" );
+        if ( p ) { LOG_LINE( level, "  \"%s\"", p ); }
+        else { LOG_LINE( level, "  -" ); }
     }
-    fprintf( f, "]\n" );
+    LOG_LINE( level, "]" );
     return 1;
 }
 
@@ -412,14 +409,13 @@ int match_cgi( const char* sep, const char* path ) {
 
 typedef struct thread_arg_s {
     int sock;
-    void* db;
+    void* storemgr;
     int auto_create;
 } thread_arg_t;
 
 pthread_mutex_t thread_mutex;
 
 pthread_mutex_t main_mutex;
-void* volatile main_db = NULL;
 void* external_db = NULL;
 
 /* this thread structure is inefficient - needs to be improved */
@@ -455,16 +451,16 @@ int thread_killall( pthread_t exclude, uint32_t usec ) {
     pthread_mutex_unlock( &thread_mutex );
 
     elapsed = 0;
-    fprintf( stderr, "thread_killall target = %d\n", target );
+    LOG_LINE( kLogInfo, "thread_killall target = %d\n", target );
     for ( i = thread_running; thread_running > target && elapsed < usec ; ) {
         usleep( 10 );
         elapsed += 10;
         if ( thread_running < i ) {
             i = thread_running;
-            fprintf( stderr, "threads left = %d\n", i );
+            LOG_LINE( kLogInfo, "threads left = %d\n", i );
         }
     }
-    fprintf( stderr, "done left = %d\n", i );
+    LOG_LINE( kLogInfo, "done left = %d\n", i );
 
     intr = 0;
 
@@ -558,8 +554,8 @@ int thread_delete( pthread_t th ) {
 }
 
 int sock_cgi( int sock, int method, int action, char* path, char* body, 
-              int blen, int bsz, int clen, void* db,  int auto_create,
-              session_t* sess, char* req, 
+              int blen, int bsz, int clen, void* storemgr, int auto_create,
+              mvs_connection_ctx_t** cctxp, char* req, 
               const char* user, const char* pass ) {
     char *query = NULL, *frag = NULL, *buf = NULL;
     char exp[BUF_SIZE+1];
@@ -581,87 +577,79 @@ int sock_cgi( int sock, int method, int action, char* path, char* body,
     cgi_init( &cgi );
     query_init( &qparams );
     page_init( &page );
-    fprintf( stderr, "raw: %s\n", req );
+    LOG_LINE( kLogInfo, "raw: %s", req );
     parse_frag( req, &query, &frag );
-    fprintf( stderr, "path: %s, query: %s, frag: %s\n", 
-             path?path:"", query?query:"", frag?frag:"" );
+    LOG_LINE( kLogDebug, "path: %s, query: %s, frag: %s", 
+              path?path:"", query?query:"", frag?frag:"" );
     parse_params( query, &cgi, &qparams, &page );
-    fprintf( stderr, "query: %s, input: %s, output: %s, type: %s\n", 
-             cgi.query?cgi.query:"", cgi.input, cgi.output,
-             cgi.type?cgi.type:"query");
-    query_print( &qparams, stderr );
-    fprintf( stderr, "page off=%u\n", page.off );
+    LOG_LINE( kLogDebug, "query: %s, input: %s, output: %s, type: %s", 
+              cgi.query?cgi.query:"", cgi.input, cgi.output,
+              cgi.type?cgi.type:"query");
+    query_print( &qparams, kLogDebug );
+    LOG_LINE( kLogInfo, "page off=%u", page.off );
     if ( page.lim != ~0u ) {
-        fprintf( stderr, "page limit=%u\n", page.lim );
+        LOG_LINE( kLogInfo, "page limit=%u\n", page.lim );
     }
+ 
     if ( action == CGI_DROP ) {
-        if ( external_db ) {
+        if ( external_db ) { // REVIEW: With multi-store this has become a way too coarse test; but mvengine is a secondary matter at the moment.
             http_resp( sock, HTTP_INT, "can not DROP mvengine store",
                        TYPE MIME_HTML CRLF, 
                        "can not DROP mveninge managed store", 0 );
             return 0;
         }
         pthread_mutex_lock( &main_mutex );
-        if ( main_db == NULL ) {
-            http_resp( sock, HTTP_INT, "store missing for DROP",
-                       TYPE MIME_HTML CRLF,
-                       "can not DROP non-existant store", 0 );
-            pthread_mutex_unlock( &main_mutex );
-            return 0;
-        }
-        if ( !thread_killall( thread_main, 1000000 ) ) { /* 1 sec */
-            /* not at all safe... */
-/*            thread_cancelall( thread_main ); */
-        }
-        mvs_close( sess );
-        mvs_term( main_db );
-        main_db = NULL;
-        elen = MIN( strlen(storedir), BUF_SIZE - 1 - strlen("mv.store")-1 );
-        strncpy( exp, storedir, elen+1 );
-        if ( elen > 0 && exp[elen-1] != '/' ) { exp[elen++] = '/'; }
-        strcpy( exp+elen, "mv.store" );
-        if ( mvd_verbose ) { 
-            fprintf( stderr, "[%s] dropping store \"%s\"\n", ltime(), exp );
-        }
-        rc = unlink( exp ) == 0;
+        #if 1
+            if ( *cctxp ) { mvs_term_connection( *cctxp ); *cctxp = NULL; }
+            rc = 0 == mvs_drop_store( storemgr, user, pass );
+        #else
+            // NOTE (maxw): With multi-store this drastic approach is no longer applicable...
+            // REVIEW (maxw): If drop is called say at startup, after unclean shutdown, this code doesn't delete the logs...
+            if ( !thread_killall( thread_main, 1000000 ) ) { /* 1 sec */
+                /* not at all safe... */
+                /* thread_cancelall( thread_main ); */
+            }
+            mvs_close( sess );
+            mvs_term( main_db );
+            main_db = NULL;
+            elen = MIN( strlen(storedir), BUF_SIZE - 1 - strlen("mv.store")-1 );
+            strncpy( exp, storedir, elen+1 );
+            if ( elen > 0 && exp[elen-1] != '/' ) { exp[elen++] = '/'; }
+            strcpy( exp+elen, "mv.store" );
+            if ( mvd_verbose ) { 
+                LOG_LINE( kLogInfo, "dropping store \"%s\"", exp );
+            }
+            rc = unlink( exp ) == 0;
+        #endif
         http_resp( sock, rc ? HTTP_OK : HTTP_INT,
                    rc ? HTTP_OK_DESC : "drop error",
                    TYPE MIME_HTML CRLF,
                    rc ? "drop succeeded" : "drop failed", 0 );
         pthread_mutex_unlock( &main_mutex );
         return 1;
-    } else if ( action == CGI_CREATE ) {
-        rc = 0;
-        if ( external_db ) {
-            http_resp( sock, HTTP_INT, "can not CREATE mvengine store",
-                       TYPE MIME_HTML CRLF, 
-                       "can not CREATE mveninge managed store", 0 );
-            return 0;
-        }
-        pthread_mutex_lock( &main_mutex );
-        main_db = mvs_init( NULL, 1  ); /* create */
-        pthread_mutex_unlock( &main_mutex );
-        http_resp( sock, HTTP_OK, HTTP_OK_DESC,
-                   TYPE MIME_HTML CRLF, "create succeeded", 0 );
-        return 1;
+    }
+
+    /* if the client switches stores within a single connection, deal with it */
+    /* REVIEW: we could also decide to not allow this */
+    if ( *cctxp != NULL && user != NULL && 0 != strcmp( user, ( *cctxp )->storeident ) ) {
+        mvs_term_connection( *cctxp );
+        *cctxp = NULL;
     }
 
     /* auto-open if no previous requests opened */
-    if ( sess->ptr == NULL ) {
-        pthread_mutex_lock( &main_mutex );
-        if ( main_db == NULL && external_db == NULL ) {
-            /* if auto_create is true, creates store file if missing */
-            main_db = mvs_init( NULL, auto_create );
-        }
-        pthread_mutex_unlock( &main_mutex );
-        if ( main_db ) { mvs_session( main_db, sess ); }
+    if ( *cctxp == NULL ) {
+        *cctxp = mvs_init_connection( storemgr, user, pass );
     }
-
-    if ( sess->ptr == NULL ) {
-        fprintf( stderr, "[%s] db request, but db not CREATEd\n", ltime() );
+    if ( *cctxp == NULL ) {
+        LOG_LINE( kLogWarning, "db request, but db not AVAILABLE" );
         http_resp( sock, HTTP_INT, "missing store", TYPE MIME_HTML CRLF,
                    "missing store, must CREATE first", 0 );
         return 0;
+    }
+    if ( action == CGI_CREATE ) {
+        http_resp( sock, HTTP_OK, HTTP_OK_DESC,
+                   TYPE MIME_HTML CRLF, "create succeeded", 0 );
+        return 1;
     }
 
     if ( method == METHOD_GET ) {
@@ -675,7 +663,7 @@ int sock_cgi( int sock, int method, int action, char* path, char* body,
             if ( cgi.type && 
                  ( strcmp( cgi.type, "class" ) == 0 || 
                    strcmp( cgi.type, "pin" ) == 0 ) ) {
-                rc = mvs_regNotif( db, sess, user, pass, cgi.type, 
+                rc = mvs_regNotif( *cctxp, cgi.type, 
                                    cgi.notifparam, cgi.clientid, &res );
                 http_resp( sock, rc ? HTTP_OK : HTTP_INT, 
                            rc ? HTTP_OK_DESC : "mvstore error", 
@@ -690,7 +678,7 @@ int sock_cgi( int sock, int method, int action, char* path, char* body,
             return 1;
         }
         if ( strcmp( cgi.input, "unregnotif" ) == 0 ) {
-            rc = mvs_unregNotif( db, sess, user, pass, 
+            rc = mvs_unregNotif( *cctxp, 
                                  cgi.notifparam, cgi.clientid, &res );
             http_resp( sock, rc ? HTTP_OK : HTTP_INT, 
                        rc ? HTTP_OK_DESC : "mvstore error", 
@@ -698,7 +686,7 @@ int sock_cgi( int sock, int method, int action, char* path, char* body,
             return 1;
         }
         if ( strcmp( cgi.input, "waitnotif" ) == 0 ) {
-            rc = mvs_waitNotif( db, sess, user, pass, cgi.notifparam, 
+            rc = mvs_waitNotif( *cctxp, cgi.notifparam, 
                                 cgi.clientid, cgi.timeout, &res );
             http_resp( sock, rc ? HTTP_OK : HTTP_INT, 
                        rc ? HTTP_OK_DESC : "mvstore error", 
@@ -719,20 +707,20 @@ int sock_cgi( int sock, int method, int action, char* path, char* body,
 
         if ( strcmp( cgi.output, "json" ) == 0 ) {
             if ( cgi.type && strcmp( cgi.type, "count" ) == 0 ) {
-                rc = mvs_sql2count( sess, user, pass, cgi.query, &res, NULL,
+                rc = mvs_sql2count( *cctxp, cgi.query, &res, NULL,
                                     qparams.params, qparams.n, &count );
                 if ( rc ) { sprintf( numstr, "%llu", count ); }
             } else if ( cgi.type && strcmp( cgi.type, "plan" ) == 0 ) {
-                rc = mvs_sql2plan( sess, user, pass, cgi.query, &res,
+                rc = mvs_sql2plan( *cctxp, cgi.query, &res,
                                    qparams.params, qparams.n );
             } else if ( cgi.type && strcmp( cgi.type, "display" ) == 0 ) {
-                rc = mvs_sql2display( sess, user, pass, cgi.query, &res );
+                rc = mvs_sql2display( *cctxp, cgi.query, &res );
             } else if ( cgi.type && strcmp( cgi.type, "expression" ) == 0 ) {
-                rc = mvs_expr2json( sess, user, pass, cgi.query, &res, NULL,
+                rc = mvs_expr2json( *cctxp, cgi.query, &res, NULL,
                                     qparams.params, qparams.n, &val );
                 if ( val ) { res = (char*)mvs_val2str( val ); }
             } else if ( !cgi.type || strcmp( cgi.type, "query" ) == 0 ) {
-                rc = mvs_sql2json( sess, user, pass, cgi.query, &res, NULL, 
+                rc = mvs_sql2json( *cctxp, cgi.query, &res, NULL, 
                                    qparams.params, qparams.n,
                                    page.off, page.lim );
             } else {
@@ -749,8 +737,8 @@ int sock_cgi( int sock, int method, int action, char* path, char* body,
                        rc && ( !cgi.type || strcmp( cgi.type, "query" )==0 ) ? 
                        TYPE MIME_JSON CRLF : TYPE MIME_HTML CRLF,
                        numstr[0] ? numstr : (res?res:""), 0 );
-            if ( res && !val ) { mvs_free( sess, res ); }
-            if ( val ) { mvs_freev( sess, val ); }
+            if ( res && !val ) { mvs_free( *cctxp, res ); }
+            if ( val ) { mvs_freev( *cctxp, val ); }
             return 1;
         } else if ( strcmp( cgi.output, "proto" ) == 0 ) {
             ctx.sock = sock;
@@ -759,7 +747,7 @@ int sock_cgi( int sock, int method, int action, char* path, char* body,
                        CONNECTION CLOSE CRLF
                        TYPE MIME_PROTO CRLF, NULL );
 #endif
-            rd = mvs_sql2raw( sess, user, pass, cgi.query, &res, &ctx, 
+            rd = mvs_sql2raw( *cctxp, cgi.query, &res, &ctx, 
                               &mvs_write, qparams.params, qparams.n, 
                               page.off, page.lim );
             query_free( &qparams );
@@ -773,7 +761,7 @@ int sock_cgi( int sock, int method, int action, char* path, char* body,
                            TYPE MIME_PROTO CRLF,
                            res ? res : "", rd );
             }
-            mvs_free( sess, res );
+            mvs_free( *cctxp, res );
             return 1;
 #else
             return 0;
@@ -840,10 +828,10 @@ int sock_cgi( int sock, int method, int action, char* path, char* body,
 	    }
             body[clen] = '\0';
             if ( mvd_verbose > 1 ) {
-                fprintf( stderr, "[%s] request post: %s \n", ltime(), body );
+                LOG_LINE( kLogInfo, "request post: %s", body );
             }
 	    parse_params( body, &cgi, &qparams, &page );
-            query_print( &qparams, stderr );
+            query_print( &qparams, kLogDebug );
 
             if ( !cgi.query ) {
                 http_resp( sock, HTTP_INT, HTTP_INT_DESC, NULL,
@@ -854,20 +842,20 @@ int sock_cgi( int sock, int method, int action, char* path, char* body,
             if ( strcmp( cgi.output, "json" ) == 0 || 
                  (cgi.type && strcmp( cgi.type, "query" ) != 0) ) {
                 if ( cgi.type && strcmp( cgi.type, "count" ) == 0 ) {
-                    rc = mvs_sql2count( sess, user,pass, cgi.query, &res,NULL,
+                    rc = mvs_sql2count( *cctxp, cgi.query, &res,NULL,
                                         qparams.params, qparams.n, &count );
                     if ( rc ) { sprintf( numstr, "%llu", count ); }
                 } else if ( cgi.type && strcmp( cgi.type, "plan" ) == 0 ) {
-                    rc = mvs_sql2plan( sess, user, pass, cgi.query, &res,
+                    rc = mvs_sql2plan( *cctxp, cgi.query, &res,
                                        qparams.params, qparams.n );
                 } else if ( cgi.type && strcmp( cgi.type, "display" ) == 0 ) {
-                    rc = mvs_sql2display( sess, user, pass, cgi.query, &res );
+                    rc = mvs_sql2display( *cctxp, cgi.query, &res );
                 } else if ( cgi.type && strcmp( cgi.type, "expression" )==0 ) {
-                    rc = mvs_expr2json( sess, user,pass,cgi.query, &res, NULL,
+                    rc = mvs_expr2json( *cctxp, cgi.query, &res, NULL,
                                         qparams.params, qparams.n, &val );
                     if ( val ) { res = (char*)mvs_val2str( val ); }
                 } else if ( !cgi.type || strcmp( cgi.type, "query" ) == 0 ) {
-                    rc = mvs_sql2json( sess, user,pass, cgi.query, &res,NULL, 
+                    rc = mvs_sql2json( *cctxp, cgi.query, &res,NULL, 
                                        qparams.params, qparams.n,
                                        page.off, page.lim );
                 } else {
@@ -892,8 +880,8 @@ int sock_cgi( int sock, int method, int action, char* path, char* body,
                                       strlen( numstr[0] ? numstr : 
                                               (res?res:"") ) );
                 }
-                if ( res && !val ) { mvs_free( sess, res ); }
-                if ( val ) { mvs_freev( sess, val ); }
+                if ( res && !val ) { mvs_free( *cctxp, res ); }
+                if ( val ) { mvs_freev( *cctxp, val ); }
                 if ( alloc ) { free( body ); }
                 return isclose ? 0 : ret;
             } else if ( strcmp( cgi.output, "proto" ) == 0 ) {
@@ -903,7 +891,7 @@ int sock_cgi( int sock, int method, int action, char* path, char* body,
                            CONNECTION CLOSE CRLF
                            TYPE MIME_PROTO CRLF, NULL );
 #endif
-                rd = mvs_sql2raw( sess, user, pass, cgi.query, &res, &ctx, 
+                rd = mvs_sql2raw( *cctxp, cgi.query, &res, &ctx, 
                                   &mvs_write, qparams.params, qparams.n,
                                   page.off, page.lim );
                 if ( alloc ) { free( body ); }
@@ -917,7 +905,7 @@ int sock_cgi( int sock, int method, int action, char* path, char* body,
                                TYPE MIME_PROTO CRLF,
                                res ? res : "", rd );
                 }
-                mvs_free( sess, res );
+                mvs_free( *cctxp, res );
                 return 1;
 #else
                 return 0;
@@ -930,14 +918,14 @@ int sock_cgi( int sock, int method, int action, char* path, char* body,
                 ctx.len = blen;
                 ctx.clen = clen;
                 http_resp( sock, HTTP_OK, HTTP_OK_DESC, CONNECTION CLOSE CRLF, NULL, 0 );
-                mvs_raw2raw( sess, user,pass, &ctx, &mvs_read, &mvs_write );
+                mvs_raw2raw( *cctxp, &ctx, &mvs_read, &mvs_write );
                 return 0;
             } else if ( strcmp( cgi.output, "json" ) == 0 ) {
                 /* unsupported */
             }
         }
     } else {
-	fprintf( stderr, "[%s] invalid command, internal error\n", ltime() );
+	LOG_LINE( kLogError, "invalid command, internal error" );
     }
 #else
     sock_write( sock, HELLO, strlen( HELLO ) );
@@ -997,7 +985,7 @@ int auth_extract( char* auth, char** user, char** pass ) {
     return 1;
 }
 
-ssize_t sock_server( int client, void* db, session_t* sess,int auto_create ) {
+ssize_t sock_server( int client, void* storemgr, int auto_create, mvs_connection_ctx_t** cctxp ) {
     int res, rlen, elen, blen = 0, cmd, clen = -1, cgi = 0;
     char req[BUF_SIZE+1], exp[BUF_SIZE+1];
     char *body = NULL, *path = NULL, *space = NULL, *headers = NULL;
@@ -1078,13 +1066,13 @@ ssize_t sock_server( int client, void* db, session_t* sess,int auto_create ) {
                        "no static web service as docroot unspecified\n", 0 );
             return 0;
         }
-        fprintf( stderr, "[%s] static request: %s\n", ltime(), path );
+        LOG_LINE( kLogReport, "static request: %s", path );
         res = sock_web( client, path ); /* static web server */
         return res;
     } else {
-        fprintf( stderr, "[%s] db request: %s %s\n", ltime(), req, path );
+        LOG_LINE( kLogReport, "db request: %s %s", req, path );
         if ( mvd_verbose ) {
-            fprintf( stderr, "[%s] request headers: %s\n", ltime(), headers );
+            LOG_LINE( kLogInfo, "request headers: %s", headers );
         }
 
 	clen = -1;    /* POST uses Content-Length header if present */
@@ -1156,26 +1144,24 @@ ssize_t sock_server( int client, void* db, session_t* sess,int auto_create ) {
         if ( intr ) { return 0; }
 	return sock_cgi( client, cmd, cgi, path, 
                          body, blen, BUF_SIZE-(int)(body-req), 
-                         clen, db, auto_create, sess, query, user, pass );
+                         clen, storemgr, auto_create, cctxp, query, user, pass );
     }
 }
 
 void* thread_container( void* arg ) {
-    thread_arg_t* ctx;
+    thread_arg_t* tctx;
+    mvs_connection_ctx_t* cctx = NULL;
     pthread_t me = pthread_self();
-    session_t sess;
 
-    sess.ptr = NULL;
     if ( !arg ) { return NULL; }
     thread_add( me );
 
-    ctx = (thread_arg_t*)arg;
-    mvs_session( ctx->db, &sess );
+    tctx = (thread_arg_t*)arg;
     do {} 
     while ( !intr && 
-            sock_server( ctx->sock, ctx->db, &sess, ctx->auto_create ) );
-    sock_close( ctx->sock );
-    if ( main_db ) { mvs_close( &sess ); }
+            sock_server( tctx->sock, tctx->storemgr, tctx->auto_create, &cctx ) );
+    sock_close( tctx->sock );
+    if ( cctx ) { mvs_term_connection( cctx ); }
     free( arg );
 
     thread_delete( me );
@@ -1190,8 +1176,8 @@ int validate_dir( const char* dir, const char* desc ) {
     if ( (dlen > 0 && dir[dlen-1] == PATH_SEP) || fisdir( dir ) ) {
         return 1;
     } else {
-        fprintf( stderr, "[%s] %s \"%s\" is not a dir\n", 
-                 ltime(), desc, dir );
+        LOG_LINE( kLogWarning, "%s \"%s\" is not a dir", 
+                  desc, dir );
         return 0;
     }
 }
@@ -1237,7 +1223,9 @@ int mvdaemon( void *ctx, const char* www, const char* store,
     int client;
     pthread_t child;
     thread_arg_t* arg = NULL;
-    
+    void* storemgr = NULL;
+
+    loggingInit();
     external_db = ctx;
 
     /* if called from mvengine, start with a different server string */
@@ -1254,12 +1242,11 @@ int mvdaemon( void *ctx, const char* www, const char* store,
     
     curdir = getcwd( exp, BUF_SIZE );
     if ( curdir == NULL ) {
-        fprintf( stderr, "[%s] cant determine current dir\n", ltime() );
+        LOG_LINE( kLogWarning, "can't determine current dir" );
         return 0;
     }
 
-    fprintf( stderr, "[%s] starting with current dir \"%s\"\n", 
-             ltime(), curdir );
+    LOG_LINE( kLogReport, "starting with current dir \"%s\"", curdir );
     storedir = store;
 
     /* ok intention here:
@@ -1287,7 +1274,7 @@ int mvdaemon( void *ctx, const char* www, const char* store,
         if ( !ABS_PATH( wwwdir ) ) { 
             wwwdir = abs_dir( wwwdir, curdir ); 
             if ( wwwdir == NULL ) {
-                fprintf( stderr, "[%s] out of memory\n", ltime() ); 
+                LOG_LINE( kLogError, "out of memory" ); 
                 return 0;
             }
             www_alloc = 1; 
@@ -1303,35 +1290,30 @@ int mvdaemon( void *ctx, const char* www, const char* store,
                     docroot[docroot_len++] = PATH_SEP;
                     docroot[docroot_len] = '\0';
                 }
-                fprintf( stderr, "[%s] started with docroot \"%s\"\n", 
-                         ltime(), docroot );
+                LOG_LINE( kLogReport, "started with docroot \"%s\"", docroot );
             } else {            /* in mvstored use relative path */
                 res = chdir( wwwdir );
                 if ( res < 0 ) {
-                    fprintf( stderr, "[%s] cant open docroot \"%s\"\n", 
-                             ltime(), wwwdir );
+                    LOG_LINE( kLogWarning, "can't open docroot \"%s\"", wwwdir );
                     www_service = 0;
                 } else {
-                    fprintf( stderr, "[%s] started with docroot \"%s\"\n", 
-                             ltime(), wwwdir );
+                    LOG_LINE( kLogReport, "started with docroot \"%s\"", wwwdir );
                 }
             }
         }
     }
     if ( !www_service ) {
-        fprintf( stderr, "[%s] warning: static web service disabled\n",
-                 ltime() );
+        LOG_LINE( kLogWarning, "static web service disabled" );
     }
 
     if ( storedir == NULL ) { 
         storedir = ".."; 
-        fprintf( stderr, "[%s] storedir defaulting to wwwdir%c..\n",
-                 ltime(), PATH_SEP );
+        LOG_LINE( kLogReport, "storedir defaulting to wwwdir%c..", PATH_SEP );
     }
     if ( !ABS_PATH( storedir ) ) { 
         storedir = abs_dir( storedir, store ? curdir : wwwdir );
         if ( storedir == NULL ) {
-            fprintf( stderr, "[%s] out of memory\n", ltime() ); 
+            LOG_LINE( kLogError, "out of memory" ); 
             if ( www_alloc ) { free( (void*)wwwdir ); www_alloc = 0; }
             return 0;
         }
@@ -1345,16 +1327,16 @@ int mvdaemon( void *ctx, const char* www, const char* store,
         return 0;
     }
     
-    fprintf( stderr, "[%s] started with storedir \"%s\"\n", 
-             ltime(), storedir );
+    LOG_LINE( kLogReport, "started with storedir \"%s\"", storedir );
 
     sock_init();
     list = sock_listener( port );
-/*    main_db = mvs_init( ctx, auto_create ); */
 
     intr_hook( 0 );
     thread_init( THREAD_MAX );
-
+    
+    storemgr = mvs_init( ctx );
+    
     while ( 1 ) {
         pthread_mutex_lock( &main_mutex ); /* barrier stop accepting */
         pthread_mutex_unlock( &main_mutex ); /* connections until done */
@@ -1364,13 +1346,14 @@ int mvdaemon( void *ctx, const char* www, const char* store,
 	
 	arg = (thread_arg_t*)malloc( sizeof(thread_arg_t) );
 	if ( !arg ) { 
-	    fprintf( stderr, "[%s] out of memory\n", ltime() ); 
+	    LOG_LINE( kLogError, "out of memory" ); 
             return 0;
 	}
-	arg->db = main_db;
+	arg->storemgr = storemgr;
 	arg->sock = client;
         arg->auto_create = auto_create;
-	/* no thread pooling, create/exit on each request */
+	/* no thread pooling, create/exit on each request (or keep-alive connection) */
+	/* Note: the assumed, correct usage of keep-alive connections is dedicated to 1 store/identity - we should verify/assert this... */
 	res = pthread_create( &child, NULL, thread_container, (void*)arg );
 	if ( res != 0 ) {
 	    elen = snprintf( exp, BUF_SIZE, "pthread_create failed: %s", 
@@ -1382,9 +1365,10 @@ int mvdaemon( void *ctx, const char* www, const char* store,
     }
     if ( storedir_alloc ) { free( (void*)storedir ); }
 #ifdef MVSTORE_LINK
-    mvs_term( main_db );
+    mvs_term( storemgr );
 #endif
     intr_unhook();
+    loggingTerm();
 }
 
 #ifdef DYNAMIC_LIBRARY

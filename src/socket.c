@@ -7,6 +7,9 @@
 #include "http.h"
 #include "socket.h"
 #include "intr.h"
+#if defined(__linux__)
+#include <linux/tcp.h>
+#endif
 
 int sock_init( void ) {
 #ifdef WIN32
@@ -49,11 +52,25 @@ int sock_listener( int port ) {
     int list = -1;
     int res = -1, opt = 1;
     struct sockaddr_in addr;
-  
+
     list = socket( AF_INET, SOCK_STREAM, 0 );
     if ( list < 0 ) { exit( EXIT_FAILURE ); }
     res = setsockopt( list, SOL_SOCKET, SO_REUSEADDR,
 		      (void*)&opt, sizeof(opt) );
+    if ( res < 0 ) {
+	fprintf( stderr, "could not set SO_REUSEADDR (%s)\n",
+		 s_strerror(s_errno) );
+    }
+    // Note:
+    //   For the time being we mostly expect LAN access;
+    //   some scenarios clearly benefit from turning
+    //   nagle off.
+    res = setsockopt( list, IPPROTO_TCP, TCP_NODELAY,
+		      (char*)&opt, sizeof(opt) );
+    if ( res < 0 ) {
+	fprintf( stderr, "could not set TCP_NODELAY (%s)\n",
+		 s_strerror(s_errno) );
+    }
   
     addr.sin_family = AF_INET;
     addr.sin_addr.s_addr = INADDR_ANY;

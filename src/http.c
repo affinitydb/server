@@ -198,13 +198,3 @@ char* http_parse( char* headers, const char* header, size_t header_len,
     **end = '\0';
     return value;
 }
-
-const char* ltime( void ) {
-    time_t t = time( 0 );
-    static char res[20];
-    struct tm* ts;
-    ts = localtime( &t );
-    res[0] = '\0';
-    sprintf( res, "%02d:%02d:%02d", ts->tm_hour, ts->tm_min, ts->tm_sec );
-    return res;
-}

@@ -18,8 +18,6 @@ extern "C" {
                       char* undo, char** end );
 #define undo_parse( undo, end ) (*(end) = (undo))
 
-    const char* ltime( void );
-
 #define CRLF "\r\n"
 #define GET "GET"
 #define POST "POST"

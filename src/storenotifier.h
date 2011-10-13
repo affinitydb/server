@@ -11,6 +11,7 @@
     #include <winsock2.h>
     #include <Windows.h>
 #else
+    #include <sys/time.h>
     #include <sys/ipc.h>
     #include <sys/sem.h>
     #define InterlockedIncrement(a) __sync_add_and_fetch(a,1)
@@ -84,10 +85,16 @@ public:
 protected:
     WaitResult _wait( int msTimeout ) { return WAIT_OBJECT_0 == WaitForSingleObject( mEvent, msTimeout ) ? WR_SIGNALED : WR_TIMEOUT; }
     void _signal() { SetEvent( mEvent ); }
+#elif defined (Darwin)
+protected:
+    int mSem;
+    static inline uint64_t getTimeInMs() { timeval ts; gettimeofday(&ts, NULL); return ts.tv_sec * 1000.0 + ts.tv_usec / 1000.0; }
 #else
 protected:
     int mSem;
     static inline uint64_t getTimeInMs() { struct timespec ts; clock_gettime( CLOCK_REALTIME, &ts ); return ( uint64_t )ts.tv_sec * 1000 + ts.tv_nsec / 1000000; }
+#endif
+#if defined (POSIX)
 public:
     WaitableEvent();
     ~WaitableEvent() { semctl(mSem, 0, IPC_RMID); }

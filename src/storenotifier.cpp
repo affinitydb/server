@@ -8,7 +8,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
+#if !defined(Darwin)
 #include <malloc.h>
+#endif
 #include <errno.h>
 #include "startup.h"
 #include "mvstore.h"
@@ -50,7 +52,12 @@ WaitableEvent::WaitResult WaitableEvent::_wait( int msTimeout ) {
     uint64_t t1 = getTimeInMs();
     int r;
     sembuf sb[] = {{ 0, 0, 0 }, { 0, 1, IPC_NOWAIT }};
+    #if defined (Darwin)
+    // REVIEW: Can we do better?
+    while ( 0 != ( r = semop( mSem, sb, 2 ) ) && EINTR == errno ) {
+    #else
     while ( 0 != ( r = semtimedop( mSem, sb, 2, pts ) ) && EINTR == errno ) {
+    #endif
         if ( getTimeInMs() - t1 > ( uint64_t )msTimeout ) {
             break;
         }

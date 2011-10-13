@@ -2,6 +2,11 @@
 
 #include "portability.h"
 #include "intr.h"
+#include <stdio.h>
+#include <stdlib.h>
+#include <stdarg.h>
+#include <string.h>
+#include <time.h>
 
 int fisdir( const char* path ) {
     struct stat stats;
@@ -10,6 +15,79 @@ int fisdir( const char* path ) {
         return 0;
     }
     return S_ISDIR( stats.st_mode );
+}
+
+int ensuredir( const char* path ) {
+    struct stat stats;
+    if ( stat( path, &stats ) == 0 ) {
+        return fisdir( path );
+    }
+    #ifdef WIN32
+        return CreateDirectory( path, NULL ) ? 1 : 0;
+    #else
+        return ( 0 == mkdir( path, 0777 ) ) ? 1 : 0;
+    #endif
+}
+
+static enum eLogLevel const gMinLoggingLevel = kLogReport; // Note: Change this value to get more or less logs...
+static char const* const gLoggingLevels[] = {"DEBUG", "INFO", "REPORT", "WARNING", "ERROR"};
+
+#ifdef WIN32
+DWORD gLoggingTls;
+void loggingInit() { gLoggingTls = TlsAlloc(); }
+void loggingTerm() { TlsFree( gLoggingTls ); }
+void* loggingTlsGet() { return TlsGetValue( gLoggingTls ); }
+void loggingTlsSet(void* p) { TlsSetValue( gLoggingTls, p ); }
+#else
+pthread_key_t gLoggingTls;
+void loggingInit() { pthread_key_create( &gLoggingTls, NULL ); }
+void loggingTerm() { pthread_key_delete( gLoggingTls ); }
+void* loggingTlsGet() { return pthread_getspecific( gLoggingTls ); }
+void loggingTlsSet(void* p) { pthread_setspecific( gLoggingTls, p ); }
+#endif
+typedef struct logginginfo_s { char const * file; int line; } logginginfo_t;
+
+void loggingSetFileInfo( char const * file, int line ) {
+    logginginfo_t* lInfo;
+    void* lOld = loggingTlsGet();
+    if ( !lOld ) { lOld = malloc(sizeof(logginginfo_t)); loggingTlsSet(lOld); }
+    lInfo = (logginginfo_t*)lOld;
+    lInfo->file = file;
+    lInfo->line = line;
+}
+
+void logLine( enum eLogLevel level, char const * fmt, ... ) {
+    logginginfo_t* lLoggingTls;
+    char const* lShortFile;
+    char lBuf[ 0x1000 ];
+    va_list lArguments;
+    if ( level < gMinLoggingLevel ) return;
+    lLoggingTls = ( logginginfo_t* )loggingTlsGet();
+    lShortFile = strrchr( lLoggingTls->file, '/' );
+    lShortFile = lShortFile ? lShortFile + 1 : lLoggingTls->file;
+    lBuf[ 0 ] = 0;
+    if ( fmt ) {
+        va_start( lArguments, fmt );
+        #ifdef WIN32
+            _vsnprintf( lBuf, sizeof(lBuf), fmt, lArguments );
+        #else
+            vsnprintf( lBuf, sizeof(lBuf), fmt, lArguments );
+        #endif
+        va_end(lArguments);
+    }
+    //fprintf( stderr, "%s %s: %s\n", gLoggingLevels[level], ltime(), lBuf );
+    //fprintf( stderr, "%s %s %s[%d]: %s\n", gLoggingLevels[level], ltime(), lLoggingTls->file, lLoggingTls->line, lBuf );
+    fprintf( stderr, "%s %s %s[%d]: %s\n", gLoggingLevels[level], ltime(), lShortFile, lLoggingTls->line, lBuf );
+}
+
+const char* ltime( void ) {
+    time_t t = time( 0 );
+    static char res[20];
+    struct tm* ts;
+    ts = localtime( &t );
+    res[0] = '\0';
+    sprintf( res, "%02d:%02d:%02d", ts->tm_hour, ts->tm_min, ts->tm_sec );
+    return res;
 }
 
 #if defined( WIN32 )
@@ -48,6 +126,11 @@ leave:
 	*offset += (off_t)wrote;
     }
     return res;
+}
+#elif defined(Darwin)
+ssize_t mv_sendfile( int sock, int fd, off_t* offset, size_t count ) {
+	off_t len = count;
+	return sendfile( fd, sock, offset ? *offset : 0, &len, NULL, 0 );
 }
 #endif
 

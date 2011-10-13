@@ -3,6 +3,7 @@
 <head>
   <link href='css/mvstored.css' rel='stylesheet' type='text/css' />
   <script src='js/jquery.js' type='text/javascript'></script>
+  <script src='js/persist-min.js' type='text/javascript'></script>
   <script src='js/mvstored.js' type='text/javascript'></script>
   <title>mvStore Console</title>
 </head>
@@ -10,45 +11,154 @@
 
 <div id='left'>
   <div id='logo'><img src='images/mvlogo.png' alt='mvstore logo' id='logo_img'></div>
-  <div id='nav'></div>
+  <div id='nav'>
+    <ul>
+      <li><a href="#tab-learning"><img src='images/learn.png'></a></li>
+      <li><a href="#tab-batching"><img src='images/batch.png'></a></li>
+      <li><a href="#tab-queryhistory"><img src='images/history.png'></a></li>
+      <li><a href="#tab-config"><img src='images/config.png'></a></li>
+    </ul>
+  </div>
 </div>
 
 <div id='content'>
-  <div id='content_title'>
-    <h1>mvStore Console</h1>
-  </div>
-  <div id='content_left'>
-    <div id='query_spec'>
-      <form id='form' method="get" action="/db">
-        <input id='query' name='query' size='80' /> <button> go </button>
-        <select name="type" id='querytype'>
-          <option value="query">query</option>
-          <option value="expression">expression</option>
-          <option value="count">count</option>
-          <option value="plan">plan</option>
-          <option value="display">display</option>
-        </select>
-      </form>
-      <br/>
+  <!-- Learning Console -->
+  <div id="tab-learning">
+    <div id='content_title'>
+      <h1>Basic Console</h1>
     </div>
-    <div id='result_list'></div>
-    <div id='result_pin'>Execute a query and select a row to see PIN details.</div>
+    <div id='content_left'>
+      <div id='query_spec'>
+        <form id='form' method="get" action="/db">
+          <input id='query' name='query' />
+          <button id='querygo'> go </button>
+          <select name="type" id='querytype'>
+            <option value="query">query</option>
+            <option value="expression">expression</option>
+            <option value="count">count</option>
+            <option value="plan">plan</option>
+            <option value="display">display</option>
+          </select>
+        </form>
+        <br/>
+      </div>
+      <div id='result_list'></div>
+      <div id='result_pin'>Execute a query and select a row to see PIN details.</div>
+    </div>
+    <div id='content_right'>
+      <h3>Classes</h3>
+      <select name="classes" id="classes" size="5"></select>
+      <br/>
+      <p id='class_doc'></p>
+      <h3>Properties</h3>
+      <select name="class_properties" id="class_properties" size="5"></select>
+      <br/>
+      <p id='property_doc'></p>
+      <h3>QNames</h3>
+      <select name="qnames" id="qnames" size="5"></select>
+    </div>
   </div>
-  <div id='content_right'>
-    <h3>Classes</h3>
-    <select name="classes" id="classes" size="5"></select>
-    <br/>
-    <p id='class_doc'></p>
-    <h3>Properties</h3>
-    <select name="class_properties" id="class_properties" size="5"></select>
-    <br/>
-    <p id='property_doc'></p>
-    <h3>QNames</h3>
-    <select name="qnames" id="qnames" size="5"></select>
+  <!-- Batching Console -->
+  <div id="tab-batching">
+    <div id='content_title'>
+      <h1>Batching Console</h1>
+    </div>
+    <div id='query_area'>
+      <textarea id='query_area_q' cols=10></textarea>
+      <button id='query_area_go'>go</button>
+      <div id='query_area_warning'>
+        <p>
+        WARNING:<br>
+        &nbsp;Presently, statements are not guaranteed to be executed in a single stream; transactions may not be respected.<br>
+        &nbsp;Some browsers provide a means of avoiding this issue (e.g. in firefox, via about:config, set network.http.max-persistent-connections-per-server=1).
+        </p>
+      </div>
+    </div>
+    <div id='result_area'>
+      <select name='results' id='result_area_selector'>
+        <option value="none">none</option>
+      </select>
+      <div id='result_area_page'></div>
+    </div>
+  </div>
+  <!-- Query History -->
+  <div id="tab-queryhistory">
+    <div id='content_title'>
+      <h1>Query History</h1>
+    </div>
+    <div id='content_left'>
+      <div id='query_history'></div>
+    </div>
+    <div id='content_right'>
+      <button id='query_history_clear'>Clear History</button>
+    </div>
+  </div>
+  <!-- Configuration & Administration -->
+  <div id="tab-config">
+    <div id='content_title'>
+      <h1>Configuration &amp; Administration</h1>
+    </div>
+    <div id='content_left'>
+      <div id='config_options'>
+        <h3>Current Store</h3>
+        <input id='storeident' name='storeident' size='25' />
+      </div>
+    </div>
   </div>
 </div>
 
 <div id='bottom'>mvStore</div>
+
+<!--
+  #thetooltip is recycled throughout the whole UI, to display a tooltip wherever we want;
+  #thetooltiptable and #themenutable are used as string tables; does there exist a more orthodox solution?
+-->
+<div id='thetooltip'>tooltip</div>
+<div id='thetooltiptable'>
+  <div id='manual'> <!-- These are bound manually by the js code. -->
+    <div id='tooltip_tab-learning'>Basic Console</div>
+    <div id='tooltip_tab-batching'>Batching Console</div>
+    <div id='tooltip_tab-queryhistory'>Query History</div>
+    <div id='tooltip_tab-config'>Configuration &amp; Administration</div>
+  </div>
+  <div id='automatic'> <!-- These are bound automatically to components of the same name in the page. -->
+    <div id='tooltip_classes'>Stored Classes (Right-Click)</div>
+    <div id='tooltip_class_properties'>Properties of Selected Class (Right-Click)</div>
+    <div id='tooltip_qnames'>QName Qualifiers</div>
+    <div id='tooltip_query'>Next Query (Press 'go' or Right-Click)</div>
+    <div id='tooltip_result_pin'>Last Selected PIN</div>
+    <div id='tooltip_query_history'>Click or Right-Click on Row</div>
+    <div id='tooltip_query_area_q'>Next Batch of Queries (Press 'go')</div>
+    <div id='tooltip_result_area_selector'>Select Query Result</div>
+  </div>
+</div>
+<div id='themenutable'>
+  <div id='menu_query'>
+    <div id='menuitem_query_pin'>Query PIN</div>
+    <div id='menuitem_query_class'>Query Class</div>
+    <div id='menuitem_query_classft'>Query Class With Full-Text</div>
+    <div id='menuitem_query_classjoin'>Query Class Join</div>
+    <div id='menuitem_query_all'>Query All PINs</div>
+    <div id='menuitem_query_insertpin'>Insert PIN</div>
+    <div id='menuitem_query_insertgraph'>Insert Graph</div>
+    <div id='menuitem_query_insertclass'>Insert Class</div>
+    <div id='menuitem_query_updatepin'>Update PIN</div>
+    <div id='menuitem_query_deletepin'>Delete PIN</div>
+    <div id='menuitem_query_dropclass'>Drop Class</div>
+  </div>
+  <div id='menu_classes'>
+    <div id='menuitem_classes_q'>Query Class</div>
+    <div id='menuitem_classes_q_ft'>Query Class With Full-Text</div>
+    <div id='menuitem_classes_q_drop'>Drop Class</div>
+  <div id='menu_result_pin'>
+    <div id='menuitem_rp_querypin'>Query PIN</div>
+    <div id='menuitem_rp_deletepin'>Delete PIN</div>
+  </div>
+  <div id='menu_query_history'>
+    <div id='menuitem_qh_remove'>Remove</div>
+    <div id='menuitem_qh_setquery'>Set As Next Query</div>
+  </div>
+</div>
 
 </body>
 </html>

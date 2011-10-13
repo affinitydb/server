@@ -20,19 +20,41 @@ extern "C" {
 #include <sys/stat.h>
 
 int fisdir( const char* path );
+int ensuredir( const char* path );
 
-#if defined(__linux__)
+enum eLogLevel { kLogDebug = 0, kLogInfo, kLogReport, kLogWarning, kLogError };
+void loggingInit();
+void loggingTerm();
+void loggingSetFileInfo( char const * file, int line );
+void logLine( enum eLogLevel level, char const * fmt, ... );
+const char* ltime( void );
+// Note: We could have an inlined empty version of logLine, if needed (optimal perf without any logging).
+
+#if defined(POSIX) || defined(Darwin)
 #include <stdint.h>
 #include <getopt.h>
 #include <sys/time.h>
 #include <unistd.h>
 #include <sys/socket.h>
-#include <sys/sendfile.h>
+#if defined(__linux__)
+    #include <sys/sendfile.h>
+    #define mv_sendfile sendfile
+#elif defined(Darwin)
+    #include <netinet/tcp.h>
+    #include <sys/uio.h>
+    ssize_t mv_sendfile( int sock, int fd, off_t* offset, size_t count );
+#endif
 #include <netinet/in.h>
 #include <netdb.h>
 #include <pthread.h>
 #include <unistd.h>
+#if defined(__linux__)
 	typedef __sighandler_t sighandler_t;
+#endif
+#if defined(Darwin)
+    #include <sched.h>
+    #define pthread_yield sched_yield
+#endif
 #define closesocket(x) close(x)
 #define s_errno errno
 #define s_strerror(e) strerror(e)
@@ -125,6 +147,7 @@ int fisdir( const char* path );
 #define pthread_mutex_lock( m ) WaitForSingleObject( *(m), INFINITE )
 #define pthread_mutex_unlock( m ) ReleaseMutex( *(m) )
     ssize_t sendfile( int sock, int fd, off_t* offset, size_t count );
+    #define mv_sendfile sendfile
     char *strsep(char **stringp, const char *delim);
     const char* s_strerror( int errn );
 
@@ -136,5 +159,7 @@ int fisdir( const char* path );
 #if defined( __cplusplus )
 }
 #endif
+
+#define LOG_LINE loggingSetFileInfo(__FILE__, __LINE__), logLine
 
 #endif
