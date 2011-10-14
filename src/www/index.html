@@ -42,8 +42,10 @@
         </form>
         <br/>
       </div>
-      <div id='result_list'></div>
-      <div id='result_pin'>Execute a query and select a row to see PIN details.</div>
+      <div id='result_frame'>
+        <div id='result_list'></div>
+        <div id='result_pin'>Execute a query and select a row to see PIN details.</div>
+      </div>
     </div>
     <div id='content_right'>
       <h3>Classes</h3>
@@ -63,22 +65,24 @@
     <div id='content_title'>
       <h1>Batching Console</h1>
     </div>
-    <div id='query_area'>
-      <textarea id='query_area_q' cols=10></textarea>
-      <button id='query_area_go'>go</button>
-      <div id='query_area_warning'>
-        <p>
-        WARNING:<br>
-        &nbsp;Presently, statements are not guaranteed to be executed in a single stream; transactions may not be respected.<br>
-        &nbsp;Some browsers provide a means of avoiding this issue (e.g. in firefox, via about:config, set network.http.max-persistent-connections-per-server=1).
-        </p>
+    <div id='batching_left'>
+      <div id='query_area'>
+        <textarea id='query_area_q' cols=10></textarea>
+        <button id='query_area_go'>go</button>
+        <div id='query_area_warning'>
+          <p>
+          WARNING:<br>
+          &nbsp;Presently, statements are not guaranteed to be executed in a single stream; transactions may not be respected.<br>
+          &nbsp;Some browsers provide a means of avoiding this issue (e.g. in firefox, via about:config, set network.http.max-persistent-connections-per-server=1).
+          </p>
+        </div>
       </div>
-    </div>
-    <div id='result_area'>
-      <select name='results' id='result_area_selector'>
-        <option value="none">none</option>
-      </select>
-      <div id='result_area_page'></div>
+      <div id='result_area'>
+        <select name='results' id='result_area_selector'>
+          <option value="none">none</option>
+        </select>
+        <div id='result_area_page'></div>
+      </div>
     </div>
   </div>
   <!-- Query History -->

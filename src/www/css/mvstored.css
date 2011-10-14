@@ -16,9 +16,9 @@ tr.selected { background-color:#d3c8b8; }
 .mvpropname { color:#555; }
 
 /* main divs: #left, #content, #bottom; #content and #bottom have margin for which matches width of #left */
-#left { position:fixed; top:0; left:0; width:3%; height:100%; margin:0; }
-#content { position:fixed; top:0; left:3%; width:95%; height:95%; margin:0; font-size:1.1em; padding:0; line-height:1.4em; background-color:#fff; border:solid 1px #aaa; border-top:none; border-right:none; white-space:nowrap; }
-#bottom { position:fixed; top:95%; left:3%; width:95%; height:5%; margin:0; font-size:1.1em; padding:0; text-align:right; }
+#left { position:fixed; top:0; left:0; width:40px; height:100%; margin:0; }
+#content { position:fixed; top:0; left:40px; right:10px; bottom:20px; margin:0; font-size:1.1em; padding:0; line-height:1.4em; background-color:#fff; border:solid 1px #aaa; border-top:none; border-right:none; white-space:nowrap; }
+#bottom { position:fixed; left:40px; right:10px; height:20px; bottom:0; margin:0; font-size:1.1em; padding:0; text-align:right; }
 
 /* left */
 #logo { padding:1em; }
@@ -28,7 +28,7 @@ tr.selected { background-color:#d3c8b8; }
 #nav img { border:none; }
 
 /* content: divided into a left and a right section */
-#content_left { position:absolute; top:0; width:65%; height:100%; margin:0; white-space:normal; border:none; padding:0 0 0 0.9em; }
+#content_left { position:absolute; top:50px; width:65%; bottom:0; margin:0; white-space:normal; border:none; padding:0 0 0 0.9em; }
 #content_right { float:right; width:30%; height:80%; margin:0; white-space:normal; border:none; overflow:auto; }
 #content_title { padding: 0 0 0 0.9em; }
 #content h1, #content h2 { border-bottom:solid 1px #aaa; font-weight:normal; padding:0.1em 0 0.17em 0; }
@@ -42,29 +42,31 @@ tr.selected { background-color:#d3c8b8; }
 #content blockquote { font-size:1.1em; margin:0.6em 0; padding:0.2em 1em 0.4em 1em; background-color:#eee; border:dotted 1px #ccc; color:#333; }
 
 /* content_left (learning tab) */
-#query_spec { overflow:none; position:absolute; top:10%; width:75%; height:10%; border:none; padding-right:210px; }
+#query_spec { overflow:none; position:absolute; top:2px; width:75%; height:20px; border:none; padding-right:210px; }
 #query { float:left; width:100%; }
 #querytype { float:right; margin-left:5px; margin-right:-112px; width:100px; }
 #querygo { float:right; margin-left:5px; margin-right:-220px; width:100px; }
-#result_list { overflow:auto; position:absolute; top:20%; width:100%; height:55%; border:none; }
-#result_pin { overflow:auto; position:absolute; top:78%; width:100%; height:20%; font-size:0.85em; margin:0; padding:0; line-height:1em; background-color:#eee; }
+#result_frame { overflow:none; position:absolute; top:30px; width:100%; bottom:10px; border:none; }
+#result_list { overflow:auto; position:absolute; top:0; width:100%; height:75%; border:none; }
+#result_pin { overflow:auto; position:absolute; top:75%; width:100%; height:25%; font-size:0.85em; margin:0; margin-top:5px; padding:0; line-height:1em; background-color:#eee; }
 #qresulttable th { font-size:1.1em; font-weight:normal; }
 #qresulttable { border:none; border-collapse:collapse; font-size:0.85em; }
 
 /* content_left (batching tab) */
-#query_area { overflow:none; position:absolute; top:10%; width:80%; height:30%; border:none; padding-left:0.9em; padding-right:110px; }
+#batching_left { position:absolute; top:50px; width:100%; bottom:0; margin:0; white-space:normal; border:none; padding:0; }
+#query_area { overflow:none; position:absolute; top:2px; width:80%; height:30%; border:none; padding-left:0.9em; padding-right:110px; }
 #query_area_q { float:left; width:100%; height:100%; }
 #query_area_go { float:right; margin-left:5px; margin-right:-112px; width:100px; }
 #query_area_warning { float:left; width:100%; font-size:0.6em; line-height:1em; color:#400; }
-#result_area { overflow:none; margin-left:0.9em; position:absolute; top:52%; width:80%; height:55%; border:none; }
+#result_area { overflow:none; margin-left:0.9em; position:absolute; top:40%; width:80%; bottom:10px; border:none; }
 #result_area_page { overflow:auto; height:90%; }
 
 /* content_left (query history tab) */
-#query_history { overflow:auto; position:absolute; top:10%; width:100%; height:85%; border:none; }
+#query_history { overflow:auto; position:absolute; top:2px; width:100%; bottom:0; border:none; }
 #qhistorytable { border:none; border-collapse:collapse; font-size:0.85em; }
 
 /* content_left (config/admin tab) */
-#config_options { overflow:auto; position:absolute; top:10%; width:100%; height:65%; border:none; }
+#config_options { overflow:auto; position:absolute; top:2px; width:100%; height:65%; border:none; }
 
 /* content_right (learning tab) */
 #classes { border:solid 1px; font-size:0.85em; width:100%; }
