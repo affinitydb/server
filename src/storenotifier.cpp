@@ -525,7 +525,7 @@ RC mvs_waitNotifi( MainNotificationHandler& mainh, ISession& sess, char const* n
             return RC_OK;
         // If a clientid was specified, but nothing happened, keep waiting.
         } else if ( !clientid ) {
-            char* response = "{}";
+            char const* response = "{}";
             size_t const lResLen = strlen( response );
             char* lres = ( char* )sess.alloc( 1 + lResLen );
             memcpy( lres, response, lResLen );

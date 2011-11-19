@@ -158,7 +158,7 @@ public:
             LOG_LINE(kLogError, "invalid state (no storectx)");
             return NULL;
         }
-        pCCtx->session = ISession::startSession( ( MVStoreCtx )pCCtx->storectx );
+        pCCtx->session = ISession::startSession( ( MVStoreCtx )pCCtx->storectx, pCCtx->storeident, pCCtx->storepw );
         return ( ISession* )pCCtx->session;
     }
     MvStoreInstance * findByName( char const * pUserName, bool pDrop=false ) {

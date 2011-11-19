@@ -637,7 +637,7 @@ function hqbr(s) {return hq(s).replace(/\n/g,"<br/>").replace(/ /g,"&nbsp;");}
 function mv_with_qname(pRawName)
 {
   var lNewProp = null;
-  var lLastSlash = pRawName.lastIndexOf("/");
+  var lLastSlash = (undefined != pRawName) ? pRawName.lastIndexOf("/") : -1;
   if (lLastSlash < 0)
     { return pRawName; }
   var lPrefix = pRawName.substr(0, lLastSlash);
@@ -836,12 +836,17 @@ function on_pin_click(pPID)
         mv_query("SELECT * FROM " + mv_sanitize_classname(__pClass) + " WHERE mv:pinID=@" + pPID + ";", __lOnCount, true);
       }
   }
-  var lChk = new lCheckClasses(MV_CONTEXT.mClasses.length);
-  for (var iC = 0; null != MV_CONTEXT.mClasses && iC < MV_CONTEXT.mClasses.length; iC++)
+  if (undefined != MV_CONTEXT.mClasses)
   {
-    var lClass = mv_without_qname(MV_CONTEXT.mClasses[iC]["mv:URI"]);
-    lChk.next(lClass);
+    var lChk = new lCheckClasses(MV_CONTEXT.mClasses.length);
+    for (var iC = 0; null != MV_CONTEXT.mClasses && iC < MV_CONTEXT.mClasses.length; iC++)
+    {
+      var lClass = mv_without_qname(MV_CONTEXT.mClasses[iC]["mv:URI"]);
+      lChk.next(lClass);
+    }
   }
+  else
+    lPinClasses.append("unclassified pin");
   var lOnDataSuccess = function(_pJson) {
     var lRefs = new Object();
     var lTxt = $("<p />");
