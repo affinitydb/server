@@ -658,12 +658,33 @@ function Tutorial()
       else if (_lStmt == "h") _lStmt = "h()";
       else if (_lStmt == "next") _lStmt = "n()";
       lThis.mPushInput();
+      lThis.mStmtHistory.push(_lStmt);
+      lThis.mStmtHistoryCursor = null;
       eval(_lStmt);
       lThis.mScroll();
     }  
   this.mInput = $("#tutorial_input");
   this.mHistory = $("#tutorial_history");
-  this.mOnKey = function(_pEvent) { if (13 == _pEvent.keyCode) { lExecuteLine(); } } // if 0 == pEvent.which ... 38:up 40:down
+  this.mStmtHistory = new Array();
+  this.mStmtHistoryCursor = null;
+  this.mOnKey =
+    function(_pEvent)
+    {
+      if (13 == _pEvent.keyCode) { lExecuteLine(); return; }
+      if (0 == _pEvent.which)
+      {
+        if (38 == _pEvent.keyCode) // up (prev stmt in history)
+        {
+          lThis.mStmtHistoryCursor = (undefined == lThis.mStmtHistoryCursor) ? lThis.mStmtHistory.length - 1 : Math.max(lThis.mStmtHistoryCursor - 1, 0);
+          lThis.mInput.val(lThis.mStmtHistory[lThis.mStmtHistoryCursor]);
+        }
+        else if (40 == _pEvent.keyCode) // up (next stmt in history)
+        {
+          lThis.mStmtHistoryCursor = (undefined == lThis.mStmtHistoryCursor) ? lThis.mStmtHistory.length - 1 : Math.min(lThis.mStmtHistoryCursor + 1, lThis.mStmtHistory.length);
+          lThis.mInput.val(lThis.mStmtHistoryCursor < lThis.mStmtHistory.length ? lThis.mStmtHistory[lThis.mStmtHistoryCursor] : "");
+        }
+      }
+    } // if 0 == pEvent.which ... 38:up 40:down
   this.mInput.keypress(this.mOnKey);
   this.mPushInput = function() { lThis.mHistory.append($("<p class='tutorial_stmt'>&gt;" + lThis.mInput.val() + "</p>")); lThis.mInput.val(''); }
   this.mScroll = function() { $("#tutorial_area").scrollTop(lThis.mHistory.height() + 2 * $("#tutorial_input").height() - $("#tutorial_area").height()); $("#tutorial_area").scrollLeft(0); }
