@@ -537,7 +537,7 @@ function Tutorial()
   var lExecuteLine =
     function()
     {
-      function _stringify(__pWhat)
+      function _stringify(__pWhat, __pQuoteStrings)
       {
         if (typeof(__pWhat) == "object")
         {
@@ -554,15 +554,17 @@ function Tutorial()
           {
             var __lR = "{";
             for (__iP in __pWhat)
-              __lR = __lR + "  " + __iP + ":" + _stringify(__pWhat[__iP]) + ",";
+              __lR = __lR + "  " + __iP + ":" + _stringify(__pWhat[__iP], true) + ",";
             return __lR + "}";
           }
         }
+        else if (typeof(__pWhat) == "string" && __pQuoteStrings)
+          return "'" + __pWhat + "'";
         return __pWhat;
       }
       function _onMvsqlResult(__pJson) { print(__pJson); }
       function _pushTutInstr(__pLine) { lThis.mHistory.append($("<p class='tutorial_instructions'>" + __pLine + "</p>")); }
-      function print(__pWhat) { lThis.mHistory.append($("<p class='tutorial_result'>" + _stringify(__pWhat) + "</p>")); }
+      function print(__pWhat) { lThis.mHistory.append($("<p class='tutorial_result'>" + _stringify(__pWhat, false) + "</p>")); }
       function mvsql(__pSql)
       {
         var __lEvalResult = null;

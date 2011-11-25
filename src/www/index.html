@@ -247,6 +247,28 @@
     </div>
     <div id='step5'>
       <div>Step 5</div>
+      <div>Remember the plain javascript object we had created at step 2? Let's save it...</div>
+      <div>Notice the new 'id' attribute after the save.</div>
+      <div>Note: With our client interfaces this is achieved transparently via protocol buffers. Here the implementation is an emulation using mvSQL.</div>
+      <div>&nbsp;</div>
+      <div>if (object != undefined) { print(object); save(object); print(object); }</div>
+    </div>
+    <div id='step6'>
+      <div>Step 6</div>
+      <div>Now that our object has an id, we can modify it.</div>
+      <div>&nbsp;</div>
+      <div>if (object != undefined) { object.mystring = 'hello world'; object.mycollection = [1, 2, 3, 4, 5]; object.mydate = new Date(); save(object); }</div>
+      <div>mvsql("SELECT * WHERE EXISTS(mystring);");</div>
+    </div>
+    <div id='step7'>
+      <div>Step 7</div>
+      <div>Let's take advantage of our environment to create more data easily.</div>
+      <div>&nbsp;</div>
+      <div>professions=['teacher', 'accompanist', 'accountant', 'actor', 'athlete', 'attorney', 'bacteriologist', 'botanist', 'conciliator', 'journalist', 'mathematician', 'mediator', 'meteorologist', 'salesman'];</div>
+      <div>for (i = 0; i &lt; 10; i++) { save({name:'person'+i, age:Math.random()*100, profession:professions[Math.floor(Math.random() * professions.length)]}); }</div>
+    </div>
+    <div id='step8'>
+      <div>Step 8</div>
       <div>Now that you have some data, how about we organize it a little bit.</div>
       <div>Try this:</div>
       <div>&nbsp;</div>
@@ -255,28 +277,13 @@
       <div>mvsql("SELECT * FROM workers('Musician');");</div>
       <div>mvsql("SELECT * FROM workers(['L', 'N']);");</div>
     </div>
-    <div id='step6'>
-      <div>Step 6</div>
+    <div id='step9'>
+      <div>Step 9</div>
       <div>Path expressions let you do pretty fancy graph navigation.</div>
       <div>Here's a very simple example:</div>
       <div>&nbsp;</div>
       <div>friends = mvsql("SELECT * FROM workers.friend;");</div>
       <div>for (i = 0; i &lt; friends.length; i++) print("friend of a worker: " + friends[i].name + " (" + friends[i].id + ")");</div>
-    </div>
-    <div id='step7'>
-      <div>Step 7</div>
-      <div>Remember the plain javascript object we had created at step 2? Let's save it...</div>
-      <div>Notice the new 'id' attribute after the save.</div>
-      <div>Note: With our client interfaces this is achieved transparently via protocol buffers. Here the implementation is an emulation using mvSQL.</div>
-      <div>&nbsp;</div>
-      <div>if (object != undefined) { print(object); save(object); print(object); }</div>
-    </div>
-    <div id='step8'>
-      <div>Step 8</div>
-      <div>Now that our object has an id, we can modify it.</div>
-      <div>&nbsp;</div>
-      <div>if (object != undefined) { object.mystring = 'hello world'; object.mycollection = [1, 2, 3, 4, 5]; object.mydate = new Date(); save(object); }</div>
-      <div>mvsql("SELECT * WHERE EXISTS(mystring);");</div>
     </div>
   </div>
   <div id='restart'>End of tutorial. Type t to restart. Or go and download mvStore!</div>
