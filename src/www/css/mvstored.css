@@ -14,6 +14,10 @@ tr.selected { background-color:#d3c8b8; }
 .ctxmenuitem { width:100%; border:solid 1px #777; padding:0.2em; background-color:#eee; cursor:pointer; }
 .ctxmenu-highlighted-item { background-color:#f1e4d2; }
 .mvpropname { color:#555; }
+.tutorial_help { color:green; }
+.tutorial_stmt { color:black; }
+.tutorial_result { color:red; }
+.tutorial_instructions { color:blue; }
 
 /* main divs: #left, #content, #bottom; #content and #bottom have margin for which matches width of #left */
 #left { position:fixed; top:0; left:0; width:40px; height:100%; margin:0; }
@@ -41,7 +45,7 @@ tr.selected { background-color:#d3c8b8; }
 #content li { }
 #content blockquote { font-size:1.1em; margin:0.6em 0; padding:0.2em 1em 0.4em 1em; background-color:#eee; border:dotted 1px #ccc; color:#333; }
 
-/* content_left (learning tab) */
+/* content_left (basic tab) */
 #query_spec { overflow:none; position:absolute; top:2px; width:75%; height:20px; border:none; padding-right:210px; }
 #query { float:left; width:100%; }
 #querytype { float:right; margin-left:5px; margin-right:-112px; width:100px; }
@@ -61,6 +65,12 @@ tr.selected { background-color:#d3c8b8; }
 #result_area { overflow:none; margin-left:0.9em; position:absolute; top:40%; width:80%; bottom:10px; border:none; }
 #result_area_page { overflow:auto; height:90%; }
 
+/* content_left (tutorial tab) */
+#tutorial_left { position:absolute; top:50px; width:100%; bottom:0; margin:0; white-space:normal; border:none; padding-left:0.9em;  }
+#tutorial_area { float:left; width:95%; height:95%; border: solid 1px #000; overflow:auto; line-height:1em; }
+#tutorial_input_line { width:100%; padding-right:20px; }
+#tutorial_input { border:none; font-size:105%; right:0; margin-right:-15px; width:100%; }
+
 /* content_left (query history tab) */
 #query_history { overflow:auto; position:absolute; top:2px; width:100%; bottom:0; border:none; }
 #qhistorytable { border:none; border-collapse:collapse; font-size:0.85em; }
@@ -68,7 +78,7 @@ tr.selected { background-color:#d3c8b8; }
 /* content_left (config/admin tab) */
 #config_options { overflow:auto; position:absolute; top:2px; width:100%; height:65%; border:none; }
 
-/* content_right (learning tab) */
+/* content_right (basic tab) */
 #classes { border:solid 1px; font-size:0.85em; width:100%; }
 #class_doc { font-size:0.85em; line-height:1em; color:#555; }
 #class_properties { border:solid 1px; font-size:0.85em; width:100%; }
@@ -79,10 +89,11 @@ tr.selected { background-color:#d3c8b8; }
 #bottom a { padding:0 0.5em; color:#aaa; }
 #bottom a:hover { color:#555; }
 
-/* tooltips & contextual menus */
+/* tooltips & contextual menus & help (pseudo string tables) */
 #thetooltip { position:absolute; z-index:2; width:auto; padding:5px; background-color:#eee; border:solid 1px #000; border-radius:5px; display:none; }
 #thetooltiptable { display:none; }
 #themenutable { display:none; }
+#thetutorial { display:none; }
 
 /* text files */
 #file pre { font-size:1.1em; line-height:1.4em; margin:0; }

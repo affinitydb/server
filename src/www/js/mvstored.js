@@ -528,6 +528,150 @@ QHistory.prototype.clearHistory = function()
 }
 
 /**
+ * Tutorial.
+ * Manages the tutorial window and its input line.
+ */
+function Tutorial()
+{
+  var lThis = this;
+  var lExecuteLine =
+    function()
+    {
+      function _stringify(__pWhat)
+      {
+        if (typeof(__pWhat) == "object")
+        {
+          if (__pWhat instanceof Array)
+          {
+            var __lR = "[";
+            for (__i = 0; __i < __pWhat.length; __i++)
+              __lR = __lR + _stringify(__pWhat[__i]) + ",";
+            return __lR + "]";
+          }
+          else if (__pWhat instanceof Date)
+            return "'" + __pWhat.toString() + "'";
+          else
+          {
+            var __lR = "{";
+            for (__iP in __pWhat)
+              __lR = __lR + "  " + __iP + ":" + _stringify(__pWhat[__iP]) + ",";
+            return __lR + "}";
+          }
+        }
+        return __pWhat;
+      }
+      function _onMvsqlResult(__pJson) { print(__pJson); }
+      function _pushTutInstr(__pLine) { lThis.mHistory.append($("<p class='tutorial_instructions'>" + __pLine + "</p>")); }
+      function print(__pWhat) { lThis.mHistory.append($("<p class='tutorial_result'>" + _stringify(__pWhat) + "</p>")); }
+      function mvsql(__pSql)
+      {
+        var __lEvalResult = null;
+        var __lOnMvsql = function(__pJson, __pD) { _onMvsqlResult(__pJson); __lEvalResult = __pJson; }
+        mv_query(__pSql, new QResultHandler(__lOnMvsql, function(__pError){}), null, null, null, false);
+        return __lEvalResult;
+      }
+      function save(__pJson)
+      {
+        if (typeof(__pJson) != "object")
+          { alert("This tutorial will only save objects (with named properties)."); return; }
+        if (__pJson instanceof Array)
+        {
+          for (__i = 0; __i < __pJson.length; __i++)
+            save(__pJson[__i]);
+        }
+        else
+        {
+          var __lQ = (undefined != __pJson.id) ? ("UPDATE @" + __pJson.id + " SET ") : "INSERT ";
+          var __lArgs = []
+          for (__iP in __pJson)
+          {
+            if (__iP == "id")
+              continue;
+            var __lV = __pJson[__iP];
+            var __lArg = __iP + "=";
+            switch (typeof(__lV))
+            {
+              case "boolean":
+              case "number":
+                __lArg += __lV;
+                break;
+              case "string":
+                __lArg += "'" + escape(__lV) + "'";
+                break;
+              case "object":
+                if (__lV instanceof Date)
+                {
+                  var __l2Digits = function(__pNum) { return (__pNum < 10 ? "0" : "") + __pNum; }
+                  var __lDate2Str = function(__pDate) { return __pDate.getUTCFullYear().toString() + "-" + __l2Digits(1 + __pDate.getUTCMonth()) + "-" + __l2Digits(__pDate.getUTCDate()) + " " + __l2Digits(__pDate.getUTCHours()) + ":" + __l2Digits(__pDate.getUTCMinutes()) + ":" + __l2Digits(__pDate.getUTCSeconds()); }
+                  __lArg += "TIMESTAMP'" + __lDate2Str(__lV) + "'";
+                }
+                else if (__lV instanceof Array)
+                  __lArg += "{" + __lV.join(",") + "}"; // Review: very incomplete...
+                else
+                {
+                  alert("This demo doesn't support the full range of object attributes, yet.");
+                  __lArg = null;
+                }
+                break;
+            }
+            if (__lArg)
+              __lArgs.push(__lArg);
+          }
+          __lQ = __lQ + __lArgs.join(",") + ";";
+          __lRes = mvsql(__lQ);
+          if (undefined == __pJson.id && __lRes.length > 0)
+            __pJson.id = __lRes[0].id;
+        }
+      }
+      function h()
+      {
+        $("#thetutorial #help div").each(function(_pI, _pE) { lThis.mHistory.append($("<p class='tutorial_help'>" + $(_pE).text() + "</p>")); });
+      }
+      function t()
+      {
+        $("#thetutorial #steps #step0 div").each(function(_pI, _pE) { _pushTutInstr($(_pE).text()); });
+        lThis.mTutorialStep = 1;
+      }
+      function n()
+      {
+        var lNumSteps = $("#thetutorial #steps > div").size();
+        if (lThis.mTutorialStep < lNumSteps)
+        {
+          $("#thetutorial #steps #step" + lThis.mTutorialStep + " div").each(function(_pI, _pE) { _pushTutInstr($(_pE).text()); });
+          lThis.mTutorialStep++;
+        }
+        else
+          _pushTutInstr($("#thetutorial #restart").text());
+      }
+      function step(__pStep)
+      {
+        if (__pStep < 0)
+          return;
+        var lNumSteps = $("#thetutorial #steps > div").size();
+        lThis.mTutorialStep = Math.min(__pStep, lNumSteps);
+        n();
+      }
+      function next() { n(); }
+      var _lStmt = lThis.mInput.val().replace(/var/, ""); // Review: should we support var?
+      if (_lStmt == "t") _lStmt = "t()";
+      else if (_lStmt == "n") _lStmt = "n()";
+      else if (_lStmt == "h") _lStmt = "h()";
+      else if (_lStmt == "next") _lStmt = "n()";
+      lThis.mPushInput();
+      eval(_lStmt);
+      lThis.mScroll();
+    }  
+  this.mInput = $("#tutorial_input");
+  this.mHistory = $("#tutorial_history");
+  this.mOnKey = function(_pEvent) { if (13 == _pEvent.keyCode) { lExecuteLine(); } } // if 0 == pEvent.which ... 38:up 40:down
+  this.mInput.keypress(this.mOnKey);
+  this.mPushInput = function() { lThis.mHistory.append($("<p class='tutorial_stmt'>&gt;" + lThis.mInput.val() + "</p>")); lThis.mInput.val(''); }
+  this.mScroll = function() { $("#tutorial_area").scrollTop(lThis.mHistory.height() + 2 * $("#tutorial_input").height() - $("#tutorial_area").height()); $("#tutorial_area").scrollLeft(0); }
+  this.mTutorialStep = 0;
+  $("#tutorial_area").click(function() { lThis.mInput.focus(); });
+}
+
+/**
  * Base64 helper.
  */
 function base64_encode(data)
@@ -563,7 +707,10 @@ $(document).ready(
     {
       var lLastStoreIdent = MV_CONTEXT.mUIStore.get('laststoreident');
       if (undefined != lLastStoreIdent)
-        $("#storeident").val(lLastStoreIdent)
+        $("#storeident").val(lLastStoreIdent);
+      var lLastStorePw = MV_CONTEXT.mUIStore.get('laststorepw');
+      if (undefined != lLastStorePw)
+        $("#storepw").val(lLastStorePw);
     }
     // Setup the main navigational tab system.
     MV_CONTEXT.mNavTabs = new NavTabs();    
@@ -575,6 +722,8 @@ $(document).ready(
     MV_CONTEXT.mQueryHistory = new QHistory($("#query_history"), MV_CONTEXT.mUIStore);
     // Setup the batching UI.
     new BatchingSQL();
+    // Setup the tutorial.
+    new Tutorial();
     // Populate startup UI from queries.
     populate_classes();
     // UI callback for query form.
@@ -610,7 +759,8 @@ $(document).ready(
           beforeSend : function(req) {
             req.setRequestHeader('Connection', 'Keep-Alive');
             var lStoreIdent = $("#storeident").val();
-            if (lStoreIdent.length > 0) { req.setRequestHeader('Authorization', "Basic " + base64_encode(lStoreIdent + ":" /* TODO: add pw */)); }
+            var lStorePw = $("#storepw").val();
+            if (lStoreIdent.length > 0) { req.setRequestHeader('Authorization', "Basic " + base64_encode(lStoreIdent + ":" + lStorePw)); }
           }
         });
       }
@@ -621,7 +771,16 @@ $(document).ready(
     $("#classes").dblclick(on_class_dblclick);
     $("#class_properties").change(on_cprop_change);
     $("#class_properties").dblclick(on_cprop_dblclick);
+    // Review:
+    //   For non-existing (new) stores, the policy used below is not ideal
+    //   because if the user intends to create a password-protected store,
+    //   he will have to specify the password first (otherwise populate_classes()
+    //   will end up creating a store with whatever old [or nil] password was in #storepw).
+    //   However, the console is primarily intended for navigation, and password-protected
+    //   stores would be marginal in early exploratory experiments done in the console,
+    //   so for the moment I prefer not to invest any time improving this.
     $("#storeident").change(function() { populate_classes(); if (undefined != MV_CONTEXT.mUIStore) { MV_CONTEXT.mUIStore.set('laststoreident', $("#storeident").val()); } });
+    $("#storepw").change(function() { populate_classes(); if (undefined != MV_CONTEXT.mUIStore) { MV_CONTEXT.mUIStore.set('laststorepw', $("#storepw").val()); } });
   }
 );
 
@@ -701,7 +860,7 @@ function mv_sanitize_classname(pClassName)
 function QResultHandler(pOnSuccess, pOnError, pUserData) { this.mOnSuccess = pOnSuccess; this.mOnError = pOnError; this.mUserData = pUserData; }
 QResultHandler.prototype.onsuccess = function(pJson, pSql) { if (this.mOnSuccess) this.mOnSuccess(pJson, this.mUserData, pSql); }
 QResultHandler.prototype.onerror = function(pArgs, pSql) { if (this.mOnError) this.mOnError(pArgs, this.mUserData, pSql); else console.log("QResultHandler.onerror: " + pArgs[1]); }
-function mv_query(pSqlStr, pResultHandler, pCountOnly, pLimit, pOffset)
+function mv_query(pSqlStr, pResultHandler, pCountOnly, pLimit, pOffset, pAsync)
 {
   if (null == pSqlStr || 0 == pSqlStr.length || pSqlStr.charAt(pSqlStr.length - 1) != ";")
     { console.log("mv_query: invalid sql " + pSqlStr); pResultHandler.onerror(null, pSqlStr); return; }
@@ -709,7 +868,8 @@ function mv_query(pSqlStr, pResultHandler, pCountOnly, pLimit, pOffset)
     type: "GET",
     url: DB_ROOT + "?q=" + escape(pSqlStr) + "&i=mvsql&o=json" + (pCountOnly ? "&type=count" : "") + ((null != pLimit) ? ("&limit=" + pLimit) : "") + ((null != pOffset) ? ("&offset=" + pOffset) : ""),
     dataType: "text", // Review: until mvStore returns 100% clean json...
-    timeout: 10000,
+    async: (undefined != pAsync) ? pAsync : true,
+    timeout: (undefined == pAsync) ? 10000 : null,
     cache: false,
     global: false,
     success: function(data) { pResultHandler.onsuccess(mv_sanitize_json_result(data), pSqlStr); },
@@ -717,7 +877,8 @@ function mv_query(pSqlStr, pResultHandler, pCountOnly, pLimit, pOffset)
     beforeSend : function(req) {
       req.setRequestHeader('Connection', 'Keep-Alive'); // Note: This doesn't seem to guaranty that a whole multi-statement transaction (e.g. batching console) will run in a single connection; in firefox, it works if I configure network.http.max-persistent-connections-per-server=1 (via the about:config page).
       var lStoreIdent = $("#storeident").val();
-      if (lStoreIdent.length > 0) { req.setRequestHeader('Authorization', "Basic " + base64_encode(lStoreIdent + ":" /* TODO: add pw */)); }
+      var lStorePw = $("#storepw").val();
+      if (lStoreIdent.length > 0) { req.setRequestHeader('Authorization', "Basic " + base64_encode(lStoreIdent + ":" + lStorePw)); }
     }
   });
 }
@@ -875,7 +1036,7 @@ function update_qnames_ui()
   MV_CONTEXT.mQNamesDirty = false;
 }
 
-// TODO: a batch mode in js (eval())?
+// TODO: report query errors
 // TODO (Ming): special hints for divergences from standard SQL
 // TODO (Ming): links from mvstore console to documentation and vice versa (e.g. execute code snippet)
 // TODO: future modes (e.g. graph navigator, erdiagram, wizard to create pins that conform with 1..n classes, ...)

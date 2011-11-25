@@ -559,7 +559,8 @@ extern "C"
         RC rc = stmt->count( *count, vals, nparams );
         AFREE( sess, alloc, vals );
         if ( rc != RC_OK ) {
-            strerror( rc, *sess, ce, *res, *len );
+            size_t llen = len ? *len : 0;
+            strerror( rc, *sess, ce, *res, llen );
             return rc == RC_OK ? 1 : 0;
         }
         return 1;
