@@ -222,7 +222,7 @@
       <div>Step 2</div>
       <div>Try this object manipulation (we'll save this object later on):</div>
       <div>&nbsp;</div>
-      <div>object = {name:'Jack', profession:'Doctor'};</div>
+      <div>object = {name:'Jack', profession:'doctor'};</div>
       <div>for (i in object) { print(i + ":" + object[i]); }</div>
     </div>
     <div id='step3'>
@@ -230,7 +230,7 @@
       <div>The mvsql() function opens up the whole sql-based side of the interaction.</div>
       <div>Try this for example:</div>
       <div>&nbsp;</div>
-      <div>pins = mvsql("INSERT name='Steve', profession='Engineer';");</div>
+      <div>pins = mvsql("INSERT name='Steve', profession='engineer';");</div>
       <div>print("resulting pin id:" + pins[0].id);</div>
       <div>print("retrieving the resulting pin by id");</div>
       <div>mvsql("SELECT * FROM @" + pins[0].id + ";");</div>
@@ -242,7 +242,7 @@
       <div>The mvsql DML can be pretty fancy and powerful.</div>
       <div>Try this for example:</div>
       <div>&nbsp;</div>
-      <div>mvsql("INSERT name='John', profession='Lawyer', friend=(INSERT name='Fred', profession='Musician');");</div>
+      <div>mvsql("INSERT name='John', profession='lawyer', friend=(INSERT name='Fred', profession='musician');");</div>
       <div>mvsql("SELECT * WHERE EXISTS(name);");</div>
     </div>
     <div id='step5'>
@@ -274,8 +274,8 @@
       <div>&nbsp;</div>
       <div>mvsql("CREATE CLASS workers AS SELECT * WHERE EXISTS(name) AND profession IN :0;");</div>
       <div>mvsql("SELECT * FROM workers;");</div>
-      <div>mvsql("SELECT * FROM workers('Musician');");</div>
-      <div>mvsql("SELECT * FROM workers(['L', 'N']);");</div>
+      <div>mvsql("SELECT * FROM workers('musician');");</div>
+      <div>mvsql("SELECT * FROM workers(['l', 'n']);");</div>
     </div>
     <div id='step9'>
       <div>Step 9</div>
