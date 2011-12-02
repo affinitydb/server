@@ -1,0 +1,219 @@
+<head>
+  <script src='js/jquery.js' type='text/javascript'></script>
+  <script src='js/snippets_to_console.js' type='text/javascript'></script>
+  <link href='css/mvdoc.css' rel='stylesheet' type='text/css' />
+</head>
+<div id='mvtocbar'>
+  <select id='mvtoclist'>
+    <option value='features'>features</option>
+    <option value='intro'>intro</option>
+    <option value='mvEngine getting started'>mvEngine getting started</option>
+    <option value='mvSQL getting started'>mvSQL getting started</option>
+    <option value='mvSQL reference'>mvSQL reference</option>
+    <option value='mvStore FAQ'>mvStore FAQ</option>
+    <option value='mvStore build from source'>mvStore build from source</option>
+    <option value='mvStore cpp'>mvStore cpp</option>
+    <option value='mvStore getting started'>mvStore getting started</option>
+    <option value='mvStore js'>mvStore js</option>
+    <option value='mvStore protobuf'>mvStore protobuf</option>
+    <option value='mvStore server' SELECTED>mvStore server</option>
+    <option value='strengths'>strengths</option>
+    <option value='terminology'>terminology</option>
+  </select>
+</div
+<div id="name"
+><h2
+  >NAME</h2
+  ><p
+  >mvstored - embedded web server for CGI access to the mvstored db</p
+  ></div
+><div id="synopsis"
+><h2
+  >SYNOPSIS</h2
+  ><p
+  ><code
+    >mvstored</code
+    > [ <options>... ]</p
+  ></div
+><div id="description"
+><h2
+  >DESCRIPTION</h2
+  ><p
+  >mvstored is an embedded web server which provides CGI access to the mvstore database. It also includes a minimal simple static web server for its own internal purposes to serve basic web admin CGIs &amp; ui.</p
+  ><p
+  >(All CGIs are builtin, there is intentionally no support for user defined CGIs.)</p
+  ></div
+><div id="usage-notes"
+><h2
+  >USAGE NOTES</h2
+  ><p
+  >Mvstore natively supports two query languages mvSQL and protobuf, plus a native C++ api. mvSQL is a SQL dialect. protobuf is query/response serialization defined with google protobuf. The store server supports both mvSQL and protobuf.</p
+  ><p
+  >With mvSQL queries, the result is sent in JSON encoding by default. (But you can alternatively request protobuf encoded results.)</p
+  ><p
+  >With protobuf encoded queries, the result is sent in protobuf by default. (At present mvstore server does not support JSON encoded results for protobuf encoded requests.)</p
+  ><p
+  >Mvstore supports both HTTP GET and HTTP POST CGIs and parameters. With HTTP GET the arguments must be URL encoded, and with HTTP POST both binary and urlencoded parameters are supported. The POST handling also supports urlencoded url parameters (which is needed to avoid a bootstrap problem in specifying the encoding of POST parameters).</p
+  ></div
+><div id="options"
+><h2
+  >OPTIONS</h2
+  ><p
+  >The flags that are supported by mvstored are as follows:</p
+  ><pre
+  ><code
+    >`-d dir` document root for the web server.  Also the store file is
+read from this directory.  The docroot can also be specified using
+the DOCROOT environment variable.  The environment variable
+overrides the mvstored -d argument if both are present.  (Note: if
+mvstored is executed via mvEngine and the mvDaemon dll/so the
+DOCROOT envorinment variable is the only way to set the document
+root).
+
+`-h` print usage help and exit.
+
+`-p port` web server port to listen on.  By default port 4560 is
+used.
+
+`-v` request more verbose logging, for debugging and increased
+visibility
+
+`-V` print software version and exit.
+</code
+    ></pre
+  ></div
+><div id="http-get-support"
+><h2
+  >HTTP GET support</h2
+  ><p
+  >The http arguments must be urlencoded and provided on the URL. (The CGI web standard is that multiple arguments are separated by &amp;, and arguments are separated from their value by =. And argument values are urlencoded to escape special characters.)</p
+  ><p
+  >The built-in GET/POST CGI is named <code
+    >/db</code
+    ></p
+  ><p
+  >Supported arguments are:</p
+  ><pre
+  ><code
+    >`query=string` the mvSQL text query (only mvsql query language is
+supported in GET, see HTTP POST below for support for protobuf
+encoded queries).
+
+The maximum HTTP header supported is 16KB, so the query + all HTTP
+headers must be less than this.  HTTP GET requests which are
+larger are rejected with an HTTP code 413 (Request Entity too
+Large) response code.
+
+`input=mvsql` if not specified, defaults is mvsql, so specifying
+the query language is redudant.
+
+`output=json|proto` default if not specified is JSON.  Protobuf
+encoded output is also supported.
+
+`type=count|plan|display|query` default if not specified is query.
+The type options mean briefly `query` executes the query, `count`
+instead counts the number of query result PINs, `plan` prints
+information about the query execution approach, `display`
+decompiles the query optimized query.
+
+`limit=&lt;results&gt;` if not specified the entire query result
+(unlimited) is displayed.  If given a maximum of &lt;results&gt; result
+PINs will be displayed.  To obtain the next result set `offset`
+(see below) maybe used.
+
+`offset=&lt;start&gt;` if not specified the result starts at result PIN
+1.  Starts the query result display from result PIN identified by
+&lt;start&gt;.
+
+`p&lt;n&gt;=&lt;value&gt;` query parameters.  Queries can include query
+parameters which are labeled &quot;:&lt;n&gt;&quot; in the mvSQL.  The
+corresponding value can be instantiated via the `p&lt;n&gt;` parameter.
+For example query parameter 1 &quot;:1&quot; can be instantiated with value
+&quot;hello&quot; with p1=hello.
+</code
+    ></pre
+  ></div
+><div id="http-post-support"
+><h2
+  >HTTP POST support</h2
+  ><p
+  >For POST either binary encoding or url-encoding is used.</p
+  ><p
+  >URL-encoding is compatible with HTML forms (it is the encoding used by browsers), but is currently limited to 1MB requests, whereas binary encoding is not HTML form compatible but allows protobuf requests to be streamed (and so to be of arbitrary size).</p
+  ><p
+  >The default (and only currently supported) response format for POST (request protobuf encoded) queries is protobuf encoding.</p
+  ></div
+><div id="url-encoded-post"
+><h2
+  >URL-encoded POST</h2
+  ><p
+  >The HTTP POST request size maximum is 1MB. Larger requests are rejected with an HTTP code 413 (Request Entity too Large) response code.</p
+  ><p
+  >The entire request is URL-encoded and the mime-type of the HTTP POST must be application/x-www-form-urlencoded. (This is default and automatic for static HTML forms).</p
+  ><p
+  >Other URL arguments can be specified as part of the html form itself (or optionally via the CGI arguments to the POST URL). The example HTML form post.html shows an example of this.</p
+  ></div
+><div id="binary-encoded-post"
+><h2
+  >binary encoded POST</h2
+  ><p
+  >With binary-encoded POSTs there is only one POST argument which is the unnamed protobuf encoded query. The POST can also take normal url-encoded arguments on the URL path as with GET requests.</p
+  ><p
+  >All arguments other than the protobuf encoded query must be passed on the URL line.</p
+  ><p
+  >The mime-type for HTTP POST must be application/octet-stream. The Content-Length field is optional so a stream can be sent without knowning its length a-priori.</p
+  ></div
+><div id="static-web-server"
+><h2
+  >Static web server</h2
+  ><p
+  >Mime-types supported are html (.html/.htm), javascript (.js), icon (.ico), GIF (.gif), JPEG (.jpg/.jpeg), PNG (.png), JSON (.json), CSS (.css) and binary (.bin) the default for unhandled types is the same as binary (application/octet-stream).</p
+  ><p
+  >The document-root is specified via the <code
+    >-d dir</code
+    > argument documented above.</p
+  ><p
+  >One default file is shipped which is the <code
+    >favicon.ico</code
+    > as graphical web browsers commonly request this file to use as a site icon.</p
+  ></div
+><div id="http-features"
+><h2
+  >HTTP features</h2
+  ><p
+  >HTTP keep-alive is supported.</p
+  ></div
+><div id="files"
+><h2
+  >FILES</h2
+  ><pre
+  ><code
+    >`mv.store`
+
+(Temporarily the default named stored that is auto-created and
+opened until multi-store support is complete).
+</code
+    ></pre
+  ></div
+><div id="author"
+><h2
+  >AUTHOR</h2
+  ><p
+  >Copyright VMware <script type="text/javascript"
+    >
+<!--
+h='&#118;&#x6d;&#x77;&#x61;&#114;&#x65;&#46;&#x63;&#x6f;&#x6d;';a='&#64;';n='&#x6d;&#118;&#x73;&#116;&#x6f;&#114;&#x65;';e=n+a+h;
+document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'">'+'<code>'+e+'</code>'+'<\/'+'a'+'>');
+// -->
+</script
+    ><noscript
+    >&#x6d;&#118;&#x73;&#116;&#x6f;&#114;&#x65;&#32;&#x61;&#116;&#32;&#118;&#x6d;&#x77;&#x61;&#114;&#x65;&#32;&#100;&#x6f;&#116;&#32;&#x63;&#x6f;&#x6d;</noscript
+    ></p
+  ></div
+><div id="see-also"
+><h2
+  >SEE ALSO</h2
+  ><p
+  >libmvstore(7), http://mvstore.eng.vmware.com/</p
+  ></div
+>

@@ -1,0 +1,2932 @@
+<head>
+  <script src='js/jquery.js' type='text/javascript'></script>
+  <script src='js/snippets_to_console.js' type='text/javascript'></script>
+  <link href='css/mvdoc.css' rel='stylesheet' type='text/css' />
+</head>
+<div id='mvtocbar'>
+  <select id='mvtoclist'>
+    <option value='features'>features</option>
+    <option value='intro'>intro</option>
+    <option value='mvEngine getting started'>mvEngine getting started</option>
+    <option value='mvSQL getting started'>mvSQL getting started</option>
+    <option value='mvSQL reference' SELECTED>mvSQL reference</option>
+    <option value='mvStore FAQ'>mvStore FAQ</option>
+    <option value='mvStore build from source'>mvStore build from source</option>
+    <option value='mvStore cpp'>mvStore cpp</option>
+    <option value='mvStore getting started'>mvStore getting started</option>
+    <option value='mvStore js'>mvStore js</option>
+    <option value='mvStore protobuf'>mvStore protobuf</option>
+    <option value='mvStore server'>mvStore server</option>
+    <option value='strengths'>strengths</option>
+    <option value='terminology'>terminology</option>
+  </select>
+</div
+<div id="the-mvsql-language"
+><h1
+  >The mvSQL Language</h1
+  ><p
+  >mvSQL is the name of a dialect of SQL defined for mvStore. The <a href="./terminology.html#essential-concepts-data-model"
+    >mvStore data model</a
+    > is very different from the relational model, but mvSQL is designed to remain as close to SQL as possible. This page presents a thorough survey of the language. It covers the elements of the <a href="#mvsql-syntax"
+    >syntax</a
+    >, the <a href="#data-types"
+    >data types</a
+    > and the <a href="#functions-and-operators"
+    >operators</a
+    >. It also provides a formal <a href="#statements-bnf"
+    >BNF description</a
+    > of the <a href="#ddl"
+    >DDL</a
+    > and <a href="#dml"
+    >DML</a
+    >. For a quick practical overview, please visit the <a href="./mvSQL%20getting%20started.html"
+    >&quot;getting started&quot;</a
+    > section.</p
+  ><p
+  >It's easy to test any of these commands in the online console. Direct links to the console are provided in the documentation.</p
+  ><div id="mvsql-syntax"
+  ><h2
+    >mvSQL Syntax</h2
+    ><div id="lexical-structure"
+    ><h3
+      >Lexical Structure</h3
+      ><p
+      >mvSQL supports the following token types: <a href="#keywords"
+	>keywords</a
+	>, <a href="#identifiers"
+	>identifiers</a
+	>, <a href="#qnames"
+	>qnames</a
+	>, <a href="#constants"
+	>constants</a
+	>, <a href="#operators"
+	>operators</a
+	>, <a href="#comments"
+	>comments</a
+	>, and <a href="#special-characters"
+	>special characters</a
+	>.</p
+      ><div id="keywords"
+      ><h4
+	>Keywords</h4
+	><p
+	>mvSQL's coverage of standard SQL keywords depends on functional areas.</p
+	><p
+	>mvSQL supports most of the keywords related to common <a href="#dml"
+	  >DML</a
+	  > (Database Manipulation Language): SELECT, UPDATE, DELETE, FROM, CAST, built-in functions etc.</p
+	><p
+	>mvSQL doesn't support the relational DDL (Data Definition Language) and DCL (Database Control Language): no table, no view, no primary or foreign key, no unique or check constraint. However, mvStore introduces the <a href="#ddl"
+	  >CLASS</a
+	  > keyword.</p
+	><p
+	>mvSQL doesn't support any DSPL (Data Stored Procedure Language).</p
+	><p
+	><em
+	  >Note: Keywords are <strong
+	    >case insensitive</strong
+	    >. A common convention is to write keywords in upper case.</em
+	  ></p
+	></div
+      ><div id="identifiers"
+      ><h4
+	>Identifiers</h4
+	><p
+	>Identifiers are used to designate mvStore entities such as <a href="./terminology.html#class"
+	  >classes</a
+	  >, <a href="./terminology.html#property"
+	  >properties</a
+	  > etc. Identifiers are <strong
+	  >case sensitive</strong
+	  >. See also the next section about <a href="#qnames"
+	  >qnames</a
+	  >.</p
+	><p
+	>There are 2 types of identifiers:</p
+	><ol style="list-style-type: decimal;"
+	><li
+	  >plain identifiers: they begin with a letter (upper or lower case, including diacritical marks and non-latin characters) or an underscore (_), and subsequent characters can also be digits.</li
+	  ><li
+	  >quoted identifiers (aka delimited identifiers): they are formed by enclosing any arbitrary sequence of characters in double-quotes (&quot;), except the character '\0'. A delimited identifier is never a keyword (&quot;select&quot; could be used to refer to a property named <em
+	    >select</em
+	    >).</li
+	  ></ol
+	><p
+	><em
+	  >Note: To include a double quote, write two double quotes.</em
+	  ></p
+	><p
+	><em
+	  >Note: A string which is enclosed in single quotes (') is a string constant, not an identifier.</em
+	  ></p
+	><p
+	>Sample: <a href="../../test4mvsql/test/identifier.sql"
+	  >identifier.sql</a
+	  ></p
+	></div
+      ><div id="qnames"
+      ><h4
+	>QNames</h4
+	><p
+	>QName stands for &quot;qualified name&quot;, and follows the standard conventions defined in XML, RDF etc. A QName is a prefix:name, where prefix and name are identifiers (prefix typically designates a <a href="./terminology.html#namespace"
+	  >namespace</a
+	  >). In mvStore, all built-in properties use prefix &quot;mv&quot; (e.g. mv:pinID).</p
+	><p
+	>QNames allow to partition entities such as class names and property names, by namespace. They help specify the semantic context in which a name should be interpreted, and can prevent collisions among identical names with different semantic meanings. This can be especially important when classification is taken into consideration. Careful selection of prefixes (with clear, distinct and meaningful semantics) yields better long-term interoperability with other applications.</p
+	></div
+      ><div id="constants"
+      ><h4
+	>Constants</h4
+	><p
+	>mvSQL understands most common <a href="./terminology.html#value"
+	  >value</a
+	  > types. Some standard constants are associated with these value types, such as TRUE and FALSE. Refer to <a href="#data-types"
+	  >Data Types</a
+	  > for more details.</p
+	></div
+      ><div id="operators"
+      ><h4
+	>Operators</h4
+	><p
+	>mvSQL supports most of the standard SQL operators (logic, comparison, arithmetic, aggregation, string manipulations, date and time manipulations etc.). Refer to <a href="#functions-and-operators"
+	  >Functions and Operators</a
+	  > for more details.</p
+	></div
+      ><div id="comments"
+      ><h4
+	>Comments</h4
+	><p
+	>A comment is removed from the input stream before further syntax analysis.</p
+	><p
+	>mvSQL supports 3 styles of comments:</p
+	><ol style="list-style-type: decimal;"
+	><li
+	  ><p
+	    >SQL-style: A sequence of characters beginning with double dashes (--) and extending to the end of the line, e.g.:</p
+	    ><pre
+	    ><code
+	      >-- This is a standard SQL comment   
+</code
+	      ></pre
+	    ></li
+	  ><li
+	  ><p
+	    >C-style: This syntax enables a comment to extend over multiple lines (the beginning and closing sequences need not be on the same line). The comment begins with /* and extends to the matching occurrence of */. These blocks can be nested, as specified in the SQL standard (but unlike C): one can comment out larger blocks of code that might contain existing block comments. For example:</p
+	    >/* multiline comment<ul
+	    ><li
+	      >with nesting: /* nested block comment <em
+		>/</em
+		>/</li
+	      ></ul
+	    ></li
+	  ><li
+	  ><p
+	    >SPARQL-style: A sequence of characters beginning with number sign (#) and extending to the end of the line, e.g.:</p
+	    ><pre
+	    ><code
+	      >\# This is a SPARQL comment
+</code
+	      ></pre
+	    ></li
+	  ></ol
+	></div
+      ><div id="special-characters"
+      ><h4
+	>Special Characters</h4
+	><p
+	>Some non-alphanumeric characters have special meaning, without being <a href="#operators"
+	  >operators</a
+	  >.</p
+	><p
+	>Some cases are extensions specific to mvSQL:</p
+	><ol style="list-style-type: decimal;"
+	><li
+	  >The dollar sign ($), followed by digits, is used to represent a positional <a href="./terminology.html#property"
+	    ><em
+	      >property</em
+	      ></a
+	    > in the body of a statement or class definition. Other uses are ${statement} and $(expression), to indicate a statement/expression variable. In other contexts the dollar sign can be part of an identifier or a dollar-quoted string constant.<br
+	     /></li
+	  ><li
+	  >The colon (:), followed by digits, is used to represent a positional <a href="./terminology.html#parameter"
+	    ><em
+	      >parameter</em
+	      ></a
+	    > in the body of a statement or class definition. The colon is also used in <a href="#qnames"
+	    >QNames</a
+	    >.<br
+	     /></li
+	  ><li
+	  >The period (.) can be used to separate store, class, property names, and path expression. It can also be part of numerical constants.<br
+	     /></li
+	  ><li
+	  >Brackets ({}) are used to select the elements of a collection.<br
+	     /></li
+	  ><li
+	  >The at sign (@), followed by digits, is used to represent a <a href="./terminology.html#pin-id-pid"
+	    >PIN ID</a
+	    >. In some instances, @ may stand alone and represent the currently processed PIN (e.g. in UPDATE statements and path expressions).</li
+	  ></ol
+	><p
+	>Other cases are standard:</p
+	><ol style="list-style-type: decimal;"
+	><li
+	  >Parentheses (()) group expressions and enforce precedence. In some cases parentheses are required as part of the fixed syntax of a particular SQL command.<br
+	     /></li
+	  ><li
+	  >Commas (,) are used in some syntactical constructs, to separate the elements of a list.<br
+	     /></li
+	  ><li
+	  >The semicolon (;) terminates an SQL command. It cannot appear anywhere within a command, except within a string constant or quoted identifier.<br
+	     /></li
+	  ><li
+	  >The asterisk (*) is used in some contexts to denote all values of a property or all properties of a PIN or composite value. It also has a special meaning when used as the argument of an aggregate function, namely that the aggregate does not require any explicit parameter.</li
+	  ></ol
+	></div
+      ></div
+    ><div id="path-expressions"
+    ><h3
+      >Path Expressions</h3
+      ><p
+      >Path expressions are an extension which is not found in SQL.</p
+      ><p
+      >Path expressions define navigation paths through the relationships of the abstract schema. They specify both the scope and the results of a query. Path expressions support several navigation mechanisms, applicable to each segment of a path:</p
+      ><ol style="list-style-type: decimal;"
+      ><li
+	>Property of a CLASS, e.g. if PINs in class &quot;cls1&quot; have property &quot;prop1&quot;, then we can fetch the value of &quot;prop1&quot; for each PIN in this class with: <code
+	  >cls1.prop1</code
+	  ><br
+	   /></li
+	><li
+	>Dereference, e.g. if &quot;pin1&quot; has a property &quot;emp_ref&quot;, of which the value is a PIN reference to &quot;pin2&quot; with property &quot;name&quot;, then we can fetch the value of &quot;pin2.name&quot; with: <code
+	  >pin1.emp_ref.name</code
+	  ><br
+	   /></li
+	><li
+	>(future) Sub-structure, e.g. if the PIN &quot;pin1&quot; has a property &quot;employee&quot;, and the property &quot;employee&quot; has a sub-property &quot;name&quot;, then we can fetch the value of this sub-property with: <code
+	  >pin1.employ.name</code
+	  ></li
+	></ol
+      ><p
+      >In order to support more complex graph queries, mvStore provides regular expressions for each segment (or property) of the path. There are several options:</p
+      ><table
+      ><thead
+	><tr class="header"
+	  ><th align="left"
+	    >Format</th
+	    ><th align="left"
+	    >Description</th
+	    ></tr
+	  ></thead
+	><tbody
+	><tr class="odd"
+	  ><td align="left"
+	    >{value}</td
+	    ><td align="left"
+	    >Navigate along this segment for a number of &quot;value&quot; times (e.g. prop1{3} means &quot;prop1.prop1.prop1&quot;).</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >{min, max}</td
+	    ><td align="left"
+	    >Navigate along this segment, starting at the &quot;min&quot;-th instance and up to the &quot;max&quot;-th instance.</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >{*}</td
+	    ><td align="left"
+	    >Same as {0, infinity}.</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >{?}</td
+	    ><td align="left"
+	    >Same as {0, 1}.</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >{+}</td
+	    ><td align="left"
+	    >Same as {1, infinity}.</td
+	    ></tr
+	  ></tbody
+	></table
+      ><p
+      >A predicate (i.e. WHERE clause in SQL) can be attached to each segment of a path expression. E.g. pin1.emp_ref[name='Jack' AND EXISTS(age)]. The at sign (@) can be used here to denote the PIN ID which is being processed.</p
+      ><p
+      >Path expressions are an important construct in the syntax of the query language. They can appear in any of the main clauses of a query (SELECT, DELETE, HAVING, UPDATE, WHERE, FROM, GROUP BY, ORDER BY).</p
+      ></div
+    ><div id="value-expressions"
+    ><h3
+      >Value Expressions</h3
+      ><p
+      >Value expressions are expressions which can be executed and will return a value. Unlike relational databases, mvStore doesn't support table expressions (where the returned result is a table).</p
+      ><p
+      >Because value expressions evaluate to a value, they can be used in place of values, like when passing a parameter to a function, or when specifying the value of a property with INSERT or UPDATE, or in search conditions.</p
+      ><p
+      >A value expression is one of the following:</p
+      ><ol style="list-style-type: decimal;"
+      ><li
+	>A constant or literal value.<br
+	   /></li
+	><li
+	>A property reference, or a positional property reference, or a path expression.<br
+	   /></li
+	><li
+	>A positional parameter reference.<br
+	   /></li
+	><li
+	>An operator invocation.<br
+	   /></li
+	><li
+	>A function call.</li
+	></ol
+      ><p
+      >Most of them are similar to standard SQL or C/C++.</p
+      ><div id="positional-properties"
+      ><h4
+	>Positional Properties</h4
+	><p
+	>Format: $digit</p
+	><p
+	>A dollar sign ($) followed by digits is used to represent a positional property in the body of a statement or class (family) definition. In other contexts, the dollar sign can be part of an identifier (or a dollar-quoted string constant).</p
+	><p
+	>This feature is not self-contained in mvSQL. It implies a special invocation of the underlying kernel functions (e.g. <code
+	  >IStmt::createStmt</code
+	  > or <code
+	  >IStmt::execute</code
+	  >), allowing to provide the property names separately. Currently, the mvserver doesn't provide any entry point for this feature. This could be used to enhance efficiency, or to prevent SQL injection attacks.</p
+	></div
+      ><div id="positional-parameters"
+      ><h4
+	>Positional Parameters</h4
+	><p
+	>Format:</p
+	><ol style="list-style-type: decimal;"
+	><li
+	  >:digit<br
+	     /></li
+	  ><li
+	  >:digit(type) -- parameter with specific type, only used in class family definitions</li
+	  ></ol
+	><p
+	>The colon (:) followed by digits is used to represent a positional parameter in the body of a statement or class definition. E.g.</p
+	><p
+	><code class='mvsql_snippet'>INSERT (PROP_I, PROP_S) VALUES (23, 'str');</code><br
+	   /> <code class='mvsql_snippet'>CREATE CLASS hasPropI AS SELECT * WHERE PROP_I IN :0(INT);</code></p
+	><p
+	>Here, :0 designates the first parameter defining class <code
+	  >hasPropI</code
+	  >'s index. This parameter could be specified at query time as follows:</p
+	><p
+	><code class='mvsql_snippet'>SELECT * FROM hasPropI(23);</code></p
+	><p
+	>Or like this, provided we used <code
+	  >IN</code
+	  > in the class definition:</p
+	><p
+	><code class='mvsql_snippet'>SELECT * FROM hasPropI([20, 30]);</code></p
+	></div
+      ><div id="refid"
+      ><h4
+	>REFID</h4
+	><p
+	><a href="./terminology.html#pin-reference"
+	  >PIN reference</a
+	  ><br
+	   />Format: @XXXXX[!Identity] Where XXXXX is a <a href="./terminology.html#pin-id-pid"
+	  >PID</a
+	  > where X is a hexadecimal digit. A PID can be obtained via the built-in property mv:pinID.</p
+	><p
+	>PIN references can be specified in the WHERE condition or operation target of SELECT/UPDATE/DELETE queries.</p
+	></div
+      ><div id="uriid"
+      ><h4
+	>URIID</h4
+	><p
+	><a href="./terminology.html#pin-reference"
+	  >Property reference</a
+	  ><br
+	   />Format: PIN_REF.Name<br
+	   />Where name is a <a href="./terminology.html#property"
+	  >property</a
+	  > name, and PIN_REF is a <a href="#refid"
+	  >PIN reference</a
+	  >.</p
+	><p
+	>Note that a <a href="./terminology.html#class"
+	  >class</a
+	  > name can be used in place of PIN_REF, to specify the set of references to all classified PINs.</p
+	></div
+      ><div id="identity:-mvstore-user"
+      ><h4
+	>IDENTITY: mvStore user</h4
+	><p
+	>Format: !Identity<br
+	   />where <a href="./terminology.html#identity"
+	  >Identity</a
+	  > is the user name.</p
+	></div
+      ><div id="refidelt:-element-of-a-collection"
+      ><h4
+	>REFIDELT: Element of a <a href="./terminology.html#collection"
+	  >collection</a
+	  ></h4
+	><p
+	>Format: @XXXXX[!Identity].Property[ElementID]</p
+	></div
+      ></div
+    ></div
+  ><div id="data-types"
+  ><h2
+    >Data Types</h2
+    ><p
+    >mvStore offers most of the basic <a href="./terminology.html#value"
+      >value</a
+      > types common to all programming languages. Unlike relational databases, mvStore doesn't support length or precision specifications for any data type (e.g. there are no fixed-length strings or binary strings). mvStore doesn't support user-defined data types either, although it does allow to attach a <a href="#unit-of-measurement"
+      >unit of measurement</a
+      > to a value.</p
+    ><p
+    >The type names listed here use the mvSQL convention. In the <a href="./terminology.html#c-interface"
+      >C++</a
+      > and <a href="./terminology.html#protocol-buffer"
+      >protocol-buffer</a
+      > interfaces, these names are prefixed with &quot;VT_&quot; (e.g. VT_INT).</p
+    ><p
+    >Sample: <a href="../../test4mvsql/test/types.sql"
+      >types.sql</a
+      >.</p
+    ><div id="string"
+    ><h3
+      >STRING</h3
+      ><p
+      >A string constant in SQL is an arbitrary sequence of characters bounded by single quotes ('): 'This is a string'.<br
+	 />To include a single-quote character within a string constant, write two adjacent single quotes, e.g., 'Dianne''s horse'.</p
+      ><p
+      ><em
+	>Note</em
+	>: a string which is enclosed in double-quote characters (&quot;) is an <a href="#identifiers"
+	>identifier</a
+	>.</p
+      ><div id="supported-encoding"
+      ><h4
+	>Supported Encoding</h4
+	><p
+	>mvStore supports the UTF-8 encoding exclusively. All string data should be converted to UTF-8 before being passed to mvStore.</p
+	></div
+      ></div
+    ><div id="bstrbinary-string"
+    ><h3
+      >BSTR(Binary String)</h3
+      ><p
+      >mvSQL supports hexadecimal values, written X'val' or x'val' (with explicit quotes), where val contains hexadecimal digits (0..9, A..F, a..f), and is expected to contain an even number of digits (a leading 0 must be inserted manually for odd number of hexadecimal digits).</p
+      ></div
+    ><div id="url"
+    ><h3
+      >URL</h3
+      ><p
+      >Format: U'url_addr'</p
+      ></div
+    ><div id="enum"
+    ><h3
+      >ENUM</h3
+      ><p
+      >Format: Not supported yet</p
+      ></div
+    ><div id="numeric-types"
+    ><h3
+      >Numeric Types</h3
+      ><p
+      >The numeric types in mvStore are closer to C/C++ numeric types.</p
+      ><p
+      >Numeric constants are accepted in these general forms:</p
+      ><p
+      >digits [type-suffix]<br
+	 /> digits[.digits][e[+-]digits] [type-suffix]</p
+      ><p
+      >where <strong
+	>digits</strong
+	> is <em
+	>one or more</em
+	> decimal digit in ASCII (0 through 9) or Unicode (０through９).<br
+	 /><em
+	>Note</em
+	>: There must be at least one digit before and after the decimal point (if one is used).<br
+	 /><em
+	>Note</em
+	>: At least one digit must follow the exponent marker (e) (if one is present).<br
+	 /><em
+	>Note</em
+	>: There cannot be any space or other character embedded in a numeric constant.<br
+	 /><em
+	>Note</em
+	>: Any leading plus or minus sign is not actually considered part of the constant; it is an operator applied to the constant.</p
+      ><p id="typesuffix">The <strong
+      >type-suffix</strong
+      > is an alphabetical character appended to the numeric constant, to specify its type. It can be used when user want to do some bitwise operation for this numberic constant, or user want to store it with specific data type format on disk. If it is not specified, then mvStore will select a default representation matching the value; it may convert the number to the most space-efficient data type that can represent this value.<br
+       /></p>
+<div id="uint"
+      ><h4
+	>UINT</h4
+	><p
+	>32-bit unsigned number<br
+	   />range is [0,4294967295]<br
+	   /><a href="#typesuffix"
+	  >type-suffix</a
+	  >: 'u'</p
+	></div
+      ><div id="int"
+      ><h4
+	>INT</h4
+	><p
+	>32-bit signed number<br
+	   />range is [-2147483648,2147483647]<br
+	   /><a href="#typesuffix"
+	  >type-suffix</a
+	  >: none</p
+	></div
+      ><div id="uint64"
+      ><h4
+	>UINT64</h4
+	><p
+	>64-bit unsigned number<br
+	   />range is [0,18446744073709551615]<br
+	   /><a href="#typesuffix"
+	  >type-suffix</a
+	  >: 'U'</p
+	></div
+      ><div id="int64"
+      ><h4
+	>INT64</h4
+	><p
+	>64-bit signed number<br
+	   />range is [9223372036854775807,-9223372036854775808]<br
+	   /><a href="#typesuffix"
+	  >type-suffix</a
+	  >: none</p
+	></div
+      ><div id="decimal"
+      ><h4
+	>DECIMAL</h4
+	><p
+	>Not implemented yet. It is used to be store arbitary percision and scale of numberic data.</p
+	></div
+      ><div id="float"
+      ><h4
+	>FLOAT</h4
+	><p
+	>a numeric representation of a real number, following the common IEEE 754 standard; may lose precision in various circumstances<br
+	   />range is [1.17549e-038F, 3.40282e+038f]<br
+	   /><a href="#typesuffix"
+	  >type-suffix</a
+	  >: 'f'</p
+	><p
+	>Note that the suffix 'F' is not allowed, as it collides with the 'farad' <a href="#unit-of-measurement"
+	  >unit of measurement</a
+	  >.</p
+	></div
+      ><div id="double"
+      ><h4
+	>DOUBLE</h4
+	><p
+	>similar to FLOAT, but with higher precision; it is the default representation for real numbers<br
+	   />range is [2.22507e-308, 1.79769e+308]<br
+	   /><a href="#typesuffix"
+	  >type-suffix</a
+	  >: none</p
+	><p
+	>Note that numbers that have a <a href="#unit-of-measurement"
+	  >unit of measurement</a
+	  > suffix are automatically of this type.</p
+	></div
+      ><div id="bool"
+      ><h4
+	>BOOL</h4
+	><p
+	>TRUE or FALSE</p
+	></div
+      ></div
+    ><div id="datetime-types"
+    ><h3
+      >DATE/TIME Types</h3
+      ><p
+      >Currently, mvSQL does not expose time zone control.</p
+      ><div id="datetime"
+      ><h4
+	>DATETIME</h4
+	><p
+	>Format: TIMESTAMP 'YYYY-MM-DD HH:MM:SS.XXXXXX', where the time and fractional second parts are optional<br
+	   />range is ['1601-01-01 00:00:00.000001', '9999-12-31 23:59:59.999999']</p
+	></div
+      ><div id="interval"
+      ><h4
+	>INTERVAL</h4
+	><p
+	>Format: INTERVAL 'HHHHHHH:MM:SS.XXXXXX', the first number is hours, then minutes, seconds and (optional) fractional seconds part.<br
+	   />range is: ???<br
+	   />In the future, year-month-day will be supported as well.</p
+	></div
+      ></div
+    ><div id="expr-expression-definition"
+    ><h3
+      >EXPR (expression definition)</h3
+      ><p
+      >Format: $(expression)</p
+      ><p
+      >EXPR is the compiled form of an EXPRTREE, which is mostly used internally by the database engine. An EXPR can be stored as a <a href="./terminology.html#value"
+	>value</a
+	>, but it is not evaluated automatically at INSERT/UPDATE statment execution time. (the value of that property will always be the EXPR itself, never its evaluation). However properties with type EXPR are evaluated automatically when they’re used in expressions. E.g.</p
+      ><p
+      >mvcommand&gt;INSERT prop1=3; PIN@0000000000050001(1):(&lt;prop1|VT_INT&gt;:3) 1 PINs INSERTED.</p
+      ><p
+      >mvcommand&gt; UPDATE @50001 ADD prop2=prop1-1, prop3=<span class="math"
+	>(<em
+	  >prop</em
+	  >1-1);<em
+	  >PIN</em
+	  >@0000000000050001(3):(&lt;<em
+	  >prop</em
+	  >1|<em
+	  >VT</em
+	  ><sub
+	  >I</sub
+	  ><em
+	  >NT</em
+	  >&gt;:3&lt;<em
+	  >prop</em
+	  >2|<em
+	  >VT</em
+	  ><sub
+	  >I</sub
+	  ><em
+	  >NT</em
+	  >&gt;:2&lt;<em
+	  >prop</em
+	  >3|<em
+	  >VT</em
+	  ><sub
+	  >E</sub
+	  ><em
+	  >XPR</em
+	  >&gt;:</span
+	>(prop1 - 1)) 1 PINs INSERTED.</p
+      ><p
+      >mvcommand&gt; SELECT * FROM {@50001} WHERE prop3=prop2; PIN@0000000000050001(3):(&lt;prop1|VT_INT&gt;:3 &lt;prop2|VT_INT&gt;:2 &lt;prop3|VT_EXPR&gt;:$(prop1 - 1)) 1 PINs INSERTED.</p
+      ><p
+      >mvcommand&gt; UPDATE @50001 SET prop1=2;<br
+	 /> PIN@0000000000050001(3):(&lt;prop1|VT_INT&gt;:2 &lt;prop2|VT_INT&gt;:2 &lt;prop3|VT_EXPR&gt;:$(prop1 - 1)) 1 PINs INSERTED.</p
+      ><p
+      >mvcommand&gt; SELECT * FROM {@50001} WHERE prop3&lt;&gt;prop2; PIN@0000000000050001(3):(&lt;prop1|VT_INT&gt;:2 &lt;prop2|VT_INT&gt;:2 &lt;prop3|VT_EXPR&gt;:$(prop1 - 1)) 1 PINs INSERTED.</p
+      ><p
+      >Here prop2 is stored directly with the value of that expression executed at UPDATE execution time, while prop3 is stored in type EXPR, which is evaluated when query.</p
+      ><p
+      >It's also possible to invoke such a property with parameters (up to 254). E.g.</p
+      ><p
+      >mvcommand&gt; INSERT prop1=3, prop2=<span class="math"
+	>(<em
+	  >prop</em
+	  >1-:0);<em
+	  >PIN</em
+	  >@0000000000050001(2):(&lt;<em
+	  >prop</em
+	  >1|<em
+	  >VT</em
+	  ><sub
+	  >I</sub
+	  ><em
+	  >NT</em
+	  >&gt;:3&lt;<em
+	  >prop</em
+	  >2|<em
+	  >VT</em
+	  ><sub
+	  >E</sub
+	  ><em
+	  >XPR</em
+	  >&gt;:</span
+	>(prop1 - :0)) 1 PINs INSERTED.</p
+      ><p
+      >mvcommand&gt; SELECT * WHERE prop2(1) = 2; PIN@0000000000050001(2):(&lt;prop1|VT_INT&gt;:3 &lt;prop2|VT_EXPR&gt;:$(prop1 - :0)) 1 PINs SELECTED.</p
+      ><p
+      >Note that now mvstore can support ignoring param, i.e. user can pass more parameters than the number should be used in the expression, because there is no parameter description when define the expression value.</p
+      ></div
+    ><div id="exprtree"
+    ><h3
+      >EXPRTREE</h3
+      ><p
+      >This is an internal, transient type used primarily in C++, to build expression trees before they are compiled by mvStore into expressions (EXPR).</p
+      ></div
+    ><div id="query-query-statement"
+    ><h3
+      >QUERY (query statement)</h3
+      ><p
+      >Format: ${statement}</p
+      ><p
+      >QUERY is similar to EXPR, but for a whole statement.</p
+      ></div
+    ><div id="arraycnavigator-collection"
+    ><h3
+      >ARRAY/CNAVIGATOR (<a href="./terminology.html#collection"
+	>Collection</a
+	>)</h3
+      ><p
+      >Format:<br
+	 />1. (elem1,...,elemN) -- SQL standard style. <em
+	>Note</em
+	>: (0) is a int (the parentheses in this case are not interpreted as defining a set)<br
+	 />2. {elem1,...,elemN} -- mvSQL extension. <em
+	>Note</em
+	>: {0} specifies a one-element collection</p
+      ><p
+      >Please refer to the <a href="./terminology.html#collection"
+	>definition of 'collection'</a
+	>.</p
+      ><p
+      >mvcommand&gt; insert (prop2,prop3) values(123 ,{123, 'test', 120, 534});<br
+	 /> PIN@327684(2):(&lt;prop2|VT_INT&gt;:123 &lt;prop3|VT_ARRAY(4)&gt;:{&lt;0|VT_INT&gt;:123, &lt;1|VT_STRING&gt;:test, &lt;2|VT_INT&gt;:120, &lt;3|VT_INT&gt;:534}) 1 PINs INSERTED.</p
+      ><p
+      >mvcommand&gt; SELECT * WHERE prop4[3] = 534;<br
+	 /> WARNING: Full scan query: SELECT *<br
+	 /> WHERE prop4 [ 3] = 534<br
+	 /> PIN@327684(2):(&lt;prop2|VT_INT&gt;:123 &lt;prop3|VT_ARRAY(4)&gt;:{&lt;0|VT_INT&gt;:123, &lt;1|VT_STRING&gt;:test, &lt;2|VT_INT&gt;:120, &lt;3|VT_INT&gt;:534}) 1 PINs found.</p
+      ><p
+      >Internally, smaller collections are stored with a representation similar to an array (the type is ARRAY). Larger collections are stored in the B-tree (the type becomes CNAVIGATOR), enabling enormous collections with fast retrieval of known eids. The transition between those two states is relatively transparent, and applications should not assume that a collection will be stored as an ARRAY.</p
+      ><p
+      >The transition between a scalar value and a collection is also designed to be relatively transparent (with a core query syntax that applies to both cases indifferently). For more information about collections, see <a href="#comparison-between-collections"
+	>comparison between collections</a
+	>, <a href="#value-in-collection"
+	>value in collection</a
+	> and <a href="#update"
+	>UPDATE ADD/SET</a
+	>.</p
+      ><p
+      ><em
+	>Note</em
+	>: although mvStore doesn't support nested collections, it is possible to implement similar functionality by combining multiple properties or PINs, by adding a collection reference to a collection.</p
+      ></div
+    ><div id="range"
+    ><h3
+      >Range</h3
+      ><p
+      >Format: [number1, number2]<br
+	 />it can be used with keywork IN. The meaning is the same as BETWEEN number1 AND number2.<br
+	 /><em
+	>Note</em
+	>: * is used here to denote the infinity number.</p
+      ><p
+      >Examples: <a href="../../test4mvsql/test/between.sql"
+	>between.sql</a
+	>.</p
+      ></div
+    ><div id="reference-types"
+    ><h3
+      >Reference types</h3
+      ><table
+      ><thead
+	><tr class="header"
+	  ><th align="left"
+	    >Type Name</th
+	    ><th align="left"
+	    >Description</th
+	    ></tr
+	  ></thead
+	><tbody
+	><tr class="odd"
+	  ><td align="left"
+	    >REF</td
+	    ><td align="left"
+	    >A reference to another PIN by its IPIN*.</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >REFID</td
+	    ><td align="left"
+	    >A reference to another PIN by its PID.</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >REFPROP</td
+	    ><td align="left"
+	    >A reference to a value (property of this or another PIN) by its IPIN* and PropertyID.</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >REFIDPROP</td
+	    ><td align="left"
+	    >A reference to a value (property of this or another PIN) by its PID and PropertyID.</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >REFELT</td
+	    ><td align="left"
+	    >A reference to a collection element by its IPIN*, PropertyID and ElementID.</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >REFIDELT</td
+	    ><td align="left"
+	    >A reference to a collection element by its PID, PropertyID and ElementID.</td
+	    ></tr
+	  ></tbody
+	></table
+      ><p
+      ><em
+	>Note</em
+	>: The distinction between REF and REFID only applies to the <a href="./terminology.html#c-interface"
+	>C++ interface</a
+	>. REF allows to specify directly an IPIN*.<br
+	 />You can see the format of all there reference types is here: <a href="#reference-and-dereference-operators"
+	>Reference and Dereference Operators</a
+	>.</p
+      ></div
+    ><div id="current"
+    ><h3
+      >CURRENT</h3
+      ><p style="color:red">TODO (maxw): TBD</p>
+</div
+    ><div id="stream"
+    ><h3
+      >STREAM</h3
+      ><p style="color:red">TODO (maxw): TBD</p>
+</div
+    ></div
+  ><div id="unit-of-measurement"
+  ><h2
+    >Unit of Measurement</h2
+    ><p
+    >mvStore allows to attach <a href="./terminology.html#unit-of-measurement"
+      >units</a
+      > to <a href="#double"
+      >double</a
+      >-precision floating point numbers, to enhance the self-descriptiveness of data, and interoperability. mvStore automatically converts values between different units when performing computations on compatible types.</p
+    ><p
+    ><em
+      >Note</em
+      >: In mvSQL, integer with unit suffix will be converted to double/float automatically. Because in mvStore, only float/double value can support unit suffix. The design reason is the unit conversion which may lead to float/double result even we input integer. E.g. 1 inch = 0.0254 meter, and even user input 1 inch and 1 meter, then the sum() result is: 1 inch and 1 meter = 1.0254 meter, which can not be stored as a integer.</p
+    ><p
+    >The syntax simply requires to append the chosen suffix to a literal value (wherever a value is legal). Note that suffixes are case-sensitive, and unit suffixes can not be used together with <a href="#typesuffix"
+      >type-suffix</a
+      >.</p
+    ><p
+    >Sample: <a href="../../test4mvsql/test/units.sql"
+      >units.sql</a
+      ></p
+    ><p
+    >Here is a table of all units supported by mvStore.</p
+    ><table
+    ><thead
+      ><tr class="header"
+	><th align="left"
+	  >Suffix</th
+	  ><th align="left"
+	  >Description</th
+	  ></tr
+	></thead
+      ><tbody
+      ><tr class="odd"
+	><td align="left"
+	  >m</td
+	  ><td align="left"
+	  >meter</td
+	  ></tr
+	><tr class="even"
+	><td align="left"
+	  >kg</td
+	  ><td align="left"
+	  >kilogram</td
+	  ></tr
+	><tr class="odd"
+	><td align="left"
+	  >s</td
+	  ><td align="left"
+	  >second</td
+	  ></tr
+	><tr class="even"
+	><td align="left"
+	  >A</td
+	  ><td align="left"
+	  >ampere</td
+	  ></tr
+	><tr class="odd"
+	><td align="left"
+	  >K</td
+	  ><td align="left"
+	  >kelvin</td
+	  ></tr
+	><tr class="even"
+	><td align="left"
+	  >mol</td
+	  ><td align="left"
+	  >mole</td
+	  ></tr
+	><tr class="odd"
+	><td align="left"
+	  >cd</td
+	  ><td align="left"
+	  >candela</td
+	  ></tr
+	><tr class="even"
+	><td align="left"
+	  >Hz</td
+	  ><td align="left"
+	  >hertz</td
+	  ></tr
+	><tr class="odd"
+	><td align="left"
+	  >N</td
+	  ><td align="left"
+	  >newton</td
+	  ></tr
+	><tr class="even"
+	><td align="left"
+	  >Pa</td
+	  ><td align="left"
+	  >pascal</td
+	  ></tr
+	><tr class="odd"
+	><td align="left"
+	  >J</td
+	  ><td align="left"
+	  >joule</td
+	  ></tr
+	><tr class="even"
+	><td align="left"
+	  >W</td
+	  ><td align="left"
+	  >watt</td
+	  ></tr
+	><tr class="odd"
+	><td align="left"
+	  >C</td
+	  ><td align="left"
+	  >coulomb</td
+	  ></tr
+	><tr class="even"
+	><td align="left"
+	  >V</td
+	  ><td align="left"
+	  >volt</td
+	  ></tr
+	><tr class="odd"
+	><td align="left"
+	  >F</td
+	  ><td align="left"
+	  >farad</td
+	  ></tr
+	><tr class="even"
+	><td align="left"
+	  >Ohm</td
+	  ><td align="left"
+	  >ohm</td
+	  ></tr
+	><tr class="odd"
+	><td align="left"
+	  >S</td
+	  ><td align="left"
+	  >siemens</td
+	  ></tr
+	><tr class="even"
+	><td align="left"
+	  >Wb</td
+	  ><td align="left"
+	  >weber</td
+	  ></tr
+	><tr class="odd"
+	><td align="left"
+	  >T</td
+	  ><td align="left"
+	  >tesla</td
+	  ></tr
+	><tr class="even"
+	><td align="left"
+	  >H</td
+	  ><td align="left"
+	  >henri</td
+	  ></tr
+	><tr class="odd"
+	><td align="left"
+	  >dC</td
+	  ><td align="left"
+	  >degree Celsius</td
+	  ></tr
+	><tr class="even"
+	><td align="left"
+	  >rad</td
+	  ><td align="left"
+	  >radian</td
+	  ></tr
+	><tr class="odd"
+	><td align="left"
+	  >sr</td
+	  ><td align="left"
+	  >steradian</td
+	  ></tr
+	><tr class="even"
+	><td align="left"
+	  >lm</td
+	  ><td align="left"
+	  >lumen</td
+	  ></tr
+	><tr class="odd"
+	><td align="left"
+	  >lx</td
+	  ><td align="left"
+	  >lux</td
+	  ></tr
+	><tr class="even"
+	><td align="left"
+	  >Bq</td
+	  ><td align="left"
+	  >becquerel</td
+	  ></tr
+	><tr class="odd"
+	><td align="left"
+	  >Gy</td
+	  ><td align="left"
+	  >gray</td
+	  ></tr
+	><tr class="even"
+	><td align="left"
+	  >Sv</td
+	  ><td align="left"
+	  >sievert</td
+	  ></tr
+	><tr class="odd"
+	><td align="left"
+	  >kat</td
+	  ><td align="left"
+	  >katal</td
+	  ></tr
+	><tr class="even"
+	><td align="left"
+	  >dm</td
+	  ><td align="left"
+	  >decimeter</td
+	  ></tr
+	><tr class="odd"
+	><td align="left"
+	  >cm</td
+	  ><td align="left"
+	  >centimeter</td
+	  ></tr
+	><tr class="even"
+	><td align="left"
+	  >mm</td
+	  ><td align="left"
+	  >millimeter</td
+	  ></tr
+	><tr class="odd"
+	><td align="left"
+	  >mkm</td
+	  ><td align="left"
+	  >micrometer</td
+	  ></tr
+	><tr class="even"
+	><td align="left"
+	  >nm</td
+	  ><td align="left"
+	  >nanometer</td
+	  ></tr
+	><tr class="odd"
+	><td align="left"
+	  >km</td
+	  ><td align="left"
+	  >kilometer</td
+	  ></tr
+	><tr class="even"
+	><td align="left"
+	  >in</td
+	  ><td align="left"
+	  >inch</td
+	  ></tr
+	><tr class="odd"
+	><td align="left"
+	  >ft</td
+	  ><td align="left"
+	  >foot</td
+	  ></tr
+	><tr class="even"
+	><td align="left"
+	  >yd</td
+	  ><td align="left"
+	  >yard</td
+	  ></tr
+	><tr class="odd"
+	><td align="left"
+	  >mi</td
+	  ><td align="left"
+	  >mile</td
+	  ></tr
+	><tr class="even"
+	><td align="left"
+	  >nmi</td
+	  ><td align="left"
+	  >nautical mile</td
+	  ></tr
+	><tr class="odd"
+	><td align="left"
+	  >au</td
+	  ><td align="left"
+	  >astronomical unit</td
+	  ></tr
+	><tr class="even"
+	><td align="left"
+	  >pc</td
+	  ><td align="left"
+	  >parsec</td
+	  ></tr
+	><tr class="odd"
+	><td align="left"
+	  >ly</td
+	  ><td align="left"
+	  >light year</td
+	  ></tr
+	><tr class="even"
+	><td align="left"
+	  >mps</td
+	  ><td align="left"
+	  >meters per second</td
+	  ></tr
+	><tr class="odd"
+	><td align="left"
+	  >kph</td
+	  ><td align="left"
+	  >kilometers per hour</td
+	  ></tr
+	><tr class="even"
+	><td align="left"
+	  >fpm</td
+	  ><td align="left"
+	  >feet per minute</td
+	  ></tr
+	><tr class="odd"
+	><td align="left"
+	  >mph</td
+	  ><td align="left"
+	  >miles per hour</td
+	  ></tr
+	><tr class="even"
+	><td align="left"
+	  >kt</td
+	  ><td align="left"
+	  >knot</td
+	  ></tr
+	><tr class="odd"
+	><td align="left"
+	  >g</td
+	  ><td align="left"
+	  >gram</td
+	  ></tr
+	><tr class="even"
+	><td align="left"
+	  >mg</td
+	  ><td align="left"
+	  >milligram</td
+	  ></tr
+	><tr class="odd"
+	><td align="left"
+	  >mkg</td
+	  ><td align="left"
+	  >microgram</td
+	  ></tr
+	><tr class="even"
+	><td align="left"
+	  >t</td
+	  ><td align="left"
+	  >ton</td
+	  ></tr
+	><tr class="odd"
+	><td align="left"
+	  >lb</td
+	  ><td align="left"
+	  >pound</td
+	  ></tr
+	><tr class="even"
+	><td align="left"
+	  >oz</td
+	  ><td align="left"
+	  >ounce</td
+	  ></tr
+	><tr class="odd"
+	><td align="left"
+	  >st</td
+	  ><td align="left"
+	  >stone</td
+	  ></tr
+	><tr class="even"
+	><td align="left"
+	  >m2</td
+	  ><td align="left"
+	  >square meter</td
+	  ></tr
+	><tr class="odd"
+	><td align="left"
+	  >cm2</td
+	  ><td align="left"
+	  >square centimeter</td
+	  ></tr
+	><tr class="even"
+	><td align="left"
+	  >sqin</td
+	  ><td align="left"
+	  >square inch</td
+	  ></tr
+	><tr class="odd"
+	><td align="left"
+	  >sqft</td
+	  ><td align="left"
+	  >square foot</td
+	  ></tr
+	><tr class="even"
+	><td align="left"
+	  >ac</td
+	  ><td align="left"
+	  >acre</td
+	  ></tr
+	><tr class="odd"
+	><td align="left"
+	  >ha</td
+	  ><td align="left"
+	  >hectare</td
+	  ></tr
+	><tr class="even"
+	><td align="left"
+	  >m3</td
+	  ><td align="left"
+	  >cubic meter</td
+	  ></tr
+	><tr class="odd"
+	><td align="left"
+	  >l</td
+	  ><td align="left"
+	  >liter</td
+	  ></tr
+	><tr class="even"
+	><td align="left"
+	  >cl</td
+	  ><td align="left"
+	  >centiliter</td
+	  ></tr
+	><tr class="odd"
+	><td align="left"
+	  >cm3</td
+	  ><td align="left"
+	  >cubic centimeter</td
+	  ></tr
+	><tr class="even"
+	><td align="left"
+	  >cf</td
+	  ><td align="left"
+	  >cubic foot</td
+	  ></tr
+	><tr class="odd"
+	><td align="left"
+	  >ci</td
+	  ><td align="left"
+	  >cubic inch</td
+	  ></tr
+	><tr class="even"
+	><td align="left"
+	  >floz</td
+	  ><td align="left"
+	  >fluid once</td
+	  ></tr
+	><tr class="odd"
+	><td align="left"
+	  >bbl</td
+	  ><td align="left"
+	  >barrel</td
+	  ></tr
+	><tr class="even"
+	><td align="left"
+	  >bu</td
+	  ><td align="left"
+	  >bushel</td
+	  ></tr
+	><tr class="odd"
+	><td align="left"
+	  >gal</td
+	  ><td align="left"
+	  >gallon</td
+	  ></tr
+	><tr class="even"
+	><td align="left"
+	  >qt</td
+	  ><td align="left"
+	  >quart</td
+	  ></tr
+	><tr class="odd"
+	><td align="left"
+	  >pt</td
+	  ><td align="left"
+	  >pint</td
+	  ></tr
+	><tr class="even"
+	><td align="left"
+	  >b</td
+	  ><td align="left"
+	  >bar</td
+	  ></tr
+	><tr class="odd"
+	><td align="left"
+	  >mmHg</td
+	  ><td align="left"
+	  >millimeters of mercury</td
+	  ></tr
+	><tr class="even"
+	><td align="left"
+	  >inHg</td
+	  ><td align="left"
+	  >inches of mercury</td
+	  ></tr
+	><tr class="odd"
+	><td align="left"
+	  >cal</td
+	  ><td align="left"
+	  >calorie</td
+	  ></tr
+	><tr class="even"
+	><td align="left"
+	  >kcal</td
+	  ><td align="left"
+	  >kilo-calorie</td
+	  ></tr
+	><tr class="odd"
+	><td align="left"
+	  >dF</td
+	  ><td align="left"
+	  >degrees Fahrenheit</td
+	  ></tr
+	></tbody
+      ></table
+    ></div
+  ><div id="functions-and-operators"
+  ><h2
+    >Functions and Operators</h2
+    ><p
+    >mvStore supports many common functions and operators available in relational databases, and usage is almost the same.</p
+    ><p
+    >Internally mvStore regards all functions as operators, so here we discuss them together.</p
+    ><p
+    >Sample: <a href="../../test4mvsql/test/functions.sql"
+      >functions.sql</a
+      > and <a href="../../test4mvsql/test/parse_operator.sql"
+      >operator.sql</a
+      >.</p
+    ><div id="logical-operators"
+    ><h3
+      >Logical Operators</h3
+      ><table
+      ><thead
+	><tr class="header"
+	  ><th align="left"
+	    >Operator</th
+	    ><th align="left"
+	    >Description</th
+	    ></tr
+	  ></thead
+	><tbody
+	><tr class="odd"
+	  ><td align="left"
+	    >NOT</td
+	    ><td align="left"
+	    >logical not: NOT TRUE is FALSE; NOT FALSE is TRUE.</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >OR</td
+	    ><td align="left"
+	    >logical or: return TRUE if one of the operands is TRUE; otherwise return FALSE.</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >AND</td
+	    ><td align="left"
+	    >logical and: return TRUE if both of the operands are TRUE; otherwise return FALSE.</td
+	    ></tr
+	  ></tbody
+	></table
+      ></div
+    ><div id="comparison-functions-and-operators"
+    ><h3
+      >Comparison Functions and Operators</h3
+      ><p
+      >Functions and Operators Description</p
+      ><table
+      ><thead
+	><tr class="header"
+	  ><th align="left"
+	    >Operator</th
+	    ><th align="left"
+	    >Description</th
+	    ></tr
+	  ></thead
+	><tbody
+	><tr class="odd"
+	  ><td align="left"
+	    >&lt;</td
+	    ><td align="left"
+	    >less than</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >&gt;</td
+	    ><td align="left"
+	    >greater than</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >&lt;=</td
+	    ><td align="left"
+	    >less than or equal to</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >&gt;=</td
+	    ><td align="left"
+	    >greater than or equal to</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >=</td
+	    ><td align="left"
+	    >equal</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >&lt;&gt;</td
+	    ><td align="left"
+	    >not equal</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >expr BETWEEN min AND max</td
+	    ><td align="left"
+	    >return (expr&gt;=min and expr&lt;= max)</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >expr IN [min, max]</td
+	    ><td align="left"
+	    >return (expr&gt;=min and expr&lt;= max). The [min, max] is a value with RANGE type.</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >expr IN list</td
+	    ><td align="left"
+	    >return whether or not the val is equal to one value of the list.</td
+	    ></tr
+	  ></tbody
+	></table
+      ><p
+      >These binary comparison operators can not only support single value right operants, but also a list of values with <a href="#anysomeall-qualifier"
+	>ANY/SOME/ALL qualifier</a
+	>. The List can be a collection, or a list of values returned by sub-query.</p
+      ><div id="comparison-between-collections"
+      ><h4
+	>comparison between collections</h4
+	><ol style="list-style-type: decimal;"
+	><li
+	  >value = collection -- same as &quot;value IN collection&quot;<br
+	     /></li
+	  ><li
+	  >collection1 in collection2 -- for each element in collection1, check {the element's value IN collection2}</li
+	  ></ol
+	><p
+	>The default behaviour for operator = is to check if ANY element is = the compared value, whereas for every other comparison operator, the default behavior is to check how ALL elements compare with the value. Currently mvStore only exposes this default behavior.</p
+	></div
+      ></div
+    ><div id="arithmetic-operators"
+    ><h3
+      >Arithmetic Operators</h3
+      ><table
+      ><thead
+	><tr class="header"
+	  ><th align="left"
+	    >Operator</th
+	    ><th align="left"
+	    >Description</th
+	    ><th align="left"
+	    >Example</th
+	    ><th align="left"
+	    >Result</th
+	    ></tr
+	  ></thead
+	><tbody
+	><tr class="odd"
+	  ><td align="left"
+	    >+</td
+	    ><td align="left"
+	    >addition</td
+	    ><td align="left"
+	    >2 + 3</td
+	    ><td align="left"
+	    >5</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >-</td
+	    ><td align="left"
+	    >subtraction</td
+	    ><td align="left"
+	    >2 - 3</td
+	    ><td align="left"
+	    >-1</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >*</td
+	    ><td align="left"
+	    >multiplication</td
+	    ><td align="left"
+	    >2 * 3</td
+	    ><td align="left"
+	    >6</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >/</td
+	    ><td align="left"
+	    >division (integer division truncates the result)</td
+	    ><td align="left"
+	    >4 / 2</td
+	    ><td align="left"
+	    >2</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >%</td
+	    ><td align="left"
+	    >modulo (remainder)</td
+	    ><td align="left"
+	    >5 % 4</td
+	    ><td align="left"
+	    >1</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >^</td
+	    ><td align="left"
+	    >exponentiation</td
+	    ><td align="left"
+	    >2.0 ^ 3.0</td
+	    ><td align="left"
+	    >8</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >&amp;</td
+	    ><td align="left"
+	    >bitwise AND</td
+	    ><td align="left"
+	    >91 &amp; 15</td
+	    ><td align="left"
+	    >11</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >|</td
+	    ><td align="left"
+	    >bitwise OR</td
+	    ><td align="left"
+	    >32 | 3</td
+	    ><td align="left"
+	    >35</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >#</td
+	    ><td align="left"
+	    >bitwise XOR</td
+	    ><td align="left"
+	    >17 # 5</td
+	    ><td align="left"
+	    >20</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >~</td
+	    ><td align="left"
+	    >bitwise NOT</td
+	    ><td align="left"
+	    >~1</td
+	    ><td align="left"
+	    >-2</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >&lt;&lt;</td
+	    ><td align="left"
+	    >bitwise shift left</td
+	    ><td align="left"
+	    >1 &lt;&lt; 4</td
+	    ><td align="left"
+	    >16</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >&gt;&gt;</td
+	    ><td align="left"
+	    >bitwise shift right</td
+	    ><td align="left"
+	    >-123 &gt;&gt; 63</td
+	    ><td align="left"
+	    >-1</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >&gt;&gt;&gt;</td
+	    ><td align="left"
+	    >bitwise unsigned shift right</td
+	    ><td align="left"
+	    >-123 &gt;&gt;&gt; 63</td
+	    ><td align="left"
+	    >1</td
+	    ></tr
+	  ></tbody
+	></table
+      ></div
+    ><div id="mathematical-functions-scalar"
+    ><h3
+      >Mathematical Functions (scalar)</h3
+      ><table
+      ><thead
+	><tr class="header"
+	  ><th align="left"
+	    >Function</th
+	    ><th align="left"
+	    >Description</th
+	    ></tr
+	  ></thead
+	><tbody
+	><tr class="odd"
+	  ><td align="left"
+	    >ABS(number)</td
+	    ><td align="left"
+	    >returns the absolute value of number</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >LN(number)</td
+	    ><td align="left"
+	    >natural logarithm</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >EXP(number)</td
+	    ><td align="left"
+	    >exponential</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >POWER(number a, number b)</td
+	    ><td align="left"
+	    >a raised to the power of b</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >SQRT(number)</td
+	    ><td align="left"
+	    >square root</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >FLOOR(number)</td
+	    ><td align="left"
+	    >largest integer not greater than argument</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >CEIL(number)</td
+	    ><td align="left"
+	    >smallest integer not less than argument</td
+	    ></tr
+	  ></tbody
+	></table
+      ></div
+    ><div id="aggregation-functions:"
+    ><h3
+      >Aggregation Functions:</h3
+      ><table
+      ><thead
+	><tr class="header"
+	  ><th align="left"
+	    >Function</th
+	    ><th align="left"
+	    >Description</th
+	    ></tr
+	  ></thead
+	><tbody
+	><tr class="odd"
+	  ><td align="left"
+	    >AVG(expression)</td
+	    ><td align="left"
+	    >Returns the average value of the values in expression.</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >MIN(expression)</td
+	    ><td align="left"
+	    >Returns the smallest value in expression.</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >MAX(expression)</td
+	    ><td align="left"
+	    >Returns the largest value in expression.</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >SUM(expression)</td
+	    ><td align="left"
+	    >Returns the sum of the in values in expression.</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >COUNT(expression)</td
+	    ><td align="left"
+	    >Returns the number of times expression was not null. Expression can be property name or a collection. If a collection is specified, returns the cardinality of the collection.</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >VAR_POP(expression)</td
+	    ><td align="left"
+	    >Returns the biased variance (/n) of a set of numbers. The formula used to calculate the biased variance is: VAR_POP = SUM(X<strong
+	      >2)/COUNT(X) - (SUM(X)/COUNT(X))</strong
+	      >2</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >VAR_SAMP(expression)</td
+	    ><td align="left"
+	    >Returns the sample variance (/n-1) of a set of numbers. The formula used to calculate the sample variance is: VAR_SAMP=(SUM(X<strong
+	      >2)-((SUM(X)</strong
+	      >2)/(COUNT(<em
+	      >))))/(COUNT(</em
+	      >)-1)</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >STDDEV_POP(expression)</td
+	    ><td align="left"
+	    >Returns the biased standard deviation (/n) of a set of numbers. The formula used to calculate the biased standard deviation is: STDDEV_POP = SQRT(VAR_POP)</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >STDDEV_SAMP(expression)</td
+	    ><td align="left"
+	    >Returns the sample standard deviation (/n-1) of a set of numbers. The formula used to calculate the sample standard deviation is: STDDEV_SAMP = SQRT(VAR_SAMP)</td
+	    ></tr
+	  ></tbody
+	></table
+      ><p
+      >The 'expression' can be a list of values or a collection. If a collection is specified, the function will include all its elements in the calculation. These functions can also support <a href="#distinctall-qualifier"
+	>DISTINCT/ALL qualifier</a
+	> to indicate we should calculate the duplicate value in the expression or not, e.g. AVG(DISTINCT expression).</p
+      ></div
+    ><div id="string-operators"
+    ><h3
+      >String Operators</h3
+      ><table
+      ><thead
+	><tr class="header"
+	  ><th align="left"
+	    >Operator</th
+	    ><th align="left"
+	    >Description</th
+	    ></tr
+	  ></thead
+	><tbody
+	><tr class="odd"
+	  ><td align="left"
+	    >||</td
+	    ><td align="left"
+	    >string concatenation</td
+	    ></tr
+	  ></tbody
+	></table
+      ></div
+    ><div id="string-functions"
+    ><h3
+      >String Functions</h3
+      ><table
+      ><thead
+	><tr class="header"
+	  ><th align="left"
+	    >Function</th
+	    ><th align="left"
+	    >Description</th
+	    ></tr
+	  ></thead
+	><tbody
+	><tr class="odd"
+	  ><td align="left"
+	    >LENGTH( {string|collection} )</td
+	    ><td align="left"
+	    >string length or collection cardinality.</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >LOWER(string)</td
+	    ><td align="left"
+	    >change all characters to lowercase.</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >UPPER(string)</td
+	    ><td align="left"
+	    >change all characters to uppercase.</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >TONUM(string)</td
+	    ><td align="left"
+	    >convert the value type of 'string' to number.</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >TOINUM(string)</td
+	    ><td align="left"
+	    >convert the value type of 'string' to integer format.</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >POSITION(str, subStr)</td
+	    ><td align="left"
+	    >return the position of subStr in str, or -1 if not found.</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >SUBSTR(str,[pos=0,]len)</td
+	    ><td align="left"
+	    >return a substring of str of length len, starting at pos.</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >REPLACE(string, subStr, newSubStr)</td
+	    ><td align="left"
+	    >replace all occurences of subStr in string with newSubStr.</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >PAD(string, length, padStr)</td
+	    ><td align="left"
+	    >pad string with padStr until the string length is length.</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >TRIM([{BOTH | LEADING | TRAILING} [remstr] FROM] str), TRIM([remstr FROM] str)</td
+	    ><td align="left"
+	    >return str without the leading or trailing characters specified in remstr. BOTH is the default. If remstr is not specified, spaces are removed.</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >CONTAINS(string, subStr)</td
+	    ><td align="left"
+	    >return whether string contains subStr or not.</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >BEGINS(string, prefix)</td
+	    ><td align="left"
+	    >return whether or not the prefix is heading part of string.</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >ENDS(string, suffix)</td
+	    ><td align="left"
+	    >return whether or not the suffix is ending part of string.</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >REGEX</td
+	    ><td align="left"
+	    >not supported yet in mvStore.</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >CONCAT(str1,str2,...)</td
+	    ><td align="left"
+	    >return the string that results from concatenating the arguments.</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >MATCH [(property list)] AGAINST(string)</td
+	    ><td align="left"
+	    >full-text search for string in specified properties of PINs. If no property list is specified, then search all properties.</td
+	    ></tr
+	  ></tbody
+	></table
+      ><p
+      >Sample: <a href="../../test4mvsql/test/full_text_search.sql"
+	>full_text_search.sql</a
+	>.</p
+      ></div
+    ><div id="extractunit-from-date"
+    ><h3
+      >EXTRACT(unit FROM date)</h3
+      ><p
+      >Extract the unit part of the date/time/timestamp.<br
+	 />The possible units are: YEAR, MONTH, DAY, HOUR, MINUTE, SECOND.</p
+      ></div
+    ><div id="castexpr-as-type"
+    ><h3
+      >CAST(expr AS type)</h3
+      ><p
+      >Convert expr to the specified type. The type name can be any type supported by mvStore.</p
+      ></div
+    ><div id="coalesce"
+    ><h3
+      >COALESCE</h3
+      ><p
+      >. -- class/property name separator</p
+      ></div
+    ><div id="in"
+    ><h3
+      >IN</h3
+      ><table
+      ><thead
+	><tr class="header"
+	  ><th align="left"
+	    >Operator</th
+	    ><th align="left"
+	    >Description</th
+	    ></tr
+	  ></thead
+	><tbody
+	><tr class="odd"
+	  ><td align="left"
+	    >expr IN [min, max]</td
+	    ><td align="left"
+	    >return (expr&gt;=min and expr&lt;= max). The [min, max] is a value with RANGE type.</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >expr IN list</td
+	    ><td align="left"
+	    >return whether or not the val is equal to one value of the list. The List can be a collection, or a list of values returned by sub-query.</td
+	    ></tr
+	  ></tbody
+	></table
+      ></div
+    ><div id="exists"
+    ><h3
+      >EXISTS</h3
+      ><table
+      ><thead
+	><tr class="header"
+	  ><th align="left"
+	    >Operator</th
+	    ><th align="left"
+	    >Description</th
+	    ></tr
+	  ></thead
+	><tbody
+	><tr class="odd"
+	  ><td align="left"
+	    >EXISTS(property)</td
+	    ><td align="left"
+	    >return &quot;property IS NOT NULL&quot;.</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >EXISTS(list)</td
+	    ><td align="left"
+	    >return &quot;COUNT(list)&gt;0&quot;. The List can be a collection, or a list of values returned by sub-query.</td
+	    ></tr
+	  ></tbody
+	></table
+      ><p
+      >Sample: <a href="../../test4mvsql/test/exists.sql"
+	>exists.sql</a
+	></p
+      ></div
+    ><div id="anysomeall-qualifier"
+    ><h3
+      >ANY/SOME/ALL qualifier</h3
+      ><p
+      >These qualifiers can only be used as right operant of the binary comparison operators. E.g.</p
+      ><table
+      ><thead
+	><tr class="header"
+	  ><th align="left"
+	    >Sample</th
+	    ><th align="left"
+	    >Description</th
+	    ></tr
+	  ></thead
+	><tbody
+	><tr class="odd"
+	  ><td align="left"
+	    >val &lt; ANY (list)</td
+	    ><td align="left"
+	    >return true if val&lt; any element of the list, otherwise return false.</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >val &lt; SOME(list)</td
+	    ><td align="left"
+	    >some as &quot;val &lt; ANY (list)&quot;</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >val &lt; ALL (list)</td
+	    ><td align="left"
+	    >return true if val&lt; all element of the list, otherwise return false.</td
+	    ></tr
+	  ></tbody
+	></table
+      ><p
+      >Sample: <a href="../../test4mvsql/test/collection_operators.sql"
+	>collection_operators.sql</a
+	></p
+      ></div
+    ><div id="distinctall-qualifier"
+    ><h3
+      >DISTINCT/ALL qualifier</h3
+      ><table
+      ><thead
+	><tr class="header"
+	  ><th align="left"
+	    >Operator</th
+	    ><th align="left"
+	    >Description</th
+	    ></tr
+	  ></thead
+	><tbody
+	><tr class="odd"
+	  ><td align="left"
+	    >DISTINCT list</td
+	    ><td align="left"
+	    >return the list of values after eliminating the duplicate values. If the list is pins, eliminating the same PINs( PINs are equal means they are the same PINs, because equal operator not only compare values of PIN, but also PID.).</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >DISTINCT VALUES pins</td
+	    ><td align="left"
+	    >return the list of values after eliminating the duplicate values of PINs, without comparing PIDs.</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >ALL list</td
+	    ><td align="left"
+	    >return the list of value without eliminating the duplicate.</td
+	    ></tr
+	  ></tbody
+	></table
+      ><p
+      >There some 3 usage for these qualifier:</p
+      ><ul
+      ><li
+	>SELECT item. E.g. SELECT DISTINCT prop1 FROM class1.</li
+	><li
+	>Aggreation functions parameters. E.g. AVG( DISTINCT {1.0, 2.0})</li
+	><li
+	>list of values returned by subquery which is used as operants of set operators. e.g. query1 UNION DISTINCT(prop1,prop2) query2.</li
+	></ul
+      ><p
+      >ISLOCAL</p
+      ><p style="color:red">REVIEW (maxw): obscure...</p>
+</div
+    ><div id="collection-functions-and-operators"
+    ><h3
+      >Collection Functions and Operators</h3
+      ><table
+      ><thead
+	><tr class="header"
+	  ><th align="left"
+	    >Function/Operator</th
+	    ><th align="left"
+	    >Expression Sample</th
+	    ><th align="left"
+	    >Description</th
+	    ></tr
+	  ></thead
+	><tbody
+	><tr class="odd"
+	  ><td align="left"
+	    >[ ]</td
+	    ><td align="left"
+	    >property[position]</td
+	    ><td align="left"
+	    >Fetch the value at the specified position in the collection. position can be a number (starts at 0) or one of these values: LAST_ELEMENT, FIRST_ELEMENT, SOME_ELEMENT, ALL_ELEMENTS.</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >COUNT</td
+	    ><td align="left"
+	    >COUNT(collection)</td
+	    ><td align="left"
+	    >Return the cardinality of that collection.</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >IN</td
+	    ><td align="left"
+	    >val IN collection</td
+	    ><td align="left"
+	    >Return whether or not the val is equal to one value of the collection.</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >IN</td
+	    ><td align="left"
+	    >collection1 IN collection2</td
+	    ><td align="left"
+	    >Return whether or not all values of collection1 are IN collection2.</td
+	    ></tr
+	  ></tbody
+	></table
+      ><div id="value-in-collection"
+      ><h4
+	>value in collection</h4
+	><p
+	>value1 IN value2 is interpreted by mvSQL to mean &quot;is value1 part of the collection value2?&quot;. In contrast, this would be considered an error in MySQL.</p
+	></div
+      ></div
+    ><div id="reference-and-dereference-operators"
+    ><h3
+      >Reference and Dereference Operators</h3
+      ><p
+      >Reference operator: &amp;<br
+	 />Dereference operator: *</p
+      ><p
+      ><em
+	>Note</em
+	>: &amp; has 2 meanings: &quot;bitwise AND&quot; and &quot;dereference&quot;; it depends on the context where it is used.</p
+      ><p
+      >A few examples (here X is a hexadecimal digit, XXXXXXXXXXXXXXXX is a PID):</p
+      ><table
+      ><thead
+	><tr class="header"
+	  ><th align="left"
+	    >Expression</th
+	    ><th align="left"
+	    >Meanning</th
+	    ></tr
+	  ></thead
+	><tbody
+	><tr class="odd"
+	  ><td align="left"
+	    >@XXXXXXXXXXXXXXXX</td
+	    ><td align="left"
+	    >Return the PIN reference.</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >*@XXXXXXXXXXXXXXXX</td
+	    ><td align="left"
+	    >Return the value of this pin, which is the value of the special mv:value property in this PIN (this values can be set; it can be an EXPR).</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >@XXXXXXXXXXXXXXXX.prop</td
+	    ><td align="left"
+	    >Return the value of prop in pin @XXXXXXXXXXXXXXXX.</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >&amp;@XXXXXXXXXXXXXXXX.prop</td
+	    ><td align="left"
+	    >Return the reference to the prop in pin @XXXXXXXXXXXXXXXX.</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >@XXXXXXXXXXXXXXXX.prop[0]</td
+	    ><td align="left"
+	    >Return the element value of the prop in pin @XXXXXXXXXXXXXXXX.</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >&amp;@XXXXXXXXXXXXXXXX.prop[0]</td
+	    ><td align="left"
+	    >Return the element reference of the prop in pin @XXXXXXXXXXXXXXXX.</td
+	    ></tr
+	  ></tbody
+	></table
+      ><p
+      >Additional examples: <a href="../../test4mvsql/test/reference.sql"
+	>reference.sql</a
+	>.</p
+      ></div
+    ><div id="precedence-of-operators-and-functions-in-decreasing-order"
+    ><h3
+      >Precedence of Operators and Functions (in decreasing order)</h3
+      ><p
+      >Most operators have the same precedence and are left-associative. The precedence and associativity of the operators is hard-coded in the parser. To circumvent default precedence, just use parentheses.</p
+      ><table
+      ><thead
+	><tr class="header"
+	  ><th align="left"
+	    >Operator/Function</th
+	    ><th align="left"
+	    >Associativity</th
+	    ><th align="left"
+	    >Description</th
+	    ></tr
+	  ></thead
+	><tbody
+	><tr class="odd"
+	  ><td align="left"
+	    >any function,$()</td
+	    ><td align="left"
+	    >right</td
+	    ><td align="left"
+	    >any built-in function, expression</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >.</td
+	    ><td align="left"
+	    >left</td
+	    ><td align="left"
+	    >class/property name separator</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >[ ]</td
+	    ><td align="left"
+	    >left</td
+	    ><td align="left"
+	    >collection element selection</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >&amp;,*</td
+	    ><td align="left"
+	    >right</td
+	    ><td align="left"
+	    >reference, dereference</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >-, ~</td
+	    ><td align="left"
+	    >right</td
+	    ><td align="left"
+	    >unary minus, unary bit inversion</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >^</td
+	    ><td align="left"
+	    >left</td
+	    ><td align="left"
+	    >exponentiation</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >*,/,%</td
+	    ><td align="left"
+	    >left</td
+	    ><td align="left"
+	    >multiplication, division, modulo</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >+,-</td
+	    ><td align="left"
+	    >left</td
+	    ><td align="left"
+	    >addition, subtraction</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >||</td
+	    ><td align="left"
+	    >left</td
+	    ><td align="left"
+	    >string concatenation</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >&lt;&lt;,&gt;&gt;,&gt;&gt;&gt;</td
+	    ><td align="left"
+	    >left</td
+	    ><td align="left"
+	    >bitwise shift left, bitwise shift right, bitwise unsigned shift right</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >&amp;</td
+	    ><td align="left"
+	    >left</td
+	    ><td align="left"
+	    >bitwise and</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >^</td
+	    ><td align="left"
+	    >left</td
+	    ><td align="left"
+	    >bitwise xor (exclusive or)</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >|</td
+	    ><td align="left"
+	    >left</td
+	    ><td align="left"
+	    >bitwise or (inclusive or)</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >IS A, IS NOT A</td
+	    ><td align="left"
+	    >left</td
+	    ><td align="left"
+	    >class membership check, e.g. mv:pinID IS A class_name</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >IS, IS NOT</td
+	    ><td align="left"
+	    >left</td
+	    ><td align="left"
+	    >IS TRUE, IS FALSE, IS UNKNOWN, IS NULL,</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >IN</td
+	    ><td align="left"
+	    >left</td
+	    ><td align="left"
+	    >collection membership</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >BETWEEN...AND...</td
+	    ><td align="left"
+	    >left</td
+	    ><td align="left"
+	    >range containment</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >&lt;,&lt;=,&gt;, &gt;=</td
+	    ><td align="left"
+	    >left</td
+	    ><td align="left"
+	    >less than, less than or equal to, greater than, greater than or equal to</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >=,&lt;&gt;</td
+	    ><td align="left"
+	    >left</td
+	    ><td align="left"
+	    >equal, not equal</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >NOT</td
+	    ><td align="left"
+	    >right</td
+	    ><td align="left"
+	    >logical negation</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >AND</td
+	    ><td align="left"
+	    >left</td
+	    ><td align="left"
+	    >logical conjunction</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >OR</td
+	    ><td align="left"
+	    >left</td
+	    ><td align="left"
+	    >logical disjunction</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >${}</td
+	    ><td align="left"
+	    >right</td
+	    ><td align="left"
+	    >query</td
+	    ></tr
+	  ></tbody
+	></table
+      ></div
+    ></div
+  ><div id="statements-bnf"
+  ><h2
+    >Statements (BNF)</h2
+    ><p
+    >In this section we describe the mvSQL BNF. Here are the display conventions used:</p
+    ><table
+    ><thead
+      ><tr class="header"
+	><th align="left"
+	  >Expression</th
+	  ><th align="left"
+	  >Meanings</th
+	  ></tr
+	></thead
+      ><tbody
+      ><tr class="odd"
+	><td align="left"
+	  >UPPERCASE</td
+	  ><td align="left"
+	  >KEYWORD</td
+	  ></tr
+	><tr class="even"
+	><td align="left"
+	  >lowcase</td
+	  ><td align="left"
+	  >terminal or non-terminal fragment of statement</td
+	  ></tr
+	><tr class="odd"
+	><td align="left"
+	  >[ ]</td
+	  ><td align="left"
+	  >optional fragment</td
+	  ></tr
+	><tr class="even"
+	><td align="left"
+	  >{A|B}</td
+	  ><td align="left"
+	  >choose fragment A or B</td
+	  ></tr
+	><tr class="odd"
+	><td align="left"
+	  >...</td
+	  ><td align="left"
+	  >repeat the previous statement fragment type</td
+	  ></tr
+	></tbody
+      ></table
+    ><div id="store-management-statement"
+    ><h3
+      >Store management statement</h3
+      ><p
+      >Synopsis:</p
+      ><pre
+      ><code
+	>    - CREATE STORE [IN 'directory'] [OPTIONS(...)], where options have format: NAME=value[,NAME=value..]
+    - DROP STORE [IN 'directory']
+    - MOVE STORE [FROM 'source directory'] TO 'destination directory'
+    - OPEN STORE [IN 'directory'] [OPTIONS(...)]
+    - CLOSE STORE
+</code
+	></pre
+      ><p
+      >If 'directory' is not specified, mvstore assumes the &quot;current directory&quot; (platform dependent). <em
+	>Note</em
+	>: The API for these statments(call manageStores(...)) is different from the API for other statments(ISession.createStmt(...)), because these statements can be executed before db connection established.</p
+      ><p
+      >List of option names (case insensitive): a) for OPEN STORE and CREATE STORE: - NBUFFERS=number - LOGBUFSIZE=number - MAXFILES=number - SHUTDOWNASYNCTIMEOUT=number - PASSWORD='string' - LOGDIRECTORY='directory' (mapped using call to IMapDir::map(SO_LOG...) if provided) b) for CREATE STORE only: - PAGESIZE=number - FILEEXTENTSIZE=number - OWNER='string' - STOREID=number - ENCRYPTED={TRUE|FALSE} - MAXSIZE=number - LOGSEGSIZE=number - PCTFREE=floating or double number Options can be specified in any order.</p
+      ></div
+    ><div id="ddl"
+    ><h3
+      >DDL</h3
+      ><p
+      >Here's a description of mvSQL's Data Definition Language.</p
+      ><div id="create-class"
+      ><h4
+	>CREATE CLASS</h4
+	><p
+	>Synopsis:</p
+	><pre
+	><code
+	  >    CREATE CLASS class_name [OPTIONS( {VIEW|CLUSTERED|SOFT_DELETE} )] AS query_statement.
+</code
+	  ></pre
+	><p
+	>where the query_statement is a <a href="#query"
+	  >SELECT QUERY</a
+	  >. Here's a description of the OPTIONS:<br
+	   />1. DEFAULT: This is the default mode (all <a href="./terminology.html#pin-id-pid"
+	  >PIDs</a
+	  > will be indexed by this class). 2. VIEW: Like view in relational db, it is just a query definition for usability. 3. CLUSTERED: Using clustered index to maintain all <a href="./terminology.html#pin-id-pid"
+	  >PIDs</a
+	  >, for increased performance. Not yet supported.<br
+	   />4. SOFT_DELETE: Not only create a index for normal pins, but also create another index for those pins which is marked in deleted status(Deleted PINs are not permanently deleted except that delete with option MODE_DELETED in C++ API or PURGE), and can be restored using mvSQL &quot;UNDELETE&quot;. ).</p
+	><p
+	>Examples: <a href="../../test4mvsql/test/class.sql"
+	  >class.sql</a
+	  >.</p
+	><p
+	>There is a operator &quot;IS A&quot; can be used to check whether the pin is classified as a class member or not. E.g. below 2 statements are equal.</p
+	><p
+	>SELECT * WHERE mv:pinID IS A class1; SELECT * FROM class1;</p
+	></div
+      ><div id="create-class-family"
+      ><h4
+	>Create <a href="./terminology.html#family"
+	  >class family</a
+	  ></h4
+	><p
+	>CREATE CLASS clsfml11 AS select * where prop1 = :0 and prop2 = :1;<br
+	   /> select * from clsfml11(*, 2);</p
+	><p
+	>Here * indicates all values, including NULL. In this case, the <a href="./terminology.html#index"
+	  >index</a
+	  > is created with the composite key(prop1 and prop2)<br
+	   /><strong
+	  >Limitation 1</strong
+	  >: Because kernel use BTree for index, we can't store a PIN whose properties is all NULL value. So NULL can be passed as a parameter to class family only when the index for this class family is a multi-segment index; Single property index cannot support NULL parameters. For performance consideration, it is not suggested to create a class family with only one parameters which passed to where clause as: WHERE :0 is NULL.</p
+	><p
+	><strong
+	  >Limitation 2</strong
+	  >: Now mvStore has a syntax restriction about parameter position in predicates. E.g. mvStore can not create index for &quot;:0 = value&quot;, please using &quot;value = :0&quot; instead.</p
+	><p
+	><em
+	  >Note</em
+	  >: now mvstore can support ignoring param, i.e. user can pass more parameters than the number should be used in the query, because there is no parameter description when define the class family.</p
+	><p
+	>Please refer to the <a href="./terminology.html#class"
+	  >class</a
+	  >, <a href="./terminology.html#family"
+	  >family</a
+	  > and <a href="./terminology.html#index"
+	  >indexing</a
+	  > descriptions for a brief comparison with the relational DDL. Note that it is possible to declare multiple families with the same predicate, but different type specifications:</p
+	><p
+	>CREATE CLASS clsfml21 AS select * where prop1 = :0(int);<br
+	   /> CREATE CLASS clsfml22 AS select * where prop1 = :0(String);</p
+	><p
+	>In this case, if a PIN's prop1 is a string which cannot be converted into a number, then it won't be part of clsfml21. Note that if prop1 has a float value, then the float value will be truncated and converted into int before it's inserted as index key value.</p
+	><p
+	>If the parameter type is not specified, then class family index is created with the date type of the first PIN to match this class family.<br
+	   />And all class options work for class family except that SOFT_DELETE.</p
+	><div id="indexing-of-collections"
+	><h5
+	  >Indexing of collections</h5
+	  ><p
+	  >For single-property indexes, all elements will be added to the index.<br
+	     />For multi-segment indexes, all combinations will be added to the index (Cartesian product of all values of the indexed properties).</p
+	  ></div
+	><div id="how-to-specify-key-value-order-for-index"
+	><h5
+	  >How to specify key value order for index</h5
+	  ><p
+	  >The available options are:<br
+	     />1. ASC: Store key value in ascendent order.<br
+	     />2. DESC: Store key value in decendent order.<br
+	     />3. NULLS FIRST: Order the null value(i.e. there is no such a property) before any non-null value.<br
+	     />4. NULLS LAST: Order the null value(i.e. there is no such a property) after any non-null value.</p
+	  ><pre
+	  ><code
+	    >CREATE CLASS clsfml5 AS select * where prop1 = :0(int, desc, nulls first)and prop2=:1(int);  
+</code
+	    ></pre
+	  ></div
+	></div
+      ></div
+    ><div id="dml"
+    ><h3
+      >DML</h3
+      ><p
+      >Here is a description of mvSQL's Data Manipulation Language.</p
+      ><div id="insert"
+      ><h4
+	>INSERT</h4
+	><p
+	>Synopsis:</p
+	><ul
+	><li
+	  >INSERT (property [, ...]) VALUES ( expression [, ...] ) [, ...]<br
+	     /></li
+	  ><li
+	  >INSERT property = expression [, ...]<br
+	     /></li
+	  ><li
+	  >INSERT SELECT ...</li
+	  ></ul
+	><p
+	>Examples: <a href="../../test4mvsql/test/insert.sql"
+	  >insert.sql</a
+	  >.</p
+	><p
+	>Notes:<br
+	   />1. mvSQL does not yet support the insertion of graphs of inter-connected pins.<br
+	   />2. mvSQL does not yet support multiple pin insertion as suggested by the [, ...] in the first line of the synopsis.<br
+	   />3. mvSQL does not yet support the third line of the synopsis.</p
+	></div
+      ><div id="update"
+      ><h4
+	>UPDATE</h4
+	><p
+	>Synopsis:</p
+	><pre
+	><code
+	  >    UPDATE [{pin_reference|class_name| class_family_name({expression_as_param| *| NULL}, ...)}] actions [WHERE conditions]  
+</code
+	  ></pre
+	><p
+	>where <em
+	  >actions</em
+	  > can be:</p
+	><ul
+	><li
+	  >{SET|ADD} property = expression [, ...]<br
+	     /></li
+	  ><li
+	  >DELETE property [, ...]<br
+	     /></li
+	  ><li
+	  >RENAME property = new_property [, ...]<br
+	     /></li
+	  ><li
+	  >MOVE collection_property[element_id] {BEFORE|AFTER|TO} {element_id|LAST_ELEMENT|FIRST_ELEMENT}<br
+	     /></li
+	  ><li
+	  >EDIT ...</li
+	  ></ul
+	><p
+	>and <em
+	  >pin_reference</em
+	  > can be:</p
+	><ul
+	><li
+	  >a pin reference with format: @PID. E.g. @D001. Note when this UPDATE statement is a value of QUERY type property, then AT sign (@) can be used to denote the PIN ID which is processing.</li
+	  ><li
+	  >a collection of pin references with format: { @PID[, ...] }. E.g. {@D001, @D002}.</li
+	  ></ul
+	><p
+	>and <em
+	  >expression_as_param</em
+	  > can be any <a href="#value-expressions"
+	  >expression</a
+	  >.</p
+	><p
+	>Examples: <a href="../../test4mvsql/test/update.sql"
+	  >update.sql</a
+	  >.</p
+	><p
+	>Notes:</p
+	><ol style="list-style-type: decimal;"
+	><li
+	  >UPDATE {SET|ADD} a non-existing property: add a property<br
+	     /></li
+	  ><li
+	  >UPDATE SET an existing property: change the value of that property (if the property is a collection, overwrite the whole collection)<br
+	     /></li
+	  ><li
+	  >UPDATE ADD an existing property: append a new value to that property (if the property only has one value, then change the type to collection, and append the new value)</li
+	  ></ol
+	><p
+	>Also mvSQL support C styple operation 'op=', where op is one of +,-,*,/,%,&amp;,|,^,&lt;&lt;,&gt;&gt;,&gt;&gt;&gt;,min,max,||. E.g.</p
+	><pre
+	><code
+	  >UPDATE * SET prop+=1;
+</code
+	  ></pre
+	><p
+	>Any reference to a not existing proerty will lead the query return directly without any result set, in order to skip those PINs which does not exists that property, you can use '!' modifiers in UPDATE, in addition, we can only process those PINs which includes that property using '?' modifiers, E.g.</p
+	><pre
+	><code
+	  >UPDATE * SET prop!=0, prop?+=1;
+</code
+	  ></pre
+	><p
+	>This statement will update all PINs: for PINs without &quot;prop&quot; property, add this property; for PINs already has &quot;prop&quot; property, increase this property by 1.</p
+	></div
+      ><div id="deleteundeletepurge"
+      ><h4
+	>DELETE/UNDELETE/PURGE</h4
+	><p
+	>Synopsis:</p
+	><p
+	>{DELETE|UNDELETE|PURGE} [FROM {pin_reference|class_name| class_family_name({expression_as_param| *| NULL}, ...)}] [WHERE conditions]</p
+	><p
+	>DELETE: Mark PINs in deleted status(soft delete). UNDELETE: Change from deleted status to normal active status. PURGE: Remove(permanently delete) PINs from the physical disk. It can not remove the PINs in deleted status.</p
+	><p
+	>Examples: <a href="../../test4mvsql/test/delete.sql"
+	  >delete.sql</a
+	  >.</p
+	></div
+      ></div
+    ><div id="query"
+    ><h3
+      >QUERY</h3
+      ><p
+      >Synopsis:</p
+      ><p
+      >SELECT [ * ]<br
+	 /> [ FROM from_item [, ...] ]<br
+	 /> [ WHERE conditions ]<br
+	 /> [ GROUP BY {property_name | expression | position} [ASC | DESC][ NULLS { FIRST | LAST } ] [, ...] ]<br
+	 /> [ HAVING conditions ]<br
+	 /> [ { UNION | INTERSECT | EXCEPT } [ ALL ] select ]<br
+	 /> [ ORDER BY {property_name | expression | position} [ ASC | DESC ] [ NULLS { FIRST | LAST } ] [, ...] ]</p
+      ><p
+      >where <em
+	>from_item</em
+	> can be one of:</p
+      ><ul
+      ><li
+	>pin_reference</li
+	><li
+	>class_name</li
+	><li
+	>class_family_name({expression_as_param| *| NULL}, ...)</li
+	><li
+	>from_item join_type from_item [ ON join_condition | USING ( join_column [, ...] ) ]</li
+	><li
+	>sub_query AS alias_name</li
+	><li
+	>from_item AS alias_name</li
+	></ul
+      ><p
+      >and <em
+	>join_type</em
+	> can be one of:</p
+      ><ul
+      ><li
+	>[ INNER ] JOIN</li
+	><li
+	>LEFT [ OUTER ] JOIN</li
+	><li
+	>RIGHT [ OUTER ] JOIN</li
+	><li
+	>FULL [ OUTER ] JOIN</li
+	><li
+	>CROSS JOIN</li
+	></ul
+      ><div id="alias-name-in-from-clause"
+      ><h4
+	>Alias name in FROM clause</h4
+	><p
+	>A substitute name for the FROM item containing the alias. An alias is used for brevity or to eliminate ambiguity for self-joins (where the same table is scanned multiple times). When an alias is provided, it completely hides the actual name of the class or family; for example given FROM foo AS f, the remainder of the SELECT must refer to this FROM item as f not foo.</p
+	></div
+      ><div id="order-by"
+      ><h4
+	>Order by</h4
+	><p
+	>Examples: <a href="../../test4mvsql/test/orderBy.sql"
+	  >orderBy.sql</a
+	  >.</p
+	><p
+	>ORDER BY must appear after ALL the unions.<br
+	   />ORDER BY is considered to apply to the whole UNION result (it's effectively got lower binding priority than the UNION).<br
+	   />To order a subquery result, use parentheses around the subquery.</p
+	><p
+	><em
+	  >Note</em
+	  >: 1. In order to include null value for ordered property, NULLS FRIST/LAST should be added to order by clause. 2. The default behavior is order by ASC without NULL value PINs.</p
+	></div
+      ><div id="group-by"
+      ><h4
+	>Group by</h4
+	><p
+	>Examples: <a href="../../test4mvsql/test/groupBy.sql"
+	  >groupBy.sql</a
+	  >.</p
+	></div
+      ><div id="set-operator:-union-intersect-except"
+      ><h4
+	>Set operator: UNION | INTERSECT | EXCEPT</h4
+	><p
+	>Examples: <a href="../../test4mvsql/test/set_operator.sql"
+	  >set_operator.sql</a
+	  >.</p
+	><p
+	>The functionality of all these set operators is similar to standard SQL, except that mvStore does not require that all operands have same property number or type. Duplicates are identified based on <a href="./terminology.html#pin-id-pid"
+	  >PIN ID</a
+	  > instead of property value, which is differnt from standard SQL.</p
+	><p
+	>The keyword DISTINCT/ALL can be used to specify the result should eliminate duplicates or not.</p
+	><p style="color:red"><Ming> I think it is better to implement as below logic:<br
+	 />distinct(property list) -- will eliminate duplicate which is basing on the property list, not the PID. Moreover distinct(mv:pinID) can works as previous implemtation.</p>
+</div
+      ><div id="join"
+      ><h4
+	>Join</h4
+	><p
+	>mvStore returns immutable PIN collections as query results. Presently, the join results are somewhat limited (they only contain PINs from the left-hand class).</p
+	><pre
+	><code
+	  >    SELECT * FROM class1 as c1 join class1 as c2 on (c1.prop1 = c2.prop2);
+</code
+	  ></pre
+	><p
+	>mvStore supports every kind of JOIN (LEFT/RIGHT/FULL/CROSS JOIN), except the Natural JOIN.</p
+	><p
+	>Examples: <a href="../../test4mvsql/test/join.sql"
+	  >join.sql</a
+	  >.</p
+	></div
+      ><div id="sub-query-in-from-clause"
+      ><h4
+	>Sub query in FROM clause</h4
+	><p
+	>A sub-SELECT can appear in the FROM clause. This acts as though its output were created as a temporary table for the duration of this single SELECT command. Note that the sub-SELECT must be surrounded by parentheses, and an alias must be provided for it.</p
+	></div
+      ></div
+    ><div id="inheritance"
+    ><h3
+      >Inheritance</h3
+      ><p
+      >Being different from relational DB, mvStore support a PIN which can be belongs to multiple classes, in this way user can implement some inheritant data.</p
+      ><p
+      >Examples: <a href="../../test4mvsql/test/inheritance.sql"
+	>inheritance.sql</a
+	>.</p
+      ><div id="how-to-query-a-pin-which-belongs-to-2-classes"
+      ><h4
+	>How to query a PIN which belongs to 2 classes</h4
+	><p
+	>There are 2 ways:</p
+	><ul
+	><li
+	  >Using built-in property mv:pinID in WHERE CLAUSE, e.g. SELECT * WHERE class1.mv:pinID=class2.mv:pinID.</li
+	  ><li
+	  >Using operator &amp; for class names in FROM CLAUSE, e.g. SELECT * FROM class1 &amp; class2.</li
+	  ></ul
+	></div
+      ></div
+    ><div id="transactions"
+    ><h3
+      >TRANSACTIONS</h3
+      ><p
+      >mvStore not only supports basic transactions, but also sub-transactions. The session holds a transaction stack. Every sub-transaction can be rolled back independently (without affecting the state of the whole transaction). Changes are committed to the database only when the outermost transaction in the stack is committed.</p
+      ><p
+      >Examples: <a href="../../test4mvsql/test/transaction_basic.sql"
+	>transaction_basic.sql</a
+	>.</p
+      ><div id="start-a-transaction"
+      ><h4
+	>Start a Transaction</h4
+	><p
+	>START TRANSACTION is used to start a transaction/sub-transaction block.</p
+	><p
+	>Synopsis:</p
+	><pre
+	><code
+	  >    START TRANSACTION [ transaction_mode [, ...] ]
+</code
+	  ></pre
+	><p
+	>where transaction_mode is one of:</p
+	><ul
+	><li
+	  >ISOLATION LEVEL { READ UNCOMMITTED | READ COMMITTED | REPEATABLE READ | SERIALIZABLE }<br
+	     /></li
+	  ><li
+	  >READ ONLY |READ WRITE</li
+	  ></ul
+	><p
+	>Examples:<br
+	   /><a href="../../test4mvsql/test/transaction_isolation.sql"
+	  >transaction_isolation.sql</a
+	  >,<br
+	   /><a href="../../test4mvsql/test/transaction_readonly.sql"
+	  >transaction_readonly.sql</a
+	  >, <a href="../../test4mvsql/test/transaction_sub.sql"
+	  >transaction_sub.sql</a
+	  >.</p
+	><p
+	>Note:<br
+	   />1. mvStore doesn't support isolation level READ UNCOMMITTED.<br
+	   />2. When READ ONLY is specified, no operation in this transaction must write, otherwise the transaction will fail.<br
+	   />3. When READ ONLY is specified, mvStore uses the Read-Only Multi-Version Concurrency Control (ROMV), which will not block (or be blocked by) any read/write transaction.</p
+	></div
+      ><div id="end-a-transaction"
+      ><h4
+	>End a Transaction</h4
+	><div id="commit"
+	><h5
+	  >COMMIT</h5
+	  ><p
+	  >Synopsis:</p
+	  ><pre
+	  ><code
+	    >    COMMIT [ALL]; 
+</code
+	    ></pre
+	  ><p
+	  >If ALL is specified, then mvStore will commit the whole stack of transactions (started in the current session), otherwise it only commits the innermost transaction/sub-transaction block in the stack.</p
+	  ></div
+	><div id="rollback"
+	><h5
+	  >ROLLBACK</h5
+	  ><p
+	  >Synopsis:</p
+	  ><pre
+	  ><code
+	    >    ROLLBACK [ALL];  
+</code
+	    ></pre
+	  ><p
+	  >If ALL is specified, then mvStore will rollback the whole stack of transactions (started in the current session), otherwise it only rolls back the innermost transaction/sub-transaction block in the stack.</p
+	  ><p style="color:red">REVIEW (maxw): expand necessary samples in-place, using new mvsql_snippet class; keep the references to the *.sql files, but don't resolve them<br
+	   />REVIEW (maxw): clarify the whole COUNT, LIMIT/OFFSET philosophy; also, mention @1234.prop syntax for counting collections<br
+	   />REVIEW (maxw): actually, have a section just on counting things<br
+	   />REVIEW (maxw): a section on path expressions for declarative traversal of collections (by query)<br
+	   />REVIEW (maxw): clarify all the possible elisions/tricks when using families (e.g. with range var), vs possible parameters and meanings<br
+	   />REVIEW (maxw): idioms (broader disc with J)<br
+	   /></p>
+
+</div
+	></div
+      ></div
+    ></div
+  ></div
+>

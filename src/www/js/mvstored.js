@@ -234,7 +234,8 @@ QResultTable.prototype._init = function(pJson)
   }
   for (var i = 0; i < pJson.length; i++)
   {
-    for (var iProp in pJson[i])
+    var lPin = (pJson[i] instanceof Array || pJson[i][0] != undefined) ? pJson[i][0] : pJson[i];
+    for (var iProp in lPin)
     {
       if (iProp == "id") continue;
       if (iProp in this.mClassProps) continue;
@@ -265,33 +266,38 @@ QResultTable.prototype._addRows = function(pQResJson)
   var lBody = $("<tbody />").appendTo(this.mTable);
   for (var i = 0; i < lJson.length; i++)
   {
+    // For now, if an element of the result is a list (result from a JOIN), just take the leftmost pin.
+    // When the kernel behavior stabilizes with respect to the structure and contents of JOIN results,
+    // we can do more.
+    var lPin = (lJson[i] instanceof Array || lJson[i][0] != undefined) ? lJson[i][0] : lJson[i];
+    
     // Create a new row and bind mouse interactions.
-    var lRow = $("<tr id=\"" + lJson[i]["id"] + "\"/>").appendTo(lBody);
+    var lRow = $("<tr id=\"" + lPin["id"] + "\"/>").appendTo(lBody);
     lRow.mouseover(function(){$(this).addClass("highlighted");});
     lRow.mouseout(function(){$(this).removeClass("highlighted");});
     lRow.click(function(){on_pin_click($(this).attr("id")); return false;});
     var lRefs = new Object();
 
     // Create the first column.
-    lRow.append($("<td>" + lJson[i]["id"] + "</td>"));
+    lRow.append($("<td>" + lPin["id"] + "</td>"));
 
     // Create the class-related columns, if any.
     for (var iProp in this.mClassProps)
-      { lRow.append($("<td>" + this._createValueUI(lJson[i][iProp], lRefs, lJson[i]["id"] + "rqt") + "</td>")); }
+      { lRow.append($("<td>" + this._createValueUI(lPin[iProp], lRefs, lPin["id"] + "rqt") + "</td>")); }
 
     // Create the common props columns, if any.
     for (var iProp in this.mCommonProps)
-      { lRow.append($("<td>" + (iProp in lJson[i] ? this._createValueUI(lJson[i][iProp], lRefs, lJson[i]["id"] + "rqt") : "") + "</td>")); }
+      { lRow.append($("<td>" + (iProp in lPin ? this._createValueUI(lPin[iProp], lRefs, lPin["id"] + "rqt") : "") + "</td>")); }
 
     // Create the last column (all remaining properties).
     lOtherProps = $("<p />");
-    for (var iProp in lJson[i])
+    for (var iProp in lPin)
     {
       if (iProp == "id") continue;
       if (iProp in this.mClassProps) continue;
       if (iProp in this.mCommonProps) continue;
       lOtherProps.append($("<span class='mvpropname'>" + iProp + "</span>"));
-      lOtherProps.append($("<span>:" + this._createValueUI(lJson[i][iProp], lRefs, lJson[i]["id"] + "rqt") + "  </span>"));
+      lOtherProps.append($("<span>:" + this._createValueUI(lPin[iProp], lRefs, lPin["id"] + "rqt") + "  </span>"));
     }
     var lOPD = $("<td />");
     lOPD.append(lOtherProps);
@@ -358,6 +364,7 @@ BatchingSQL.prototype.go = function()
         return;
       var _lPage = {ui:$("<div />"), query:(_pE + ";"), result:null};
       _lPage.result = new QResultTable(_lPage.ui, null);
+      MV_CONTEXT.mQueryHistory.recordQuery(_lPage.query);
       _lPage.result.populate(_lPage.query);
       lThis.mResultList.append($("<option>" + _lPage.query + "</option>"));
       lThis.mPages.push(_lPage);
@@ -567,9 +574,10 @@ function Tutorial()
       function print(__pWhat) { lThis.mHistory.append($("<p class='tutorial_result'>" + _stringify(__pWhat, false) + "</p>")); }
       function mvsql(__pSql)
       {
+        MV_CONTEXT.mQueryHistory.recordQuery(__pSql);
         var __lEvalResult = null;
         var __lOnMvsql = function(__pJson, __pD) { _onMvsqlResult(__pJson); __lEvalResult = __pJson; }
-        mv_query(__pSql, new QResultHandler(__lOnMvsql, function(__pError){}), null, null, null, false);
+        mv_query(__pSql, new QResultHandler(__lOnMvsql, function(__pError){ print("error:" + __pError[0].responseText); }), null, null, null, false);
         return __lEvalResult;
       }
       function save(__pJson)
@@ -627,11 +635,11 @@ function Tutorial()
       }
       function h()
       {
-        $("#thetutorial #help div").each(function(_pI, _pE) { lThis.mHistory.append($("<p class='tutorial_help'>" + $(_pE).text() + "</p>")); });
+        $("#thetutorial #help div").each(function(_pI, _pE) { lThis.mHistory.append($("<p class='tutorial_help'>" + $(_pE).html() + "</p>")); });
       }
       function t()
       {
-        $("#thetutorial #steps #step0 div").each(function(_pI, _pE) { _pushTutInstr($(_pE).text()); });
+        $("#thetutorial #steps #step0 div").each(function(_pI, _pE) { _pushTutInstr($(_pE).html()); });
         lThis.mTutorialStep = 1;
       }
       function n()
@@ -639,11 +647,11 @@ function Tutorial()
         var lNumSteps = $("#thetutorial #steps > div").size();
         if (lThis.mTutorialStep < lNumSteps)
         {
-          $("#thetutorial #steps #step" + lThis.mTutorialStep + " div").each(function(_pI, _pE) { _pushTutInstr($(_pE).text()); });
+          $("#thetutorial #steps #step" + lThis.mTutorialStep + " div").each(function(_pI, _pE) { _pushTutInstr($(_pE).html()); });
           lThis.mTutorialStep++;
         }
         else
-          _pushTutInstr($("#thetutorial #restart").text());
+          _pushTutInstr($("#thetutorial #restart").html());
       }
       function step(__pStep)
       {
@@ -747,12 +755,24 @@ $(document).ready(
     new BatchingSQL();
     // Setup the tutorial.
     new Tutorial();
+    // Setup the initial query string, if one was specified (used for links from doc to console).
+    var lInitialQ = location.href.match(/query\=(.*?)((&.*)|(#.*)|\0)?$/i);
+    if (undefined != lInitialQ && lInitialQ.length > 0)
+      $("#query").val(unescape(lInitialQ[1]).replace(/\+/g, " "));
+    var lInitialStoreId = location.href.match(/storeid\=(.*?)((&.*)|(#.*)|\0)?$/i);
+    if (undefined != lInitialStoreId && lInitialStoreId.length > 0)
+    {
+      $("#storeident").val(unescape(lInitialStoreId[1]));
+      $("#storepw").val("");
+    }
     // Populate startup UI from queries.
     populate_classes();
     // UI callback for query form.
     $("#form").submit(function() {
       var lResultList = $("#result_list");
       lResultList.html("loading...");
+      if ($("#result_pin pre").size() > 0) // If the contents of the #result_pin represent an error report from a previous query, clear it now; otherwise, let the contents stay there.
+        $("#result_pin").empty(); 
       var lCurClassName = $("#classes option:selected").val();
       var lQuery = unescape($("#form").serialize());
       MV_CONTEXT.mLastQueriedClassName = (lQuery.indexOf(mv_without_qname(lCurClassName)) >= 0) ? lCurClassName : null;
@@ -768,6 +788,7 @@ $(document).ready(
       }
       else
       {
+        lQuery = mv_with_qname_prefixes(lQuery);
         $.ajax({
           type: "POST",
           url: DB_ROOT,
@@ -851,6 +872,37 @@ function mv_without_qname(pRawName)
     { return MV_CONTEXT.mQName2Prefix[lQName] + "/" + lSuffix; }
   return pRawName;
 }
+function mv_with_qname_prefixes(pQueryStr)
+{
+  var lAlreadyDefined = {'http':1, 'mv':1};
+  {
+    var lAlreadyDefinedPattern = /PREFIX\s*(\w*)\:/gi;
+    var lAD;
+    while (undefined != (lAD = lAlreadyDefinedPattern.exec(pQueryStr)))
+      lAlreadyDefined[lAD[1].toLocaleLowerCase()] = 1;
+  }
+  var lToDefine = {};
+  {
+    var lToDefinePattern = /\b(\w*)\:/g;
+    var lTD;
+    while (undefined != (lTD = lToDefinePattern.exec(pQueryStr)))
+    {
+      var lPrefix = lTD[1].toLocaleLowerCase();
+      if (lPrefix in lAlreadyDefined)
+        continue;
+      if (!isNaN(Number(lPrefix)))
+        continue;
+      if (lPrefix in MV_CONTEXT.mQName2Prefix)
+        lToDefine[lPrefix] = MV_CONTEXT.mQName2Prefix[lPrefix];
+      else
+        alert("unknown prefix: " + lPrefix);
+    }
+  }
+  var lProlog = "";
+  for (var iP in lToDefine)
+    { lProlog = lProlog + "PREFIX " + iP + ": '" + lToDefine[iP] + "' "; }
+  return lProlog + pQueryStr;
+}
 function mv_sanitize_json_result(pResultStr)
 {
   //var lStr = "[" + pResultStr.replace(/\n/g, "").replace(/\}\s*\{/g, "},{") + "]";
@@ -882,14 +934,26 @@ function mv_sanitize_classname(pClassName)
 }
 function QResultHandler(pOnSuccess, pOnError, pUserData) { this.mOnSuccess = pOnSuccess; this.mOnError = pOnError; this.mUserData = pUserData; }
 QResultHandler.prototype.onsuccess = function(pJson, pSql) { if (this.mOnSuccess) this.mOnSuccess(pJson, this.mUserData, pSql); }
-QResultHandler.prototype.onerror = function(pArgs, pSql) { if (this.mOnError) this.mOnError(pArgs, this.mUserData, pSql); else console.log("QResultHandler.onerror: " + pArgs[1]); }
+QResultHandler.prototype.onerror = function(pArgs, pSql)
+{
+  if (this.mOnError)
+    this.mOnError(pArgs, this.mUserData, pSql);
+  else
+  {
+    var lT = pSql + "\n" + pArgs[0].responseText;
+    console.log(lT);
+    lT = lT.replace(/\n/g, "<br>").replace(/\s/, "&nbsp;");
+    $("#result_pin").empty(); $("#result_pin").append("<pre style='color:red'>" + lT + "</pre>");
+  }
+}
 function mv_query(pSqlStr, pResultHandler, pCountOnly, pLimit, pOffset, pAsync)
 {
   if (null == pSqlStr || 0 == pSqlStr.length || pSqlStr.charAt(pSqlStr.length - 1) != ";")
     { console.log("mv_query: invalid sql " + pSqlStr); pResultHandler.onerror(null, pSqlStr); return; }
+  var lSqlStr = mv_with_qname_prefixes(pSqlStr);
   $.ajax({
     type: "GET",
-    url: DB_ROOT + "?q=" + escape(pSqlStr) + "&i=mvsql&o=json" + (pCountOnly ? "&type=count" : "") + ((null != pLimit) ? ("&limit=" + pLimit) : "") + ((null != pOffset) ? ("&offset=" + pOffset) : ""),
+    url: DB_ROOT + "?q=" + escape(lSqlStr) + "&i=mvsql&o=json" + (pCountOnly ? "&type=count" : "") + ((null != pLimit) ? ("&limit=" + pLimit) : "") + ((null != pOffset) ? ("&offset=" + pOffset) : ""),
     dataType: "text", // Review: until mvStore returns 100% clean json...
     async: (undefined != pAsync) ? pAsync : true,
     timeout: (undefined == pAsync) ? 10000 : null,
@@ -913,8 +977,11 @@ function populate_classes()
 {
   var lOnSuccess = function(_pJson) {
     MV_CONTEXT.mClasses = _pJson;
+    var lToDelete = [];
     for (var iC = 0; null != MV_CONTEXT.mClasses && iC < MV_CONTEXT.mClasses.length; iC++)
     {
+      if (undefined == MV_CONTEXT.mClasses[iC]["mv:URI"])
+        { lToDelete.push(iC); continue; }
       MV_CONTEXT.mClasses[iC]["mv:URI"] = mv_with_qname(MV_CONTEXT.mClasses[iC]["mv:URI"]);
       var lCProps = MV_CONTEXT.mClasses[iC]["mv:properties"];
       var lNewProps = new Object();
@@ -925,6 +992,8 @@ function populate_classes()
       }
       MV_CONTEXT.mClasses[iC]["mv:properties"] = lNewProps;
     }
+    for (var iD = lToDelete.length - 1; iD >= 0; iD--)
+      MV_CONTEXT.mClasses.splice(lToDelete[iD], 1);
     $("#classes").empty();
     $("#class_properties").empty();
     $("#class_doc").empty();
@@ -1015,7 +1084,7 @@ function on_pin_click(pPID)
     var _mOnSuccess = function(__pJson, __pClass) { _mNumCTested += 1; if (parseInt(__pJson) > 0) { lPinClasses.append(" " + mv_with_qname(__pClass)); _mNumCValidated += 1; } if (_mNumCTested >= _mNumCTotal && 0 == _mNumCValidated) { lPinClasses.append("unclassified pin"); } };
     this.next =
       function(__pClass)
-      {
+      {        
         var __lOnCount = new QResultHandler(_mOnSuccess, null, __pClass);
         mv_query("SELECT * FROM " + mv_sanitize_classname(__pClass) + " WHERE mv:pinID=@" + pPID + ";", __lOnCount, true);
       }
@@ -1059,7 +1128,8 @@ function update_qnames_ui()
   MV_CONTEXT.mQNamesDirty = false;
 }
 
-// TODO: report query errors
 // TODO (Ming): special hints for divergences from standard SQL
 // TODO (Ming): links from mvstore console to documentation and vice versa (e.g. execute code snippet)
+  // e.g. in tutorial, put links; in basic console, put a help beside the query string, and jump to the most relevant place; 
+  // also add a search somewhere
 // TODO: future modes (e.g. graph navigator, erdiagram, wizard to create pins that conform with 1..n classes, ...)

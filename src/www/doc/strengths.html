@@ -1,0 +1,574 @@
+<head>
+  <script src='js/jquery.js' type='text/javascript'></script>
+  <script src='js/snippets_to_console.js' type='text/javascript'></script>
+  <link href='css/mvdoc.css' rel='stylesheet' type='text/css' />
+</head>
+<div id='mvtocbar'>
+  <select id='mvtoclist'>
+    <option value='features'>features</option>
+    <option value='intro'>intro</option>
+    <option value='mvEngine getting started'>mvEngine getting started</option>
+    <option value='mvSQL getting started'>mvSQL getting started</option>
+    <option value='mvSQL reference'>mvSQL reference</option>
+    <option value='mvStore FAQ'>mvStore FAQ</option>
+    <option value='mvStore build from source'>mvStore build from source</option>
+    <option value='mvStore cpp'>mvStore cpp</option>
+    <option value='mvStore getting started'>mvStore getting started</option>
+    <option value='mvStore js'>mvStore js</option>
+    <option value='mvStore protobuf'>mvStore protobuf</option>
+    <option value='mvStore server'>mvStore server</option>
+    <option value='strengths' SELECTED>strengths</option>
+    <option value='terminology'>terminology</option>
+  </select>
+</div
+<div id="strengths"
+><h1
+  >Strengths</h1
+  ><p
+  >As a whole, the set of <a href="./features.html"
+    >features</a
+    > proposed by mvStore aims at bringing together the best from existing database technologies, including relational, object-oriented, graph-oriented, document-based and RDF systems. The intent is to provide a unified and powerful database solution that facilitates integration, and reduces the long-term impacts of choosing any one specialized technology.</p
+  ><p
+  >This page further describes the comparative strengths of mvStore. Here's a table that emphasizes some of the capabilities that you can expect to find in mvStore, in a nutshell:</p
+  ><table
+  ><thead
+    ><tr class="header"
+      ><th align="left"
+	>Capability</th
+	><th align="left"
+	>Relational DB</th
+	><th align="left"
+	>Object DB</th
+	><th align="left"
+	>Graph DB</th
+	><th align="left"
+	>Document DB</th
+	><th align="left"
+	>mvStore</th
+	></tr
+      ></thead
+    ><tbody
+    ><tr class="odd"
+      ><td align="left"
+	>1. <a href="#agile-categorization"
+	  >Automatic, continuous, agile categorization of objects</a
+	  ></td
+	><td align="left"
+	>uncommon (1)</td
+	><td align="left"
+	>nk (2)</td
+	><td align="left"
+	>nk</td
+	><td align="left"
+	>some (3)</td
+	><td align="left"
+	>YES</td
+	></tr
+      ><tr class="even"
+      ><td align="left"
+	>2. <a href="#references-and-easy-graph-navigation"
+	  >References and easy graph navigation</a
+	  ></td
+	><td align="left"
+	>nk (4)</td
+	><td align="left"
+	>YES</td
+	><td align="left"
+	>YES</td
+	><td align="left"
+	>nk (5)</td
+	><td align="left"
+	>YES</td
+	></tr
+      ><tr class="odd"
+      ><td align="left"
+	>3. <a href="#path-expressions-for-compact-set-navigation"
+	  >Path expressions</a
+	  ></td
+	><td align="left"
+	>uncommon</td
+	><td align="left"
+	>nk</td
+	><td align="left"
+	>YES</td
+	><td align="left"
+	>nk</td
+	><td align="left"
+	>YES</td
+	></tr
+      ><tr class="even"
+      ><td align="left"
+	>4. <a href="#sql-friendliness"
+	  >SQL-friendliness</a
+	  ></td
+	><td align="left"
+	>YES</td
+	><td align="left"
+	>some</td
+	><td align="left"
+	>nk</td
+	><td align="left"
+	>uncommon</td
+	><td align="left"
+	>YES</td
+	></tr
+      ><tr class="odd"
+      ><td align="left"
+	>5. <a href="#rich-queries-with-joins"
+	  >Rich queries with joins</a
+	  ></td
+	><td align="left"
+	>YES</td
+	><td align="left"
+	>some</td
+	><td align="left"
+	>some</td
+	><td align="left"
+	>no</td
+	><td align="left"
+	>YES</td
+	></tr
+      ><tr class="even"
+      ><td align="left"
+	>6. <a href="#super-types-as-first-class-citizens"
+	  >Super-types as first-class citizens</a
+	  ></td
+	><td align="left"
+	>nk</td
+	><td align="left"
+	>YES</td
+	><td align="left"
+	>nk</td
+	><td align="left"
+	>nk</td
+	><td align="left"
+	>YES</td
+	></tr
+      ><tr class="odd"
+      ><td align="left"
+	>7. <a href="#ordered-collections-to-retain-sequential-information"
+	  >Ordered collections</a
+	  ></td
+	><td align="left"
+	>nk</td
+	><td align="left"
+	>YES</td
+	><td align="left"
+	>nk</td
+	><td align="left"
+	>YES</td
+	><td align="left"
+	>YES</td
+	></tr
+      ><tr class="even"
+      ><td align="left"
+	>8. <a href="#transactional-automatic-full-text-indexing"
+	  >Transactional, automatic full-text indexing</a
+	  ></td
+	><td align="left"
+	>some</td
+	><td align="left"
+	>some</td
+	><td align="left"
+	>no</td
+	><td align="left"
+	>some</td
+	><td align="left"
+	>YES</td
+	></tr
+      ><tr class="odd"
+      ><td align="left"
+	>9. <a href="#uniform-programming-environment-with-notifications"
+	  >Notifications for unified programming</a
+	  ></td
+	><td align="left"
+	>nk</td
+	><td align="left"
+	>nk</td
+	><td align="left"
+	>YES</td
+	><td align="left"
+	>nk</td
+	><td align="left"
+	>YES</td
+	></tr
+      ><tr class="even"
+      ><td align="left"
+	>10. <a href="#snapshot-isolation-for-high-concurrency"
+	  >Snapshot isolation for high concurrency</a
+	  ></td
+	><td align="left"
+	>some</td
+	><td align="left"
+	>nk</td
+	><td align="left"
+	>nk</td
+	><td align="left"
+	>nk</td
+	><td align="left"
+	>YES</td
+	></tr
+      ><tr class="odd"
+      ><td align="left"
+	>11. <a href="#small-portable-embeddable"
+	  >Small, portable, embeddable c++ kernel</a
+	  ></td
+	><td align="left"
+	>some</td
+	><td align="left"
+	>nk</td
+	><td align="left"
+	>nk</td
+	><td align="left"
+	>nk</td
+	><td align="left"
+	>YES</td
+	></tr
+      ><tr class="even"
+      ><td align="left"
+	>12. Easy scalability, both in terms of replication and partitioning</td
+	><td align="left"
+	>hard</td
+	><td align="left"
+	>nk</td
+	><td align="left"
+	>nk</td
+	><td align="left"
+	>YES</td
+	><td align="left"
+	>no (6)</td
+	></tr
+      ></tbody
+    ></table
+  ><p
+  ><sub> 1- some of the more powerful relational db offer synchronously-updated materialized views that can select from multiple tables 2- nk stands for &quot;Not to our Knowledge&quot; 3- we know of one document db that offers a similar feature 4- while it seems possible to emulate a graph db efficiently with a relational db, the notion of reference is less direct, and graph db are usually considered a better fit for that use case 5- to our knowledge it's practically impossible to emulate a graph db within a document db, without making major compromises 6- replication is part of our short-term plans, and partitioning is in our mid-term plans </sub></p
+  ><div id="entities-evolving-freely-over-time"
+  ><h2
+    >Entities evolving freely over time</h2
+    ><p
+    >In mvStore, each instance of an entity (aka <em
+      ><a href="./terminology.html#pin"
+	>PIN</a
+	></em
+      > or <em
+      >object</em
+      > or <em
+      >instance</em
+      >) is free to contain any attribute at any time. An entity is not bound to any table (or <em
+      >type</em
+      > or <em
+      ><a href="./terminology.html#class"
+	>class</a
+	></em
+      > or <em
+      >category</em
+      >). Instances evolve independently from the categories to which they may belong at any point in time. This is accomplished without any compromise with respect to transactional integrity or performance: PINs and their classification change in the context of transactions, and rely on indexes. A transaction can involve any number of PINs.</p
+    ></div
+  ><div id="discoverability-information-re-use-and-information-sharing"
+  ><h2
+    >Discoverability, information re-use, and information sharing</h2
+    ><p
+    >While objects can evolve freely in mvStore, it remains possible to discover and track them at any moment. mvStore provides several mechanisms: <a href="./terminology.html#class"
+      >classification</a
+      >, full-scan queries (not recommended for finished applications but convenient during development), and <a href="./terminology.html#notification"
+      >notifications</a
+      >.</p
+    ><p
+    >The ability to query the store is essential for mutli-user collaboration and for inter-application interoperability. Objects created or modified by one agent can be discovered by other agents without explicit transmission of data between agents. The agents simply monitor (or wait for notifications from) the database which serves as a common intermediary similar to &quot;publish and subscribe&quot; messaging systems.</p
+    ><p
+    >Information re-use is the idea that the information in a persisted object should not be locked up by the application which created the object. If the information is valuable to its owner, the owner should be able to manipulate that information using a variety of applications (of the owners choice).</p
+    ><p
+    >Information sharing is the idea that if information is represented with sufficient &quot;semantics&quot;, then it can be shared and interpreted by other systems. Note that even a partial shared understanding of some of the properties in an object between systems is sufficient for this kind of interoperability.</p
+    ></div
+  ><div id="self-descriptiveness"
+  ><h2
+    >Self-descriptiveness</h2
+    ><p
+    >Objects in mvStore are naturally serializable as dictionaries that fully describe their full contents. Therefore, it's trivial to export or transport objects.</p
+    ></div
+  ><div id="data-before-structure-a-two-step-modeling-process"
+  ><h2
+    >Data before structure (a two-step modeling process)</h2
+    ><p
+    >mvStore makes it possible for data to exist before structures are defined (or refined or modified). This capability rests in part on the definition (by applications) of a globally meaningful, consistent and stable vocabulary of <a href="./terminology.html#property"
+      >property names</a
+      >. The selection (or creation) of such a vocabulary represents the first step of data modeling with mvStore, and suffices to enable the creation of data. The second step is categorization, and it happens independently and dynamically. mvStore recognizes that pre-defined structures and schema are essential for most computer programs. This separation between pure (intrinsic) data structure and application-enabling schema is designed to facilitate the coexistence of applications, and their sharing of data. mvStore also allows to transform data at query time.</p
+    ></div
+  ><div id="property-names-as-uris:-avoiding-confusion"
+  ><h2
+    >Property names as URIs: avoiding confusion</h2
+    ><p
+    >By requiring a global vocabulary of <a href="./terminology.html#property"
+      >property names</a
+      >, and emphasizing the importance of selecting universal, high-quality definitions from the start (that will last throughout the life-cycle and at every level of the modeling process), mvStore reduces the chances of confusion related to imprecise terminology.</p
+    ></div
+  ><div id="agile-categorization"
+  ><h2
+    >Agile categorization</h2
+    ><p
+    >The relational approach implies a water-fall modeling process: an a-priori, all-or-nothing exercise of categorization (one cannot insert rows in a table that is not yet defined). This often crystallizes into rigid physical models (tables, views, indexes), where objects can only be represented in one state of their potentially evolving structure (for example, in real life a merchandise item may be moved or modified; depending on where the merchandise is located, more or less attributes may be required to track it; it's not possible in a relational database to just move that row across various tables). Also, it is difficult to 'correct' pitfalls once the database contains data. Incomplete or extensible models (such as plug-in architectures) require awkward modeling strategies. Integration with external data sources can be painful. In contrast, mvStore proposes a much more agile approach, where <a href="./terminology.html#class"
+      >categories</a
+      > can be created and modified iteratively, without affecting the data. Categories and structures can be known to (or defined by) some software components (e.g. plug-ins), and ignored by others.</p
+    ></div
+  ><div id="super-types-as-first-class-citizens"
+  ><h2
+    >Super-types as first-class citizens</h2
+    ><p
+    >With mvStore, the identity of objects is automatically secured (by their <a href="./terminology.html#pin-id-pid"
+      >PID</a
+      >), and the type hierarchy is free to evolve independently from instances. Super-types can pre-exist sub-types, and when sub-types are declared they don't modify, invalidate or hide super-types, or force any manual reorganization of the data. Types can be specialized and combined. Objects can match multiple types (aka <a href="./terminology.html#class"
+      >classes</a
+      > or categories). Use-cases that imply a proliferation of sub-types are not an issue for mvStore. Software components are free to interact with super-types or sub-types, at their convenience.</p
+    ></div
+  ><div id="no-need-to-model-attributes-as-entities"
+  ><h2
+    >No need to model attributes as entities</h2
+    ><p
+    >In the relational model, when it becomes too difficult to model complex problems due to unstable or unpredictable structures, a last-resort solution involves a method sometimes referred to as &quot;very high level of attribute generalization&quot;, which consists in modeling attributes as entities, such that arbitrary sets of attributes can be combined to represent a wider variety of things. mvStore's <a href="./terminology.html#pin"
+      >PIN</a
+      > does that implicitly.</p
+    ></div
+  ><div id="no-need-to-create-unnecessary-structures"
+  ><h2
+    >No need to create unnecessary structures</h2
+    ><p
+    >Not all structures require the same level of detail in modeling, or the same accessibility. For example, applications that handle catalogs of components will be primarily interested in organizing common aspects of these components, and would gladly leave out the minute details of each component (plug-ins can take care of these details; or generic introspective methods can walk the complementary information). The exercise of fitting all this component-specific data into a relational model becomes a waste of time, justified mainly by the need for a unified storage infrastructure. mvStore allows these structures to coexist (without the pain of rigid modeling), and to evolve into their ideal usage in due time (with the help of dynamic classification).</p
+    ></div
+  ><div id="temporary-data-in-place-and-implicitly-indexed"
+  ><h2
+    >Temporary data in-place, and implicitly indexed</h2
+    ><p
+    >Another consequence of mvStore's data model is that temporary data can be attached directly to already existing <a href="./terminology.html#pin"
+      >PINs</a
+      >. All pre-existing indexes on those PINs remain valid access paths to the temporary data, and come at no extra cost. The same holds for references. Compared with temporary tables, this can represent a significant performance advantage (in terms of indexing and locking, for example). mvStore does not require any special (in-advance) modeling or planning.</p
+    ></div
+  ><div id="exclusivity-arcs-in-place"
+  ><h2
+    >Exclusivity arcs in-place</h2
+    ><p
+    >In relational modeling, exclusivity arcs model mutually exclusive relationships between entities (e.g. an inventory item can only be at one place at one time). In the object-oriented realm, this can be represented with a pointer to a base-class, and sub-classes. With mvStore, another option is to implement this in-place, with a single <a href="./terminology.html#pin"
+      >PIN</a
+      > that just evolves over time.</p
+    ></div
+  ><div id="automatic-assignment-of-globally-unique-ids-to-all-instances"
+  ><h2
+    >Automatic assignment of globally-unique IDs to all instances</h2
+    ><p
+    >The relational model implies a complex decision process for each table: the selection of a primary key. Object databases in general, and mvStore in particular simplify this process by attributing a globally unique surrogate key (<a href="./terminology.html#pin-id-pid"
+      >PID</a
+      >) to every object (<a href="./terminology.html#pin"
+      >PIN</a
+      >). This key enables random access to the instance, without the cost of an additional index. Combined with <a href="./terminology.html#pin-reference"
+      >references</a
+      >, it simplifies the modeling of relationships, and the traversal of graphs. In the context of super-types and sub-types, the globally unique PID eliminates issues such as contention for the next (shared) unique id across multiple tables, or partially-null primary keys. In the context of data warehousing, the PID removes the problem of accounting for each new dimension table in the compound primary key of the fact table. More generally, these characteristics reduce significantly the causes of debate around primary (and surrogate) keys encountered in relational modeling.</p
+    ></div
+  ><div id="references-and-easy-graph-navigation"
+  ><h2
+    >References and easy graph navigation</h2
+    ><p
+    >By avoiding joins for traversals on specific instances, mvStore provides similar advantages as object and graph databases, in comparison with relational systems. mvStore also allows set operations on references, and <a href="./terminology.html#collection"
+      >collections</a
+      > of <a href="./terminology.html#pin-reference"
+      >references</a
+      >, providing the best of both worlds <em
+      >(note: path indexing is not yet available, but planned for a future release; joins are used in the meantime)</em
+      >. References are simpler to model than foreign keys, and further reduce the burden in terms of selecting keys upfront (and in an immutable way).</p
+    ></div
+  ><div id="path-expressions-for-compact-set-navigation"
+  ><h2
+    >Path expressions for compact set navigation</h2
+    ><p
+    >The following relational queries</p
+    ><p
+    >select * from emp e where e.deptno in(select d.deptno from dept d where e.deptno = d.deptno);</p
+    ><p
+    >select * from emp e where exists (select d.deptno from dept d where e.deptno = d.deptno);</p
+    ><p
+    >Can be written in a more compact form with mvStore, in a model using <a href="./terminology.html#pin-reference"
+      >references</a
+      >:</p
+    ><p
+    >select * from emp where exists(dept);</p
+    ><p
+    >Similarly,</p
+    ><p
+    >select P.upc from Productlist as P where P.upc in ((select W.upc from Warehouse as W where W.upc = P.upc), (select T.upc from TruckCenter as T where T.upc = P.upc), (select G.upc from Garbage as G where G.upc = P.upc)) and P.makerid in (select M.id from Maker as M where M.country = 'Belgium');</p
+    ><p
+    >becomes:</p
+    ><p
+    >select upc from Inventory where maker.country = 'Belgium';</p
+    ></div
+  ><div id="ordered-collections-to-retain-sequential-information"
+  ><h2
+    >Ordered collections to retain sequential information</h2
+    ><p
+    >When normalizing a relational model, there is sometimes a risk of missing or losing sequential information (such as the order of repeating column groups, that could have implicitly represented the sequence according to which drugs should be administered, for example). mvStore's <a href="./terminology.html#collection"
+      >collections</a
+      > allow to easily model this information, without falling back on weaker representations such as repeating column groups or sequence columns.</p
+    ></div
+  ><div id="more-with-less-entities"
+  ><h2
+    >More with less (entities)</h2
+    ><p
+    >In many cases, mvStore reduces the number of entities or columns required to model data. For example, <a href="./terminology.html#pin-reference"
+      >references</a
+      > simplify the representation of many-to-many relationships. <a href="./terminology.html#collection"
+      >Collections</a
+      > can spare additional tables, repeating groups or sequence columns. <a href="./terminology.html#unit-of-measurement"
+      >Units of measurement</a
+      > save an extra column. URIs (and eventually enumerations) can spare a category table.</p
+    ></div
+  ><div id="transactional-automatic-full-text-indexing"
+  ><h2
+    >Transactional, automatic full-text indexing</h2
+    ><p
+    >mvStore automatically indexes text properties, without any additional work required by the client (no 'tsvector' or 'VIRTUAL TABLE' or 'FULLTEXT' index), while allowing to easily exclude undesired properties and PINs. Values of collections are indexed as well. Indexing happens synchronously alongside all other transaction operations, and queries can combine text searching with other conditions, with the same ACID expectations as for any other index.</p
+    ></div
+  ><div id="units-of-measurement"
+  ><h2
+    >Units of measurement</h2
+    ><p
+    >mvStore allows to easily attach semantic value to floating point values, using <a href="./terminology.html#unit-of-measurement"
+      >units of measurement</a
+      >. This simplifies modeling, enhances the semantic value of data, and enables automatic conversions in the evaluation of expressions involving those values.</p
+    ></div
+  ><div id="sql-friendliness"
+  ><h2
+    >SQL-friendliness</h2
+    ><p
+    >Even though the mvStore <a href="./terminology.html#essential-concepts-data-model"
+      >data model</a
+      > is quite different from relational databases, <a href="./terminology.html#mvsql"
+      >mvSQL</a
+      > is designed to be as close to SQL as possible (especially the <a href="./mvSQL%20reference.html#keywords"
+      >DML</a
+      >).</p
+    ></div
+  ><div id="xml-friendliness"
+  ><h2
+    >XML-friendliness</h2
+    ><p
+    ><a href="./terminology.html#collection"
+      >Collections</a
+      > and <a href="./terminology.html#pin-reference"
+      >references</a
+      > allow to easily represent the XML structure. <a href="./terminology.html#namespace"
+      >Namespaces</a
+      > and <a href="./terminology.html#property"
+      >property names</a
+      > (as URIs) further facilitate the mapping. It is possible to map the whole database to a single virtual XML document, in which XPath can navigate efficiently and comprehensively. <em
+      >Note: mvStore doesn't currently provide a XQuery or XPath interface, but may in the future.</em
+      ></p
+    ></div
+  ><div id="rdf-friendliness"
+  ><h2
+    >RDF-friendliness</h2
+    ><p
+    >The &quot;subject-predicate-object&quot; model can be easily represented in mvStore with the PIN as subject, the property as predicate, and the value as object.</p
+    ></div
+  ><div id="no-constraint-on-string-length"
+  ><h2
+    >No constraint on string length</h2
+    ><p
+    >mvStore is designed to deal with very flexible data structures, without sacrificing performance. In particular, it does not require any upfront decision regarding the length of strings: no CHAR vs VARCHAR vs LONG specification. Long strings can be explicitly stored on <a href="./terminology.html#ssv"
+      >separate pages</a
+      > if desired, and very long strings can be accessed via a streaming interface.</p
+    ></div
+  ><div id="no-compromise-with-structured-data"
+  ><h2
+    >No compromise with structured data</h2
+    ><p
+    >Even though mvStore opens up the data modeling options and emphasizes a freedom that could be associated with object-oriented, graph or document databases for example, no compromise is made when the time comes to process structured data. Great care is invested to represent data on <a href="./terminology.html#page"
+      >pages</a
+      > in the most compact form possible, and to ensure data locality.</p
+    ></div
+  ><div id="rich-queries-with-joins"
+  ><h2
+    >Rich queries with joins</h2
+    ><p
+    >The query engine is extremely flexible, and accommodates the SQL <a href="./mvSQL%20reference.html#keywords"
+      >DML</a
+      > without difficulty, with joins as first-class citizens. Advanced features such as path expressions and path indexing push the envelope by making set operations on graphs considerably more easy and efficient.</p
+    ></div
+  ><div id="no-compromise-with-transactions"
+  ><h2
+    >No compromise with transactions</h2
+    ><p
+    >mvStore makes no compromise with transactions. For example, it integrates full-text indexing and searching into the transaction boundaries, with the same ACID guaranties as everything else. The default PIN locking protocol used is &quot;strong 2-phase-locking&quot; (all locks that a top-level transaction has acquired are held until the transaction terminates). Unlike document databases, which usually can't do multi-object transactions, mvStore takes no shortcut with respect to transactions. This choice makes room for the coexistence of applications that require full transactional support, along with applications that require weaker transactional guaranties (such as those well suited for document databases).</p
+    ></div
+  ><div id="transactional-ddl"
+  ><h2
+    >Transactional DDL</h2
+    ><p
+    >mvStore's model is not only less tightly coupled with schema, but its DDL (Data Definition Language) is transactional. This contributes to a simpler database maintenance process, for example when applying migration patches (no need to worry about half-applied migration patches).</p
+    ></div
+  ><div id="snapshot-isolation-for-high-concurrency"
+  ><h2
+    >Snapshot isolation for high concurrency</h2
+    ><p
+    ><a href="./terminology.html#snapshot-isolation"
+      >Snapshot isolation</a
+      > enables non-blocking reads of stable, consistent data. This isolation mechanism provides excellent ACID guaranties, while enabling highly-concurrent read-intensive scenarios, without affecting normal write activity. In the future, it may also be used as a foundation for backup, replication etc.</p
+    ></div
+  ><div id="nested-transactions"
+  ><h2
+    >Nested transactions</h2
+    ><p
+    >mvStore conveniently allows code in a session to emit transactions inside already existing transactions. This can be useful, for example, when integrating third-party software components.</p
+    ></div
+  ><div id="robust-recovery"
+  ><h2
+    >Robust recovery</h2
+    ><p
+    >Database recovery (the process that guaranties consistency when restarting the database after a crash) is one of those features that are practically invisible... until you need to count on it. It's difficult to implement properly, difficult to test, and difficult to prove for correctness in practice (even though the algorithms are formally established). Fortunately, mvStore was used for several years in an embedded, multi-user context, and as a result it had the opportunity of experiencing countless crashes, resulting in huge efforts to make recovery rock-solid.</p
+    ></div
+  ><div id="small-portable-embeddable"
+  ><h2
+    >Small, portable, embeddable</h2
+    ><p
+    >The <a href="./terminology.html#mvstore"
+      >mvStore kernel</a
+      > is a small library (&lt;50K LOC, &lt; 1Mb binary) written in C++ and ported to all mainstream platforms (windows, linux, OSX, ARM). It allows one to configure all essential aspects of its runtime footprint (global memory usage, memory usage per session, disk usage, file sizes etc.).</p
+    ></div
+  ><div id="uniform-programming-environment-with-notifications"
+  ><h2
+    >Uniform programming environment with notifications</h2
+    ><p
+    >The mvStore kernel does not accept stored procedures, and does not process triggers directly. Instead, it forwards <a href="./terminology.html#notification"
+      >notifications</a
+      > (e.g. via <a href="./terminology.html#mvserver"
+      >mvServer</a
+      >) to clients that request them, thus allowing those clients to express their data-change handling code in the same programming environment as the rest of the application.</p
+    ></div
+  ><div id="notifications-to-implement-state-machine-or-discrete-event-dynamic-systems"
+  ><h2
+    >Notifications to implement state machine or discrete-event dynamic systems</h2
+    ><p
+    >Class and PIN notifications cover the whole spectrum of value changes, structural changes and state transitions that can occur over time. The notification approach further facilitates the implementation of complex systems based on such events.</p
+    ></div
+  ><div id="no-ideological-battle-with-encapsulation-and-multiple-inheritance"
+  ><h2
+    >No ideological battle with encapsulation and multiple-inheritance</h2
+    ><p
+    >With its use of object IDs (<a href="./terminology.html#pin-id-pid"
+      >PIDs</a
+      >) and <a href="./terminology.html#pin-reference"
+      >references</a
+      >, mvStore can be considered an object-oriented database. Interacting with entities as objects is a deliberate choice. However, mvStore stays away from intimate associations with any particular object-oriented programming language, by providing a pure-data abstraction (the <a href="./terminology.html#pin"
+      >PIN</a
+      >) and expression evaluation primitives. These pure-data primitives can be integrated to programming languages as appropriate. With this choice, mvStore is less exposed to ideological debates around schema and code migrations, encapsulation, and multiple-inheritance. In that respect, mvStore adopts a stance similar to some of the recent graph and document databases.</p
+    ></div
+  ><div id="constraints-transformed-into-qualifying-criteria-for-classification"
+  ><h2
+    >Constraints transformed into qualifying criteria for classification</h2
+    ><p
+    >In general, constraints are conspicuously absent from mvStore's interfaces. This is because mvStore is designed to bridge together various data storage approaches and representations of knowledge, with special care to allow evolution of structures in time. As a result, mvStore functions with an open-world assumption. In relational modeling, even simple attributes can actually model constraints (e.g. only a woman can have a maiden name). With mvStore, constraints become qualifying criteria for classification (if a class requires a maiden name, then only objects with a maiden name will be classified by it; or conversely, if a class excludes maiden names, then objects with a maiden name will not be classified by it).</p
+    ></div
+  ><div id="flexible-security-features"
+  ><h2
+    >Flexible security features</h2
+    ><p
+    >mvStore offers AES encryption of pages and log files. It can also attach a HMAC signed cryptographic checksum to each page, thus preventing attacks (in a context where encrypted pages may be stored on external or cloud storage), and also providing redundant page-level integrity check. Sessions are authenticated for owner and guest users. mvStore's interface also prevents SQL injection attacks.</p
+    ></div
+  ></div
+>

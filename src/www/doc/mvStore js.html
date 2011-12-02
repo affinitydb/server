@@ -1,0 +1,366 @@
+<head>
+  <script src='js/jquery.js' type='text/javascript'></script>
+  <script src='js/snippets_to_console.js' type='text/javascript'></script>
+  <link href='css/mvdoc.css' rel='stylesheet' type='text/css' />
+</head>
+<div id='mvtocbar'>
+  <select id='mvtoclist'>
+    <option value='features'>features</option>
+    <option value='intro'>intro</option>
+    <option value='mvEngine getting started'>mvEngine getting started</option>
+    <option value='mvSQL getting started'>mvSQL getting started</option>
+    <option value='mvSQL reference'>mvSQL reference</option>
+    <option value='mvStore FAQ'>mvStore FAQ</option>
+    <option value='mvStore build from source'>mvStore build from source</option>
+    <option value='mvStore cpp'>mvStore cpp</option>
+    <option value='mvStore getting started'>mvStore getting started</option>
+    <option value='mvStore js' SELECTED>mvStore js</option>
+    <option value='mvStore protobuf'>mvStore protobuf</option>
+    <option value='mvStore server'>mvStore server</option>
+    <option value='strengths'>strengths</option>
+    <option value='terminology'>terminology</option>
+  </select>
+</div
+<div id="mvstore-javascript-interface-for-node.js"
+><h1
+  >mvStore Javascript Interface for node.js</h1
+  ><p
+  >The <a href="../nodejs/mvstore-client/lib/mvstore-client.js"
+    >mvstore-client.js</a
+    > module defines a simple interface between node.js and mvStore (via HTTP and the the <a href="./terminology.html#mvserver"
+    >mvServer</a
+    >). The interface is divided in three parts: <a href="#connection-creation"
+    >connection creation</a
+    >, <a href="#mvsql-access-with-json-response"
+    >mvSQL access with JSON response</a
+    >, and <a href="#object-friendly-access"
+    >object-friendly access</a
+    >.</p
+  ><div id="connection-creation"
+  ><h2
+    >Connection Creation</h2
+    ><p
+    >To establish a new connection, a client simply needs to do the following:</p
+    ><p
+    >var lib_mvstore = require('mvstore-client'); var lMvStore = lib_mvstore.createConnection(&quot;http://user:password@localhost:4560/db/&quot;, {keepalive:false}); ... lMvStore.terminate();</p
+    ><p
+    >This example is assuming that mvServer runs on <code
+      >localhost</code
+      > and listens to port <code
+      >4560</code
+      >, and that the <code
+      >mvstore-client</code
+      > module for node.js is properly installed. If a <code
+      >user</code
+      > is specified, it determines the owner of the store. For a new store, the <code
+      >password</code
+      > is optional, and implies encryption. It is possible to omit both the <code
+      >user</code
+      > and <code
+      >password</code
+      > (i.e. <code
+      >&quot;http://localhost:4560/db/&quot;</code
+      >), in which case a default store owner is used.</p
+    ><p
+    >The resulting <code
+      >lMvStore</code
+      > object is the public interface of the connection, providing <a href="#mvsql-access-with-json-output"
+      >mvSQL</a
+      > access via its <code
+      >mvsql</code
+      > and <code
+      >mvsqlCount</code
+      > methods, and <a href="#object-friendly-access"
+      >object-friendly</a
+      > access via the other methods (<code
+      >mvsqlProto</code
+      >, <code
+      >createPINs</code
+      >, <code
+      >startTx</code
+      > etc.).</p
+    ><p
+    >The connection can be created with <code
+      >keepalive</code
+      > or not. If <code
+      >keepalive</code
+      > is enabled, then the resulting <code
+      >lMvStore</code
+      > object represents a physical connection, implying one stable store session in the server, for the whole lifetime of that connection. If <code
+      >keepalive</code
+      > is disabled, then the resulting <code
+      >lMvStore</code
+      > object represents an abstract connection (which is effectively instantiating shorter physical connections on demand).</p
+    ><p
+    >Either way, <code
+      >lMvStore</code
+      > represents one logical connection, usable in one logical execution thread. Concurrent access to the mvStore server requires multiple instances of a connection.</p
+    ><p
+    >The connection must be terminated by calling <code
+      >terminate</code
+      >.</p
+    ></div
+  ><div id="mvsql-access-with-json-response"
+  ><h2
+    >mvSQL Access with JSON Response</h2
+    ><p
+    >This access path is self-sufficient and will feel most natural to people with SQL experience. Simply emit statements such as:</p
+    ><p
+    >var lOnResult = function(pError, pResult) { console.log(pResult[0].id); /* ... <em
+      >/ }; lMvStore.mvsql(&quot;INSERT (name, profession) VALUES ('Roger', 'Accountant');&quot;, lOnResult); /</em
+      > ... <em
+      >/ lMvStore.mvsql(&quot;SELECT</em
+      > WHERE EXISTS(name);&quot;, lOnResult);</p
+    ><p
+    ><code
+      >pResult</code
+      > is a parsed JSON response produced by mvStore.</p
+    ><p
+    >Note that this simple access path does not include any ORM or any means of feeding javascript objects (or JSON) directly to mvStore as input data (for example, it doesn't enable saving a javascript object with properties <code
+      >name</code
+      > and <code
+      >profession</code
+      >, nor will it automatically translate that intention into the <code
+      >INSERT</code
+      > statement shown just above). This is addressed by the <a href="#object-friendly-access"
+      >object-friendly access methods</a
+      >.</p
+    ><p
+    >This is a very powerful access path nonetheless. For more information, please refer to the <a href="./mvSQL%20reference.html"
+      >mvSQL reference</a
+      >.</p
+    ><div id="about-transaction-control-with-pure-mvsql-access"
+    ><h4
+      >About Transaction Control with pure mvSQL Access</h4
+      ><p
+      >The <a href="./mvSQL%20reference.html"
+	>mvSQL</a
+	> language includes transaction control statements such as <code
+	>START TRANSACTION</code
+	> and <code
+	>COMMIT</code
+	>. In order for these statements to produce the desired effect, they must be executed in the context of a connection that spans at least a whole transaction. Presently this can only be accomplished within a connection where <code
+	>keepalive</code
+	> is enabled.</p
+      ></div
+    ></div
+  ><div id="object-friendly-access"
+  ><h2
+    >Object-friendly Access</h2
+    ><p
+    >This access path complements mvSQL by allowing to create, retrieve and modify <code
+      >PIN</code
+      > objects without any translation to or from a query language.</p
+    ><p
+    >Our philosophy is different from traditional object-oriented database systems, and similar to many recent graph and document databases: distinct data objects are used to interact with the database, with no attempt to interfere with the application's run-time object model. In other words, we don't emulate the automatic object mapping of object-oriented databases, and the developer is not expected to <em
+      >subclass</em
+      > <code
+      >PIN</code
+      >, but rather to <em
+      >use</em
+      > <code
+      >PIN</code
+      > as an accessor (and in-memory snapshot).</p
+    ><p
+    >Here are some examples:</p
+    ><p
+    >var lOnResult = function(pError, pResult) { /* ... <em
+      >/ }; lMvStore.createPINs([{name:&quot;Roger&quot;, profession:&quot;Accountant&quot;}], lOnResult); /</em
+      > ... <em
+      >/ lMvStore.mvsqlProto( &quot;SELECT</em
+      > WHERE EXISTS(name);&quot;, function(pE, pR) { lMvStore.startTx(); pR[0].set(&quot;profession&quot;, &quot;Lawyer&quot;); lMvStore.commitTx(lOnResult); });</p
+    ><div id="pin-interface"
+    ><h4
+      >PIN Interface</h4
+      ><p
+      >The <code
+	>createPINs</code
+	> and <code
+	>mvsqlProto</code
+	> methods return PIN objects. These objects implement explicit property accessors (i.e. set/get methods), as a safe and simple way to track changes to be effected in the db. Every PIN has the following members:</p
+      ><ul
+      ><li
+	><code
+	  >pid</code
+	  > <em
+	  >(variable)</em
+	  >:<br
+	   /> The <a href="./terminology.html#pin-id-pid"
+	  >PID</a
+	  >.</li
+	><li
+	><code
+	  >refresh(pCallback)</code
+	  > <em
+	  >(method)</em
+	  >:<br
+	   /> Fetches a new snapshot from the db, and updates the client-side (in-memory) representation accordingly. <code
+	  >pCallback</code
+	  > is a plain method of the form function(pError, pResponse){...}.</li
+	><li
+	><code
+	  >set(pPropName, pPropValue, pCallbackObj)</code
+	  > <em
+	  >(method)</em
+	  >:<br
+	   /> Resets <code
+	  >pPropName</code
+	  > to <code
+	  >pPropValue</code
+	  > immediately in the in-memory representation, and schedules a physical update in the db, upon completion of the current transaction. If no explicit transaction is currently running, then this call becomes an implicit transaction, and <code
+	  >pCallbackObj</code
+	  > is required in that case. <code
+	  >pCallbackObj</code
+	  > is expected to be of the form <code
+	  >{txend:function(pError, pResponse){...}}</code
+	  >. This method can be used to replace a scalar value with a collection (by passing an array as <code
+	  >pPropValue</code
+	  >), or to replace a collection with a scalar.</li
+	><li
+	><code
+	  >get(pPropName)</code
+	  > <em
+	  >(method)</em
+	  >:<br
+	   /> Returns the current in-memory value of <code
+	  >pPropName</code
+	  >.</li
+	><li
+	><code
+	  >toPropValDict()</code
+	  > <em
+	  >(method [for debugging/introspection])</em
+	  >:<br
+	   /> Returns a cloned read-only dictionary representation of all properties.</li
+	><li
+	><code
+	  >getExtras()</code
+	  > <em
+	  >(method [for debugging/introspection])</em
+	  >:<br
+	   /> Returns a cloned read-only dictionary representation of all property adornments (VT types, eids etc.).</li
+	></ul
+      ></div
+    ><div id="collection-interface"
+    ><h4
+      >Collection Interface</h4
+      ><p
+      >When a PIN's property happens to be a <a href="./terminology.html#collection"
+	>collection</a
+	>, <code
+	>PIN.get</code
+	> will return an internal <code
+	>Collection</code
+	> object that essentially borrows the javascript <code
+	>Array</code
+	>'s interface: <code
+	>push</code
+	>, <code
+	>pop</code
+	>, <code
+	>shift</code
+	>, <code
+	>unshift</code
+	>, <code
+	>sort</code
+	>, <code
+	>reverse</code
+	>, <code
+	>splice</code
+	>, <code
+	>slice</code
+	>, <code
+	>toLocaleString</code
+	>, <code
+	>toString</code
+	>, <code
+	>join</code
+	>, and <code
+	>concat</code
+	> <em
+	>(Note: all updating methods can accept an additional optional <code
+	  >pCallbackObj</code
+	  > last argument, of the same form and serving the same purpose as in <code
+	  >PIN.set</code
+	  >)</em
+	>. Javascript's <code
+	>delete</code
+	> operator on elements of the collection is <em
+	>not</em
+	> supported.</p
+      ></div
+    ><div id="about-special-data-types"
+    ><h4
+      >About Special Data Types</h4
+      ><p
+      >mvStore proposes a more comprehensive array of <a href="./mvSQL%20reference.html#data-types"
+	>data types</a
+	> than javascript's core native types. This leads to the following special cases:</p
+      ><ul
+      ><li
+	>representation of <a href="./terminology.html#collection"
+	  >collections</a
+	  >: as described earlier, a javascript <code
+	  >Array</code
+	  > can be passed to <code
+	  >PIN.set</code
+	  > to specify a new collection; <code
+	  >PIN.get</code
+	  > always returns an internal <code
+	  >Collection</code
+	  > object (with an <code
+	  >Array</code
+	  >-like interface)</li
+	><li
+	>representation of <a href="./terminology.html#pin-reference"
+	  >references</a
+	  >: to create a new reference value, use the connection's <code
+	  >makeRef</code
+	  > method; <code
+	  >PIN.get</code
+	  > always returns an internal <code
+	  >Ref</code
+	  > object</li
+	><li
+	>representation of <a href="./terminology.html#blob"
+	  >blobs</a
+	  >: to create a new blob value, use a standard node.js Buffer object; <code
+	  >PIN.get</code
+	  > also returns a Buffer object</li
+	><li
+	>representation of urls: to create a <code
+	  >VT_URL</code
+	  > (as opposed to a <code
+	  >VT_STRING</code
+	  >), use the connection's <code
+	  >makeUrl</code
+	  > method; <code
+	  >PIN.get</code
+	  > always returns an internal <code
+	  >Url</code
+	  > object</li
+	><li
+	>compatibility with non-js mvStore applications: some applications, especially those designed natively in javascript, may not care about certain details such as the ideal (most compact, or most exact) representation of numeric values, but other applications may; in order to support a healthy coexistence, our javascript client library preserves the originally stored value types; in the future, more control may be provided</li
+	></ul
+      ></div
+    ><div id="about-transaction-control-with-object-friendly-access"
+    ><h4
+      >About Transaction Control with Object-friendly Access</h4
+      ><p
+      >At the level of the mvStore kernel, presently, every protobuf stream is associated with a topmost transaction. That allows the client library to use transactions without <code
+	>keepalive</code
+	>. Within the protobuf context, transaction control is specified via the connection's methods: <code
+	>startTx</code
+	>, <code
+	>commitTx</code
+	>, <code
+	>rollbackTx</code
+	>. In the future, the two methods (pure mvSQL vs protobuf) may be further harmonized.</p
+      ><p style="color:red">REVIEW (maxw): expand, link to sample material etc.<br
+       />REVIEW (maxw): more on streaming<br
+       /></p>
+
+</div
+    ></div
+  ></div
+>

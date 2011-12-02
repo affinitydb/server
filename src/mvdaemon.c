@@ -128,16 +128,34 @@ ssize_t sock_web( int sock, const char* path ) {
     const char* mime = NULL;
 
     if ( path[0] == '/' ) { path++; } /* open relative to docroot */
-    plen = strlen( path );
+
+    char const * const lQS = strchr( path, '?' );
+    if ( lQS ) {
+        // Note (maxw): added to support parameter passing to the console app (from our doc).
+        strncpy( exp, path, lQS - path );
+        exp[lQS - path] = 0;
+        url_decode( exp, exp, 0 );
+        path = exp;
+        plen = strlen( path );
+    } else {
+        plen = strlen( path );
+    }
+    
     if ( path[0] == '\0' || path[plen-1] == '/' ) {
         index = 1;
-        strncpy( exp, path, BUF_SIZE );
+        if ( !lQS ) { strncpy( exp, path, BUF_SIZE ); }
         file = "index.html";
     } else if ( fisdir( path ) ) {
         index = 1;
-        strncpy( exp, path, BUF_SIZE );
+        if ( !lQS ) { strncpy( exp, path, BUF_SIZE ); }
         file = "/index.html";
+    } else {
+        // Note (maxw): added to support links in our doc (containing %20 characters etc.).
+        strncpy( exp, path, BUF_SIZE );
+        url_decode( exp, exp, 0 );
+        path = exp;
     }
+
     if ( index ) { 
         strncpy( exp+plen, file, BUF_SIZE-plen );
     }
@@ -146,6 +164,8 @@ ssize_t sock_web( int sock, const char* path ) {
         strncpy( docroot + docroot_len, index ? exp : path, fullpath_len+1 );
         docroot[docroot_len+fullpath_len] = '\0';
     }
+
+    LOG_LINE( kLogInfo, "opening document %s", docroot_len ? docroot : (index ? exp : path) );
     fd = open( docroot_len ? docroot : (index ? exp : path), O_RDONLY );
 
     if ( fd < 0 ) {

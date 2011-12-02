@@ -6,7 +6,7 @@ a:hover { text-decoration:underline; }
 p { margin:0.4em 0 0 0; padding:0; }
 ul { margin:0.4em 0 0.5em 0; padding:0; }
 ol { margin:0.4em 0 0.5em 0; padding-left:2.5em; }
-ul li { list-style:none; padding-left:12px; background:url(images/arrow.gif) no-repeat 0 0.5em; }
+ul li { list-style:none; padding-left:12px; }
 tr { border:solid 1px #777; }
 tr.highlighted { background-color:#f1e4d2; }
 tr.selected { background-color:#d3c8b8; }
@@ -17,12 +17,13 @@ tr.selected { background-color:#d3c8b8; }
 .tutorial_help { color:green; }
 .tutorial_stmt { color:black; }
 .tutorial_result { color:red; }
-.tutorial_instructions { color:blue; }
+.tutorial_instructions { color:purple; }
 
 /* main divs: #left, #content, #bottom; #content and #bottom have margin for which matches width of #left */
 #left { position:fixed; top:0; left:0; width:40px; height:100%; margin:0; }
 #content { position:fixed; top:0; left:40px; right:10px; bottom:20px; margin:0; font-size:1.1em; padding:0; line-height:1.4em; background-color:#fff; border:solid 1px #aaa; border-top:none; border-right:none; white-space:nowrap; }
 #bottom { position:fixed; left:40px; right:10px; height:20px; bottom:0; margin:0; font-size:1.1em; padding:0; text-align:right; }
+#mvdoc { float:right; }
 
 /* left */
 #logo { padding:1em; }
