@@ -70,7 +70,7 @@ tr.selected { background-color:#d3c8b8; }
 #tutorial_left { position:absolute; top:50px; width:100%; bottom:0; margin:0; white-space:normal; border:none; padding-left:0.9em;  }
 #tutorial_area { float:left; width:95%; height:95%; border: solid 1px #000; overflow:auto; line-height:1em; }
 #tutorial_input_line { width:100%; padding-right:20px; }
-#tutorial_input { border:none; font-size:105%; right:0; margin-right:-15px; width:100%; }
+#tutorial_input { border:none; outline:none; font-size:105%; right:0; margin-right:-15px; width:100%; }
 
 /* content_left (query history tab) */
 #query_history { overflow:auto; position:absolute; top:2px; width:100%; bottom:0; border:none; }

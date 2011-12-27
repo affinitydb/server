@@ -126,10 +126,11 @@ ssize_t sock_web( int sock, const char* path ) {
     off_t flen;
     char exp[BUF_SIZE+1], *ext = NULL;
     const char* mime = NULL;
+    const char* lQS = NULL;
 
     if ( path[0] == '/' ) { path++; } /* open relative to docroot */
 
-    char const * const lQS = strchr( path, '?' );
+    lQS = strchr( path, '?' );
     if ( lQS ) {
         // Note (maxw): added to support parameter passing to the console app (from our doc).
         strncpy( exp, path, lQS - path );
