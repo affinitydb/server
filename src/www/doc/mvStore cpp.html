@@ -7,11 +7,9 @@
   <select id='mvtoclist'>
     <option value='features'>features</option>
     <option value='intro'>intro</option>
-    <option value='mvEngine getting started'>mvEngine getting started</option>
     <option value='mvSQL getting started'>mvSQL getting started</option>
     <option value='mvSQL reference'>mvSQL reference</option>
     <option value='mvStore FAQ'>mvStore FAQ</option>
-    <option value='mvStore build from source'>mvStore build from source</option>
     <option value='mvStore cpp' SELECTED>mvStore cpp</option>
     <option value='mvStore getting started'>mvStore getting started</option>
     <option value='mvStore js'>mvStore js</option>
@@ -20,14 +18,14 @@
     <option value='strengths'>strengths</option>
     <option value='terminology'>terminology</option>
   </select>
-</div
+</div>
 <div id="mvstore-c-interface"
 ><h1
   >mvStore C++ Interface</h1
   ><p
   >Please read the brief <a href="./terminology.html#c-interface"
     >introduction</a
-    >. The bulk of the interface is defined in <a href="../kernel/include/mvstore.h"
+    >. The bulk of the interface is defined in <a href="./sources/mvstore_h.html"
     >mvstore.h</a
     >.</p
   ><p
@@ -47,9 +45,7 @@
     >expression building</a
     > methods etc.) that overlap with the functionality exposed via mvSQL and protocol-buffers. As a rule of thumb, all these elements should be avoided unless necessary (being in C++, and being inseparable from the kernel itself, they'd make the client code inseparable from the kernel, which is undesirable for normal database client code). Even an embedding process such as <a href="./terminology.html#mvserver"
     >mvserver</a
-    > only uses a tiny portion of the C++ interface (all in <a href="../server/src/storecmd.cpp"
-    >storecmd.cpp</a
-    >). A justification for using more of the C++ interface could be, for example, to implement additional query languages for mvStore.</p
+    > only uses a tiny portion of the C++ interface (all in storecmd.cpp). A justification for using more of the C++ interface could be, for example, to implement additional query languages for mvStore.</p
   ><p
   >Without documenting each and every function (or parameter) of the C++ interface, this page presents enough information to use it successfully. The following interfaces and structures are covered: <a href="#isession"
     >ISession</a
@@ -73,7 +69,7 @@
 ><h1
   >rc.h</h1
   ><p
-  ><a href="../kernel/include/rc.h"
+  ><a href="./sources/rc_h.html"
     >rc.h</a
     > defines (and documents summarily) the basic error codes returned by most of the functions and methods of the C++ interface. In some cases, these error codes may be accompanied with more explicit messages sent to stderr or syslog. <code
     >RC_OK</code
@@ -83,7 +79,7 @@
 ><h1
   >startup.h</h1
   ><p
-  ><a href="../kernel/include/startup.h"
+  ><a href="./sources/startup_h.html"
     >startup.h</a
     > defines the initial entry point to mvStore. It provides functions to create, open and shutdown one or more instances of databases. <code
     >openStore</code
@@ -433,7 +429,7 @@
   ><p
   >The <code
     >Value</code
-    > structure defined at line 507 in <a href="../kernel/include/mvstore.h"
+    > structure defined in <a href="./sources/mvstore_h.html"
     >mvstore.h</a
     > can represent any of the <a href="./mvSQL%20reference.html#data-types"
     >data types</a
@@ -466,7 +462,7 @@
       >property</a
       > to which this value belongs. It can be one of the <code
       >PROP\_SPEC\_*</code
-      > values (documented in detail in <a href="../kernel/src/mvstore.proto"
+      > values (documented in detail in <a href="./sources/mvstore_proto.html"
       >mvstore.proto</a
       >). Or it can be a property ID obtained via <a href="#isession::mapuris"
       >mapURIs</a
@@ -474,7 +470,7 @@
     ><p
     >The <code
       >op</code
-      > field defines how the value is intended to be used. For a relatively thorough description of possibilities, please refer to line 198 in <a href="../kernel/src/mvstore.proto"
+      > field defines how the value is intended to be used. For a relatively thorough description of possibilities, please refer to line 198 in <a href="./sources/mvstore_proto.html"
       >mvstore.proto</a
       >.</p
     ><p
@@ -488,7 +484,7 @@
       >OP_ADD</code
       > and <code
       >OP_ADD_BEFORE</code
-      > in <a href="../kernel/src/mvstore.proto"
+      > in <a href="./sources/mvstore_proto.html"
       >mvstore.proto</a
       >]). For existing elements, <code
       >eid</code
@@ -508,7 +504,7 @@
       >SSV</a
       > etc. The <code
       >META\_PROP\_*</code
-      > flags are documented in <a href="../kernel/include/mvstore.h"
+      > flags are documented in <a href="./sources/mvstore_h.html"
       >mvstore.h</a
       >.</p
     ></div

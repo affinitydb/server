@@ -7,11 +7,9 @@
   <select id='mvtoclist'>
     <option value='features'>features</option>
     <option value='intro'>intro</option>
-    <option value='mvEngine getting started'>mvEngine getting started</option>
     <option value='mvSQL getting started'>mvSQL getting started</option>
     <option value='mvSQL reference'>mvSQL reference</option>
     <option value='mvStore FAQ'>mvStore FAQ</option>
-    <option value='mvStore build from source'>mvStore build from source</option>
     <option value='mvStore cpp'>mvStore cpp</option>
     <option value='mvStore getting started'>mvStore getting started</option>
     <option value='mvStore js'>mvStore js</option>
@@ -20,7 +18,7 @@
     <option value='strengths'>strengths</option>
     <option value='terminology' SELECTED>terminology</option>
   </select>
-</div
+</div>
 <div id="list-of-terms-in-alphabetical-order"
 ><h1
   >List of Terms (in Alphabetical Order)</h1
@@ -495,7 +493,7 @@
       >PINs</a
       > or <a href="#class"
       >classes</a
-      >. The notification functionality is exposed in a low-level way in the kernel (<a href="../kernel/include/startup.h"
+      >. The notification functionality is exposed in a low-level way in the kernel (<a href="./sources/startup_h.html"
       >startup.h</a
       >), and is also available via the <a href="http://en.wikipedia.org/wiki/Comet_%28programming%29"
       >comet</a
@@ -537,13 +535,13 @@
   ><h3
     >C++ interface</h3
     ><p
-    ><a href="../kernel/include/mvstore.h"
+    ><a href="./sources/mvstore_h.html"
       >mvstore.h</a
-      > (along with a few extensions in <a href="../kernel/include/rc.h"
+      > (along with a few extensions in <a href="./sources/rc_h.html"
       >rc.h</a
-      >, <a href="../kernel/include/startup.h"
+      >, <a href="./sources/startup_h.html"
       >startup.h</a
-      > and <a href="../kernel/include/units.h"
+      > and <a href="./sources/units_h.html"
       >units.h</a
       >) defines a self-contained, low-level interface directly connected to the mvStore kernel. It exposes a set of C++ abstract base classes (aka C++ interfaces), plus a few constants and structures. The ISession interface represents a logical connection to a database instance, and provides an entry point for every possible interaction. It exposes the <a href="#mvSQL"
       >mvSQL</a
@@ -569,7 +567,7 @@
   ><h3
     >Protocol-Buffer</h3
     ><p
-    >mvStore provides a streaming interface based on Google's protocol-buffers: <a href="../kernel/src/mvstore.proto"
+    >mvStore provides a streaming interface based on Google's protocol-buffers: <a href="./sources/mvstore_proto.html"
       >mvstore.proto</a
       >. This is one of the interfaces exposed by the <a href="#mvserver"
       >mvServer</a
@@ -585,9 +583,9 @@
       >mvSQL</a
       >, this traditional approach still implies an object-relational mapping to translate structured objects on the client side into DML statements. The <a href="#protocol-buffer"
       >protocol-buffer</a
-      > interface provides a more direct means of expressing those structures to mvStore. The client-side libraries further facilitate the use of both interfaces, in the context of their specific programming language. The first release emphasizes <a href="../nodejs/mvstore-client/lib/mvstore-client.js"
+      > interface provides a more direct means of expressing those structures to mvStore. The client-side libraries further facilitate the use of both interfaces, in the context of their specific programming language. The first release emphasizes <a href="./sources/mvstore-client_js.html"
       >javascript</a
-      > for node.js. Libraries for <a href="../python/mvstore.py"
+      > for node.js. Libraries for <a href="./sources/mvstore_py.html"
       >python</a
       >, ruby and java are also under development.</p
     ></div

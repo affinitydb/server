@@ -7,11 +7,9 @@
   <select id='mvtoclist'>
     <option value='features'>features</option>
     <option value='intro'>intro</option>
-    <option value='mvEngine getting started'>mvEngine getting started</option>
     <option value='mvSQL getting started'>mvSQL getting started</option>
     <option value='mvSQL reference'>mvSQL reference</option>
     <option value='mvStore FAQ'>mvStore FAQ</option>
-    <option value='mvStore build from source'>mvStore build from source</option>
     <option value='mvStore cpp'>mvStore cpp</option>
     <option value='mvStore getting started'>mvStore getting started</option>
     <option value='mvStore js'>mvStore js</option>
@@ -20,7 +18,7 @@
     <option value='strengths'>strengths</option>
     <option value='terminology'>terminology</option>
   </select>
-</div
+</div>
 <div id="protocol-buffer-interface-for-mvstore"
 ><h1
   >Protocol-Buffer Interface for mvStore</h1
@@ -57,7 +55,7 @@
   ><p
   >the client wants to query PIN @50001 and interact with it as an object -&gt; the client emits the query 'SELECT * FROM @50001;' via a protobuf-enabled interface -&gt; mvStore executes the query and serializes the response to protobuf -&gt; the client deserializes the response into a javascript object</p
   ><p
-  >The internal structure of the protobuf messages that can be understood by mvStore is defined in <a href="../kernel/src/mvstore.proto"
+  >The internal structure of the protobuf messages that can be understood by mvStore is defined in <a href="./sources/mvstore_proto.html"
     >mvstore.proto</a
     >. It allows to express PIN inserts, updates and deletes, as well as generic queries, transactions, long-running transactions etc. It also provides extensive support for fine-grained updates, such as modifying the order of elements in a collection (e.g. <code
     >OP_MOVE_BEFORE</code
@@ -66,9 +64,9 @@
     >), etc.</p
   ><p
   ><em
-    >Note: The process of serializing to protobuf and deserializing back into a client's object model may require a translation. Even though protobuf libraries typically produce a language-compliant structure, that structure is defined by mvstore.proto, for serialization purposes, and may not be sufficiently usable as a client object model. For example, mvstore.proto stores all property names as indexes, alongside a local translation table (for space efficiency). Typically, most languages will prefer to expose objects in a more natural form, where properties are standard named entities. This kind of translation is usually implemented in the client access library (e.g. <a href="../nodejs/mvstore-client/lib/mvstore-client.js"
+    >Note: The process of serializing to protobuf and deserializing back into a client's object model may require a translation. Even though protobuf libraries typically produce a language-compliant structure, that structure is defined by mvstore.proto, for serialization purposes, and may not be sufficiently usable as a client object model. For example, mvstore.proto stores all property names as indexes, alongside a local translation table (for space efficiency). Typically, most languages will prefer to expose objects in a more natural form, where properties are standard named entities. This kind of translation is usually implemented in the client access library (e.g. <a href="./sources/mvstore-client_js.html"
       >mvstore-client.js</a
-      > or <a href="../python/mvstore.py"
+      > or <a href="./sources/mvstore_py.html"
       >mvstore.py</a
       >).</em
     ></p
@@ -76,7 +74,7 @@
   ><h3
     >A Closer Look at mvstore.proto</h3
     ><p
-    >All the components of a protobuf stream sent to or received from mvStore are defined in <a href="../kernel/src/mvstore.proto"
+    >All the components of a protobuf stream sent to or received from mvStore are defined in <a href="./sources/mvstore_proto.html"
       >mvstore.proto</a
       >. The main elements of the structure are:</p
     ><ul
@@ -112,7 +110,7 @@
     ><p
     ><code
       >MVStream</code
-      > defines the possible contents of any of the contiguous segments of data in the actual physical stream. In other words, it should be possible to dissect any physical stream compliant with <a href="../kernel/src/mvstore.proto"
+      > defines the possible contents of any of the contiguous segments of data in the actual physical stream. In other words, it should be possible to dissect any physical stream compliant with <a href="./sources/mvstore_proto.html"
       >mvstore.proto</a
       > and find a series of <code
       >MVStream</code
@@ -186,13 +184,13 @@
     ><p
     ><sub> Note: This sequence is typically implemented as a single HTTP connection. </sub></p
     ><p
-    ><a href="../kernel/src/mvstore.proto"
+    ><a href="./sources/mvstore_proto.html"
       >mvstore.proto</a
       > contains more structures and fields than described here. It also contains a large number of <code
       >enums</code
       >, some of which are sometimes used as constants <em
       >(n.b.: some protobuf libraries don't support this strategy, in which case the values in mvstore.proto must be repeated as literals in the client code)</em
-      >. Please refer to the comments in <a href="../kernel/src/mvstore.proto"
+      >. Please refer to the comments in <a href="./sources/mvstore_proto.html"
       >mvstore.proto</a
       > for more information.</p
     ></div
@@ -216,7 +214,7 @@
       >MVStream</code
       >-segment at a time). This strategy provides full control over the stream (and the memory footprint involved in reading it). On the other hand, it also comes at a cost: on one hand, it usually implies a completely different programming model (if you can't afford to put a whole PIN in memory, then you probably can't interact with that object as a native object either); on the other hand, not all protobuf libraries expose this kind of access.</p
     ><p
-    >In their present implementation, the <a href="../nodejs/mvstore-client/lib/mvstore-client.js"
+    >In their present implementation, the <a href="./sources/mvstore-client_js.html"
       >node.js</a
       > and <a href="../python/mvstore.py"
       >python</a
@@ -226,9 +224,9 @@
   ><h3
     >More Information</h3
     ><p
-    >For more information on mvStore's usage of protobuf, please refer to the comments in <a href="../kernel/src/mvstore.proto"
+    >For more information on mvStore's usage of protobuf, please refer to the comments in <a href="./sources/mvstore_proto.html"
       >mvstore.proto</a
-      >. Another important source of information is the implementation of the <a href="../nodejs/mvstore-client/lib/mvstore-client.js"
+      >. Another important source of information is the implementation of the <a href="./sources/mvstore-client_js.html"
       >node.js</a
       > and <a href="../python/mvstore.py"
       >python</a
@@ -237,7 +235,7 @@
     >For more information about Google's protobuf, please refer to the project's <a href="http://code.google.com/p/protobuf"
       >homepage</a
       >, its <a href="http://code.google.com/apis/protocolbuffers/docs/overview.html"
-      >deleloper guide</a
+      >developer guide</a
       > and its <a href="http://code.google.com/apis/protocolbuffers/docs/proto.html"
       >format helper</a
       >.</p

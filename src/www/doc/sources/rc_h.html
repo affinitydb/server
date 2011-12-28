@@ -1,0 +1,72 @@
+<head>
+  <link href='../css/mvdoc.css' rel='stylesheet' type='text/css' />
+  <link href='../css/source.css' rel='stylesheet' type='text/css' />
+</head>
+<div id="rc_h">
+<h1>rc.h</h1>
+
+<!-- begin highlighted code -->
+<div class="highlight"><pre><span class="cm">/**************************************************************************************</span>
+
+<span class="cm">Copyright © 2004-2010 VMware, Inc. All rights reserved.</span>
+
+<span class="cm">Written by Mark Venguerov 2004 - 2010</span>
+
+<span class="cm">**************************************************************************************/</span>
+
+<span class="cp">#ifndef _RC_H_</span>
+<span class="cp">#define _RC_H_</span>
+
+<span class="n">namespace</span> <span class="n">MVStoreRC</span> 
+<span class="p">{</span>
+    
+<span class="k">enum</span> <span class="n">MsgType</span>
+<span class="p">{</span>
+    <span class="n">MSG_CRIT</span><span class="p">,</span> <span class="n">MSG_ERROR</span><span class="p">,</span> <span class="n">MSG_WARNING</span><span class="p">,</span> <span class="n">MSG_NOTICE</span><span class="p">,</span> <span class="n">MSG_INFO</span><span class="p">,</span> <span class="n">MSG_DEBUG</span> 
+<span class="p">};</span>
+
+
+<span class="k">enum</span> <span class="n">RC</span>
+<span class="p">{</span>
+    <span class="n">RC_OK</span><span class="p">,</span>                    <span class="cm">/**&lt; succesful completion */</span>
+    <span class="n">RC_NOTFOUND</span><span class="p">,</span>          <span class="cm">/**&lt; resources (pin,property,element,page,etc.) not found */</span>
+    <span class="n">RC_ALREADYEXISTS</span><span class="p">,</span>     <span class="cm">/**&lt; resource (element,key,file,store etc.) already exists */</span>
+    <span class="n">RC_INTERNAL</span><span class="p">,</span>          <span class="cm">/**&lt; internal error */</span>
+    <span class="n">RC_NOACCESS</span><span class="p">,</span>          <span class="cm">/**&lt; access is denied */</span>
+    <span class="n">RC_NORESOURCES</span><span class="p">,</span>           <span class="cm">/**&lt; not possible to allocate resource (too big pin or not enough memory */</span>
+    <span class="n">RC_FULL</span><span class="p">,</span>              <span class="cm">/**&lt; disk is full */</span>
+    <span class="n">RC_DEVICEERR</span><span class="p">,</span>         <span class="cm">/**&lt; i/o device error */</span>
+    <span class="n">RC_DATAERROR</span><span class="p">,</span>         <span class="cm">/**&lt; data check (e.g. parity) error */</span>
+    <span class="n">RC_EOF</span><span class="p">,</span>                   <span class="cm">/**&lt; internal use only */</span>
+    <span class="n">RC_TIMEOUT</span><span class="p">,</span>               <span class="cm">/**&lt; operation interrupted by timeout */</span>
+    <span class="n">RC_REPEAT</span><span class="p">,</span>                <span class="cm">/**&lt; internal use only */</span>
+    <span class="n">RC_CORRUPTED</span><span class="p">,</span>         <span class="cm">/**&lt; data element (e.g. pin,page,collection element,etc.) is corrupted */</span>
+    <span class="n">RC_CANCELED</span><span class="p">,</span>          <span class="cm">/**&lt; i/o operation was cancelled */</span>
+    <span class="n">RC_VERSION</span><span class="p">,</span>               <span class="cm">/**&lt; incompatible version */</span>
+    <span class="n">RC_TRUE</span><span class="p">,</span>              <span class="cm">/**&lt; internal use only */</span>
+    <span class="n">RC_FALSE</span><span class="p">,</span>             <span class="cm">/**&lt; internal use only */</span>
+    <span class="n">RC_TYPE</span><span class="p">,</span>              <span class="cm">/**&lt; invalid type or type conversion is impossible */</span>
+    <span class="n">RC_DIV0</span><span class="p">,</span>              <span class="cm">/**&lt; division by 0 */</span>
+    <span class="n">RC_INVPARAM</span><span class="p">,</span>          <span class="cm">/**&lt; invalid parameter value */</span>
+    <span class="n">RC_READTX</span><span class="p">,</span>                <span class="cm">/**&lt; attempt to modify data inside of a read-only transaction */</span>
+    <span class="n">RC_OTHER</span><span class="p">,</span>             <span class="cm">/**&lt; unspecified error */</span>
+    <span class="n">RC_DEADLOCK</span><span class="p">,</span>          <span class="cm">/**&lt; transaction interrupted due to a deadlock */</span>
+    <span class="n">RC_QUOTA</span><span class="p">,</span>             <span class="cm">/**&lt; store allocation quota exceeded */</span>
+    <span class="n">RC_SHUTDOWN</span><span class="p">,</span>          <span class="cm">/**&lt; the store is being shut - transaction aborted */</span>
+    <span class="n">RC_DELETED</span><span class="p">,</span>               <span class="cm">/**&lt; pin was deleted */</span>
+    <span class="n">RC_CLOSED</span><span class="p">,</span>                <span class="cm">/**&lt; result set closed after commit/rollback */</span>
+    <span class="n">RC_READONLY</span><span class="p">,</span>          <span class="cm">/**&lt; store in read-only state (backup, logging error) */</span>
+    <span class="n">RC_NOSESSION</span><span class="p">,</span>         <span class="cm">/**&lt; no session set for current thread */</span>
+    <span class="n">RC_INVOP</span><span class="p">,</span>             <span class="cm">/**&lt; invalid operation for this object */</span>
+    <span class="n">RC_SYNTAX</span><span class="p">,</span>                <span class="cm">/**&lt; syntactic error in query or expression */</span>
+    <span class="n">RC_TOOBIG</span><span class="p">,</span>                <span class="cm">/**&lt; object (pin, property, collection) is too big */</span>
+    <span class="n">RC_PAGEFULL</span>              <span class="cm">/**&lt; no space on page for the object (either pin or index entry) */</span>
+<span class="p">};</span>
+
+<span class="p">};</span>
+
+<span class="cp">#endif</span>
+</pre></div>
+<!-- end highlighted code -->
+
+</div>

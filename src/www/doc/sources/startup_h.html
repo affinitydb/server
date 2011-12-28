@@ -1,0 +1,212 @@
+<head>
+  <link href='../css/mvdoc.css' rel='stylesheet' type='text/css' />
+  <link href='../css/source.css' rel='stylesheet' type='text/css' />
+</head>
+<div id="startup_h">
+<h1>startup.h</h1>
+
+<!-- begin highlighted code -->
+<div class="highlight"><pre><span class="cm">/**************************************************************************************</span>
+
+<span class="cm">Copyright © 2004-2010 VMware, Inc. All rights reserved.</span>
+
+<span class="cm">Written by Mark Venguerov 2004 - 2010</span>
+
+<span class="cm">**************************************************************************************/</span>
+
+<span class="cp">#ifndef _STARTUP_H_</span>
+<span class="cp">#define _STARTUP_H_</span>
+
+<span class="cp">#include &quot;mvstore.h&quot;</span>
+
+<span class="cp">#define    MVSTOREPREFIX               &quot;mv&quot;</span>
+<span class="cp">#define MVSTOREDIR                 &quot;mvstore&quot;</span>
+<span class="cp">#define    DATAFILESUFFIX              &quot;.store&quot;</span>
+<span class="cp">#define    LOGFILESUFFIX               &quot;.txlog&quot;</span>
+<span class="cp">#define    MASTERFILESUFFIX            &quot;.master&quot;</span>
+
+<span class="cp">#define    STORE_STD_URI_PREFIX        &quot;http:</span><span class="c1">//mvstore.eng.vmware.com/builtin/&quot;</span>
+<span class="cp">#define    STORE_STD_QPREFIX           &quot;mv:&quot;</span>
+
+<span class="cp">#define    DEFAULT_MAX_FILES           300</span>
+<span class="cp">#define    DEFAULT_BLOCK_NUM           ~0u</span>
+<span class="cp">#define DEFAULT_PAGE_SIZE          0x8000      </span><span class="c1">// in bytes</span>
+<span class="cp">#define DEFAULT_EXTENT_SIZE            0x400       </span><span class="c1">// in pages</span>
+<span class="cp">#define    DEFAULT_ASYNC_TIMEOUT       30000</span>
+<span class="cp">#define    DEFAULT_LOGSEG_SIZE         0x1000000   </span><span class="c1">// 16Mb</span>
+<span class="cp">#define    DEFAULT_LOGBUF_SIZE         0x40000     </span><span class="c1">// 256Kb</span>
+
+<span class="cp">#define    STARTUP_FORCE_NEW           0x0001</span>
+<span class="cp">#define    STARTUP_ARCHIVE_LOGS        0x0002</span>
+<span class="cp">#define    STARTUP_ROLLFORWARD         0x0004</span>
+<span class="cp">#define    STARTUP_FORCE_OPEN          0x0008</span>
+<span class="cp">#define    STARTUP_PRINT_STATS         0x0010</span>
+<span class="cp">#define    STARTUP_SINGLE_SESSION      0x0020</span>
+<span class="cp">#define    STARTUP_NO_RECOVERY         0x0040</span>
+<span class="cp">#define    STARTUP_IN_MEMORY           0x0080</span>
+<span class="cp">#define    STARTUP_REDUCED_DURABILITY  0x0100</span>
+<span class="cp">#define    STARTUP_LOG_PREALLOC        0x0200</span>
+<span class="cp">#define    STARTUP_TOUCH_FILE          0x0400</span>
+
+<span class="cp">#define    STARTUP_MODE_DESKTOP        0x0000</span>
+<span class="cp">#define    STARTUP_MODE_SERVER         0x8000</span>
+<span class="cp">#define    STARTUP_MODE_CLOUD          0x4000</span>
+
+<span class="cp">#define    SSTATE_OPEN                 0x0001</span>
+<span class="cp">#define    SSTATE_READONLY             0x0002</span>
+<span class="cp">#define    SSTATE_NORESOURCES          0x0004</span>
+<span class="cp">#define    SSTATE_IN_SHUTDOWN          0x0008</span>
+<span class="cp">#define    SSTATE_MODIFIED             0x0010</span>
+
+<span class="cp">#ifndef _EXP</span>
+<span class="cp">#ifdef WIN32</span>
+<span class="cp">#define _EXP _declspec(dllexport)</span>
+<span class="cp">#else</span>
+<span class="cp">#define _EXP</span>
+<span class="cp">#endif</span>
+<span class="cp">#endif</span>
+
+<span class="n">class</span> <span class="n">IReport</span>
+<span class="p">{</span>
+<span class="nl">public:</span>
+    <span class="k">virtual</span>  <span class="kt">void</span>    <span class="n">report</span><span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="n">ns</span><span class="p">,</span><span class="kt">int</span> <span class="n">level</span><span class="p">,</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">str</span><span class="p">,</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">file</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="kt">int</span> <span class="n">lineno</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="k">virtual</span>  <span class="kt">void</span><span class="o">*</span>    <span class="n">declareNamespace</span><span class="p">(</span><span class="kt">char</span> <span class="k">const</span> <span class="o">*</span><span class="p">)</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="n">class</span> <span class="n">IStoreNet</span>
+<span class="p">{</span>
+<span class="nl">public:</span>
+    <span class="k">virtual</span>  <span class="n">bool</span> <span class="n">isOnline</span><span class="p">()</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="k">virtual</span>  <span class="n">bool</span> <span class="n">getPIN</span><span class="p">(</span><span class="kt">uint64_t</span> <span class="n">pid</span><span class="p">,</span><span class="kt">unsigned</span> <span class="kt">short</span> <span class="n">storeId</span><span class="p">,</span><span class="n">MVStore</span><span class="o">::</span><span class="n">IdentityID</span> <span class="n">iid</span><span class="p">,</span><span class="n">MVStore</span><span class="o">::</span><span class="n">IPIN</span> <span class="o">*</span><span class="n">pin</span><span class="p">)</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="n">class</span> <span class="n">IStoreIO</span><span class="p">;</span>
+
+<span class="n">class</span> <span class="n">IStoreNotification</span>
+<span class="p">{</span>
+<span class="nl">public:</span>
+    <span class="k">enum</span> <span class="n">NotificationEventType</span> <span class="p">{</span>
+        <span class="n">NE_PIN_CREATED</span><span class="p">,</span> <span class="n">NE_PIN_UPDATED</span><span class="p">,</span> <span class="n">NE_PIN_DELETED</span><span class="p">,</span> <span class="n">NE_CLASS_INSTANCE_ADDED</span><span class="p">,</span> <span class="n">NE_CLASS_INSTANCE_REMOVED</span><span class="p">,</span> <span class="n">NE_CLASS_INSTANCE_CHANGED</span><span class="p">,</span> <span class="n">NE_PIN_UNDELETE</span>
+    <span class="p">};</span>
+    <span class="k">enum</span> <span class="n">TxEventType</span> <span class="p">{</span>
+        <span class="n">NTX_START</span><span class="p">,</span> <span class="n">NTX_SAVEPOINT</span><span class="p">,</span> <span class="n">NTX_COMMIT</span><span class="p">,</span> <span class="n">NTX_ABORT</span><span class="p">,</span> <span class="n">NTX_COMMIT_SP</span><span class="p">,</span> <span class="n">NTX_ABORT_SP</span>
+    <span class="p">};</span>
+    <span class="k">struct</span> <span class="n">NotificationData</span> <span class="p">{</span>
+        <span class="n">MVStore</span><span class="o">::</span><span class="n">PropertyID</span>            <span class="n">propID</span><span class="p">;</span>
+        <span class="n">MVStore</span><span class="o">::</span><span class="n">ElementID</span>         <span class="n">eid</span><span class="p">;</span>
+        <span class="n">MVStore</span><span class="o">::</span><span class="n">ElementID</span>         <span class="n">epos</span><span class="p">;</span>
+        <span class="k">const</span>    <span class="n">MVStore</span><span class="o">::</span><span class="n">Value</span>     <span class="o">*</span><span class="n">oldValue</span><span class="p">;</span>
+        <span class="k">const</span>    <span class="n">MVStore</span><span class="o">::</span><span class="n">Value</span>     <span class="o">*</span><span class="n">newValue</span><span class="p">;</span>
+    <span class="p">};</span>
+    <span class="k">struct</span> <span class="n">EventData</span> <span class="p">{</span>
+        <span class="n">NotificationEventType</span>        <span class="n">type</span><span class="p">;</span>
+        <span class="n">MVStore</span><span class="o">::</span><span class="n">ClassID</span>           <span class="n">cid</span><span class="p">;</span>
+    <span class="p">};</span>
+    <span class="k">struct</span> <span class="n">NotificationEvent</span> <span class="p">{</span>
+        <span class="n">MVStore</span><span class="o">::</span><span class="n">PID</span>               <span class="n">pin</span><span class="p">;</span>
+        <span class="k">const</span>    <span class="n">EventData</span>            <span class="o">*</span><span class="n">events</span><span class="p">;</span>
+        <span class="kt">unsigned</span>                    <span class="n">nEvents</span><span class="p">;</span>
+        <span class="k">const</span>    <span class="n">NotificationData</span> <span class="o">*</span><span class="n">data</span><span class="p">;</span>
+        <span class="kt">unsigned</span>                    <span class="n">nData</span><span class="p">;</span>
+        <span class="n">bool</span>                     <span class="n">fReplication</span><span class="p">;</span>
+    <span class="p">};</span>
+    <span class="k">virtual</span>  <span class="kt">void</span>    <span class="n">notify</span><span class="p">(</span><span class="n">NotificationEvent</span> <span class="o">*</span><span class="n">events</span><span class="p">,</span><span class="kt">unsigned</span> <span class="n">nEvents</span><span class="p">,</span><span class="kt">uint64_t</span> <span class="n">txid</span><span class="p">)</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="k">virtual</span>  <span class="kt">void</span>    <span class="n">txNotify</span><span class="p">(</span><span class="n">TxEventType</span><span class="p">,</span><span class="kt">uint64_t</span> <span class="n">txid</span><span class="p">)</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="n">class</span> <span class="n">ILockNotification</span>
+<span class="p">{</span>
+<span class="nl">public:</span>
+    <span class="k">enum</span> <span class="n">LockType</span> <span class="p">{</span><span class="n">LT_SHARED</span><span class="p">,</span> <span class="n">LT_UPDATE</span><span class="p">,</span> <span class="n">LT_EXCLUSIVE</span><span class="p">};</span>
+    <span class="k">virtual</span>  <span class="n">RC</span>       <span class="n">beforeWait</span><span class="p">(</span><span class="n">MVStore</span><span class="o">::</span><span class="n">ISession</span> <span class="o">*</span><span class="n">ses</span><span class="p">,</span><span class="k">const</span> <span class="n">MVStore</span><span class="o">::</span><span class="n">PID</span><span class="o">&amp;</span> <span class="n">id</span><span class="p">,</span><span class="n">LockType</span> <span class="n">lt</span><span class="p">)</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="k">virtual</span>  <span class="kt">void</span>    <span class="n">afterWait</span><span class="p">(</span><span class="n">MVStore</span><span class="o">::</span><span class="n">ISession</span> <span class="o">*</span><span class="n">ses</span><span class="p">,</span><span class="k">const</span> <span class="n">MVStore</span><span class="o">::</span><span class="n">PID</span><span class="o">&amp;</span> <span class="n">id</span><span class="p">,</span><span class="n">LockType</span> <span class="n">lt</span><span class="p">,</span><span class="n">RC</span> <span class="n">rc</span><span class="p">)</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="k">struct</span> <span class="n">StartupParameters</span>
+<span class="p">{</span>
+    <span class="kt">unsigned</span>                <span class="n">mode</span><span class="p">;</span>
+    <span class="k">const</span> <span class="kt">char</span>               <span class="o">*</span><span class="n">directory</span><span class="p">;</span>
+    <span class="kt">unsigned</span>                <span class="n">maxFiles</span><span class="p">;</span>
+    <span class="kt">unsigned</span>                <span class="n">nBuffers</span><span class="p">;</span>
+    <span class="kt">unsigned</span>                <span class="n">shutdownAsyncTimeout</span><span class="p">;</span>
+    <span class="n">IStoreNet</span>                <span class="o">*</span><span class="n">network</span><span class="p">;</span>
+    <span class="n">IStoreNotification</span>       <span class="o">*</span><span class="n">notification</span><span class="p">;</span>
+    <span class="k">const</span> <span class="kt">char</span>               <span class="o">*</span><span class="n">password</span><span class="p">;</span>
+    <span class="k">const</span> <span class="kt">char</span>               <span class="o">*</span><span class="n">logDirectory</span><span class="p">;</span>
+    <span class="n">IStoreIO</span>             <span class="o">*</span><span class="n">io</span><span class="p">;</span>
+    <span class="n">ILockNotification</span>        <span class="o">*</span><span class="n">lockNotification</span><span class="p">;</span>
+    <span class="kt">size_t</span>                  <span class="n">logBufSize</span><span class="p">;</span>
+    <span class="n">StartupParameters</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">md</span><span class="o">=</span><span class="n">STARTUP_MODE_DESKTOP</span><span class="p">,</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">dir</span><span class="o">=</span><span class="nb">NULL</span><span class="p">,</span><span class="kt">unsigned</span> <span class="n">xFiles</span><span class="o">=</span><span class="n">DEFAULT_MAX_FILES</span><span class="p">,</span><span class="kt">unsigned</span> <span class="n">nBuf</span><span class="o">=</span><span class="n">DEFAULT_BLOCK_NUM</span><span class="p">,</span>
+                        <span class="kt">unsigned</span> <span class="n">asyncTimeout</span><span class="o">=</span><span class="n">DEFAULT_ASYNC_TIMEOUT</span><span class="p">,</span><span class="n">IStoreNet</span> <span class="o">*</span><span class="n">net</span><span class="o">=</span><span class="nb">NULL</span><span class="p">,</span><span class="n">IStoreNotification</span> <span class="o">*</span><span class="n">notItf</span><span class="o">=</span><span class="nb">NULL</span><span class="p">,</span>
+                        <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">pwd</span><span class="o">=</span><span class="nb">NULL</span><span class="p">,</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">logDir</span><span class="o">=</span><span class="nb">NULL</span><span class="p">,</span><span class="n">IStoreIO</span> <span class="o">*</span><span class="n">pio</span><span class="o">=</span><span class="nb">NULL</span><span class="p">,</span><span class="n">ILockNotification</span> <span class="o">*</span><span class="n">lno</span><span class="o">=</span><span class="nb">NULL</span><span class="p">,</span><span class="kt">size_t</span> <span class="n">lbs</span><span class="o">=</span><span class="n">DEFAULT_LOGBUF_SIZE</span><span class="p">)</span> 
+        <span class="o">:</span> <span class="n">mode</span><span class="p">(</span><span class="n">md</span><span class="p">),</span><span class="n">directory</span><span class="p">(</span><span class="n">dir</span><span class="p">),</span><span class="n">maxFiles</span><span class="p">(</span><span class="n">xFiles</span><span class="p">),</span><span class="n">nBuffers</span><span class="p">(</span><span class="n">nBuf</span><span class="p">),</span><span class="n">shutdownAsyncTimeout</span><span class="p">(</span><span class="n">asyncTimeout</span><span class="p">),</span>
+        <span class="n">network</span><span class="p">(</span><span class="n">net</span><span class="p">),</span><span class="n">notification</span><span class="p">(</span><span class="n">notItf</span><span class="p">),</span><span class="n">password</span><span class="p">(</span><span class="n">pwd</span><span class="p">),</span><span class="n">logDirectory</span><span class="p">(</span><span class="n">logDir</span><span class="p">),</span><span class="n">io</span><span class="p">(</span><span class="n">pio</span><span class="p">),</span><span class="n">lockNotification</span><span class="p">(</span><span class="n">lno</span><span class="p">),</span><span class="n">logBufSize</span><span class="p">(</span><span class="n">lbs</span><span class="p">)</span> <span class="p">{}</span>
+<span class="p">};</span>
+
+<span class="k">struct</span> <span class="n">StoreCreationParameters</span>
+<span class="p">{</span>
+    <span class="kt">unsigned</span>        <span class="n">nControlRecords</span><span class="p">;</span>
+    <span class="kt">unsigned</span>        <span class="n">pageSize</span><span class="p">;</span>
+    <span class="kt">unsigned</span>        <span class="n">fileExtentSize</span><span class="p">;</span>
+    <span class="k">const</span>    <span class="kt">char</span>    <span class="o">*</span><span class="n">identity</span><span class="p">;</span>
+    <span class="kt">unsigned</span> <span class="kt">short</span>  <span class="n">storeId</span><span class="p">;</span>
+    <span class="k">const</span>    <span class="kt">char</span>    <span class="o">*</span><span class="n">password</span><span class="p">;</span>
+    <span class="n">bool</span>         <span class="n">fEncrypted</span><span class="p">;</span>
+    <span class="kt">uint64_t</span>        <span class="n">maxSize</span><span class="p">;</span>
+    <span class="kt">float</span>           <span class="n">pctFree</span><span class="p">;</span>
+    <span class="kt">size_t</span>          <span class="n">logSegSize</span><span class="p">;</span>
+    <span class="n">StoreCreationParameters</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">nCtl</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="kt">unsigned</span> <span class="n">lPage</span><span class="o">=</span><span class="n">DEFAULT_PAGE_SIZE</span><span class="p">,</span>
+        <span class="kt">unsigned</span> <span class="n">extSize</span><span class="o">=</span><span class="n">DEFAULT_EXTENT_SIZE</span><span class="p">,</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">ident</span><span class="o">=</span><span class="nb">NULL</span><span class="p">,</span><span class="kt">unsigned</span> <span class="kt">short</span> <span class="n">stId</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">pwd</span><span class="o">=</span><span class="nb">NULL</span><span class="p">,</span>
+                                    <span class="n">bool</span> <span class="n">fEnc</span><span class="o">=</span><span class="nb">false</span><span class="p">,</span><span class="kt">uint64_t</span> <span class="n">xSize</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="kt">float</span> <span class="n">pctF</span><span class="o">=-</span><span class="mf">1.f</span><span class="p">,</span><span class="kt">size_t</span> <span class="n">lss</span><span class="o">=</span><span class="n">DEFAULT_LOGSEG_SIZE</span><span class="p">)</span>
+        <span class="o">:</span> <span class="n">nControlRecords</span><span class="p">(</span><span class="n">nCtl</span><span class="p">),</span><span class="n">pageSize</span><span class="p">(</span><span class="n">lPage</span><span class="p">),</span><span class="n">fileExtentSize</span><span class="p">(</span><span class="n">extSize</span><span class="p">),</span><span class="n">identity</span><span class="p">(</span><span class="n">ident</span><span class="p">),</span>
+        <span class="n">storeId</span><span class="p">(</span><span class="n">stId</span><span class="p">),</span><span class="n">password</span><span class="p">(</span><span class="n">pwd</span><span class="p">),</span><span class="n">fEncrypted</span><span class="p">(</span><span class="n">fEnc</span><span class="p">),</span><span class="n">maxSize</span><span class="p">(</span><span class="n">xSize</span><span class="p">),</span><span class="n">pctFree</span><span class="p">(</span><span class="n">pctF</span><span class="p">),</span><span class="n">logSegSize</span><span class="p">(</span><span class="n">lss</span><span class="p">)</span> <span class="p">{}</span>
+<span class="p">};</span>
+
+<span class="n">class</span> <span class="n">IMapDir</span>
+<span class="p">{</span>
+<span class="nl">public:</span>
+    <span class="k">enum</span> <span class="n">StoreOp</span> <span class="p">{</span><span class="n">SO_CREATE</span><span class="p">,</span> <span class="n">SO_OPEN</span><span class="p">,</span> <span class="n">SO_DELETE</span><span class="p">,</span> <span class="n">SO_MOVE</span><span class="p">,</span> <span class="n">SO_LOG</span><span class="p">};</span>
+    <span class="k">virtual</span>  <span class="n">RC</span>   <span class="n">map</span><span class="p">(</span><span class="n">StoreOp</span> <span class="n">op</span><span class="p">,</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">dir</span><span class="p">,</span><span class="kt">size_t</span> <span class="n">ldir</span><span class="p">,</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*&amp;</span><span class="n">mdir</span><span class="p">,</span><span class="k">const</span> <span class="kt">char</span> <span class="o">**</span><span class="n">pwd</span><span class="p">)</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="n">_EXP</span> <span class="n">RC</span>            <span class="n">manageStores</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">cmd</span><span class="p">,</span><span class="kt">size_t</span> <span class="n">lcmd</span><span class="p">,</span><span class="n">MVStoreCtx</span> <span class="o">&amp;</span><span class="n">store</span><span class="p">,</span><span class="n">IMapDir</span> <span class="o">*</span><span class="n">id</span><span class="p">,</span><span class="k">const</span> <span class="n">StartupParameters</span> <span class="o">*</span><span class="n">sp</span><span class="o">=</span><span class="nb">NULL</span><span class="p">,</span><span class="n">MVStore</span><span class="o">::</span><span class="n">CompilationError</span> <span class="o">*</span><span class="n">ce</span><span class="o">=</span><span class="nb">NULL</span><span class="p">);</span>
+
+<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="n">_EXP</span> <span class="n">RC</span>            <span class="n">openStore</span><span class="p">(</span><span class="k">const</span> <span class="n">StartupParameters</span><span class="o">&amp;</span> <span class="n">params</span><span class="p">,</span><span class="n">MVStoreCtx</span> <span class="o">&amp;</span><span class="n">store</span><span class="p">);</span>
+<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="n">_EXP</span> <span class="n">RC</span>            <span class="n">createStore</span><span class="p">(</span><span class="k">const</span> <span class="n">StoreCreationParameters</span><span class="o">&amp;</span> <span class="n">create</span><span class="p">,</span><span class="k">const</span> <span class="n">StartupParameters</span><span class="o">&amp;</span> <span class="n">params</span><span class="p">,</span><span class="n">MVStoreCtx</span> <span class="o">&amp;</span><span class="n">store</span><span class="p">,</span><span class="n">MVStore</span><span class="o">::</span><span class="n">ISession</span> <span class="o">**</span><span class="n">pLoad</span><span class="o">=</span><span class="nb">NULL</span><span class="p">);</span>
+<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="n">_EXP</span> <span class="n">RC</span>            <span class="n">shutdownStore</span><span class="p">(</span><span class="n">MVStoreCtx</span> <span class="n">store</span><span class="o">=</span><span class="nb">NULL</span><span class="p">);</span>
+<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="n">_EXP</span>  <span class="kt">void</span>        <span class="n">stopThreads</span><span class="p">();</span>
+<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="n">_EXP</span>  <span class="n">RC</span>           <span class="n">getStoreCreationParameters</span><span class="p">(</span><span class="n">StoreCreationParameters</span><span class="o">&amp;</span> <span class="n">params</span><span class="p">,</span><span class="n">MVStoreCtx</span> <span class="n">store</span><span class="o">=</span><span class="nb">NULL</span><span class="p">);</span>
+<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="n">_EXP</span>  <span class="kt">unsigned</span>    <span class="n">getVersion</span><span class="p">();</span>
+<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="n">_EXP</span> <span class="kt">unsigned</span> <span class="n">getStoreState</span><span class="p">(</span><span class="n">MVStoreCtx</span><span class="o">=</span><span class="nb">NULL</span><span class="p">);</span>
+<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="n">_EXP</span> <span class="kt">void</span>     <span class="n">setReport</span><span class="p">(</span><span class="n">IReport</span> <span class="o">*</span><span class="p">);</span>
+
+<span class="k">enum</span> <span class="n">StreamInType</span>
+<span class="p">{</span>
+    <span class="n">SITY_NORMAL</span><span class="p">,</span> <span class="n">SITY_DUMPLOAD</span><span class="p">,</span> <span class="n">SITY_REPLICATION</span>
+<span class="p">};</span>
+
+<span class="n">class</span> <span class="n">IStreamInCallback</span>
+<span class="p">{</span>
+<span class="nl">public:</span>
+    <span class="k">virtual</span>  <span class="n">RC</span>       <span class="n">send</span><span class="p">(</span><span class="k">const</span> <span class="kt">unsigned</span> <span class="kt">char</span> <span class="o">*</span><span class="n">buf</span><span class="p">,</span><span class="kt">size_t</span> <span class="n">lbuf</span><span class="p">)</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+    <span class="k">virtual</span>  <span class="kt">void</span>    <span class="n">close</span><span class="p">()</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="k">struct</span> <span class="n">StreamInParameters</span>
+<span class="p">{</span>
+    <span class="n">IStreamInCallback</span>    <span class="o">*</span><span class="n">cb</span><span class="p">;</span>
+    <span class="kt">size_t</span>              <span class="n">lBuffer</span><span class="p">;</span>
+    <span class="kt">uint64_t</span>            <span class="n">threshold</span><span class="p">;</span>
+    <span class="k">const</span> <span class="kt">char</span>           <span class="o">*</span><span class="n">identity</span><span class="p">;</span>
+    <span class="kt">size_t</span>              <span class="n">lIdentity</span><span class="p">;</span>
+    <span class="k">const</span> <span class="kt">char</span>           <span class="o">*</span><span class="n">pwd</span><span class="p">;</span>
+    <span class="kt">size_t</span>              <span class="n">lPwd</span><span class="p">;</span>
+<span class="p">};</span>
+
+<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="n">_EXP</span>  <span class="n">RC</span>           <span class="n">createServerInputStream</span><span class="p">(</span><span class="n">MVStoreCtx</span> <span class="n">ctx</span><span class="p">,</span><span class="k">const</span> <span class="n">StreamInParameters</span> <span class="o">*</span><span class="n">params</span><span class="p">,</span><span class="n">MVStore</span><span class="o">::</span><span class="n">IStreamIn</span> <span class="o">*&amp;</span><span class="n">in</span><span class="p">,</span><span class="n">StreamInType</span><span class="o">=</span><span class="n">SITY_NORMAL</span><span class="p">);</span>
+
+<span class="cp">#endif</span>
+</pre></div>
+<!-- end highlighted code -->
+
+</div>
