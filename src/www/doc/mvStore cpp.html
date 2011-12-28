@@ -15,6 +15,7 @@
     <option value='mvStore js'>mvStore js</option>
     <option value='mvStore protobuf'>mvStore protobuf</option>
     <option value='mvStore server'>mvStore server</option>
+    <option value='release notes'>release notes</option>
     <option value='strengths'>strengths</option>
     <option value='terminology'>terminology</option>
   </select>
@@ -347,16 +348,37 @@
 	> method that lets an application use a logical name in place of the actual class name, to minimize code changes in case of class definition upgrades. This is considered a temporary solution (a better design will be published in a future release).</p
       ><p
       >Here's an example building a multi-segment class index:</p
-      ><p
-      >IExprTree * lExpr1 = NULL, * lExpr2 = NULL; Value lV[2]; lV[0].setVarRef(0, 1, &amp;mProps[0]); lV[1].setParam(0); lExpr1 = mSession-&gt;expr(OP_LT, 2, lV);<br
-	 /> lV[0].setVarRef(0, 1, &amp;mProps[1]); lV[1].setParam(1); lExpr2 = mSession-&gt;expr(OP_GT, 2, lV);</p
-      ><p
-      >IStmt * const lQ = mSession-&gt;createStmt(); QVarID const lVar = lQ-&gt;addVariable(); lQ-&gt;addCondition(lVar, lExpr1); lQ-&gt;addCondition(lVar, lExpr2);</p
-      ><p
-      >lExpr1-&gt;destroy(); lExpr2-&gt;destroy();</p
-      ><p
-      >RC rc = RC_OK; lV[0].set(className); lV[0].setPropID(PROP_SPEC_URI); lV[1].set(lQ); lV[1].setPropID(PROP_SPEC_PREDICATE); IPIN * lClass = mSession-&gt;createUncommittedPIN(lV, 2, MODE_COPY_VALUES); rc = mSession-&gt;commitPINs(&amp;lClass, 1); if (rc==RC_OK || rc==RC_ALREADYEXISTS) { ClassID lCLSID = lClass-&gt;getValue(PROP_SPEC_CLASSID)-&gt;uid; lClass-&gt;destroy(); ... }</p
-      ></div
+      ><pre>
+  IExprTree * lExpr1 = NULL, * lExpr2 = NULL;
+  Value lV[2];
+  lV[0].setVarRef(0, 1, &mProps[0]);
+  lV[1].setParam(0);
+  lExpr1 = mSession->expr(OP_LT, 2, lV);  
+  lV[0].setVarRef(0, 1, &mProps[1]);
+  lV[1].setParam(1);
+  lExpr2 = mSession->expr(OP_GT, 2, lV);
+
+  IStmt * const lQ = mSession->createStmt();
+  QVarID const lVar = lQ->addVariable();
+  lQ->addCondition(lVar, lExpr1);
+  lQ->addCondition(lVar, lExpr2);
+
+  lExpr1->destroy();
+  lExpr2->destroy();
+
+  RC rc = RC_OK;
+  lV[0].set(className); lV[0].setPropID(PROP_SPEC_URI);
+  lV[1].set(lQ); lV[1].setPropID(PROP_SPEC_PREDICATE);
+  IPIN * lClass = mSession->createUncommittedPIN(lV, 2, MODE_COPY_VALUES);
+  rc = mSession->commitPINs(&lClass, 1);
+  if (rc==RC_OK || rc==RC_ALREADYEXISTS)
+  {
+    ClassID lCLSID = lClass->getValue(PROP_SPEC_CLASSID)->uid;
+    lClass->destroy();
+    ...
+  }
+</pre>
+</div
     ></div
   ><div id="isession::starttransaction"
   ><h3
@@ -554,22 +576,21 @@
     > can be used not only to build leaf nodes but also complete trees (in combination with logical operators such as <code
     >OP_AND, OP_OR etc.</code
     >). Here's an example:</p
-  ><p
-  >CmvautoPtr<IStmt> lQ(mSession-&gt;createStmt());<br
-     /> unsigned const char lVar = lQ-&gt;addVariable();<br
-     /> Value lV[2];<br
-     /> lV[0].setVarRef(0, 1, &amp;mFilePathPropID);<br
-     /> lV[1].setParam(0);<br
-     /> IExprTree <em
-    >lET1 = mSession-&gt;expr(OP_EQ, 2, lV);<br
-       /> lV[0].setVarRef(0, 1, &amp;mPIFSAttrPropID);<br
-       /> IExprTree</em
-    >lET2 = mSession-&gt;expr(OP_EXISTS, 1, lV);<br
-     /> lV[0].set(lET1);<br
-     /> lV[1].set(lET2);<br
-     /> CmvautoPtr<IExprTree> lET(mSession-&gt;expr(OP_LAND, 2, lV));<br
-     /> TVERIFYRC(lQ-&gt;addCondition(lVar,lET));</p
-  ><p
+  ><pre>
+  CmvautoPtr<IStmt> lQ(mSession->createStmt());  
+  unsigned const char lVar = lQ->addVariable();  
+  Value lV[2];  
+  lV[0].setVarRef(0, 1, &mFilePathPropID);  
+  lV[1].setParam(0);  
+  IExprTree *lET1 = mSession->expr(OP_EQ, 2, lV);  
+  lV[0].setVarRef(0, 1, &mPIFSAttrPropID);  
+  IExprTree *lET2 = mSession->expr(OP_EXISTS, 1, lV);  
+  lV[0].set(lET1);  
+  lV[1].set(lET2);  
+  CmvautoPtr<IExprTree> lET(mSession->expr(OP_LAND, 2, lV));  
+  TVERIFYRC(lQ->addCondition(lVar,lET));  
+</pre>
+<p
   >Usually, the root node of an expression is passed to <code
     >IStmt::addCondition</code
     >. Internally, mvStore compiles the expression into a representation optimized for execution (<code
@@ -605,36 +626,50 @@
     >, joins, ordering, projections and PIN transformations, query plan analysis etc.</p
   ><p
   >To use an existing class as a condition of a query:</p
-  ><p
-  >ClassSpec lCS1;<br
-     /> lCS1.classID = lTheCLSID1;<br
-     /> lCS1.nParams = 0; lCS1.params = NULL;<br
-     /> lQ-&gt;addVariable(&amp;lCS1, 1);</p
-  ><p
+  ><pre>
+  ClassSpec lCS1;  
+  lCS1.classID = lTheCLSID1;  
+  lCS1.nParams = 0; lCS1.params = NULL;  
+  lQ->addVariable(&lCS1, 1);  
+</pre>
+<p
   >To merge two classes:</p
-  ><p
-  >ClassSpec lCS1, lCS2;<br
-     /> lCS1.classID = lTheCLSID1;<br
-     /> lCS2.classID = lTheCLSID2;<br
-     /> lCS1.nParams = 0; lCS1.params = NULL;<br
-     /> lCS2.nParams = 0; lCS2.params = NULL;<br
-     /> unsigned char lVars[2];<br
-     /> lVars[0] = lQ-&gt;addVariable(&amp;lCS1, 1);<br
-     /> lVars[1] = lQ-&gt;addVariable(&amp;lCS2, 1);<br
-     /> lQ-&gt;setOp(lVars, 2, QRY_INTERSECT);</p
-  ><p
+  ><pre>
+  ClassSpec lCS1, lCS2;  
+  lCS1.classID = lTheCLSID1;  
+  lCS2.classID = lTheCLSID2;  
+  lCS1.nParams = 0; lCS1.params = NULL;  
+  lCS2.nParams = 0; lCS2.params = NULL;  
+  unsigned char lVars[2];  
+  lVars[0] = lQ->addVariable(&lCS1, 1);  
+  lVars[1] = lQ->addVariable(&lCS2, 1);  
+  lQ->setOp(lVars, 2, QRY_INTERSECT);
+</pre>
+<p
   >To do a join:</p
-  ><p
-  >// same thing as merge, except replace setOp with: lQ-&gt;join(lVars[0], lVars[1], NULL, QRY_JOIN);</p
-  ><p
+  ><pre>
+  // same thing as merge, except replace setOp with:
+  lQ->join(lVars[0], lVars[1], NULL, QRY_JOIN);
+</pre>
+<p
   >To use a family instead:</p
-  ><p
-  >Value lVParam; lVParam.set(...); lVParam.setPropID(...); ClassSpec lCS1; lCS1.classID = lTheFamilyID1; lCS1.params = ? lCS1.nParams = 1; lQ-&gt;addVariable(&amp;lCS1, 1);</p
-  ><p
+  ><pre>
+  Value lVParam;
+  lVParam.set(...); lVParam.setPropID(...);
+  ClassSpec lCS1;
+  lCS1.classID = lTheFamilyID1;
+  lCS1.params = &lVParam;
+  lCS1.nParams = 1;
+  lQ->addVariable(&lCS1, 1);
+</pre>
+<p
   >To use a full-text condition with ordered results:</p
-  ><p
-  >TVERIFYRC(lQ-&gt;addConditionFT(lQ-&gt;addVariable(), &quot;whatever&quot;, 0, &amp;mProps[0], 1)); OrderSeg const lOrder = {NULL, mProps[0], ORD_NCASE}; TVERIFYRC(lQ-&gt;setOrder(&amp;lOrder, 1));</p
-  ><p
+  ><pre>
+  TVERIFYRC(lQ->addConditionFT(lQ->addVariable(), "whatever", 0, &mProps[0], 1));
+  OrderSeg const lOrder = {NULL, mProps[0], ORD_NCASE};
+  TVERIFYRC(lQ->setOrder(&lOrder, 1));
+</pre>
+<p
   ><em
     >Note: In the present release, output transformations are not yet considered ready.</em
     ></p
@@ -685,9 +720,7 @@
   ><p
   >Because the point at which a small collection becomes large (and vice versa) is not controlled explicitly by the client, it is recommended to always use code that handles both cases, such as the <code
     >CollectionIterator</code
-    > defined at line 249 in <a href="../tests/src/serialization.h"
-    >serialization.h</a
-    >.</p
+    > defined at line 249 in serialization.h.</p
   ></div
 ><div id="istream"
 ><h1
@@ -699,7 +732,7 @@
     >IStream::dataType</code
     >, BLOBs can be marked as text-only (ascii or unicode), or binary. Note that BLOBs, like strings, can be modified via <code
     >OP_EDIT</code
-    >, described in detail in <a href="../kernel/src/mvstore.proto"
+    >, described in detail in <a href="./sources/mvstore_proto.html"
     >mvstore.proto's StrEdit</a
     > (but in the current state of the implementation, this is not fully optimized for blobs). Note also that text BLOBs can participate to full-text indexes, just like any text property. It is possible to build <a href="./terminology.html#collection"
     >collections</a

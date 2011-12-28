@@ -15,6 +15,7 @@
     <option value='mvStore js'>mvStore js</option>
     <option value='mvStore protobuf' SELECTED>mvStore protobuf</option>
     <option value='mvStore server'>mvStore server</option>
+    <option value='release notes'>release notes</option>
     <option value='strengths'>strengths</option>
     <option value='terminology'>terminology</option>
   </select>
@@ -46,15 +47,27 @@
   >A client <em
     >writes</em
     > to mvStore:</p
-  ><p
-  >the client has a javascript object to be stored in mvStore -&gt; the client serializes it to protobuf, as a new object to be inserted (OP_INSERT) -&gt; the client sends the serialized stream to mvStore -&gt; mvStore deserializes the protobuf stream into its own internal data model -&gt; mvStore detects OP_INSERT and stores the new object -&gt; mvStore produces a response (including new PID, new eids etc.) -&gt; mvStore serializes the response to protobuf -&gt; the client deserializes the response</p
-  ><p
+  ><pre>
+  the client has a javascript object to be stored in mvStore
+  -> the client serializes it to protobuf, as a new object to be inserted (OP_INSERT)
+  -> the client sends the serialized stream to mvStore
+  -> mvStore deserializes the protobuf stream into its own internal data model
+  -> mvStore detects OP_INSERT and stores the new object
+  -> mvStore produces a response (including new PID, new eids etc.)
+  -> mvStore serializes the response to protobuf
+  -> the client deserializes the response
+</pre>
+<p
   >A client <em
     >reads</em
     > from mvStore:</p
-  ><p
-  >the client wants to query PIN @50001 and interact with it as an object -&gt; the client emits the query 'SELECT * FROM @50001;' via a protobuf-enabled interface -&gt; mvStore executes the query and serializes the response to protobuf -&gt; the client deserializes the response into a javascript object</p
-  ><p
+  ><pre>
+  the client wants to query PIN @50001 and interact with it as an object
+  -> the client emits the query 'SELECT * FROM @50001;' via a protobuf-enabled interface
+  -> mvStore executes the query and serializes the response to protobuf
+  -> the client deserializes the response into a javascript object
+</pre>
+<p
   >The internal structure of the protobuf messages that can be understood by mvStore is defined in <a href="./sources/mvstore_proto.html"
     >mvstore.proto</a
     >. It allows to express PIN inserts, updates and deletes, as well as generic queries, transactions, long-running transactions etc. It also provides extensive support for fine-grained updates, such as modifying the order of elements in a collection (e.g. <code
@@ -216,7 +229,7 @@
     ><p
     >In their present implementation, the <a href="./sources/mvstore-client_js.html"
       >node.js</a
-      > and <a href="../python/mvstore.py"
+      > and <a href="./sources/mvstore_py.html"
       >python</a
       > client libraries only support the first strategy, but may expose a specialized interface using the second strategy in a near future.</p
     ></div
@@ -228,7 +241,7 @@
       >mvstore.proto</a
       >. Another important source of information is the implementation of the <a href="./sources/mvstore-client_js.html"
       >node.js</a
-      > and <a href="../python/mvstore.py"
+      > and <a href="./sources/mvstore_py.html"
       >python</a
       > access layers, which can be used as examples to implement new access layers.</p
     ><p

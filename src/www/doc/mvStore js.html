@@ -15,6 +15,7 @@
     <option value='mvStore js' SELECTED>mvStore js</option>
     <option value='mvStore protobuf'>mvStore protobuf</option>
     <option value='mvStore server'>mvStore server</option>
+    <option value='release notes'>release notes</option>
     <option value='strengths'>strengths</option>
     <option value='terminology'>terminology</option>
   </select>
@@ -39,9 +40,13 @@
     >Connection Creation</h2
     ><p
     >To establish a new connection, a client simply needs to do the following:</p
-    ><p
-    >var lib_mvstore = require('mvstore-client'); var lMvStore = lib_mvstore.createConnection(&quot;http://user:password@localhost:4560/db/&quot;, {keepalive:false}); ... lMvStore.terminate();</p
-    ><p
+    ><pre>
+  var lib_mvstore = require('mvstore-client');
+  var lMvStore = lib_mvstore.createConnection("http://user:password@localhost:4560/db/", {keepalive:false});
+  ...
+  lMvStore.terminate();
+</pre>
+<p
     >This example is assuming that mvServer runs on <code
       >localhost</code
       > and listens to port <code
@@ -103,13 +108,13 @@
     >mvSQL Access with JSON Response</h2
     ><p
     >This access path is self-sufficient and will feel most natural to people with SQL experience. Simply emit statements such as:</p
-    ><p
-    >var lOnResult = function(pError, pResult) { console.log(pResult[0].id); /* ... <em
-      >/ }; lMvStore.mvsql(&quot;INSERT (name, profession) VALUES ('Roger', 'Accountant');&quot;, lOnResult); /</em
-      > ... <em
-      >/ lMvStore.mvsql(&quot;SELECT</em
-      > WHERE EXISTS(name);&quot;, lOnResult);</p
-    ><p
+    ><pre>
+  var lOnResult = function(pError, pResult) { console.log(pResult[0].id); /* ... */ };
+  lMvStore.mvsql("INSERT (name, profession) VALUES ('Roger', 'Accountant');", lOnResult);
+  /* ... */
+  lMvStore.mvsql("SELECT * WHERE EXISTS(name);", lOnResult);
+</pre>
+<p
     ><code
       >pResult</code
       > is a parsed JSON response produced by mvStore.</p
@@ -161,13 +166,20 @@
       > as an accessor (and in-memory snapshot).</p
     ><p
     >Here are some examples:</p
-    ><p
-    >var lOnResult = function(pError, pResult) { /* ... <em
-      >/ }; lMvStore.createPINs([{name:&quot;Roger&quot;, profession:&quot;Accountant&quot;}], lOnResult); /</em
-      > ... <em
-      >/ lMvStore.mvsqlProto( &quot;SELECT</em
-      > WHERE EXISTS(name);&quot;, function(pE, pR) { lMvStore.startTx(); pR[0].set(&quot;profession&quot;, &quot;Lawyer&quot;); lMvStore.commitTx(lOnResult); });</p
-    ><div id="pin-interface"
+    ><pre>
+  var lOnResult = function(pError, pResult) { /* ... */ };
+  lMvStore.createPINs([{name:"Roger", profession:"Accountant"}], lOnResult);
+  /* ... */
+  lMvStore.mvsqlProto(
+    "SELECT * WHERE EXISTS(name);",
+    function(pE, pR)
+    {
+      lMvStore.startTx();
+      pR[0].set("profession", "Lawyer");
+      lMvStore.commitTx(lOnResult);
+    });
+</pre>
+<div id="pin-interface"
     ><h4
       >PIN Interface</h4
       ><p

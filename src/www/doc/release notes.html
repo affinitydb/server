@@ -1,0 +1,43 @@
+<head>
+  <script src='js/jquery.js' type='text/javascript'></script>
+  <script src='js/snippets_to_console.js' type='text/javascript'></script>
+  <link href='css/mvdoc.css' rel='stylesheet' type='text/css' />
+</head>
+<div id='mvtocbar'>
+  <select id='mvtoclist'>
+    <option value='features'>features</option>
+    <option value='intro'>intro</option>
+    <option value='mvSQL getting started'>mvSQL getting started</option>
+    <option value='mvSQL reference'>mvSQL reference</option>
+    <option value='mvStore FAQ'>mvStore FAQ</option>
+    <option value='mvStore cpp'>mvStore cpp</option>
+    <option value='mvStore getting started'>mvStore getting started</option>
+    <option value='mvStore js'>mvStore js</option>
+    <option value='mvStore protobuf'>mvStore protobuf</option>
+    <option value='mvStore server'>mvStore server</option>
+    <option value='release notes' SELECTED>release notes</option>
+    <option value='strengths'>strengths</option>
+    <option value='terminology'>terminology</option>
+  </select>
+</div>
+<div id="release-notes"
+><h1
+  >Release Notes</h1
+  ><p
+  >The following limitations are part of the initial version of mvStore.</p
+  ><ul
+  ><li
+    >a few marginal memory leaks</li
+    ><li
+    >Bug 130 - rebuildIndexFT ifdef-ed out</li
+    ><li
+    >Bug 131 - inconsistencies when dropping classes</li
+    ><li
+    >Bug 152 - OP_CONCAT should work on more than 2 values</li
+    ><li
+    >Bug 195 - can't create and drop the same class within one transaction</li
+    ><li
+    >Bug 237 - SELECT * FROM mv:ClassOfClasses; returns some classes with blank mv:URI</li
+    ></ul
+  ></div
+>
