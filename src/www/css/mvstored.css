@@ -47,8 +47,8 @@ tr.selected { background-color:#d3c8b8; }
 #content blockquote { font-size:1.1em; margin:0.6em 0; padding:0.2em 1em 0.4em 1em; background-color:#eee; border:dotted 1px #ccc; color:#333; }
 
 /* content_left (basic tab) */
-#query_spec { overflow:none; position:absolute; top:2px; width:75%; height:20px; border:none; padding-right:210px; }
-#query { float:left; width:100%; }
+#query_spec { overflow:none; position:absolute; top:2px; width:100%; height:20px; border:none; padding-right:210px; }
+#query { float:left; width:100%; background-color:#ddf; color:#008; font-size:1em; }
 #querytype { float:right; margin-left:5px; margin-right:-112px; width:100px; }
 #querygo { float:right; margin-left:5px; margin-right:-220px; width:100px; }
 #result_frame { overflow:none; position:absolute; top:30px; width:100%; bottom:10px; border:none; }

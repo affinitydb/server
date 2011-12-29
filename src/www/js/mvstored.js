@@ -775,13 +775,13 @@ $(document).ready(
         $("#result_pin").empty(); 
       var lCurClassName = $("#classes option:selected").val();
       var lQuery = unescape($("#form").serialize());
+      var lQueryStr = $("#query").val();
       MV_CONTEXT.mLastQueriedClassName = (lQuery.indexOf(mv_without_qname(lCurClassName)) >= 0) ? lCurClassName : null;
-      if ($("#querytype option:selected").val() == "query")
+      if ($("#querytype option:selected").val() == "query" && null == lQueryStr.match(/select\s*count/i))
       {
         if (null != MV_CONTEXT.mLastQResult)
           { MV_CONTEXT.mLastQResult.mAborted = true; }
         lResultList.empty();
-        var lQueryStr = $("#query").val();
         MV_CONTEXT.mLastQResult = new QResultTable(lResultList, MV_CONTEXT.mLastQueriedClassName);
         MV_CONTEXT.mLastQResult.populate(lQueryStr);
         MV_CONTEXT.mQueryHistory.recordQuery(lQueryStr);
@@ -798,7 +798,7 @@ $(document).ready(
           global: false,
           data: lQuery,
           complete: function (e, xhr, s) {
-            $("#result_list").html(hqbr($("#query").val() + "\n\n" + e.responseText + "\n" + xhr));
+            $("#result_list").html(hqbr(lQueryStr + "\n\n" + e.responseText + "\n" + xhr));
           },
           beforeSend : function(req) {
             req.setRequestHeader('Connection', 'Keep-Alive');
