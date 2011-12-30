@@ -6,6 +6,7 @@ var MV_CONTEXT = new Object();
 MV_CONTEXT.mNavTabs = null;
 MV_CONTEXT.mQueryHistory = null;
 MV_CONTEXT.mClasses = null;
+MV_CONTEXT.mFullIntrospection = false;
 MV_CONTEXT.mLastQueriedClassName = "";
 MV_CONTEXT.mLastQResult = null;
 MV_CONTEXT.mSelectedPID = null;
@@ -197,14 +198,14 @@ QResultTable.prototype.populate = function(pQuery)
       if (_pUserData.mOffset < _pUserData.mNumPins && !lThis.mAborted)
       {
         var _lOnPage = new QResultHandler(lOnPageSuccess, null, _pUserData);
-        setTimeout(function(){mv_query(pQuery, _lOnPage, false, _pUserData.mPageSize, _pUserData.mOffset)}, 20); // For some unidentified reason, pagination was working smoothly for a few days, but then at some point it started to show signs of cpu starvation (e.g. slow/infrequent browser refreshes); I added this 20ms timeout between pages, and things came back to normal.
+        setTimeout(function(){mv_query(pQuery, _lOnPage, {limit:_pUserData.mPageSize, offset:_pUserData.mOffset})}, 20); // For some unidentified reason, pagination was working smoothly for a few days, but then at some point it started to show signs of cpu starvation (e.g. slow/infrequent browser refreshes); I added this 20ms timeout between pages, and things came back to normal.
       }
     };
     var lOnPage = new QResultHandler(lOnPageSuccess, null, lPaginationCtx);
-    mv_query(pQuery, lOnPage, false, lPaginationCtx.mPageSize, lPaginationCtx.mOffset);
+    mv_query(pQuery, lOnPage, {limit:lPaginationCtx.mPageSize, offset:lPaginationCtx.mOffset});
   };
   var lOnCount = new QResultHandler(lOnCountSuccess, null, null);
-  mv_query(pQuery, lOnCount, true);
+  mv_query(pQuery, lOnCount, {countonly:true});
 }
 QResultTable.prototype._init = function(pJson)
 {
@@ -577,7 +578,7 @@ function Tutorial()
         MV_CONTEXT.mQueryHistory.recordQuery(__pSql);
         var __lEvalResult = null;
         var __lOnMvsql = function(__pJson, __pD) { _onMvsqlResult(__pJson); __lEvalResult = __pJson; }
-        mv_query(__pSql, new QResultHandler(__lOnMvsql, function(__pError){ print("error:" + __pError[0].responseText); }), null, null, null, false);
+        mv_query(__pSql, new QResultHandler(__lOnMvsql, function(__pError){ print("error:" + __pError[0].responseText); }), {sync:true});
         return __lEvalResult;
       }
       function save(__pJson)
@@ -946,23 +947,24 @@ QResultHandler.prototype.onerror = function(pArgs, pSql)
     $("#result_pin").empty(); $("#result_pin").append("<pre style='color:red'>" + lT + "</pre>");
   }
 }
-function mv_query(pSqlStr, pResultHandler, pCountOnly, pLimit, pOffset, pAsync)
+function mv_query(pSqlStr, pResultHandler, pOptions)
 {
   if (null == pSqlStr || 0 == pSqlStr.length || pSqlStr.charAt(pSqlStr.length - 1) != ";")
     { console.log("mv_query: invalid sql " + pSqlStr); pResultHandler.onerror(null, pSqlStr); return; }
   var lSqlStr = mv_with_qname_prefixes(pSqlStr);
+  var lHasOption = function(_pOption) { return (undefined != pOptions && _pOption in pOptions); }
   $.ajax({
     type: "GET",
-    url: DB_ROOT + "?q=" + escape(lSqlStr) + "&i=mvsql&o=json" + (pCountOnly ? "&type=count" : "") + ((null != pLimit) ? ("&limit=" + pLimit) : "") + ((null != pOffset) ? ("&offset=" + pOffset) : ""),
+    url: DB_ROOT + "?q=" + escape(lSqlStr) + "&i=mvsql&o=json" + (lHasOption('countonly') ? "&type=count" : "") + (lHasOption('limit') ? ("&limit=" + pOptions.limit) : "") + (lHasOption('offset') ? ("&offset=" + pOptions.offset) : ""),
     dataType: "text", // Review: until mvStore returns 100% clean json...
-    async: (undefined != pAsync) ? pAsync : true,
-    timeout: (undefined == pAsync) ? 10000 : null,
+    async: (lHasOption('sync') && pOptions.sync) ? false : true,
+    timeout: (lHasOption('sync') && pOptions.sync) ? 10000 : null,
     cache: false,
     global: false,
     success: function(data) { pResultHandler.onsuccess(mv_sanitize_json_result(data), pSqlStr); },
     error: function() { pResultHandler.onerror(arguments, pSqlStr); },
     beforeSend : function(req) {
-      req.setRequestHeader('Connection', 'Keep-Alive'); // Note: This doesn't seem to guaranty that a whole multi-statement transaction (e.g. batching console) will run in a single connection; in firefox, it works if I configure network.http.max-persistent-connections-per-server=1 (via the about:config page).
+      if (!lHasOption('keepalive') || pOptions.keepalive) { req.setRequestHeader('Connection', 'Keep-Alive'); } // Note: This doesn't seem to guaranty that a whole multi-statement transaction (e.g. batching console) will run in a single connection; in firefox, it works if I configure network.http.max-persistent-connections-per-server=1 (via the about:config page).
       var lStoreIdent = $("#storeident").val();
       var lStorePw = $("#storepw").val();
       if (lStoreIdent.length > 0) { req.setRequestHeader('Authorization', "Basic " + base64_encode(lStoreIdent + ":" + lStorePw)); }
@@ -977,11 +979,14 @@ function populate_classes()
 {
   var lOnSuccess = function(_pJson) {
     MV_CONTEXT.mClasses = _pJson;
+    MV_CONTEXT.mFullIntrospection = false;
     var lToDelete = [];
     for (var iC = 0; null != MV_CONTEXT.mClasses && iC < MV_CONTEXT.mClasses.length; iC++)
     {
       if (undefined == MV_CONTEXT.mClasses[iC]["mv:URI"])
         { lToDelete.push(iC); continue; }
+      if ("http://localhost/mv/class/1.0/ClassDescription" == MV_CONTEXT.mClasses[iC]["mv:URI"])
+        { MV_CONTEXT.mFullIntrospection = true; }
       MV_CONTEXT.mClasses[iC]["mv:URI"] = mv_with_qname(MV_CONTEXT.mClasses[iC]["mv:URI"]);
       var lCProps = MV_CONTEXT.mClasses[iC]["mv:properties"];
       var lNewProps = new Object();
@@ -1010,7 +1015,7 @@ function populate_classes()
   };
   MV_CONTEXT.mQNamesDirty = true;
   var lOnClasses = new QResultHandler(lOnSuccess, null, null);
-  mv_query("SELECT * FROM mv:ClassOfClasses;", lOnClasses);
+  mv_query("SELECT * FROM mv:ClassOfClasses;", lOnClasses, {keepalive:false});
 }
 
 function on_class_change()
@@ -1033,9 +1038,13 @@ function on_class_change()
   var lClassDoc = $("#class_doc");
   lClassDoc.empty();
   lClassDoc.append($("<p><h4>predicate:</h4>&nbsp;" + lCurClass["mv:predicate"] + "<br/></p>"));
-  var lOnDocstringSuccess = function(_pJson) { if (undefined != _pJson) { lClassDoc.append("<h4>docstring:</h4>&nbsp;"+ _pJson[0][mv_with_qname("http://localhost/mv/property/1.0/hasDocstring")]); } }
-  var lOnDocstring = new QResultHandler(lOnDocstringSuccess, function(){}, null);
-  mv_query("SELECT * FROM \"http://localhost/mv/class/1.0/ClassDescription\"('" + mv_without_qname(lCurClassName) + "');", lOnDocstring);
+  
+  if (MV_CONTEXT.mFullIntrospection)
+  {
+    var lOnDocstringSuccess = function(_pJson) { if (undefined != _pJson) { lClassDoc.append("<h4>docstring:</h4>&nbsp;"+ _pJson[0][mv_with_qname("http://localhost/mv/property/1.0/hasDocstring")]); } }
+    var lOnDocstring = new QResultHandler(lOnDocstringSuccess, function(){}, null);
+    mv_query("SELECT * FROM \"http://localhost/mv/class/1.0/ClassDescription\"('" + mv_without_qname(lCurClassName) + "');", lOnDocstring, {keepalive:false});
+  }
 }
 
 function on_class_dblclick()
@@ -1050,10 +1059,13 @@ function on_cprop_change()
   var lCurPropName = $("#class_properties option:selected").val();
   var lPropDoc = $("#property_doc");
   lPropDoc.empty();
-  lPropDoc.append($("<p />"));
-  var lOnDocstringSuccess = function(_pJson) { lPropDoc.append("<h4>docstring:</h4>&nbsp;"+ _pJson[0][mv_with_qname("http://localhost/mv/property/1.0/hasDocstring")]); }
-  var lOnDocstring = new QResultHandler(lOnDocstringSuccess, function(){}, null);
-  mv_query("SELECT * FROM \"http://localhost/mv/class/1.0/AttributeDescription\"('" + mv_without_qname(lCurPropName) + "') UNION SELECT * FROM \"http://localhost/mv/class/1.0/RelationDescription\"('" + lCurPropName + "');", lOnDocstring);
+  if (MV_CONTEXT.mFullIntrospection)
+  {
+    lPropDoc.append($("<p />"));
+    var lOnDocstringSuccess = function(_pJson) { lPropDoc.append("<h4>docstring:</h4>&nbsp;"+ _pJson[0][mv_with_qname("http://localhost/mv/property/1.0/hasDocstring")]); }
+    var lOnDocstring = new QResultHandler(lOnDocstringSuccess, function(){}, null);
+    mv_query("SELECT * FROM \"http://localhost/mv/class/1.0/AttributeDescription\"('" + mv_without_qname(lCurPropName) + "') UNION SELECT * FROM \"http://localhost/mv/class/1.0/RelationDescription\"('" + lCurPropName + "');", lOnDocstring, {keepalive:false});
+  }
 }
 
 function on_cprop_dblclick()
@@ -1086,7 +1098,7 @@ function on_pin_click(pPID)
       function(__pClass)
       {        
         var __lOnCount = new QResultHandler(_mOnSuccess, null, __pClass);
-        mv_query("SELECT * FROM " + mv_sanitize_classname(__pClass) + " WHERE mv:pinID=@" + pPID + ";", __lOnCount, true);
+        mv_query("SELECT * FROM " + mv_sanitize_classname(__pClass) + " WHERE mv:pinID=@" + pPID + ";", __lOnCount, {countonly:true, keepalive:false});
       }
   }
   if (undefined != MV_CONTEXT.mClasses)
@@ -1114,7 +1126,7 @@ function on_pin_click(pPID)
       { $("#" + iRef).click(function(){on_pin_click($(this).text()); return false;}); }
   }
   var lOnData = new QResultHandler(lOnDataSuccess, null, null);
-  mv_query("SELECT * WHERE mv:pinID=@" + pPID + ";", lOnData);
+  mv_query("SELECT * WHERE mv:pinID=@" + pPID + ";", lOnData, {keepalive:false});
 }
 
 function update_qnames_ui()
