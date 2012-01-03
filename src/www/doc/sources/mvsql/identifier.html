@@ -1,0 +1,27 @@
+<head>
+  <link href='../../css/mvdoc.css' rel='stylesheet' type='text/css' />
+  <link href='../../css/source.css' rel='stylesheet' type='text/css' />
+</head>
+<div id="identifier_sql">
+<h1>identifier.sql</h1>
+
+<!-- begin highlighted code -->
+<pre>
+INSERT NO_SP=1;
+INSERT SP=2;
+INSERT SP=3, mv:value=2;
+CREATE CLASS SP AS SELECT * WHERE SP IS NOT NULL;
+SELECT * FROM SP;
+SELECT * FROM SP WHERE SP=2;      --class ref
+SELECT * FROM SP WHERE SP.SP=2;   --property value
+SELECT * FROM SP WHERE *SP=2;     -- class value
+
+insert ("pr""op1", prop2) values ('pin1', 2);
+SELECT * WHERE (CONTAINS("pr""op1",'pin') AND EXISTS("prop2"));
+
+insert ("pr""""op1", prop2) values ('pin1', 2);
+SELECT * WHERE (CONTAINS("pr""""op1",'pin') AND EXISTS("prop2"));	
+</pre>
+<!-- end highlighted code -->
+
+</div>

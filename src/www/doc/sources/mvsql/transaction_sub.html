@@ -1,0 +1,32 @@
+<head>
+  <link href='../../css/mvdoc.css' rel='stylesheet' type='text/css' />
+  <link href='../../css/source.css' rel='stylesheet' type='text/css' />
+</head>
+<div id="transaction_sub_sql">
+<h1>transaction_sub.sql</h1>
+
+<!-- begin highlighted code -->
+<pre>
+CREATE CLASS foobar AS SELECT * WHERE foobar IS NOT NULL;
+START TRANSACTION;
+	CREATE CLASS foo AS SELECT * WHERE foo IS NOT NULL;
+	START TRANSACTION;
+		DROP CLASS foo;
+		CREATE CLASS bar AS SELECT * WHERE bar IS NOT NULL;
+	ROLLBACK;
+	
+	START TRANSACTION;
+		CREATE CLASS baz AS SELECT * WHERE baz IS NOT NULL;
+	COMMIT;
+	drop CLASS foobar;
+	CREATE CLASS barbaz AS SELECT * WHERE barbaz IS NOT NULL;
+COMMIT;
+SELECT * FROM foobar;   -- shouldn't exist
+SELECT * FROM foo;		-- should be empty
+SELECT * FROM bar;		-- shouldn't exist
+SELECT * FROM baz;		-- should be empty
+SELECT * FROM barbaz;	-- should be empty
+</pre>
+<!-- end highlighted code -->
+
+</div>

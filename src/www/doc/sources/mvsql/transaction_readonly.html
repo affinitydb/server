@@ -1,0 +1,32 @@
+<head>
+  <link href='../../css/mvdoc.css' rel='stylesheet' type='text/css' />
+  <link href='../../css/source.css' rel='stylesheet' type='text/css' />
+</head>
+<div id="transaction_readonly_sql">
+<h1>transaction_readonly.sql</h1>
+
+<!-- begin highlighted code -->
+<pre>
+START TRANSACTION READ ONLY;
+INSERT (a, b) VALUES (1, 'insert in read only transaction.');  -- fail
+CREATE CLASS readonlyCls AS SELECT * WHERE b IS NOT NULL;  -- fail
+update readonlyCls set a=2 where a=1;  -- fail
+update readonlyCls set b=2 where a=1;  -- fail or ok
+select * from readonlyCls;  -- fail: does not exist
+delete from readonlyCls;	-- fail: does not exist
+delete from xacttest;		-- fail
+DROP CLASS xacttest;		-- fail
+EXECUTE STATEMENT stmt1 WITH PARAMS(2, 'test');  -- fail
+ROLLBACK;
+
+START TRANSACTION READ WRITE;
+INSERT (a, b) VALUES (1, 'insert in read only transaction.');
+CREATE CLASS readonlyCls AS SELECT * WHERE b IS NOT NULL;  
+select * from readonlyCls; 
+EXECUTE STATEMENT stmt1 WITH PARAMS(2, 'test'); 
+DROP CLASS xacttest; -- ok
+COMMIT;
+</pre>
+<!-- end highlighted code -->
+
+</div>

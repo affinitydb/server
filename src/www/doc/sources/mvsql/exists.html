@@ -1,0 +1,104 @@
+<head>
+  <link href='../../css/mvdoc.css' rel='stylesheet' type='text/css' />
+  <link href='../../css/source.css' rel='stylesheet' type='text/css' />
+</head>
+<div id="exists_sql">
+<h1>exists.sql</h1>
+
+<!-- begin highlighted code -->
+<pre>
+INSERT (EMPNUM, EMPNAME, GRADE, CITY) VALUES ('E1','Alice',12,'Deale');
+INSERT (EMPNUM, EMPNAME, GRADE, CITY) VALUES ('E2','Betty',10,'Vienna');
+INSERT (EMPNUM, EMPNAME, GRADE, CITY) VALUES ('E3','Carmen',13,'Vienna');
+INSERT (EMPNUM, EMPNAME, GRADE, CITY) VALUES ('E4','Don',12,'Deale');
+INSERT (EMPNUM, EMPNAME, GRADE, CITY) VALUES ('E5','Ed',13,'Akron');
+CREATE CLASS STAFF AS select * where EXISTS(EMPNAME);
+INSERT (PNUM, PNAME, PTYPE, BUDGET, CITY) VALUES  ('P1','MXSS','Design',10000,'Deale');
+INSERT (PNUM, PNAME, PTYPE, BUDGET, CITY) VALUES  ('P2','CALM','Code',30000,'Vienna');
+INSERT (PNUM, PNAME, PTYPE, BUDGET, CITY) VALUES  ('P3','SDP','Test',30000,'Tampa');
+INSERT (PNUM, PNAME, PTYPE, BUDGET, CITY) VALUES  ('P4','SDP','Design',20000,'Deale');
+INSERT (PNUM, PNAME, PTYPE, BUDGET, CITY) VALUES  ('P5','IRM','Test',10000,'Vienna');
+INSERT (PNUM, PNAME, PTYPE, BUDGET, CITY) VALUES  ('P6','PAYR','Design',50000,'Deale');
+CREATE CLASS PROJ AS select * where EXISTS(PNAME);
+INSERT (EMPNUM, PNUM, HOURS) VALUES  ('E1','P1',40);
+INSERT (EMPNUM, PNUM, HOURS) VALUES  ('E1','P2',20);
+INSERT (EMPNUM, PNUM, HOURS) VALUES  ('E1','P3',80);
+INSERT (EMPNUM, PNUM, HOURS) VALUES  ('E1','P4',20);
+INSERT (EMPNUM, PNUM, HOURS) VALUES  ('E1','P5',12);
+INSERT (EMPNUM, PNUM, HOURS) VALUES  ('E1','P6',12);
+INSERT (EMPNUM, PNUM, HOURS) VALUES  ('E2','P1',40);
+INSERT (EMPNUM, PNUM, HOURS) VALUES  ('E2','P2',80);
+INSERT (EMPNUM, PNUM, HOURS) VALUES  ('E3','P2',20);
+INSERT (EMPNUM, PNUM, HOURS) VALUES  ('E4','P2',20);
+INSERT (EMPNUM, PNUM, HOURS) VALUES  ('E4','P4',40);
+INSERT (EMPNUM, PNUM, HOURS) VALUES  ('E4','P5',80);
+CREATE CLASS WORKS AS select * where EXISTS(HOURS);
+	  
+-- TEST:0056 NOT EXISTS predicate!
+SELECT *
+	WHERE EXISTS(EMPNAME) AND NOT EXISTS
+		 (SELECT *
+			   WHERE EXISTS(PNAME) AND NOT EXISTS
+					 (SELECT *
+						   FROM (STAFF JOIN WORKS ON (STAFF.EMPNUM = WORKS.EMPNUM)) 
+								join PROJ on (WORKS.PNUM=PROJ.PNUM)
+					));			
+
+-- TEST:0411 Effective set difference!
+SELECT *
+	FROM WORKS AS W1
+	   WHERE W1.PNUM = 'P2'
+			AND NOT EXISTS (SELECT * FROM WORKS AS W2
+			WHERE W2.EMPNUM = W1.EMPNUM
+				  AND W2.PNUM = 'P1')
+				  ORDER BY EMPNUM ASC;
+
+-- TEST:0412 Effective set intersection!
+SELECT *
+	FROM WORKS AS W1
+	   WHERE W1.PNUM = 'P2'
+			AND EXISTS (SELECT * FROM WORKS AS W2
+			WHERE W1.EMPNUM = W2.EMPNUM
+				  AND W2.PNUM = 'P1')
+				  ORDER BY EMPNUM ASC;
+
+-- TEST:0409 Effective outer join -- with 2 cursors!
+-- setup
+INSERT (EMPNUM, EMPNAME, GRADE, CITY) VALUES('E6','Lendle',17,'Potomac');
+SELECT *
+	FROM WORKS join STAFF on (STAFF.EMPNUM = WORKS.EMPNUM)
+		ORDER BY WORKS.EMPNUM;
+
+SELECT *
+	FROM STAFF
+	WHERE NOT EXISTS (SELECT * FROM WORKS
+		WHERE WORKS.EMPNUM = STAFF.EMPNUM)
+		ORDER BY EMPNUM;
+
+-- TEST:0057 ALL quantifier !
+     SELECT CITY
+          FROM PROJ
+          WHERE BUDGET > ALL
+                 (SELECT BUDGET
+                       FROM PROJ
+                       WHERE CITY='Vienna');
+
+-- TEST:0058 SOME quantifier!
+     SELECT EMPNAME
+          FROM STAFF
+          WHERE GRADE < SOME
+                 (SELECT BUDGET/1000 - 39 
+                       FROM PROJ
+                       WHERE CITY='Deale');
+
+-- TEST:0059 ANY quantifier !
+     SELECT EMPNAME
+          FROM STAFF
+          WHERE GRADE < ANY
+                 (SELECT BUDGET/1000 - 39 
+                       FROM PROJ
+                       WHERE CITY = 'Deale');
+</pre>
+<!-- end highlighted code -->
+
+</div>

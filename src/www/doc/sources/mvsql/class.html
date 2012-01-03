@@ -1,0 +1,53 @@
+<head>
+  <link href='../../css/mvdoc.css' rel='stylesheet' type='text/css' />
+  <link href='../../css/source.css' rel='stylesheet' type='text/css' />
+</head>
+<div id="class_sql">
+<h1>class.sql</h1>
+
+<!-- begin highlighted code -->
+<pre>
+insert (prop1, prop2) values (12.1, 2);
+CREATE CLASS class1 AS select * where EXISTS(prop1);
+select * from class1;
+CREATE CLASS class2 AS select * where EXISTS(prop2);
+select * from class2;
+CREATE CLASS class3 OPTIONS(VIEW) AS select * where EXISTS(prop2);
+select * from class3;
+CREATE CLASS class4 OPTIONS(CLUSTERED) AS select * where EXISTS(prop2);
+select * from class4;
+CREATE CLASS class5 OPTIONS(SOFT_DELETE) AS select * where EXISTS(prop2);
+select * from class5;
+
+select * from * where mv:pinID IS A class1;
+
+insert (prop1, prop2, prop3) values (12, 2, 34.0);
+insert (prop1, prop2, prop3) values (NULL, 2, 'test NULL');
+insert (prop1, prop2, prop3) values (13.3, 2, 'extra');
+select * from class2;
+
+CREATE CLASS cls_der OPTIONS(VIEW) AS select * from class1;
+select * from cls_der;
+CREATE CLASS clsfml1 AS select * where prop1 = :0;
+select * from clsfml1(12);
+CREATE CLASS clsfml11 AS select * where prop1 = :0 and prop2 = :1;
+select * from clsfml11(12, 2);
+select * from clsfml11(NULL, 2);
+select * from clsfml11(*, 2);
+CREATE CLASS clsfml2 AS select * where prop1 = :0(int);
+select * from clsfml2(12);
+CREATE CLASS clsfml3 AS select * where prop1 > :0(int, desc);
+select * from clsfml3(0);
+CREATE CLASS clsfml4 AS select * where prop1 = :0(int, nulls first) and prop2=:1(int);
+select * from clsfml4(*, 2);
+CREATE CLASS clsfml5 AS select * where prop1 = :0(int, desc, nulls first)and prop2=:1(int);
+select * from clsfml5(*, 2);
+CREATE CLASS clsfml4in AS select * where prop1 IN :0;  -- IN
+select * from clsfml4in([12, 13]);  -- range
+select * from clsfml4in([12, *]);  -- range with infinity boundary
+select * from clsfml4in((12, 13));  -- collection
+select * from clsfml4in({12, 13});  -- collection
+</pre>
+<!-- end highlighted code -->
+
+</div>

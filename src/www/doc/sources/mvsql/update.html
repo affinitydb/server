@@ -1,0 +1,29 @@
+<head>
+  <link href='../../css/mvdoc.css' rel='stylesheet' type='text/css' />
+  <link href='../../css/source.css' rel='stylesheet' type='text/css' />
+</head>
+<div id="update_sql">
+<h1>update.sql</h1>
+
+<!-- begin highlighted code -->
+<pre>
+SELECT * WHERE EXISTS(mv:classID);
+UPDATE * SET mv:classID+=1 WHERE EXISTS(mv:classID);
+UPDATE @50000 SET mv:classID+=1;
+UPDATE @50000 SET mv:predicate ||= ' test for meta pin update';  -- should report error for input error statements
+UPDATE @50000 SET mv:predicate = ${SELECT * WHERE EXISTS(mv:classID)};  -- correct 
+
+INSERT;
+UPDATE @0000000000050001 SET mv:pinID=327682;
+UPDATE @0000000000050001 SET mv:"pinID"=327682;   
+UPDATE @0000000000050001 SET "mv":"pinID"=327682;
+UPDATE @0000000000050001 DELETE "mv:pinID";
+UPDATE @0000000000050001 SET prop1=1, prop2='set_p2_1';
+SELECT * FROM @0000000000050001;
+update * set prop1+=1 where exists(prop1);
+update * set prop1+=1 where exists(prop2);
+update * set prop1+=1;
+</pre>
+<!-- end highlighted code -->
+
+</div>

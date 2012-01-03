@@ -1,0 +1,33 @@
+<head>
+  <link href='../../css/mvdoc.css' rel='stylesheet' type='text/css' />
+  <link href='../../css/source.css' rel='stylesheet' type='text/css' />
+</head>
+<div id="insert_sql">
+<h1>insert.sql</h1>
+
+<!-- begin highlighted code -->
+<pre>
+INSERT;
+INSERT (PNUM,EMPNUM,HOURS)
+			VALUES ('P11','E11',30);
+			
+INSERT 	PNUM ='P12',EMPNUM = 'E12',HOURS = 40;		
+
+INSERT (mv:value) VALUES ('this is pin value');
+SELECT mv:pinID FROM @50004;
+INSERT (mv:pinID) VALUES (50004);
+
+INSERT (PNUM,EMPNUM,HOURS)
+            VALUES ('P22','E22',NULL);
+INSERT PNUM='P22', EMPNUM='E22',HOURS=NULL;
+
+insert prop1={(prop2=1)};	-- collection
+INSERT PROP_N11=1, PROP12=(INSERT PROP21=1, PROP22=2);  
+INSERT PROP_N11=1, PROP12={(INSERT PROP21=1, PROP22=2), 2};  --collection with reference & value 
+INSERT PROP_N11=1, PROP12=((INSERT PROP21=1, PROP22=2), (INSERT PROP31=1, PROP32=2));  	--collection with references
+INSERT PROP_N11=(SELECT * WHERE PROP_N11 IS NOT NULL); --test self-included cases
+INSERT PROP_N11={SELECT * WHERE PROP_N11 IS NOT NULL}; -- error 
+</pre>
+<!-- end highlighted code -->
+
+</div>

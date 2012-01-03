@@ -1,0 +1,30 @@
+<head>
+  <link href='../../css/mvdoc.css' rel='stylesheet' type='text/css' />
+  <link href='../../css/source.css' rel='stylesheet' type='text/css' />
+</head>
+<div id="full_text_search_sql">
+<h1>full_text_search.sql</h1>
+
+<!-- begin highlighted code -->
+<pre>
+INSERT PROP1='Directory A contains files: ltest.txt';
+INSERT PROP2='Dir A contains directories:  test';
+INSERT PROP1='TEST CASE';
+INSERT PROP2='NOTHING';
+
+select * match against ('test');
+select * match against ('director test');
+
+select * match against ('"director test"');
+select * match against ('''director test''');
+
+INSERT PROP4='花朵在祖国';
+INSERT PROP4='花朵多美丽呀！';
+INSERT PROP4='测试中文';
+
+select * match against ('祖国 花朵');
+select * match against ('花朵 祖国');
+</pre>
+<!-- end highlighted code -->
+
+</div>

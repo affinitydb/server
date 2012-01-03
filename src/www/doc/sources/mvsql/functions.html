@@ -1,0 +1,37 @@
+<head>
+  <link href='../../css/mvdoc.css' rel='stylesheet' type='text/css' />
+  <link href='../../css/source.css' rel='stylesheet' type='text/css' />
+</head>
+<div id="functions_sql">
+<h1>functions.sql</h1>
+
+<!-- begin highlighted code -->
+<pre>
+insert (prop1, prop2) values ('pin1', 3);
+insert (prop1, prop2, prop3) values ('pin2', -3, 'test');
+insert (prop3) values(2);
+insert (prop3,prop4) values(100, 'look');
+insert (prop3,prop4) values(123 ,{2, 'test', 123, 534});
+
+SELECT * WHERE (SUBSTR(prop3,0,4) = 'test');
+SELECT * WHERE (ABS(prop2) = 3);
+SELECT * WHERE (+ABS(prop2) = 3);		 
+SELECT * WHERE (-ABS(prop2) = -3);
+SELECT COUNT(*) WHERE (ABS(prop2) = 3);
+SELECT * WHERE EXISTS(prop4);     
+SELECT * WHERE COUNT(prop4)>2;
+SELECT * WHERE prop4[3] = 534;
+SELECT * WHERE prop3 >= 100 and prop3 <= 200;
+SELECT * WHERE prop3 between 100 and 200;
+SELECT * WHERE prop3 not between 100 and 200;
+SELECT * WHERE not(prop3 between 100 and 200);
+SELECT * WHERE prop3 IN ('test', 123);
+SELECT * WHERE prop3 not IN ('test', 123);
+SELECT * WHERE 123 in prop3;
+SELECT * WHERE 534 in prop4;
+SELECT * WHERE 5341 in prop4;
+SELECT HISTOGRAM(prop3) FROM *;
+</pre>
+<!-- end highlighted code -->
+
+</div>

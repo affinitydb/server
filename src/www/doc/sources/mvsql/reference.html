@@ -1,0 +1,34 @@
+<head>
+  <link href='../../css/mvdoc.css' rel='stylesheet' type='text/css' />
+  <link href='../../css/source.css' rel='stylesheet' type='text/css' />
+</head>
+<div id="reference_sql">
+<h1>reference.sql</h1>
+
+<!-- begin highlighted code -->
+<pre>
+INSERT (prop1) VALUES ({'test for pin refer', 'test for property refer', 'test for property element refer'});
+update @0000000000050001 set mv:value='this is pin value which has prop1';
+EXECUTE EXPRESSION AS cast(@0000000000050001 AS STRING);
+EXECUTE EXPRESSION AS cast(*@0000000000050001 AS STRING);
+EXECUTE EXPRESSION AS @0000000000050001;  -- reference
+EXECUTE EXPRESSION AS *@0000000000050001; -- value
+EXECUTE EXPRESSION AS &@0000000000050001; -- error
+EXECUTE EXPRESSION AS @0000000000050001.prop1;  -- value
+EXECUTE EXPRESSION AS *@0000000000050001.prop1; -- error
+EXECUTE EXPRESSION AS &@0000000000050001.prop1; -- reference
+EXECUTE EXPRESSION AS @0000000000050001.prop1[2];  -- value
+EXECUTE EXPRESSION AS *@0000000000050001.prop1[2]; -- error
+EXECUTE EXPRESSION AS &@0000000000050001.prop1[2]; -- reference
+
+insert (propRefVal, prop2) values (*@0000000000050001, 'test for ref pin value');
+insert (propRefVal, prop2) values (@0000000000050001.prop1, 'test for ref property value');
+insert (propRefVal, prop2) values (@0000000000050001.prop1[2], 'test for ref property element value');
+
+insert (propRef, prop2) values (@0000000000050001, 'test for ref pin');
+insert (propRef, prop2) values (&@0000000000050001.prop1), 'test for ref property');
+insert (propRef, prop2) values (&@0000000000050001.prop1[2]), 'test for ref property element');
+</pre>
+<!-- end highlighted code -->
+
+</div>

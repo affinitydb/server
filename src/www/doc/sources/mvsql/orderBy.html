@@ -1,0 +1,30 @@
+<head>
+  <link href='../../css/mvdoc.css' rel='stylesheet' type='text/css' />
+  <link href='../../css/source.css' rel='stylesheet' type='text/css' />
+</head>
+<div id="orderBy_sql">
+<h1>orderBy.sql</h1>
+
+<!-- begin highlighted code -->
+<pre>
+INSERT (EMPNUM, PNUM, HOURS) VALUES  ('E2','P1',40);
+INSERT (EMPNUM, PNUM, HOURS) VALUES  ('E2','P2',80);
+INSERT (EMPNUM, PNUM, HOURS) VALUES  ('e3','P2',20); 
+INSERT (EMPNUM, PNUM, HOURS) VALUES  ('E3','P2',20); 
+INSERT (EMPNUM, PNUM, HOURS) VALUES  ('E1','P1',40);
+INSERT (EMPNUM, PNUM, HOURS) VALUES  ('E1','P2',20);
+INSERT (EMPNUM, PNUM, HOURS) VALUES  ('E1','P3',80);
+INSERT (EMPNUM, PNUM, HOURS) VALUES  ('E1','P4',20);
+INSERT (EMPNUM, PNUM, HOURS) VALUES  ('E1','P5',12);
+INSERT (EMPNUM, PNUM, HOURS) VALUES  ('E1','P6',12);
+INSERT (EMPNUM, PNUM, HOURS) VALUES  ('E4','P2',20);
+INSERT (EMPNUM, PNUM, HOURS) VALUES  ('E4','P4',40);
+INSERT (EMPNUM, PNUM, HOURS) VALUES  ('E4','P5',80);
+
+SELECT * WHERE PNUM='P2'ORDER BY EMPNUM;
+SELECT * WHERE PNUM='P2'ORDER BY UPPER(EMPNUM);
+SELECT * WHERE PNUM='P2' ORDER BY EMPNUM DESC;
+</pre>
+<!-- end highlighted code -->
+
+</div>

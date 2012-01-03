@@ -1,0 +1,41 @@
+<head>
+  <link href='../../css/mvdoc.css' rel='stylesheet' type='text/css' />
+  <link href='../../css/source.css' rel='stylesheet' type='text/css' />
+</head>
+<div id="collection_operators_sql">
+<h1>collection_operators.sql</h1>
+
+<!-- begin highlighted code -->
+<pre>
+EXECUTE EXPRESSION as 100 = {10, 100};	
+EXECUTE EXPRESSION as 100 = {10, 101};	
+
+EXECUTE EXPRESSION as 100 = ANY {10, 100};	
+EXECUTE EXPRESSION as 100 = ANY {10, 101};	
+
+EXECUTE EXPRESSION as 100 = SOME {10, 100};	
+EXECUTE EXPRESSION as 100 = SOME {10, 101};	
+
+EXECUTE EXPRESSION as 100 = ALL {10, 100};	
+EXECUTE EXPRESSION as 100 = ALL {10, 101};	
+
+-- default qualifier for other operators (except for =) is ALL 
+EXECUTE EXPRESSION as 100 < {10, 100};	
+EXECUTE EXPRESSION as 100 <= {10, 100};	
+EXECUTE EXPRESSION as 100 >= {10, 100};	
+
+EXECUTE EXPRESSION as 100 <  ANY {10, 100};	
+EXECUTE EXPRESSION as 100 <= ANY {10, 100};	
+EXECUTE EXPRESSION as 100 >= ANY {10, 100};	
+
+EXECUTE EXPRESSION as 100 <  SOME {10, 100};	
+EXECUTE EXPRESSION as 100 <= SOME {10, 100};	
+EXECUTE EXPRESSION as 100 >= SOME {10, 100};	
+
+EXECUTE EXPRESSION as 100 <  ALL {10, 100};	
+EXECUTE EXPRESSION as 100 <= ALL {10, 100};	
+EXECUTE EXPRESSION as 100 >= ALL {10, 100};		
+</pre>
+<!-- end highlighted code -->
+
+</div>

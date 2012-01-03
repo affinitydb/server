@@ -1,0 +1,23 @@
+<head>
+  <link href='../../css/mvdoc.css' rel='stylesheet' type='text/css' />
+  <link href='../../css/source.css' rel='stylesheet' type='text/css' />
+</head>
+<div id="transaction_basic_sql">
+<h1>transaction_basic.sql</h1>
+
+<!-- begin highlighted code -->
+<pre>
+INSERT (a, b) VALUES (1, 2);
+CREATE CLASS xacttest AS SELECT * WHERE  a IS NOT NULL AND b IS NOT NULL;
+SELECT * FROM xacttest;
+
+START TRANSACTION;
+INSERT (a, b) VALUES (777, 777.777);
+UPDATE xacttest SET b=3 WHERE a=1;
+DELETE FROM xacttest WHERE a=1;
+ROLLBACK;
+SELECT * FROM xacttest;
+</pre>
+<!-- end highlighted code -->
+
+</div>

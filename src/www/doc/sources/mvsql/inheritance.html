@@ -1,0 +1,25 @@
+<head>
+  <link href='../../css/mvdoc.css' rel='stylesheet' type='text/css' />
+  <link href='../../css/source.css' rel='stylesheet' type='text/css' />
+</head>
+<div id="inheritance_sql">
+<h1>inheritance.sql</h1>
+
+<!-- begin highlighted code -->
+<pre>
+create class Person as select * where firstname is not null or lastname is not null;
+create class Taxpayer as select * from Person where tax_id is not null;
+create class Phd as select * from Person where title = 'Dr';
+
+select * from Person;
+select * from Phd;   
+select * from Taxpayer;
+
+select * from Taxpayer & Phd;
+select * from Taxpayer;
+
+select * from Person match against ('johannesburg');
+</pre>
+<!-- end highlighted code -->
+
+</div>

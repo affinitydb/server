@@ -1,0 +1,93 @@
+<head>
+  <link href='../../css/mvdoc.css' rel='stylesheet' type='text/css' />
+  <link href='../../css/source.css' rel='stylesheet' type='text/css' />
+</head>
+<div id="join_sql">
+<h1>join.sql</h1>
+
+<!-- begin highlighted code -->
+<pre>
+INSERT (EMPNUM, EMPNAME, GRADE, CITY) VALUES ('E1','Alice',12,'Deale');
+INSERT (EMPNUM, EMPNAME, GRADE, CITY) VALUES ('E2','Betty',10,'Vienna');
+INSERT (EMPNUM, EMPNAME, GRADE, CITY) VALUES ('E3','Carmen',13,'Vienna');
+INSERT (EMPNUM, EMPNAME, GRADE, CITY) VALUES ('E4','Don',12,'Deale');
+INSERT (EMPNUM, EMPNAME, GRADE, CITY) VALUES ('E5','Ed',13,'Akron');
+CREATE CLASS STAFF AS select * where EXISTS(EMPNAME);
+INSERT (EMPNUM3, EMPNAME3, GRADE3, CITY3) VALUES ('E1','Alice',12,'Deale');
+INSERT (EMPNUM3, EMPNAME3, GRADE3, CITY3) VALUES ('E2','Betty',10,'Vienna');
+INSERT (EMPNUM3, EMPNAME3, GRADE3, CITY3) VALUES ('E3','Carmen',13,'Vienna');
+INSERT (EMPNUM3, EMPNAME3, GRADE3, CITY3) VALUES ('E4','Don',12,'Deale');
+INSERT (EMPNUM3, EMPNAME3, GRADE3, CITY3) VALUES ('E5','Ed',13,'Akron');
+CREATE CLASS STAFF3 AS select * where EXISTS(EMPNAME3);
+INSERT (EMPNUM4, EMPNAME4, GRADE4, CITY4) VALUES ('E1','Alice',12,'Deale');
+INSERT (EMPNUM4, EMPNAME4, GRADE4, CITY4) VALUES ('E2','Betty',10,'Vienna');
+INSERT (EMPNUM4, EMPNAME4, GRADE4, CITY4) VALUES ('E3','Carmen',13,'Vienna');
+INSERT (EMPNUM4, EMPNAME4, GRADE4, CITY4) VALUES ('E4','Don',12,'Deale');
+INSERT (EMPNUM4, EMPNAME4, GRADE4, CITY4) VALUES ('E5','Ed',13,'Akron');
+CREATE CLASS STAFF4 AS select * where EXISTS(EMPNAME4);
+DELETE FROM STAFF4 WHERE EMPNUM <= 'E3';
+INSERT (PNUM, PNAME, PTYPE, BUDGET, CITY) VALUES  ('P1','MXSS','Design',10000,'Deale');
+INSERT (PNUM, PNAME, PTYPE, BUDGET, CITY) VALUES  ('P2','CALM','Code',30000,'Vienna');
+INSERT (PNUM, PNAME, PTYPE, BUDGET, CITY) VALUES  ('P3','SDP','Test',30000,'Tampa');
+INSERT (PNUM, PNAME, PTYPE, BUDGET, CITY) VALUES  ('P4','SDP','Design',20000,'Deale');
+INSERT (PNUM, PNAME, PTYPE, BUDGET, CITY) VALUES  ('P5','IRM','Test',10000,'Vienna');
+INSERT (PNUM, PNAME, PTYPE, BUDGET, CITY) VALUES  ('P6','PAYR','Design',50000,'Deale');
+CREATE CLASS PROJ AS select * where EXISTS(PNAME);
+INSERT (EMPNUM, PNUM, HOURS) VALUES  ('E1','P1',40);
+INSERT (EMPNUM, PNUM, HOURS) VALUES  ('E1','P2',20);
+INSERT (EMPNUM, PNUM, HOURS) VALUES  ('E1','P3',80);
+INSERT (EMPNUM, PNUM, HOURS) VALUES  ('E1','P4',20);
+INSERT (EMPNUM, PNUM, HOURS) VALUES  ('E1','P5',12);
+INSERT (EMPNUM, PNUM, HOURS) VALUES  ('E1','P6',12);
+INSERT (EMPNUM, PNUM, HOURS) VALUES  ('E2','P1',40);
+INSERT (EMPNUM, PNUM, HOURS) VALUES  ('E2','P2',80);
+INSERT (EMPNUM, PNUM, HOURS) VALUES  ('E3','P2',20);
+INSERT (EMPNUM, PNUM, HOURS) VALUES  ('E4','P2',20);
+INSERT (EMPNUM, PNUM, HOURS) VALUES  ('E4','P4',40);
+INSERT (EMPNUM, PNUM, HOURS) VALUES  ('E4','P5',80);
+CREATE CLASS WORKS AS select * where EXISTS(HOURS);
+INSERT (COL1,COL2,COL3,COL4, COL5) VALUES(10,+20,30,40,10.50);
+INSERT (COL1,COL2,COL3,COL4, COL5) VALUES(0,1,2,3,4.25);
+INSERT (COL1,COL2,COL3,COL4, COL5) VALUES(100,200,300,400,500.01);
+INSERT (COL1,COL2,COL3,COL4, COL5) VALUES(1000,-2000,3000,NULL,4000.00);
+CREATE CLASS VTABLE AS select * where EXISTS(COL1) OR EXISTS(COL2);
+
+insert (prop1,prop2) values(1, 123);
+insert (prop1,prop2) values(2, 120);
+insert (prop1,prop2) values(120, 120);
+CREATE CLASS class1 AS select * where EXISTS(prop1);
+
+insert (prop2,prop3) values(123 ,{2, 'test', 123, 534});
+insert (prop2,prop3) values(123 , 'matched');
+insert (prop2,prop3) values('extra' , 'line');
+CREATE CLASS class2 AS select * where EXISTS(prop3);
+
+SELECT * FROM class2 as c2
+	WHERE 534 in c2.prop3;
+SELECT * FROM class1 join class2 
+	on (class1.prop2 = class2.prop2);
+SELECT * FROM class1 inner join class2 
+	on (class1.prop2 = class2.prop2);
+SELECT * FROM class1, class2
+	WHERE class1.prop2 = class2.prop2;
+SELECT * FROM class1 join class2 USING(prop2);
+		 
+SELECT * FROM class1 as c1 join class1 as c2 on(c1.prop1 = c2.prop2);
+SELECT * FROM class1 as c1, class1 as c2 
+	WHERE c1.prop1 = c2.prop2;
+		 
+SELECT * FROM class1 as c1 cross join class2;
+SELECT * FROM class1 as c1 , class2;
+		 
+SELECT * FROM class1 as c1 LEFT JOIN class2;
+SELECT * FROM class1 as c1 LEFT OUTER JOIN class2;
+		 
+SELECT * FROM class1 as c1 RIGHT JOIN class2;
+SELECT * FROM class1 as c1 RIGHT OUTER JOIN class2;
+		 
+SELECT * FROM class1 as c1 FULL JOIN class2;
+SELECT * FROM class1 as c1 FULL OUTER JOIN class2;
+</pre>
+<!-- end highlighted code -->
+
+</div>

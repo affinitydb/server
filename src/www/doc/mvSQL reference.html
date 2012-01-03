@@ -119,7 +119,7 @@
 	  >Note: A string which is enclosed in single quotes (') is a string constant, not an identifier.</em
 	  ></p
 	><p
-	>Sample: <a href="../../test4mvsql/test/identifier.sql"
+	>Sample: <a href="./sources/mvsql/identifier.html"
 	  >identifier.sql</a
 	  ></p
 	></div
@@ -452,7 +452,7 @@
       >protocol-buffer</a
       > interfaces, these names are prefixed with &quot;VT_&quot; (e.g. VT_INT).</p
     ><p
-    >Sample: <a href="../../test4mvsql/test/types.sql"
+    >Sample: <a href="./sources/mvsql/types.html"
       >types.sql</a
       >.</p
     ><div id="string"
@@ -635,78 +635,43 @@
       >EXPR is the compiled form of an EXPRTREE, which is mostly used internally by the database engine. An EXPR can be stored as a <a href="./terminology.html#value"
 	>value</a
 	>, but it is not evaluated automatically at INSERT/UPDATE statment execution time. (the value of that property will always be the EXPR itself, never its evaluation). However properties with type EXPR are evaluated automatically when they’re used in expressions. E.g.</p
-      ><p
-      >mvcommand&gt;INSERT prop1=3; PIN@0000000000050001(1):(&lt;prop1|VT_INT&gt;:3) 1 PINs INSERTED.</p
-      ><p
-      >mvcommand&gt; UPDATE @50001 ADD prop2=prop1-1, prop3=<span class="math"
-	>(<em
-	  >prop</em
-	  >1-1);<em
-	  >PIN</em
-	  >@0000000000050001(3):(&lt;<em
-	  >prop</em
-	  >1|<em
-	  >VT</em
-	  ><sub
-	  >I</sub
-	  ><em
-	  >NT</em
-	  >&gt;:3&lt;<em
-	  >prop</em
-	  >2|<em
-	  >VT</em
-	  ><sub
-	  >I</sub
-	  ><em
-	  >NT</em
-	  >&gt;:2&lt;<em
-	  >prop</em
-	  >3|<em
-	  >VT</em
-	  ><sub
-	  >E</sub
-	  ><em
-	  >XPR</em
-	  >&gt;:</span
-	>(prop1 - 1)) 1 PINs INSERTED.</p
-      ><p
-      >mvcommand&gt; SELECT * FROM {@50001} WHERE prop3=prop2; PIN@0000000000050001(3):(&lt;prop1|VT_INT&gt;:3 &lt;prop2|VT_INT&gt;:2 &lt;prop3|VT_EXPR&gt;:$(prop1 - 1)) 1 PINs INSERTED.</p
-      ><p
-      >mvcommand&gt; UPDATE @50001 SET prop1=2;<br
-	 /> PIN@0000000000050001(3):(&lt;prop1|VT_INT&gt;:2 &lt;prop2|VT_INT&gt;:2 &lt;prop3|VT_EXPR&gt;:$(prop1 - 1)) 1 PINs INSERTED.</p
-      ><p
-      >mvcommand&gt; SELECT * FROM {@50001} WHERE prop3&lt;&gt;prop2; PIN@0000000000050001(3):(&lt;prop1|VT_INT&gt;:2 &lt;prop2|VT_INT&gt;:2 &lt;prop3|VT_EXPR&gt;:$(prop1 - 1)) 1 PINs INSERTED.</p
-      ><p
+      ><pre>
+  mvcommand>INSERT prop1=3;
+  PIN@0000000000050001(1):(<prop1|VT_INT>:3)
+  1 PINs INSERTED.
+
+  mvcommand> UPDATE @50001 ADD prop2=prop1-1, prop3=$(prop1-1);  
+  PIN@0000000000050001(3):(<prop1|VT_INT>:3       <prop2|VT_INT>:2       <prop3|VT_EXPR>:$(prop1 - 1))
+  1 PINs INSERTED.
+
+  mvcommand> SELECT * FROM {@50001} WHERE prop3=prop2; 
+  PIN@0000000000050001(3):(<prop1|VT_INT>:3       <prop2|VT_INT>:2       <prop3|VT_EXPR>:$(prop1 - 1))
+  1 PINs INSERTED.
+
+  mvcommand> UPDATE @50001 SET prop1=2;  
+  PIN@0000000000050001(3):(<prop1|VT_INT>:2       <prop2|VT_INT>:2       <prop3|VT_EXPR>:$(prop1 - 1))
+  1 PINs INSERTED.
+
+  mvcommand> SELECT * FROM {@50001} WHERE prop3<>prop2; 
+  PIN@0000000000050001(3):(<prop1|VT_INT>:2       <prop2|VT_INT>:2       <prop3|VT_EXPR>:$(prop1 - 1))
+  1 PINs INSERTED.
+</pre>
+<p
       >Here prop2 is stored directly with the value of that expression executed at UPDATE execution time, while prop3 is stored in type EXPR, which is evaluated when query.</p
       ><p
       >It's also possible to invoke such a property with parameters (up to 254). E.g.</p
-      ><p
-      >mvcommand&gt; INSERT prop1=3, prop2=<span class="math"
-	>(<em
-	  >prop</em
-	  >1-:0);<em
-	  >PIN</em
-	  >@0000000000050001(2):(&lt;<em
-	  >prop</em
-	  >1|<em
-	  >VT</em
-	  ><sub
-	  >I</sub
-	  ><em
-	  >NT</em
-	  >&gt;:3&lt;<em
-	  >prop</em
-	  >2|<em
-	  >VT</em
-	  ><sub
-	  >E</sub
-	  ><em
-	  >XPR</em
-	  >&gt;:</span
-	>(prop1 - :0)) 1 PINs INSERTED.</p
-      ><p
-      >mvcommand&gt; SELECT * WHERE prop2(1) = 2; PIN@0000000000050001(2):(&lt;prop1|VT_INT&gt;:3 &lt;prop2|VT_EXPR&gt;:$(prop1 - :0)) 1 PINs SELECTED.</p
-      ><p
+      ><pre>
+  mvcommand>
+  INSERT prop1=3, prop2=$(prop1-:0);
+  PIN@0000000000050001(2):(<prop1|VT_INT>:3       <prop2|VT_EXPR>:$(prop1 - :0))
+  1 PINs INSERTED.
+
+  mvcommand>
+  SELECT * WHERE prop2(1) = 2;
+  PIN@0000000000050001(2):(<prop1|VT_INT>:3       <prop2|VT_EXPR>:$(prop1 - :0))
+  1 PINs SELECTED.
+</pre>
+<p
       >Note that now mvstore can support ignoring param, i.e. user can pass more parameters than the number should be used in the expression, because there is no parameter description when define the expression value.</p
       ></div
     ><div id="exprtree"
@@ -740,15 +705,18 @@
       >Please refer to the <a href="./terminology.html#collection"
 	>definition of 'collection'</a
 	>.</p
-      ><p
-      >mvcommand&gt; insert (prop2,prop3) values(123 ,{123, 'test', 120, 534});<br
-	 /> PIN@327684(2):(&lt;prop2|VT_INT&gt;:123 &lt;prop3|VT_ARRAY(4)&gt;:{&lt;0|VT_INT&gt;:123, &lt;1|VT_STRING&gt;:test, &lt;2|VT_INT&gt;:120, &lt;3|VT_INT&gt;:534}) 1 PINs INSERTED.</p
-      ><p
-      >mvcommand&gt; SELECT * WHERE prop4[3] = 534;<br
-	 /> WARNING: Full scan query: SELECT *<br
-	 /> WHERE prop4 [ 3] = 534<br
-	 /> PIN@327684(2):(&lt;prop2|VT_INT&gt;:123 &lt;prop3|VT_ARRAY(4)&gt;:{&lt;0|VT_INT&gt;:123, &lt;1|VT_STRING&gt;:test, &lt;2|VT_INT&gt;:120, &lt;3|VT_INT&gt;:534}) 1 PINs found.</p
-      ><p
+      ><pre>
+  mvcommand> insert (prop2,prop3) values(123 ,{123, 'test', 120, 534});   
+  PIN@327684(2):(<prop2|VT_INT>:123 <prop3|VT_ARRAY(4)>:{<0|VT_INT>:123, <1|VT_STRING>:test, <2|VT_INT>:120, <3|VT_INT>:534})
+  1 PINs INSERTED. 
+
+  mvcommand> SELECT * WHERE prop4[3] = 534;   
+  WARNING: Full scan query: SELECT *  
+  WHERE prop4 [ 3] = 534  
+  PIN@327684(2):(<prop2|VT_INT>:123 <prop3|VT_ARRAY(4)>:{<0|VT_INT>:123, <1|VT_STRING>:test, <2|VT_INT>:120, <3|VT_INT>:534})
+  1 PINs found.  
+</pre>
+<p
       >Internally, smaller collections are stored with a representation similar to an array (the type is ARRAY). Larger collections are stored in the B-tree (the type becomes CNAVIGATOR), enabling enormous collections with fast retrieval of known eids. The transition between those two states is relatively transparent, and applications should not assume that a collection will be stored as an ARRAY.</p
       ><p
       >The transition between a scalar value and a collection is also designed to be relatively transparent (with a core query syntax that applies to both cases indifferently). For more information about collections, see <a href="#comparison-between-collections"
@@ -773,8 +741,8 @@
 	>Note</em
 	>: * is used here to denote the infinity number.</p
       ><p
-      >Examples: <a href="../../test4mvsql/test/between.sql"
-	>between.sql</a
+      >Examples: <a href="./sources/mvsql/between_in.html"
+	>between_in.sql</a
 	>.</p
       ></div
     ><div id="reference-types"
@@ -867,7 +835,7 @@
       >type-suffix</a
       >.</p
     ><p
-    >Sample: <a href="../../test4mvsql/test/units.sql"
+    >Sample: <a href="./sources/mvsql/units.html"
       >units.sql</a
       ></p
     ><p
@@ -1367,10 +1335,8 @@
     ><p
     >Internally mvStore regards all functions as operators, so here we discuss them together.</p
     ><p
-    >Sample: <a href="../../test4mvsql/test/functions.sql"
+    >Sample: <a href="./sources/mvsql/functions.html"
       >functions.sql</a
-      > and <a href="../../test4mvsql/test/parse_operator.sql"
-      >operator.sql</a
       >.</p
     ><div id="logical-operators"
     ><h3
@@ -1917,7 +1883,7 @@
 	  ></tbody
 	></table
       ><p
-      >Sample: <a href="../../test4mvsql/test/full_text_search.sql"
+      >Sample: <a href="./sources/mvsql/full_text_search.html"
 	>full_text_search.sql</a
 	>.</p
       ></div
@@ -1996,7 +1962,7 @@
 	  ></tbody
 	></table
       ><p
-      >Sample: <a href="../../test4mvsql/test/exists.sql"
+      >Sample: <a href="./sources/mvsql/exists.html"
 	>exists.sql</a
 	></p
       ></div
@@ -2004,7 +1970,7 @@
     ><h3
       >ANY/SOME/ALL qualifier</h3
       ><p
-      >These qualifiers can only be used as right operant of the binary comparison operators. E.g.</p
+      >These qualifiers can only be used as right operands of the binary comparison operators. E.g.</p
       ><table
       ><thead
 	><tr class="header"
@@ -2036,7 +2002,7 @@
 	  ></tbody
 	></table
       ><p
-      >Sample: <a href="../../test4mvsql/test/collection_operators.sql"
+      >Sample: <a href="./sources/mvsql/collection_operators.html"
 	>collection_operators.sql</a
 	></p
       ></div
@@ -2204,7 +2170,7 @@
 	  ></tbody
 	></table
       ><p
-      >Additional examples: <a href="../../test4mvsql/test/reference.sql"
+      >Additional examples: <a href="./sources/mvsql/reference.html"
 	>reference.sql</a
 	>.</p
       ></div
@@ -2507,7 +2473,7 @@
 	  >, for increased performance. Not yet supported.<br
 	   />4. SOFT_DELETE: Not only create a index for normal pins, but also create another index for those pins which is marked in deleted status(Deleted PINs are not permanently deleted except that delete with option MODE_DELETED in C++ API or PURGE), and can be restored using mvSQL &quot;UNDELETE&quot;. ).</p
 	><p
-	>Examples: <a href="../../test4mvsql/test/class.sql"
+	>Examples: <a href="./sources/mvsql/class.html"
 	  >class.sql</a
 	  >.</p
 	><p
@@ -2599,7 +2565,7 @@
 	  >INSERT SELECT ...</li
 	  ></ul
 	><p
-	>Examples: <a href="../../test4mvsql/test/insert.sql"
+	>Examples: <a href="./sources/mvsql/insert.html"
 	  >insert.sql</a
 	  >.</p
 	><p
@@ -2655,7 +2621,7 @@
 	  >expression</a
 	  >.</p
 	><p
-	>Examples: <a href="../../test4mvsql/test/update.sql"
+	>Examples: <a href="./sources/mvsql/update.html"
 	  >update.sql</a
 	  >.</p
 	><p
@@ -2697,7 +2663,7 @@
 	><p
 	>DELETE: Mark PINs in deleted status(soft delete). UNDELETE: Change from deleted status to normal active status. PURGE: Remove(permanently delete) PINs from the physical disk. It can not remove the PINs in deleted status.</p
 	><p
-	>Examples: <a href="../../test4mvsql/test/delete.sql"
+	>Examples: <a href="./sources/mvsql/delete.html"
 	  >delete.sql</a
 	  >.</p
 	></div
@@ -2759,7 +2725,7 @@
       ><h4
 	>Order by</h4
 	><p
-	>Examples: <a href="../../test4mvsql/test/orderBy.sql"
+	>Examples: <a href="./sources/mvsql/orderBy.html"
 	  >orderBy.sql</a
 	  >.</p
 	><p
@@ -2775,7 +2741,7 @@
       ><h4
 	>Group by</h4
 	><p
-	>Examples: <a href="../../test4mvsql/test/groupBy.sql"
+	>Examples: <a href="./sources/mvsql/groupBy.html"
 	  >groupBy.sql</a
 	  >.</p
 	></div
@@ -2783,7 +2749,7 @@
       ><h4
 	>Set operator: UNION | INTERSECT | EXCEPT</h4
 	><p
-	>Examples: <a href="../../test4mvsql/test/set_operator.sql"
+	>Examples: <a href="./sources/mvsql/set_operator.html"
 	  >set_operator.sql</a
 	  >.</p
 	><p
@@ -2808,7 +2774,7 @@
 	><p
 	>mvStore supports every kind of JOIN (LEFT/RIGHT/FULL/CROSS JOIN), except the Natural JOIN.</p
 	><p
-	>Examples: <a href="../../test4mvsql/test/join.sql"
+	>Examples: <a href="./sources/mvsql/join.html"
 	  >join.sql</a
 	  >.</p
 	></div
@@ -2825,7 +2791,7 @@
       ><p
       >Being different from relational DB, mvStore support a PIN which can be belongs to multiple classes, in this way user can implement some inheritant data.</p
       ><p
-      >Examples: <a href="../../test4mvsql/test/inheritance.sql"
+      >Examples: <a href="./sources/mvsql/inheritance.html"
 	>inheritance.sql</a
 	>.</p
       ><div id="how-to-query-a-pin-which-belongs-to-2-classes"
@@ -2847,7 +2813,7 @@
       ><p
       >mvStore not only supports basic transactions, but also sub-transactions. The session holds a transaction stack. Every sub-transaction can be rolled back independently (without affecting the state of the whole transaction). Changes are committed to the database only when the outermost transaction in the stack is committed.</p
       ><p
-      >Examples: <a href="../../test4mvsql/test/transaction_basic.sql"
+      >Examples: <a href="./sources/mvsql/transaction_basic.html"
 	>transaction_basic.sql</a
 	>.</p
       ><div id="start-a-transaction"
@@ -2873,12 +2839,9 @@
 	  ></ul
 	><p
 	>Examples:<br
-	   /><a href="../../test4mvsql/test/transaction_isolation.sql"
-	  >transaction_isolation.sql</a
-	  >,<br
-	   /><a href="../../test4mvsql/test/transaction_readonly.sql"
+	   /><a href="./sources/mvsql/transaction_readonly.html"
 	  >transaction_readonly.sql</a
-	  >, <a href="../../test4mvsql/test/transaction_sub.sql"
+	  >, <a href="./sources/mvsql/transaction_sub.html"
 	  >transaction_sub.sql</a
 	  >.</p
 	><p
