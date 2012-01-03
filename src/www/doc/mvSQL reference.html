@@ -809,13 +809,11 @@
     ><div id="current"
     ><h3
       >CURRENT</h3
-      ><p style="color:red">TODO (maxw): TBD</p>
-</div
+      ></div
     ><div id="stream"
     ><h3
       >STREAM</h3
-      ><p style="color:red">TODO (maxw): TBD</p>
-</div
+      ></div
     ></div
   ><div id="unit-of-measurement"
   ><h2
@@ -2051,8 +2049,7 @@
 	></ul
       ><p
       >ISLOCAL</p
-      ><p style="color:red">REVIEW (maxw): obscure...</p>
-</div
+      ></div
     ><div id="collection-functions-and-operators"
     ><h3
       >Collection Functions and Operators</h3
@@ -2758,9 +2755,7 @@
 	  > instead of property value, which is differnt from standard SQL.</p
 	><p
 	>The keyword DISTINCT/ALL can be used to specify the result should eliminate duplicates or not.</p
-	><p style="color:red"><Ming> I think it is better to implement as below logic:<br
-	 />distinct(property list) -- will eliminate duplicate which is basing on the property list, not the PID. Moreover distinct(mv:pinID) can works as previous implemtation.</p>
-</div
+	></div
       ><div id="join"
       ><h4
 	>Join</h4
@@ -2878,15 +2873,7 @@
 	    ></pre
 	  ><p
 	  >If ALL is specified, then mvStore will rollback the whole stack of transactions (started in the current session), otherwise it only rolls back the innermost transaction/sub-transaction block in the stack.</p
-	  ><p style="color:red">REVIEW (maxw): expand necessary samples in-place, using new mvsql_snippet class; keep the references to the *.sql files, but don't resolve them<br
-	   />REVIEW (maxw): clarify the whole COUNT, LIMIT/OFFSET philosophy; also, mention @1234.prop syntax for counting collections<br
-	   />REVIEW (maxw): actually, have a section just on counting things<br
-	   />REVIEW (maxw): a section on path expressions for declarative traversal of collections (by query)<br
-	   />REVIEW (maxw): clarify all the possible elisions/tricks when using families (e.g. with range var), vs possible parameters and meanings<br
-	   />REVIEW (maxw): idioms (broader disc with J)<br
-	   /></p>
-
-</div
+	  ></div
 	></div
       ></div
     ></div
