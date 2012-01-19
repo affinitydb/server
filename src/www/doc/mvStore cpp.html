@@ -7,14 +7,14 @@
   <select id='mvtoclist'>
     <option value='features'>features</option>
     <option value='intro'>intro</option>
-    <option value='mvSQL getting started'>mvSQL getting started</option>
-    <option value='mvSQL reference'>mvSQL reference</option>
     <option value='mvStore FAQ'>mvStore FAQ</option>
     <option value='mvStore cpp' SELECTED>mvStore cpp</option>
     <option value='mvStore getting started'>mvStore getting started</option>
     <option value='mvStore js'>mvStore js</option>
     <option value='mvStore protobuf'>mvStore protobuf</option>
     <option value='mvStore server'>mvStore server</option>
+    <option value='pathSQL getting started'>pathSQL getting started</option>
+    <option value='pathSQL reference'>pathSQL reference</option>
     <option value='release notes'>release notes</option>
     <option value='strengths'>strengths</option>
     <option value='terminology'>terminology</option>
@@ -32,8 +32,8 @@
   ><p
   >The main purpose of mvStore's C++ interface is to provide a means of integrating the mvStore database kernel into an embedding application, such as a database server or an embedded system. The &quot;bare-metal&quot; nature of the interface is meant to introduce no artificial overhead in those cases.</p
   ><p
-  >An essential part of the C++ interface is to give access to <a href="./terminology.html#mvsql"
-    >mvSQL</a
+  >An essential part of the C++ interface is to give access to <a href="./terminology.html#pathsql"
+    >pathSQL</a
     > and <a href="./terminology.html#protocol-buffer"
     >protocol-buffers</a
     >. These two entry points are self-sufficient, and enable the writing of &quot;normal&quot; database client code.</p
@@ -44,9 +44,9 @@
     >modification</a
     > methods, <a href="#isession::createstmt-isession::expr"
     >expression building</a
-    > methods etc.) that overlap with the functionality exposed via mvSQL and protocol-buffers. As a rule of thumb, all these elements should be avoided unless necessary (being in C++, and being inseparable from the kernel itself, they'd make the client code inseparable from the kernel, which is undesirable for normal database client code). Even an embedding process such as <a href="./terminology.html#mvserver"
-    >mvserver</a
-    > only uses a tiny portion of the C++ interface (all in storecmd.cpp). A justification for using more of the C++ interface could be, for example, to implement additional query languages for mvStore.</p
+    > methods etc.) that overlap with the functionality exposed via pathSQL and protocol-buffers. As a rule of thumb, all these elements should be avoided unless necessary (being in C++, and being inseparable from the kernel itself, they'd make the client code inseparable from the kernel, which is undesirable for normal database client code). Even an embedding process such as the <a href="./terminology.html#server"
+    >server</a
+    > only uses a tiny fraction of the C++ interface (all in storecmd.cpp). A justification for using more of the C++ interface could be, for example, to implement additional query languages for mvStore.</p
   ><p
   >Without documenting each and every function (or parameter) of the C++ interface, this page presents enough information to use it successfully. The following interfaces and structures are covered: <a href="#isession"
     >ISession</a
@@ -189,8 +189,8 @@
     >attachToCurrentThread</code
     > to unmap and remap sessions to threads (e.g. to use a pool of physical connections).</p
   ><p
-  >ISession gives access to <a href="#isession::execute-isession::createstmt-mvsql"
-    >mvSQL</a
+  >ISession gives access to <a href="#isession::execute-isession::createstmt-pathsql"
+    >pathSQL</a
     > and <a href="#isession::createinputstream-protocol-buffers"
     >protocol-buffers</a
     >. These interfaces are self-sufficient (all major interactions can go through them exclusively).</p
@@ -204,12 +204,12 @@
     > objects, which are used both to query and to define <a href="./terminology.html#class"
     >classes</a
     >. It exposes the transaction control methods. It also provides other per-session controls, as well as some controls global to a database instance.</p
-  ><div id="isession::execute-isession::createstmt-mvsql"
+  ><div id="isession::execute-isession::createstmt-pathsql"
   ><h3
-    >ISession::execute, ISession::createStmt [mvSQL]</h3
+    >ISession::execute, ISession::createStmt [pathSQL]</h3
     ><p
-    >These methods let you execute <a href="./terminology.html#mvsql"
-      >mvSQL</a
+    >These methods let you execute <a href="./terminology.html#pathsql"
+      >pathSQL</a
       > statements (more precisely, the overloads of these methods that accept a query as string). The <code
       >execute</code
       > method produces json output. The <code
@@ -217,7 +217,7 @@
       > method lets you choose between raw PINs and protocol-buffer outputs (via the resulting <a href="#istmt"
       >IStmt</a
       >). <em
-      >The rest of the documentation on this page is mostly unnecessary, when using mvSQL.</em
+      >The rest of the documentation on this page is mostly unnecessary, when using pathSQL.</em
       ></p
     ></div
   ><div id="isession::createinputstream-protocol-buffers"
@@ -238,7 +238,7 @@
     ><p
     >This is how new <a href="./terminology.html#property"
       >properties</a
-      > are declared. Note that the mvSQL and protocol-buffer interfaces do this implicitly, so one should only need to call <code
+      > are declared. Note that the pathSQL and protocol-buffer interfaces do this implicitly, so one should only need to call <code
       >mapURIs</code
       > when going through the lower-level methods (<a href="#isession::createpin-isession::createuncommittedpin"
       >createPIN etc.</a
@@ -316,8 +316,8 @@
     ><p
     >There are various flavors of <code
       >createStmt</code
-      > (one of which was already covered earlier in this page, for <a href="#isession::execute-isession::createstmt-mvsql"
-      >mvSQL</a
+      > (one of which was already covered earlier in this page, for <a href="#isession::execute-isession::createstmt-pathsql"
+      >pathSQL</a
       >). The simplest flavor requires no explicit argument, and creates an empty statement. It is used in combination with <code
       >expr</code
       >, which allows to build an expression tree piece by piece, and finally add the root of that tree to the empty statement. This can also be used in combination with built-in conditions (see <a href="#istmt"
@@ -384,8 +384,8 @@
   ><h3
     >ISession::startTransaction</h3
     ><p
-    >Transactions are bound to sessions. For a good discussion on all available options, including isolation modes and read-only transactions, please refer to <a href="./mvSQL%20reference.html#transactions"
-      >mvSQL's description</a
+    >Transactions are bound to sessions. For a good discussion on all available options, including isolation modes and read-only transactions, please refer to <a href="./pathSQL%20reference.html#transactions"
+      >pathSQL's description</a
       >. Note that operations (such as <code
       >ISession::createPIN</code
       > or <code
@@ -453,7 +453,7 @@
     >Value</code
     > structure defined in <a href="./sources/mvstore_h.html"
     >mvstore.h</a
-    > can represent any of the <a href="./mvSQL%20reference.html#data-types"
+    > can represent any of the <a href="./pathSQL%20reference.html#data-types"
     >data types</a
     > supported by mvStore. <code
     >Value</code

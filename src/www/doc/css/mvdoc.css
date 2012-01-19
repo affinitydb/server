@@ -14,9 +14,13 @@ blockquote,pre { font-size:1.05em; margin:0.6em 0 0 50px; padding:0.4em 1em; bac
 table { border-collapse:collapse; margin:0.6em 0; font-size:1.05em; }
 td,th { border:1px solid #aaa; padding:4px; }
 th { background:#f2f2f2; }
-.mvsql_snippet { color:purple; }
-.mvsql_snippet_highlighted { color:blue; text-decoration:underline; }
-.mvsql_inert { color:black; }
+.pathsql_snippet { color:purple; }
+.pathsql_snippet_highlighted { color:blue; text-decoration:underline; }
+.pathsql_inert { color:black; }
+.pathsql_container {}
+.pathsql_button_fake { position:relative; font-size:.6em; line-height:1.4em; border:solid 1px #000; background-color:#eae; width:15px; text-align:center; }
+.pathsql_button_runinplace { float:left; margin:0.6em 0 0 30px; padding:0; font-size:.6em; line-height:1.4em; border:solid 1px #000; background-color:#eae; width:15px; text-align:center; cursor:pointer; }
+.pathsql_inplace_result { font-size:1.05em; margin:0.6em 0 0 50px; padding:0.4em 1em; color:#800; }
 .center { margin:2em 1em; text-align:center; }
 #mvtocbar { float:right; }
 #mvtoclist { font-family:sans-serif; font-size:1.05em; }

@@ -200,6 +200,8 @@ QResultTable.prototype.populate = function(pQuery)
         var _lOnPage = new QResultHandler(lOnPageSuccess, null, _pUserData);
         setTimeout(function(){mv_query(pQuery, _lOnPage, {limit:_pUserData.mPageSize, offset:_pUserData.mOffset})}, 20); // For some unidentified reason, pagination was working smoothly for a few days, but then at some point it started to show signs of cpu starvation (e.g. slow/infrequent browser refreshes); I added this 20ms timeout between pages, and things came back to normal.
       }
+      else if (undefined != pQuery.match(/^\s*create\s*class/i))
+        { populate_classes(); }
     };
     var lOnPage = new QResultHandler(lOnPageSuccess, null, lPaginationCtx);
     mv_query(pQuery, lOnPage, {limit:lPaginationCtx.mPageSize, offset:lPaginationCtx.mOffset});
@@ -396,7 +398,9 @@ function NavTabs()
       $.each(lTabs, function(__pI, __pE) { __pE.content.css("display", "none"); });
       // Display the selected tab.
       var _lTargetA = $(_pEvent.target).parent()[0];
-      lTabContentFromName(lTabNameFromA(_lTargetA)).css("display", "block");
+      var _lTab = lTabContentFromName(lTabNameFromA(_lTargetA));
+      _lTab.css("display", "block");
+      _lTab.trigger("activate_tab");
     }
   // For each <li> of #nav, record it as a tab in lTabs, and bind lOnTab to the click event.
   $("#nav li").each(
@@ -570,17 +574,18 @@ function Tutorial()
           return "'" + __pWhat + "'";
         return __pWhat;
       }
-      function _onMvsqlResult(__pJson) { print(__pJson); }
+      function _onPathsqlResult(__pJson) { print(__pJson); }
       function _pushTutInstr(__pLine) { lThis.mHistory.append($("<p class='tutorial_instructions'>" + __pLine + "</p>")); }
       function print(__pWhat) { lThis.mHistory.append($("<p class='tutorial_result'>" + _stringify(__pWhat, false) + "</p>")); }
-      function mvsql(__pSql)
+      function pathsql(__pSql)
       {
         MV_CONTEXT.mQueryHistory.recordQuery(__pSql);
         var __lEvalResult = null;
-        var __lOnMvsql = function(__pJson, __pD) { _onMvsqlResult(__pJson); __lEvalResult = __pJson; }
-        mv_query(__pSql, new QResultHandler(__lOnMvsql, function(__pError){ print("error:" + __pError[0].responseText); }), {sync:true});
+        var __lOnPathsql = function(__pJson, __pD) { _onPathsqlResult(__pJson); __lEvalResult = __pJson; }
+        mv_query(mv_sanitize_semicolon(__pSql), new QResultHandler(__lOnPathsql, function(__pError){ print("error:" + __pError[0].responseText); }), {sync:true});
         return __lEvalResult;
       }
+      function q(__pSql) { return pathsql(__pSql); }
       function save(__pJson)
       {
         if (typeof(__pJson) != "object")
@@ -629,7 +634,7 @@ function Tutorial()
               __lArgs.push(__lArg);
           }
           __lQ = __lQ + __lArgs.join(",") + ";";
-          __lRes = mvsql(__lQ);
+          __lRes = pathsql(__lQ);
           if (undefined == __pJson.id && __lRes.length > 0)
             __pJson.id = __lRes[0].id;
         }
@@ -649,6 +654,20 @@ function Tutorial()
         if (lThis.mTutorialStep < lNumSteps)
         {
           $("#thetutorial #steps #step" + lThis.mTutorialStep + " div").each(function(_pI, _pE) { _pushTutInstr($(_pE).html()); });
+          if (lThis.mTutorialStep > 0)
+          {
+            var lQuickRunStep = lThis.mTutorialStep;
+            var lQuickRunButton = $("<div class='tutorial_button_run'>paste &amp; run step " + lQuickRunStep + "</div>");
+            lThis.mHistory.append(lQuickRunButton);
+            lQuickRunButton.click(
+              function()
+              {
+                lThis.mInput.val("");
+                $("#thetutorial #steps #step" + lQuickRunStep + " .tutorial_step").each(
+                  function(_pI, _pE) { lThis.mInput.val(lThis.mInput.val() + $(_pE).html().replace(/&nbsp;/g, " ").replace(/&lt;/g, "<").replace(/&gt;/g, ">")); });
+                lExecuteLine();
+              });
+          }
           lThis.mTutorialStep++;
         }
         else
@@ -701,6 +720,7 @@ function Tutorial()
   this.mScroll = function() { $("#tutorial_area").scrollTop(lThis.mHistory.height() + 2 * $("#tutorial_input").height() - $("#tutorial_area").height()); $("#tutorial_area").scrollLeft(0); }
   this.mTutorialStep = 0;
   $("#tutorial_area").click(function() { lThis.mInput.focus(); });
+  $("#tab-tutorial").bind("activate_tab", function() { lThis.mInput.focus(); });
 }
 
 /**
@@ -744,7 +764,17 @@ $(document).ready(
       if (undefined != lLastStorePw)
         $("#storepw").val(lLastStorePw);
     }
+    // Setup the tutorial.
+    new Tutorial();
+    // Setup the batching UI.
+    new BatchingSQL();
+    // Setup tab-dependent aspects of the basic console.
+    // Note:
+    //   For the moment, for simplicity, we refresh classes everytime we come back from another tab
+    //   (where classes may have been created).
+    $("#tab-basic").bind("activate_tab", function() { populate_classes(); $("#query").focus(); });
     // Setup the main navigational tab system.
+    // Note: We set this up after the actual tabs, in order for them to receive the initial 'activate_tab'.
     MV_CONTEXT.mNavTabs = new NavTabs();    
     // Setup the basic tooltips.
     bindAutomaticTooltips();
@@ -752,10 +782,6 @@ $(document).ready(
     bindStaticCtxMenus();
     // Setup the persistent cache for the query history.
     MV_CONTEXT.mQueryHistory = new QHistory($("#query_history"), MV_CONTEXT.mUIStore);
-    // Setup the batching UI.
-    new BatchingSQL();
-    // Setup the tutorial.
-    new Tutorial();
     // Setup the initial query string, if one was specified (used for links from doc to console).
     var lInitialQ = location.href.match(/query\=(.*?)((&.*)|(#.*)|\0)?$/i);
     if (undefined != lInitialQ && lInitialQ.length > 0)
@@ -775,7 +801,7 @@ $(document).ready(
       if ($("#result_pin pre").size() > 0) // If the contents of the #result_pin represent an error report from a previous query, clear it now; otherwise, let the contents stay there.
         $("#result_pin").empty(); 
       var lCurClassName = $("#classes option:selected").val();
-      var lQueryStr = $("#query").val();
+      var lQueryStr = mv_sanitize_semicolon($("#query").val());
       MV_CONTEXT.mLastQueriedClassName = (lQueryStr.indexOf(mv_without_qname(lCurClassName)) >= 0) ? lCurClassName : null;
       if ($("#querytype option:selected").val() == "query" && null == lQueryStr.match(/select\s*count/i))
       {
@@ -788,7 +814,7 @@ $(document).ready(
       }
       else
       {
-        var lQuery = "query=" + escape(mv_with_qname_prefixes(lQueryStr)) + "&type=" + $("#querytype option:selected").val();
+        var lQuery = "query=" + mv_escape_with_plus(mv_with_qname_prefixes(lQueryStr)) + "&type=" + $("#querytype option:selected").val();
         $.ajax({
           type: "POST",
           url: DB_ROOT,
@@ -932,6 +958,17 @@ function mv_sanitize_classname(pClassName)
 {
   return (pClassName.charAt(0) != "\"" && pClassName.indexOf("/") > 0) ? ("\"" + pClassName + "\"") : pClassName;
 }
+function mv_sanitize_semicolon(pQ)
+{
+  // Remove the last semicolon, if any, to make sure the store recognizes single-instructions as such.
+  var _lChk = pQ.match(/(.*)(;)(\s*)$/);
+  return (undefined != _lChk && undefined != _lChk[1] && undefined != _lChk[2]) ? pQ.substr(0, _lChk[1].length) : pQ;
+}
+function mv_escape_with_plus(pStr)
+{
+  return escape(pStr.replace(/\+/g, "\+")).replace(/\+/g, "%2B"); // escape pStr, and preserve '+' signs (e.g. for {+} in path expressions; by default '+' is automatically interpreted as a space).
+}
+
 function QResultHandler(pOnSuccess, pOnError, pUserData) { this.mOnSuccess = pOnSuccess; this.mOnError = pOnError; this.mUserData = pUserData; }
 QResultHandler.prototype.onsuccess = function(pJson, pSql) { if (this.mOnSuccess) this.mOnSuccess(pJson, this.mUserData, pSql); }
 QResultHandler.prototype.onerror = function(pArgs, pSql)
@@ -948,13 +985,13 @@ QResultHandler.prototype.onerror = function(pArgs, pSql)
 }
 function mv_query(pSqlStr, pResultHandler, pOptions)
 {
-  if (null == pSqlStr || 0 == pSqlStr.length || pSqlStr.charAt(pSqlStr.length - 1) != ";")
+  if (null == pSqlStr || 0 == pSqlStr.length)
     { console.log("mv_query: invalid sql " + pSqlStr); pResultHandler.onerror(null, pSqlStr); return; }
   var lSqlStr = mv_with_qname_prefixes(pSqlStr);
   var lHasOption = function(_pOption) { return (undefined != pOptions && _pOption in pOptions); }
   $.ajax({
     type: "GET",
-    url: DB_ROOT + "?q=" + escape(lSqlStr) + "&i=mvsql&o=json" + (lHasOption('countonly') ? "&type=count" : "") + (lHasOption('limit') ? ("&limit=" + pOptions.limit) : "") + (lHasOption('offset') ? ("&offset=" + pOptions.offset) : ""),
+    url: DB_ROOT + "?q=" + mv_escape_with_plus(lSqlStr) + "&i=pathsql&o=json" + (lHasOption('countonly') ? "&type=count" : "") + (lHasOption('limit') ? ("&limit=" + pOptions.limit) : "") + (lHasOption('offset') ? ("&offset=" + pOptions.offset) : ""),
     dataType: "text", // Review: until mvStore returns 100% clean json...
     async: (lHasOption('sync') && pOptions.sync) ? false : true,
     timeout: (lHasOption('sync') && pOptions.sync) ? 10000 : null,

@@ -18,6 +18,7 @@ tr.selected { background-color:#d3c8b8; }
 .tutorial_stmt { color:black; }
 .tutorial_result { color:red; }
 .tutorial_instructions { color:purple; }
+.tutorial_button_run { font-size:.6em; line-height:1.4em; padding:0; margin:0; border:solid 1px #000; background-color:#eae; width:125px; text-align:center; cursor:pointer; }
 
 /* main divs: #left, #content, #bottom; #content and #bottom have margin for which matches width of #left */
 #left { position:fixed; top:0; left:0; width:40px; height:100%; margin:0; }

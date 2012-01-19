@@ -7,14 +7,14 @@
   <select id='mvtoclist'>
     <option value='features'>features</option>
     <option value='intro'>intro</option>
-    <option value='mvSQL getting started'>mvSQL getting started</option>
-    <option value='mvSQL reference'>mvSQL reference</option>
     <option value='mvStore FAQ'>mvStore FAQ</option>
     <option value='mvStore cpp'>mvStore cpp</option>
     <option value='mvStore getting started'>mvStore getting started</option>
     <option value='mvStore js'>mvStore js</option>
     <option value='mvStore protobuf'>mvStore protobuf</option>
     <option value='mvStore server'>mvStore server</option>
+    <option value='pathSQL getting started'>pathSQL getting started</option>
+    <option value='pathSQL reference'>pathSQL reference</option>
     <option value='release notes'>release notes</option>
     <option value='strengths'>strengths</option>
     <option value='terminology' SELECTED>terminology</option>
@@ -52,12 +52,10 @@
     >index</a
     >, <a href="#mvcommand"
     >mvCommand</a
-    >, <a href="#mvengine"
-    >mvEngine</a
-    >, <a href="#mvserver"
-    >mvServer</a
-    >, <a href="#mvsql"
-    >mvSQL</a
+    >, <a href="#server"
+    >server</a
+    >, <a href="#pathsql"
+    >pathSQL</a
     >, <a href="#mvstore"
     >mvStore</a
     >, <a href="#namespace"
@@ -106,7 +104,9 @@
     >property</a
     >, <a href="#value"
     >value</a
-    >, <a href="#collection"
+    > (including <a href="#pin-reference"
+    >references</a
+    >), <a href="#collection"
     >collection</a
     >, <a href="#class"
     >class</a
@@ -115,7 +115,7 @@
   ><h3
     >PIN</h3
     ><p
-    >The PIN is mvStore's primary information node. It's the basic unit of data. It is somewhat analogous to the row of a relational table, or to the object of an object-oriented database. A PIN can contain many <a href="#property"
+    >The PIN is mvStore's primary information node. It's the basic unit of data. It is somewhat analogous to the row of a relational table, the object of an object-oriented database, the node of a graph database or of XML's DOM, the document of a document database etc. A PIN can contain many <a href="#property"
       >properties</a
       >. Each property of a PIN can either hold a single (scalar) <a href="#value"
       >value</a
@@ -134,7 +134,7 @@
     ><em
       >Note: the theoretical maximum number of properties per PIN is related with the configured <a href="#page"
 	>page</a
-	> size - typically, in the order of thousands of properties on a PIN</em
+	> size - typically, in the order of thousands of properties on a PIN; this limit only puts a boundary on the structural complexity of a PIN, not the amount of data that each property can contain</em
       ></p
     ></div
   ><div id="property"
@@ -147,9 +147,9 @@
       >values</a
       >. Properties define the structure of a PIN. A mvStore property is somewhat analogous to the column name of a relational table, or to a predicate in <a href="#rdf"
       >RDF</a
-      >. Property names can be composed of multiple sections, separated by a slash (/) character, and are sometimes referred to as URIs. This enables a practically infinite, semantically coherent <a href="#namespace"
+      >. Property names can be composed of multiple sections, separated by a slash (/) character, following the same convention as URIs. This enables a practically infinite, semantically coherent <a href="#namespace"
       >namespace</a
-      >. The basic data model of mvStore does not attach any type information to properties: instances of a property (<a href="#value"
+      > usable across multiple applications (which may not necessarily be fully aware of each other). The basic data model of mvStore does not attach any type information to properties: instances of a property (<a href="#value"
       >values</a
       >) can be of any type. Properties are a key component of <a href="#class"
       >class</a
@@ -159,7 +159,7 @@
     ><p
     >In the data modeling process with mvStore, selecting meaninful, stable property names constitutes an important first step, that can influence the effectiveness of categorization into <a href="#class"
       >classes</a
-      > later on. When possible, it is recommended to refer to an already existing, authoritative source (ontology). The semantic web community uses resources such as the following, to achieve similar goals:</p
+      > later on. When possible, it is recommended to refer to an already existing source (ontology). The semantic web community uses resources such as the following, to achieve similar goals:</p
     ><ul
     ><li
       ><a href="http://sindice.com"
@@ -172,10 +172,6 @@
       ><li
       ><a href="http://www.daml.org/ontologies/"
 	>DAML</a
-	></li
-      ><li
-      ><a href="http://www.schemaweb.info/default.aspx"
-	>schemaweb</a
 	></li
       ></ul
     ></div
@@ -195,7 +191,7 @@
       >element</a
       >). There's also a data type attribute allowing to attach a physical <a href="#unit-of-measurement"
       >unit of measurement</a
-      > to a value. Data types are described in detail <a href="./mvSQL%20reference.html#data-types"
+      > to a value. In a future release, it will also be possible to define customized sub-structures (as values embedded in a PIN). Data types are described in detail <a href="./pathSQL%20reference.html#data-types"
       >here</a
       >. At the programming level, the same value structure is also used to hold a <a href="#collection"
       >collection</a
@@ -215,7 +211,7 @@
       >property</a
       >. The values of a collection can be heterogeneous (they can have different types). Internally, each element of a collection is uniquely identified by an immutable <a href="#element-id-eid"
       >Element ID (eid)</a
-      >. This design enables consistent interactions in concurrent access scenarios. Note that collections cannot directly contain nested collections. Small collections can be presented as arrays, and allow random access, while very large collections must be traversed with an iterator (with the option of seeking to any known <a href="#element-id-eid"
+      >. This design enables consistent interactions in concurrent access scenarios. Note that collections cannot directly contain nested collections, in the current version. Small collections can be represented as arrays internally, and allow random access, whereas very large collections must be traversed with an iterator (with the option of seeking to any known <a href="#element-id-eid"
       >eid</a
       >). A collection can hold up to 32-bit worth of distinct addressable elements. Collections can be queried just like plain values (additional control is provided). Collections also play a key role in other aspects of the data model, such as <a href="#acl"
       >ACLs</a
@@ -231,7 +227,7 @@
       >properties</a
       >). It is most often defining an <a href="#index"
       >index</a
-      >, although this is not mandatory. Classes can be declared at any point in time (both before and after the occurrence of PINs satisfying the predicate). Classes are named according to similar conventions as properties (using URIs). Unlike the 'classes' of programming languages such as C++ or java, mvStore classes don't define static <em
+      >, although this is not mandatory. Classes can be declared at any point in time (both earlier and later than the occurrence of PINs satisfying the predicate). Classes are named according to similar conventions as properties (using URIs). Unlike the 'classes' of programming languages such as C++ or java, mvStore classes don't define static <em
       >types</em
       >, in the sense that they don't establish a binding contract with <a href="#pin"
       >PINs</a
@@ -255,7 +251,7 @@
       >determined by mvStore</em
       > when a new PIN is first committed to the database. It's composed of two main sections: an <a href="#identity"
       >identity</a
-      > ID, and a 64-bit value, unique in the scope of that identity. Within the scope of one instance of a mvStore database, PINs created by the owner can be designated with the second (64-bit) section only, since the first section will be 0 (STORE_OWNER) - this elision is common, for example in mvSQL's <a href="./mvSQL%20reference.html#refid"
+      > ID, and a 64-bit value, unique in the scope of that identity. Within the scope of one instance of a mvStore database, PINs created by the owner can be designated with the second (64-bit) section only, since the first section will be 0 (STORE_OWNER) - this elision is common, for example in pathSQL's <a href="./pathSQL%20reference.html#refid"
       >references</a
       >. By convention, the text representation of this second section should always be in hex. PIDs are immutable, and are usually not recycled (if a PIN is deleted, there is no risk that dangling references would ever point to a new, unrelated PIN) - unless explicitly requested (e.g. to store streaming or temporary data). PIDs can be used to specify fixed sets of PINs in a query, or to hold on to a PIN, or to create <a href="#pin-reference"
       >references</a
@@ -287,7 +283,7 @@
       >class</em
       > (with the predicate &quot;age &gt;= 18&quot;), or an &quot;age_limit&quot; <em
       >family</em
-      > (with the predicate &quot;age &gt;= parameter&quot;).</p
+      > (with the predicate &quot;age &gt;= :0&quot;).</p
     ></div
   ><div id="parameter"
   ><h3
@@ -298,7 +294,7 @@
     >index</a
     >. Typically, this <a href="#value"
     >value</a
-    > is provided at query time. For example, using mvSQL, one could define:<pre>'CREATE CLASS age_limit AS select * where age >= :0(int);'</pre>and then query with<pre>'SELECT * FROM age_limit(18);'</pre>
+    > is provided at query time. For example, using pathSQL, one could define:<pre>'CREATE CLASS age_limit AS select * where age >= :0;'</pre>and then query with<pre>'SELECT * FROM age_limit(18);'</pre>
 </div
   ><div id="uncommitted-pin"
   ><h3
@@ -310,8 +306,8 @@
       >pages</a
       >). The implementations supporting the <a href="#protocol-buffer"
       >protocol-buffer</a
-      > streaming interface and <a href="#mvsql"
-      >mvSQL</a
+      > streaming interface and <a href="#pathsql"
+      >pathSQL</a
       > both create uncommitted PINs automatically, whenever possible.</p
     ></div
   ><div id="pin-reference"
@@ -420,8 +416,8 @@
     ><p
     >mvStore provides a special <a href="#value"
       >value</a
-      > attribute that allows to attach a physical unit to real number values (most of the common units for length, speed, surface, volume, weight etc. are supported, both in the metric and imperial systems). This enhances the semantic and self-descriptive capabilities of a PIN. It also enables mvStore to perform automatic conversions, when processing compatible types in expressions. Units are described in detail in the <a href="./mvSQL%20reference.html#unit-of-measurement"
-      >mvSQL reference</a
+      > attribute that allows to attach a physical unit to real number values (most of the common units for length, speed, surface, volume, weight etc. are supported, both in the metric and imperial systems). This enhances the semantic and self-descriptive capabilities of a PIN. It also enables mvStore to perform automatic conversions, when processing compatible types in expressions. Units are described in detail in the <a href="./pathSQL%20reference.html#units-of-measurement"
+      >pathSQL reference</a
       >.</p
     ></div
   ><div id="rdf"
@@ -460,7 +456,7 @@
       >Classes</a
       > and <a href="#family"
       >families</a
-      > also define indexes. All those indexes can be combined in queries for fast information retrieval and update. mvStore query processing does not infer index usage from generic query conditions: indexes must be explicitly designated. Indexes contain homogeneous values only (values of the same type). The type of an index can be specified explicitly; otherwise, the first value to be indexed determines the index's type. Indexing may imply data type <a href="#coercion"
+      > also define indexes. All those indexes can be combined in queries for fast information retrieval and update. mvStore query processing does not infer index usage from generic query conditions: indexes must be explicitly designated in the queries. Indexes can contain heterogeneous values (values of different types). The type of an index can also be specified explicitly. Indexing may imply data type <a href="#coercion"
       >coercion</a
       >; if coercion fails for a value, the corresponding PIN won't be indexed for this family.</p
     ></div
@@ -498,9 +494,9 @@
       >startup.h</a
       >), and is also available via the <a href="http://en.wikipedia.org/wiki/Comet_%28programming%29"
       >comet</a
-      > pattern in <a href="#mvserver"
-      >mvServer</a
-      >. In the future a highly scalable messaging infrastructure may be added. By comparison with triggers and stored procedures, mvStore's notifications establish a more strict boundary between the kernel and application code. They enhance application code consistency and maintainability, by concentrating all the logic in one place, using one language. They can also constitute the starting point of a messaging system between database instances.</p
+      > pattern in the <a href="#server"
+      >server</a
+      >. In the future a highly scalable (asynchronous) messaging infrastructure will be added. By comparison with triggers and stored procedures, mvStore's notifications establish a more strict boundary between the kernel and application code. They enhance application code consistency and maintainability, by concentrating all the logic in one place, using one language. They can also constitute the starting point of a messaging system between database instances.</p
     ></div
   ><div id="replication"
   ><h3
@@ -523,15 +519,15 @@
     >mvStore</a
     > kernel library is written in C++, and provides a <a href="#c-interface"
     >C++ interface</a
-    > directly talking to the kernel. In addition, it also proposes <a href="#mvsql"
-    >mvSQL</a
+    > directly talking to the kernel. In addition, it also proposes <a href="#pathsql"
+    >pathSQL</a
     >, and a <a href="#protocol-buffer"
     >protocol-buffer</a
-    >-based streaming interface, both of which are better suited as client interfaces for remote access (e.g. through a server such as <a href="#mvserver"
-    >mvServer</a
+    >-based streaming interface, both of which are better suited as client interfaces for remote access (e.g. through a <a href="#server"
+    >server</a
     >). <a href="#client-side-libraries"
     >Client-side libraries</a
-    > are also in development.</p
+    > are also available.</p
   ><div id="c-interface"
   ><h3
     >C++ interface</h3
@@ -544,8 +540,8 @@
       >startup.h</a
       > and <a href="./sources/units_h.html"
       >units.h</a
-      >) defines a self-contained, low-level interface directly connected to the mvStore kernel. It exposes a set of C++ abstract base classes (aka C++ interfaces), plus a few constants and structures. The ISession interface represents a logical connection to a database instance, and provides an entry point for every possible interaction. It exposes the <a href="#mvSQL"
-      >mvSQL</a
+      >) defines a self-contained, low-level interface directly connected to the mvStore kernel. It exposes a set of C++ abstract base classes (aka C++ interfaces), plus a few constants and structures. The ISession interface represents a logical connection to a database instance, and provides an entry point for every possible interaction. It exposes the <a href="#pathSQL"
+      >pathSQL</a
       > dialect, as well as the <a href="#protocol-buffer"
       >protocol-buffer</a
       > streaming interface. At a lower level, query conditions and <a href="#class"
@@ -556,11 +552,11 @@
       >link</a
       > to more information.</p
     ></div
-  ><div id="mvsql"
+  ><div id="pathsql"
   ><h3
-    >mvSQL</h3
+    >pathSQL</h3
     ><p
-    >mvSQL is the name of a dialect of SQL defined for mvStore. Here's a <a href="./mvSQL%20getting%20started.html"
+    >pathSQL is the name of a dialect of SQL defined for mvStore. Here's a <a href="./pathSQL%20getting%20started.html"
       >link</a
       > to more information.</p
     ></div
@@ -570,8 +566,8 @@
     ><p
     >mvStore provides a streaming interface based on Google's protocol-buffers: <a href="./sources/mvstore_proto.html"
       >mvstore.proto</a
-      >. This is one of the interfaces exposed by the <a href="#mvserver"
-      >mvServer</a
+      >. This is one of the interfaces exposed by the <a href="#server"
+      >server</a
       >. Here's a <a href="./mvStore%20protobuf.html"
       >link</a
       > to more information.</p
@@ -580,15 +576,17 @@
   ><h3
     >Client-Side Libraries</h3
     ><p
-    >Although mvServer makes it easy to talk to the store using <a href="#mvsql"
-      >mvSQL</a
-      >, this traditional approach still implies an object-relational mapping to translate structured objects on the client side into DML statements. The <a href="#protocol-buffer"
+    >Although the <a href="#server"
+      >server</a
+      > makes it easy to talk to the store using <a href="#pathsql"
+      >pathSQL</a
+      >, this traditional approach still implies a mapping process to translate structured objects on the client side into DML statements. The <a href="#protocol-buffer"
       >protocol-buffer</a
       > interface provides a more direct means of expressing those structures to mvStore. The client-side libraries further facilitate the use of both interfaces, in the context of their specific programming language. The first release emphasizes <a href="./sources/mvstore-client_js.html"
       >javascript</a
       > for node.js. Libraries for <a href="./sources/mvstore_py.html"
       >python</a
-      >, ruby and java are also under development.</p
+      > and ruby are also available, and java and C++ are under development.</p
     ></div
   ></div
 ><div id="software-components"
@@ -597,9 +595,9 @@
   ><p
   >The mvStore package contains the following components: the <a href="#mvstore"
     >mvStore</a
-    > kernel library, the <a href="#mvserver"
-    >mvServer</a
-    > database server application with its online console, and some <a href="#client-side-libraries"
+    > kernel library, the <a href="#server"
+    >database server</a
+    > with its online console and documentation, and some <a href="#client-side-libraries"
     >client-side libraries</a
     >.</p
   ><div id="mvstore"
@@ -608,65 +606,31 @@
     ><p
     >The mvStore library is the core component of the mvStore package. It provides a comprehensive database engine that proposes a new, powerful, object-friendly <a href="#essential-concepts-data-model"
       >data model</a
-      >, while preserving many of the precious properties of relational database systems, such as a <a href="#mvsql"
-      >SQL interface (mvSQL)</a
+      >, while preserving many of the precious properties of relational database systems, such as a <a href="#pathsql"
+      >SQL interface (pathSQL)</a
       >, ACID transactions, logging and recovery, efficient <a href="#page"
       >page</a
       > management and B-link tree <a href="#index"
       >indexing</a
       >, full-text indexing, etc. It is written in C++, and provides a number of <a href="#interfaces"
       >interfaces</a
-      >. This library can be embedded directly into an application, or it can be accessed via the <a href="#mvserver"
-      >mvServer</a
-      > or <a href="#mvengine"
-      >mvEngine</a
-      >. Most of the mvStore documentation focuses on this component.</p
+      >. This library could be embedded directly into an application. Most of the mvStore documentation focuses on various aspects of this component.</p
     ></div
-  ><div id="mvserver"
+  ><div id="server"
   ><h3
-    >mvServer</h3
+    >server</h3
     ><p
     >This process is a database server that embeds <a href="#mvstore"
       >mvStore</a
-      >. It understands the HTTP protocol, and accepts messages in <a href="#mvsql"
-      >mvSQL</a
+      >. It understands the HTTP protocol, and accepts messages in <a href="#pathsql"
+      >pathSQL</a
       > as well as <a href="#protocol-buffer"
       >protocol-buffer</a
       >. It can return results in json format, or <a href="#protocol-buffer"
       >protocol-buffer</a
-      > format. mvServer is primarily a database server, but its HTTP interface allows it to act as a web server, for increased convenience. For more information, visit this <a href="./mvStore%20server.html"
+      > format. It is primarily a database server, but its HTTP interface allows it to act as a web server, for increased convenience. For more information, visit this <a href="./mvStore%20server.html"
       >link</a
       >.</p
-    ></div
-  ><div id="other-software-components"
-  ><h2
-    >Other Software Components</h2
-    ><p
-    >The mvStore project also includes some additional components that are not part of the first release.</p
-    ><div id="mvcommand"
-    ><h3
-      >mvCommand</h3
-      ><p
-      >This process is a console application that allows to talk to <a href="#mvstore"
-	>mvStore</a
-	>, using <a href="#mvsql"
-	>mvSQL</a
-	>.</p
-      ></div
-    ><div id="mvengine"
-    ><h3
-      >mvEngine</h3
-      ><p
-      >This is a storage engine designed for MySQL, and using <a href="#mvstore"
-	>mvStore</a
-	> as its core component. It allows to assess the mvStore package in a context that facilitates comparison with other database engines. It also provides a migration and integration path for applications already using a relational data model, and interested to move to mvStore's more flexible model. For example, mvEngine will automatically define mvStore <a href="#class"
-	>classes</a
-	> and <a href="#property"
-	>properties</a
-	> that match the relational tables. An application could then decide to migrate to the native interfaces of mvStore. Note that mvEngine offers good control over the mapping of names between both worlds. Unlike <a href="#mvsql"
-	>mvSQL</a
-	>, mvEngine respects a typical relational DDL (Data Definition Language).</p
-      ></div
     ></div
   ></div
 >

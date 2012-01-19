@@ -49,11 +49,14 @@ public:
             params.password = pUserPw;
             notificationHandler = new MainNotificationHandler();
             params.notification = notificationHandler;
+            params.nBuffers = 32768; // Note: Don't take chances with default...
             RC res = openStore( params, storeCtx );
             if ( res == RC_NOTFOUND && pAutoCreate ) {
                 StoreCreationParameters create_params;
                 create_params.identity = pUserName;
                 create_params.password = ( pUserPw && strlen( pUserPw ) > 0 ) ? pUserPw : NULL;
+                create_params.fEncrypted = (create_params.password && strlen(create_params.password)>0);
+                create_params.pageSize = 32768; // Note: Don't take chances with default...
                 res = createStore( create_params, params, storeCtx );
                 if ( res != RC_OK ) {
                     LOG_LINE(kLogError, "mvstore error %d", res);

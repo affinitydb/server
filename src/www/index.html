@@ -13,9 +13,9 @@
   <div id='logo'><img src='images/mvlogo.png' alt='mvstore logo' id='logo_img'></div>
   <div id='nav'>
     <ul>
+      <li><a href="#tab-tutorial"><img src='images/tutorial.png'></a></li>
       <li><a href="#tab-basic"><img src='images/basic.png'></a></li>
       <li><a href="#tab-batching"><img src='images/batch.png'></a></li>
-      <li><a href="#tab-tutorial"><img src='images/tutorial.png'></a></li>
       <li><a href="#tab-queryhistory"><img src='images/history.png'></a></li>
       <li><a href="#tab-config"><img src='images/config.png'></a></li>
     </ul>
@@ -24,7 +24,7 @@
 
 <div id='content'>
   <div id="mvdoc">
-    <a href="doc/mvSQL getting started.html">doc</a>
+    <a href="doc/intro.html">doc</a>
   </div>
   <!-- Basic Console -->
   <div id="tab-basic">
@@ -92,7 +92,7 @@
   <!-- Tutorial Console -->
   <div id="tab-tutorial">
     <div id='content_title'>
-      <h1>Interactive Tutorial (JS)</h1>
+      <h1>Interactive Tutorial</h1>
     </div>
     <div id='tutorial_left'>
       <div id='tutorial_area'>
@@ -101,7 +101,7 @@
           <br>
           <p>h: print the help</p>
           <p>t: start the interactive tutorial</p>
-          <p>... and don't hesitate to visit the <a href='doc/intro.html'>documentation</a>!</p>
+          <p>... and don't hesitate to visit the <a href='doc/intro.html'>documentation</a>, check out this short <a href='doc/presentations/p_nutshell/nutshell.html'>presentation</a>, or <a href='doc/mvStore%20getting%20started.html#setup'>install</a>!</p> 
           <br>
         </div>
         <div id='tutorial_input_line'>&gt;<input id='tutorial_input' /></div>
@@ -198,10 +198,10 @@
     <div>&nbsp;</div>
     <div>h: print this help</div>
     <div>t: start the tutorial</div>
-    <div>n: go to next step of the tutorial</div>
+    <div>n: go to the next step of the tutorial</div>
     <div>step(number): jump to step 'number' of the tutorial</div>
     <div>&nbsp;</div>
-    <div>mvsql(sqlstr): execute 'sqlstr' and return json</div>
+    <div>pathsql(sqlstr) or q(sqlstr): execute 'sqlstr' and return json</div>
     <div>save(json): create or update objects in the db</div>
     <div>print(v): print the value of 'v'</div>
   </div>
@@ -216,81 +216,108 @@
       <div>Step 1</div>
       <div>This shell provides a programming environment in javascript.</div>
       <div>It emulates what you'll experience in the language of your choice, using one of mvStore's client libraries.</div>
-      <div>Try this simple text manipulation for example:</div>
+      <div>Try this simple object manipulation for example (we'll save this object later on):</div>
       <div>&nbsp;</div>
-      <div>phrase="hello world";</div>
-      <div>print(phrase);</div>
-      <div>for (i in phrase) { print("letter: " + phrase[i]); }</div>
+      <div class='tutorial_step'>object = {name:'Jack', profession:'doctor'};</div>
+      <div class='tutorial_step'>for (i in object) { print(i + ":" + object[i]); }</div>
     </div>
     <div id='step2'>
       <div>Step 2</div>
-      <div>Try this object manipulation (we'll save this object later on):</div>
+      <div>The pathsql() function <i>(aka q())</i> opens up the whole sql-based side of the interaction.</div>
+      <div>Try this for example:</div>
       <div>&nbsp;</div>
-      <div>object = {name:'Jack', profession:'doctor'};</div>
-      <div>for (i in object) { print(i + ":" + object[i]); }</div>
+      <div class='tutorial_step'>pins = pathsql("INSERT name='Steve', profession='engineer';");</div>
+      <div class='tutorial_step'>print("resulting pin id:" + pins[0].id);</div>
+      <div class='tutorial_step'>q("SELECT * FROM @" + pins[0].id + ";");</div>
+      <div class='tutorial_step'>q("SELECT * WHERE EXISTS(name) MATCH AGAINST('Ste');");</div>
     </div>
     <div id='step3'>
       <div>Step 3</div>
-      <div>The mvsql() function opens up the whole sql-based side of the interaction.</div>
+      <div>The pathSQL <a href='doc/pathSQL%20reference.html#dml'>DML</a> can be very compact and and powerful.</div>
       <div>Try this for example:</div>
       <div>&nbsp;</div>
-      <div>pins = mvsql("INSERT name='Steve', profession='engineer';");</div>
-      <div>print("resulting pin id:" + pins[0].id);</div>
-      <div>print("retrieving the resulting pin by id");</div>
-      <div>mvsql("SELECT * FROM @" + pins[0].id + ";");</div>
-      <div>print("retrieving the resulting pin by some search criterion");</div>
-      <div>mvsql("SELECT * WHERE EXISTS(name) MATCH AGAINST('Ste');");</div>
+      <div class='tutorial_step'>q("INSERT name='John', profession='lawyer', age=37, friends={(INSERT name='Fred', profession='musician', age=17), (INSERT name='Stephanie', profession='surgeon', age=45), (INSERT name='Claire', profession='teacher', age=67)};");</div>
+      <div class='tutorial_step'>q("SELECT * WHERE EXISTS(name);");</div>
     </div>
     <div id='step4'>
       <div>Step 4</div>
-      <div>The mvsql <a href='doc/mvSQL+reference.html#dml'>DML</a> can be pretty fancy and powerful.</div>
-      <div>Try this for example:</div>
+      <div>Remember the plain javascript object we had created at step 1? Let's save it...</div>
+      <div>Notice the new 'id' attribute after the save.</div>
+      <div>Note: With our client interfaces this is achieved transparently via protocol buffers. Here the implementation is an emulation using pathSQL.</div>
       <div>&nbsp;</div>
-      <div>mvsql("INSERT name='John', profession='lawyer', friend=(INSERT name='Fred', profession='musician');");</div>
-      <div>mvsql("SELECT * WHERE EXISTS(name);");</div>
+      <div class='tutorial_step'>if (object != undefined)</div>
+      <div class='tutorial_step'>&nbsp;&nbsp;{ print(object); save(object); print(object); }</div>
     </div>
     <div id='step5'>
       <div>Step 5</div>
-      <div>Remember the plain javascript object we had created at step 2? Let's save it...</div>
-      <div>Notice the new 'id' attribute after the save.</div>
-      <div>Note: With our client interfaces this is achieved transparently via protocol buffers. Here the implementation is an emulation using mvSQL.</div>
+      <div>Now that our object has an id, we can modify it.</div>
       <div>&nbsp;</div>
-      <div>if (object != undefined) { print(object); save(object); print(object); }</div>
+      <div class='tutorial_step'>if (object != undefined)</div>
+      <div class='tutorial_step'>&nbsp;&nbsp;{ object.mystring = 'hello world'; object.mycollection = [1, 2, 3, 4, 5]; object.mydate = new Date(); save(object); }</div>
+      <div class='tutorial_step'>q("SELECT * WHERE EXISTS(mystring);");</div>
     </div>
     <div id='step6'>
       <div>Step 6</div>
-      <div>Now that our object has an id, we can modify it.</div>
+      <div>Let's take advantage of our environment to create more data easily.</div>
       <div>&nbsp;</div>
-      <div>if (object != undefined) { object.mystring = 'hello world'; object.mycollection = [1, 2, 3, 4, 5]; object.mydate = new Date(); save(object); }</div>
-      <div>mvsql("SELECT * WHERE EXISTS(mystring);");</div>
+      <div class='tutorial_step'>names=['Abby', 'Bruce', 'Camille', 'Derek', 'Ed', 'Frank', 'Greg', 'Harold', 'Ivy', 'Joseph', 'Karl', 'Lynne', 'Mark', 'Nick', 'Oscar', 'Pam', 'Queen', 'Ramon', 'Steve', 'Ted', 'Ursula', 'Victor', 'Wayne', 'Xavier', 'Young', 'Zack'];</div>
+      <div class='tutorial_step'>professions=['teacher', 'accompanist', 'accountant', 'actor', 'athlete', 'attorney', 'bacteriologist', 'botanist', 'conciliator', 'engineer', 'journalist', 'mathematician', 'mediator', 'meteorologist', 'salesman'];</div>
+      <div class='tutorial_step'>pickFrom = function(array) { return array[Math.floor(Math.random() * array.length)]; };</div>
+      <div class='tutorial_step'>for (i = 0; i &lt; 15; i++) { save({name:pickFrom(names), age:Math.random()*100, profession:pickFrom(professions)}); }</div>
     </div>
     <div id='step7'>
       <div>Step 7</div>
-      <div>Let's take advantage of our environment to create more data easily.</div>
+      <div>Now that we have some data, how about we organize it a little bit?</div>
+      <div>Try this:</div>
       <div>&nbsp;</div>
-      <div>professions=['teacher', 'accompanist', 'accountant', 'actor', 'athlete', 'attorney', 'bacteriologist', 'botanist', 'conciliator', 'journalist', 'mathematician', 'mediator', 'meteorologist', 'salesman'];</div>
-      <div>for (i = 0; i &lt; 10; i++) { save({name:'person'+i, age:Math.random()*100, profession:professions[Math.floor(Math.random() * professions.length)]}); }</div>
+      <div class='tutorial_step'>q("CREATE CLASS workers AS SELECT * WHERE EXISTS(name) AND profession IN :0;");</div>
+      <div class='tutorial_step'>q("SELECT * FROM workers;");</div>
+      <div class='tutorial_step'>q("SELECT * FROM workers('musician');");</div>
+      <div class='tutorial_step'>q("SELECT * FROM workers(['l', 'n']);");</div>
+      <div class='tutorial_step'>q("CREATE CLASS people AS SELECT * WHERE name IN :0;");</div>
+      <div class='tutorial_step'>q("SELECT * FROM people(['A', 'G']);");</div>
     </div>
     <div id='step8'>
       <div>Step 8</div>
-      <div>Now that you have some data, how about we organize it a little bit.</div>
-      <div>Try this:</div>
+      <div>Let's create more friendships:</div>
       <div>&nbsp;</div>
-      <div>mvsql("CREATE CLASS workers AS SELECT * WHERE EXISTS(name) AND profession IN :0;");</div>
-      <div>mvsql("SELECT * FROM workers;");</div>
-      <div>mvsql("SELECT * FROM workers('musician');");</div>
-      <div>mvsql("SELECT * FROM workers(['l', 'n']);");</div>
+      <div class='tutorial_step'>pins = q("SELECT mv:pinID FROM workers;");</div>
+      <div class='tutorial_step'>pickFriend = function() { return Math.floor(Math.random() * pins.length); };</div>
+      <div class='tutorial_step'>for (i = 0; i &lt; 30; i++) { from = pickFriend(); to = pickFriend(); if (pins[from].id != pins[to].id) q("UPDATE @" + pins[from].id + " ADD friends=@" + pins[to].id + " WHERE (NOT (@" + pins[to].id + " = @.friends));"); }</div>
     </div>
     <div id='step9'>
       <div>Step 9</div>
-      <div>Path expressions let you do pretty fancy graph navigation.</div>
-      <div>Here's a very simple example:</div>
+      <div>Let's attach a different kind of data to the small network generated so far:</div>
       <div>&nbsp;</div>
-      <div>friends = mvsql("SELECT * FROM workers.friend;");</div>
-      <div>for (i = 0; i &lt; friends.length; i++) print("friend of a worker: " + friends[i].name + " (" + friends[i].id + ")");</div>
+      <div class='tutorial_step'>colors=['amber', 'beige', 'carmine', 'denim', 'emerald', 'fuchsia', 'gold', 'ivory', 'jade', 'khaki', 'lapis lazuli', 'magenta', 'orange', 'pink', 'red', 'salmon', 'turquoise', 'vermilion', 'white', 'yellow'];</div>
+      <div class='tutorial_step'>makes=['Audi', 'Bentley', 'DaimlerChrysler', 'Ferrari', 'GM', 'Honda', 'Jaguar', 'KIA', 'Lamborghini', 'Maserati', 'Nissan', 'Porsche', 'Rolls-Royce', 'Suzuki', 'Toyota', 'Volvo'];</div>
+      <div class='tutorial_step'>pins = q("SELECT mv:pinID FROM workers;");</div>
+      <div class='tutorial_step'>pickFrom = function(array) { return array[Math.floor(Math.random() * array.length)]; };</div>
+      <div class='tutorial_step'>for (i = 0; i &lt; pins.length; i++) { q("UPDATE @" + pickFrom(pins).id + " ADD car=(INSERT car_make='" + pickFrom(makes) + "', color='" + pickFrom(colors) + "', year='" + (1950 + Math.floor(Math.random() * 62)) + "');"); }</div>
+      <div class='tutorial_step'>q("CREATE CLASS cars AS SELECT * WHERE EXISTS(car_make);")</div>
+    </div>
+    <div id='step10'>
+      <div>Step 10</div>
+      <div>Path expressions provide a sophisticated means of navigating graphs.</div>
+      <div>Here are a few simple examples:</div>
+      <div>&nbsp;</div>
+      <div class='tutorial_step'>friends = q("SELECT * FROM workers.friends;");</div>
+      <div class='tutorial_step'>for (i = 0; i &lt; friends.length; i++) print("friend of a worker: " + friends[i].name + " (" + friends[i].id + ")");</div>
+      <div class='tutorial_step'>q("SELECT * FROM workers('mathematician').friends.friends.friends;");</div>
+      <div class='tutorial_step'>q("SELECT name, profession FROM workers(['d', 'n']).friends[age &gt; 10 AND age &lt; 50].friends;");</div>
+      <div class='tutorial_step'>q("SELECT * FROM people(['A', 'J']).friends[SUBSTR(name, 0, 1) IN ['A', 'J']];");</div>
+      <div class='tutorial_step'>q("SELECT * FROM workers(['d', 'n']).friends{*}[age &lt; 50];");</div>
+      <div class='tutorial_step'>q("SELECT * FROM workers(['d', 'n']).friends{*}.car[year IN [1980, 2000]];");</div>
+    </div>
+    <div id='step11'>
+      <div>Step 11</div>
+      <div>Good old JOINs are also available.</div>
+      <div>They can be useful to connect relational schema with graphs.</div>
+      <div>&nbsp;</div>
+      <div class='tutorial_step'>q("SELECT * FROM cars AS c JOIN workers(['d', 'n']) AS w ON (c.mv:pinID = w.car) WHERE (c.year IN [1980, 2000]);");</div>
     </div>
   </div>
-  <div id='restart'>End of tutorial. Type t to restart. Or go and download mvStore!</div>
+  <div id='restart'>End of tutorial.<br>Type t to restart.<br>Or check out the 'Basic Console' tab, for more fun.<br>Or go and <a href='doc/mvStore%20getting%20started.html#setup'>install</a> mvStore!</div>
 </div>
 </body>
 </html>

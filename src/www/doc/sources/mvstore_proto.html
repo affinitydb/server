@@ -149,7 +149,7 @@
     <span class="na">CF_UNIQUE</span>       <span class="o">=</span> <span class="mi">16</span><span class="p">;</span>     <span class="c1">// Family with unique values.</span>
 <span class="p">}</span>
 
-<span class="c1">// mvSQL statements (query,insert,update,delete) and individual PIN modification operations can return information with various level of details.</span>
+<span class="c1">// pathSQL statements (query,insert,update,delete) and individual PIN modification operations can return information with various level of details.</span>
 <span class="kd">enum</span> <span class="n">ReturnType</span> <span class="p">{</span>
     <span class="na">RT_PINS</span>         <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="c1">// Specifies that a query will return entire MVStream::PIN object(s) (see definition below).</span>
     <span class="na">RT_COUNT</span>        <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// Specifies that a query will return a simple count.</span>
@@ -209,8 +209,8 @@
         <span class="na">VT_REFIDPROP</span>    <span class="o">=</span> <span class="mi">20</span><span class="p">;</span> <span class="c1">// A reference (Ref) to a property of a PIN.</span>
         <span class="na">VT_REFIDELT</span>     <span class="o">=</span> <span class="mi">22</span><span class="p">;</span> <span class="c1">// A reference (Ref) to a collection element of a property of a PIN.</span>
 
-        <span class="na">VT_EXPR</span>         <span class="o">=</span> <span class="mi">23</span><span class="p">;</span> <span class="c1">// A stored expression, expressed in mvSQL or BLOB.</span>
-        <span class="na">VT_QUERY</span>        <span class="o">=</span> <span class="mi">24</span><span class="p">;</span> <span class="c1">// A stored statement, expressed in mvSQL or BLOB.</span>
+        <span class="na">VT_EXPR</span>         <span class="o">=</span> <span class="mi">23</span><span class="p">;</span> <span class="c1">// A stored expression, expressed in pathSQL or BLOB.</span>
+        <span class="na">VT_QUERY</span>        <span class="o">=</span> <span class="mi">24</span><span class="p">;</span> <span class="c1">// A stored statement, expressed in pathSQL or BLOB.</span>
 
         <span class="na">VT_ARRAY</span>        <span class="o">=</span> <span class="mi">25</span><span class="p">;</span> <span class="c1">// A collection (array of values).</span>
         <span class="na">VT_STRUCT</span>       <span class="o">=</span> <span class="mi">27</span><span class="p">;</span> <span class="c1">// A composite value.</span>
@@ -335,18 +335,18 @@
     <span class="p">}</span>
     <span class="c1">// Query result meta-data, returned by mvStore in an output stream.</span>
     <span class="kd">message</span> <span class="nc">Result</span> <span class="p">{</span>
-        <span class="k">optional</span> <span class="kt">uint64</span>      <span class="na">cid</span>     <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// Client-side ID of corresponding MVSQL or PIN message.</span>
+        <span class="k">optional</span> <span class="kt">uint64</span>      <span class="na">cid</span>     <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// Client-side ID of corresponding PathSQL or PIN message.</span>
         <span class="k">optional</span> <span class="n">ErrorCode</span>    <span class="na">error</span>   <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// Error code. If success - this field is omitted.</span>
         <span class="k">optional</span> <span class="kt">uint64</span>      <span class="na">count</span>   <span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// Result count (only in case of success).</span>
         <span class="k">optional</span> <span class="n">MODOP</span>        <span class="na">op</span>      <span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// The operation performed.</span>
     <span class="p">}</span>
-    <span class="c1">// Specifies a mvsql statement, in an input stream.</span>
-    <span class="kd">message</span> <span class="nc">MVSQL</span> <span class="p">{</span>
-        <span class="k">required</span> <span class="kt">string</span>      <span class="na">sq</span>      <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// Specifies the mvsql statement as a string.</span>
+    <span class="c1">// Specifies a pathSQL statement, in an input stream.</span>
+    <span class="kd">message</span> <span class="nc">PathSQL</span> <span class="p">{</span>
+        <span class="k">required</span> <span class="kt">string</span>      <span class="na">sq</span>      <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// Specifies the pathSQL statement as a string.</span>
         <span class="k">optional</span> <span class="kt">uint64</span>      <span class="na">cid</span>     <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// Client-side ID. Allows identifying results that relate to this statement.</span>
         <span class="k">optional</span> <span class="n">ReturnType</span>   <span class="na">rtt</span>     <span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// Specifies what level of details is expected in the result.</span>
-        <span class="k">repeated</span> <span class="kt">uint32</span>      <span class="na">uids</span>    <span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// Specifies the property ids referred to by the mvsql statement, if any.</span>
-        <span class="k">repeated</span> <span class="n">Value</span>        <span class="na">params</span>  <span class="o">=</span> <span class="mi">5</span><span class="p">;</span> <span class="c1">// Specifies the values of the parameters in the mvsql statement, if any.</span>
+        <span class="k">repeated</span> <span class="kt">uint32</span>      <span class="na">uids</span>    <span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// Specifies the property ids referred to by the pathSQL statement, if any.</span>
+        <span class="k">repeated</span> <span class="n">Value</span>        <span class="na">params</span>  <span class="o">=</span> <span class="mi">5</span><span class="p">;</span> <span class="c1">// Specifies the values of the parameters in the pathSQL statement, if any.</span>
         <span class="k">optional</span> <span class="kt">uint32</span>      <span class="na">limit</span>   <span class="o">=</span> <span class="mi">6</span><span class="p">;</span> <span class="c1">// For pagination (standard).</span>
         <span class="k">optional</span> <span class="kt">uint32</span>      <span class="na">offset</span>  <span class="o">=</span> <span class="mi">7</span><span class="p">;</span> <span class="c1">// For pagination (standard).</span>
         <span class="k">optional</span> <span class="kt">uint32</span>      <span class="na">mode</span>    <span class="o">=</span> <span class="mi">8</span><span class="p">;</span> <span class="c1">// Special modifiers.</span>
@@ -384,7 +384,7 @@
     <span class="k">repeated</span> <span class="n">PIN</span>      <span class="na">pins</span>        <span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// A set of PIN descriptions. In input streams, can be used to insert or update PINs. In output streams, describes the query result.</span>
     <span class="k">repeated</span> <span class="n">StringMap</span>    <span class="na">properties</span>  <span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// A map of property IDs vs names (URIs). In input streams sent to mvStore, the mapping is purely logical (note: by convention property IDs start at 64). In output streams returned by mvStore, the mapping is mvStore&#39;s persistent internal mapping.</span>
     <span class="k">repeated</span> <span class="n">StringMap</span>    <span class="na">identities</span>  <span class="o">=</span> <span class="mi">5</span><span class="p">;</span> <span class="c1">// A map of identity IDs vs names (URIs). In input streams sent to mvStore, the mapping is purely logical. In output streams, the mapping is mvStore&#39;s persistent internal mapping.</span>
-    <span class="k">repeated</span> <span class="n">MVSQL</span>        <span class="na">stmt</span>        <span class="o">=</span> <span class="mi">6</span><span class="p">;</span> <span class="c1">// Query to be executed. Only relevant in input streams sent to mvStore.</span>
+    <span class="k">repeated</span> <span class="n">PathSQL</span>  <span class="na">stmt</span>        <span class="o">=</span> <span class="mi">6</span><span class="p">;</span> <span class="c1">// Query to be executed. Only relevant in input streams sent to mvStore.</span>
     <span class="k">repeated</span> <span class="n">TXOP</span>     <span class="na">txop</span>        <span class="o">=</span> <span class="mi">7</span><span class="p">;</span> <span class="c1">// A transaction operation. In practice, this will only ever contain one element.</span>
     <span class="k">repeated</span> <span class="n">Result</span>       <span class="na">result</span>      <span class="o">=</span> <span class="mi">8</span><span class="p">;</span> <span class="c1">// Query result meta-data. Only relevant in streams output by mvStore. Matches the specified ReturnType.</span>
     <span class="k">repeated</span> <span class="n">Compound</span> <span class="na">compound</span>    <span class="o">=</span> <span class="mi">9</span><span class="p">;</span> <span class="c1">// A few PINs returned as a set.</span>

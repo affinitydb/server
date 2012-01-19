@@ -7,14 +7,14 @@
   <select id='mvtoclist'>
     <option value='features'>features</option>
     <option value='intro'>intro</option>
-    <option value='mvSQL getting started'>mvSQL getting started</option>
-    <option value='mvSQL reference'>mvSQL reference</option>
     <option value='mvStore FAQ'>mvStore FAQ</option>
     <option value='mvStore cpp'>mvStore cpp</option>
     <option value='mvStore getting started'>mvStore getting started</option>
     <option value='mvStore js' SELECTED>mvStore js</option>
     <option value='mvStore protobuf'>mvStore protobuf</option>
     <option value='mvStore server'>mvStore server</option>
+    <option value='pathSQL getting started'>pathSQL getting started</option>
+    <option value='pathSQL reference'>pathSQL reference</option>
     <option value='release notes'>release notes</option>
     <option value='strengths'>strengths</option>
     <option value='terminology'>terminology</option>
@@ -26,12 +26,12 @@
   ><p
   >The <a href="./sources/mvstore-client_js.html"
     >mvstore-client.js</a
-    > module defines a simple interface between node.js and mvStore (via HTTP and the the <a href="./terminology.html#mvserver"
-    >mvServer</a
+    > module defines a simple interface between node.js and mvStore (via HTTP and the <a href="./terminology.html#server"
+    >server</a
     >). The interface is divided in three parts: <a href="#connection-creation"
     >connection creation</a
-    >, <a href="#mvsql-access-with-json-response"
-    >mvSQL access with JSON response</a
+    >, <a href="#pathsql-access-with-json-response"
+    >pathSQL access with JSON response</a
     >, and <a href="#object-friendly-access"
     >object-friendly access</a
     >.</p
@@ -47,7 +47,7 @@
   lMvStore.terminate();
 </pre>
 <p
-    >This example is assuming that mvServer runs on <code
+    >This example is assuming that the server runs on <code
       >localhost</code
       > and listens to port <code
       >4560</code
@@ -57,7 +57,7 @@
       >user</code
       > is specified, it determines the owner of the store. For a new store, the <code
       >password</code
-      > is optional, and implies encryption. It is possible to omit both the <code
+      > is optional, and implies encryption of the store. It is possible to omit both the <code
       >user</code
       > and <code
       >password</code
@@ -67,16 +67,16 @@
     ><p
     >The resulting <code
       >lMvStore</code
-      > object is the public interface of the connection, providing <a href="#mvsql-access-with-json-output"
-      >mvSQL</a
+      > object is the public interface of the connection, providing <a href="#pathsql-access-with-json-output"
+      >pathSQL</a
       > access via its <code
-      >mvsql</code
+      >q</code
       > and <code
-      >mvsqlCount</code
+      >qCount</code
       > methods, and <a href="#object-friendly-access"
       >object-friendly</a
       > access via the other methods (<code
-      >mvsqlProto</code
+      >qProto</code
       >, <code
       >createPINs</code
       >, <code
@@ -102,17 +102,21 @@
     >The connection must be terminated by calling <code
       >terminate</code
       >.</p
+    ><p
+    >Her's a link to more information <a href="./mvStore%20protobuf.html#about-streaming-and-pagination"
+      >about streaming and pagination</a
+      >.</p
     ></div
-  ><div id="mvsql-access-with-json-response"
+  ><div id="pathsql-access-with-json-response"
   ><h2
-    >mvSQL Access with JSON Response</h2
+    >pathSQL Access with JSON Response</h2
     ><p
     >This access path is self-sufficient and will feel most natural to people with SQL experience. Simply emit statements such as:</p
     ><pre>
   var lOnResult = function(pError, pResult) { console.log(pResult[0].id); /* ... */ };
-  lMvStore.mvsql("INSERT (name, profession) VALUES ('Roger', 'Accountant');", lOnResult);
+  lMvStore.q("INSERT (name, profession) VALUES ('Roger', 'Accountant');", lOnResult);
   /* ... */
-  lMvStore.mvsql("SELECT * WHERE EXISTS(name);", lOnResult);
+  lMvStore.q("SELECT * WHERE EXISTS(name);", lOnResult);
 </pre>
 <p
     ><code
@@ -129,15 +133,15 @@
       >object-friendly access methods</a
       >.</p
     ><p
-    >This is a very powerful access path nonetheless. For more information, please refer to the <a href="./mvSQL%20reference.html"
-      >mvSQL reference</a
+    >This is a very powerful access path nonetheless. For more information, please refer to the <a href="./pathSQL%20reference.html"
+      >pathSQL reference</a
       >.</p
-    ><div id="about-transaction-control-with-pure-mvsql-access"
+    ><div id="about-transaction-control-with-pure-pathsql-access"
     ><h4
-      >About Transaction Control with pure mvSQL Access</h4
+      >About Transaction Control with pure pathSQL Access</h4
       ><p
-      >The <a href="./mvSQL%20reference.html"
-	>mvSQL</a
+      >The <a href="./pathSQL%20reference.html"
+	>pathSQL</a
 	> language includes transaction control statements such as <code
 	>START TRANSACTION</code
 	> and <code
@@ -151,7 +155,7 @@
   ><h2
     >Object-friendly Access</h2
     ><p
-    >This access path complements mvSQL by allowing to create, retrieve and modify <code
+    >This access path complements pathSQL by allowing to create, retrieve and modify <code
       >PIN</code
       > objects without any translation to or from a query language.</p
     ><p
@@ -170,7 +174,7 @@
   var lOnResult = function(pError, pResult) { /* ... */ };
   lMvStore.createPINs([{name:"Roger", profession:"Accountant"}], lOnResult);
   /* ... */
-  lMvStore.mvsqlProto(
+  lMvStore.qProto(
     "SELECT * WHERE EXISTS(name);",
     function(pE, pR)
     {
@@ -186,7 +190,7 @@
       >The <code
 	>createPINs</code
 	> and <code
-	>mvsqlProto</code
+	>qProto</code
 	> methods return PIN objects. These objects implement explicit property accessors (i.e. set/get methods), as a safe and simple way to track changes to be effected in the db. Every PIN has the following members:</p
       ><ul
       ><li
@@ -303,7 +307,7 @@
     ><h4
       >About Special Data Types</h4
       ><p
-      >mvStore proposes a more comprehensive array of <a href="./mvSQL%20reference.html#data-types"
+      >mvStore proposes a more comprehensive array of <a href="./pathSQL%20reference.html#data-types"
 	>data types</a
 	> than javascript's core native types. This leads to the following special cases:</p
       ><ul
@@ -365,7 +369,7 @@
 	>commitTx</code
 	>, <code
 	>rollbackTx</code
-	>. In the future, the two methods (pure mvSQL vs protobuf) may be further harmonized.</p
+	>. In the future, the two methods (pure pathSQL vs protobuf) may be further harmonized.</p
       ></div
     ></div
   ></div

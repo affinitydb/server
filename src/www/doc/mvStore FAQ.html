@@ -7,14 +7,14 @@
   <select id='mvtoclist'>
     <option value='features'>features</option>
     <option value='intro'>intro</option>
-    <option value='mvSQL getting started'>mvSQL getting started</option>
-    <option value='mvSQL reference'>mvSQL reference</option>
     <option value='mvStore FAQ' SELECTED>mvStore FAQ</option>
     <option value='mvStore cpp'>mvStore cpp</option>
     <option value='mvStore getting started'>mvStore getting started</option>
     <option value='mvStore js'>mvStore js</option>
     <option value='mvStore protobuf'>mvStore protobuf</option>
     <option value='mvStore server'>mvStore server</option>
+    <option value='pathSQL getting started'>pathSQL getting started</option>
+    <option value='pathSQL reference'>pathSQL reference</option>
     <option value='release notes'>release notes</option>
     <option value='strengths'>strengths</option>
     <option value='terminology'>terminology</option>
@@ -42,19 +42,17 @@
     >classification</a
     >. The result is that mvStore objects do not need to be declared as belonging to any specific class (or table) when they are created. Instead, objects can be stored first, and then dynamically classified into independently defined classes. Membership in these classes may change as the objects change, and as new applications with new classes begin operating in the database.</p
   ><p
-  >The current C++ implementation of mvStore runs in a small-footprint, multithreaded process on windows or linux systems. Data is persisted in the file system. There is support for ACID transactions with isolation and crash recovery.</p
+  >The current C++ implementation of mvStore runs in a small-footprint, multithreaded process on OSX, linux, Windows and ARM-based systems. Data is persisted in the file system. There is support for ACID transactions with isolation and crash recovery.</p
   ><p
   >mvStore has a native <a href="./terminology.html#c-interface"
     >C++ interface</a
     >, as well as a remoteable interface operating through <a href="./terminology.html#protocol-buffer"
     >protobuf</a
-    >-encoded request/response streams. Queries can be passed to the database via <a href="./terminology.html#mvsql"
-    >mvSQL</a
-    >, a SQL-like query language.</p
+    >-encoded request/response streams. Queries can be passed to the database via <a href="./terminology.html#pathsql"
+    >pathSQL</a
+    >, a SQL-like query language. mvStore also produces JSON responses.</p
   ><p
-  >mvStore can also operate as a MySQL storage engine via <a href="./terminology.html#mvengine"
-    >mvEngine</a
-    >, which maps between the native mvStore data model and the MySQL relational data model.</p
+  >mvStore can also operate as a MySQL storage engine via mvEngine, which maps between the native mvStore data model and the MySQL relational data model. This component is not part of the initial release.</p
   ><p
   >Please refer to the <a href="./strengths.html"
     >strengths</a

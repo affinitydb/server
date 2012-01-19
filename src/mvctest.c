@@ -136,7 +136,7 @@ int main( int argc, char* argv[] ) {
             cmd = query;
             cmd_len = strlen( query );
         } else {
-            fprintf( stderr, "mvsql> " );
+            fprintf( stderr, "pathsql> " );
             cmd[0] = '\0';
             fgets( cmd, MAX_CMD, stdin );
             if ( cmd[0] == '\0' ) { fputc( '\n', stderr ); break; }

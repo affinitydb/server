@@ -251,7 +251,7 @@ typedef struct cgi_params_s {
     int timeout;
 } cgi_params_t;
 
-#define INPUT_DEFAULT "mvsql"
+#define INPUT_DEFAULT "pathsql"
 #define OUTPUT_DEFAULT "json"
 
 #define cgi_init( cgi ) do {                    \
@@ -714,7 +714,7 @@ int sock_cgi( int sock, int method, int action, char* path, char* body,
                        TYPE MIME_HTML CRLF, res, 0 );
             return 1;
         }
-        if ( strcmp( cgi.input, "mvsql" ) != 0 ) {
+        if ( strcmp( cgi.input, "pathsql" ) != 0 ) {
             elen = snprintf( exp, BUF_SIZE, 
                              "unrecognized input format: %s\n", cgi.input );
             http_resp( sock, HTTP_INT, HTTP_INT_DESC, NULL, exp, 0 );
@@ -794,8 +794,8 @@ int sock_cgi( int sock, int method, int action, char* path, char* body,
             return 1;
         }
     } else if ( method == METHOD_POST ) { 
-        /* if the input is mvsql we have to read it all into a string */
-	if ( strcmp( cgi.input, "mvsql" ) == 0 ) {
+        /* if the input is pathsql we have to read it all into a string */
+	if ( strcmp( cgi.input, "pathsql" ) == 0 ) {
             if ( clen < 0 ) {
                 isclose = 1;
                 buf = malloc( MAX_POST+1 ); 

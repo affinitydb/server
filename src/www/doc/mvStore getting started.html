@@ -7,14 +7,14 @@
   <select id='mvtoclist'>
     <option value='features'>features</option>
     <option value='intro'>intro</option>
-    <option value='mvSQL getting started'>mvSQL getting started</option>
-    <option value='mvSQL reference'>mvSQL reference</option>
     <option value='mvStore FAQ'>mvStore FAQ</option>
     <option value='mvStore cpp'>mvStore cpp</option>
     <option value='mvStore getting started' SELECTED>mvStore getting started</option>
     <option value='mvStore js'>mvStore js</option>
     <option value='mvStore protobuf'>mvStore protobuf</option>
     <option value='mvStore server'>mvStore server</option>
+    <option value='pathSQL getting started'>pathSQL getting started</option>
+    <option value='pathSQL reference'>pathSQL reference</option>
     <option value='release notes'>release notes</option>
     <option value='strengths'>strengths</option>
     <option value='terminology'>terminology</option>
@@ -46,22 +46,19 @@
       ></ol
     ><p
     >This will install the kernel, server, nodejs, doc and other components of the release, and start the database server.</p
-    ><p
-    ><em
-      >Note: When mvStore becomes open-source, the procedure will be further simplified: steps 3-5 will be replaced with a single step involving a publicly accessible setup script.</em
-      ><br
-       /><em
-      >Note: Similar setup procedures for Windows and OSX are planned but not yet available.</em
-      ><br
-       /><em
-      >Note: A higher-level flavor involving cloudfoundry is also planned.</em
-      ></p
-    ></div
+    ><p style="color:red"><em
+    >Note: When mvStore becomes open-source, the procedure will be further simplified: steps 3-5 will be replaced with a single step involving a publicly accessible setup script.</em
+    ><br
+     /><em
+    >Note: A similar setup procedure for Windows is planned but not yet available.</em
+    ><br
+     /></p>
+</div
   ><div id="simple-access"
   ><h2
     >Simple Access</h2
     ><p
-    >The database <a href="./terminology.html#mvserver"
+    >The database <a href="./terminology.html#server"
       >server</a
       > process is called <code
       >mvstored</code
@@ -77,13 +74,15 @@
     ><p
     >The server exposes a javascript online console at the root (e.g. <code
       >http://localhost:4560/</code
-      >), which allows to navigate the contents of the store and modify data. Just open that URL in a browser. The console can also facilitate learning mvSQL.</p
+      >), which allows to navigate the contents of the store and modify data (same as what you find <a href="http://mvStore.cloudfoundry.com"
+      >online</a
+      >). Just open that URL in a browser. The console can also facilitate learning pathSQL.</p
     ></div
-  ><div id="quick-mvsql-guide"
+  ><div id="quick-pathsql-guide"
   ><h2
-    >Quick mvSQL Guide</h2
+    >Quick pathSQL Guide</h2
     ><p
-    >Please find a quick guide <a href="./mvSQL%20getting%20started.html"
+    >Please find a quick guide <a href="./pathSQL%20getting%20started.html"
       >here</a
       >.</p
     ></div
@@ -116,8 +115,8 @@
 	><td align="left"
 	  >mvstored[.exe]</td
 	  ><td align="left"
-	  >The database server, also known as <a href="./terminology.html#mvserver"
-	    >mvserver</a
+	  >The database <a href="./terminology.html#server"
+	    >server</a
 	    ></td
 	  ></tr
 	><tr class="odd"

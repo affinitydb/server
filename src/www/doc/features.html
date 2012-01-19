@@ -7,14 +7,14 @@
   <select id='mvtoclist'>
     <option value='features' SELECTED>features</option>
     <option value='intro'>intro</option>
-    <option value='mvSQL getting started'>mvSQL getting started</option>
-    <option value='mvSQL reference'>mvSQL reference</option>
     <option value='mvStore FAQ'>mvStore FAQ</option>
     <option value='mvStore cpp'>mvStore cpp</option>
     <option value='mvStore getting started'>mvStore getting started</option>
     <option value='mvStore js'>mvStore js</option>
     <option value='mvStore protobuf'>mvStore protobuf</option>
     <option value='mvStore server'>mvStore server</option>
+    <option value='pathSQL getting started'>pathSQL getting started</option>
+    <option value='pathSQL reference'>pathSQL reference</option>
     <option value='release notes'>release notes</option>
     <option value='strengths'>strengths</option>
     <option value='terminology'>terminology</option>
@@ -37,17 +37,17 @@
   ><li
     >small, embeddable, cross-platform C++ kernel (no dependency on any virtual machine)</li
     ><li
-    ><a href="./terminology.html#mvsql"
-      >mvSQL</a
-      > interface, plus streaming interface using <a href="./terminology.html#protocol-buffer"
+    ><a href="./terminology.html#pathsql"
+      >pathSQL</a
+      > query language, plus streaming interface using <a href="./terminology.html#protocol-buffer"
       >protocol-buffers</a
       ></li
     ><li
-    >path expressions for advanced (yet compact) graph queries</li
+    >path expressions for advanced, recursive, yet compact graph queries</li
     ><li
     >ability to mix SQL and graph queries</li
     ><li
-    >nested DML for compact graph inserts and updates</li
+    >nested DML for single-statement graph inserts and updates</li
     ><li
     >ACID transactions (with support for JOIN spanning multiple objects)</li
     ><li
@@ -105,7 +105,7 @@
       >ACL</a
       > at object granularity</li
     ><li
-    >rich set of <a href="./mvSQL%20reference.html#data-types"
+    >rich set of <a href="./pathSQL%20reference.html#data-types"
       >data types</a
       >, including <a href="./terminology.html#collection"
       >collections</a
@@ -148,7 +148,7 @@
       ><li
       >path indexing (for improved efficiency of path expression evaluation)</li
       ><li
-      >reasoning, inductive inferences, data mining</li
+      >probabilistic graph modeling, data mining</li
       ><li
       >XQuery and other interfaces</li
       ></ul
