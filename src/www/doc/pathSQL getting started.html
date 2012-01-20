@@ -150,7 +150,7 @@
     ><p
     ><code class='pathsql_snippet'>SELECT bornin FROM class2('Jurgen').friends{*}[BEGINS(livesin, 'C')];</code></p
     ><p
-    ><code class='pathsql_snippet'>SELECT age FROM class2('Jurgen').friends{*}[age &gt; 30];</code></p
+    ><code class='pathsql_snippet'>SELECT age FROM class2('Jurgen').friends{+}[age &gt; 30];</code></p
     ><p
     ><code class='pathsql_snippet'>SELECT DISTINCT FROM class1.friends{*}.photos;</code></p
     ><p
@@ -232,9 +232,9 @@
     ><p
     ><code class='pathsql_snippet'>SELECT * FROM clsfml;</code></p
     ><p
-    ><code class='pathsql_snippet'>SELECT * FROM clsfml(*, 'Fred');</code></p
+    ><code class='pathsql_inert'>SELECT * FROM clsfml(*, 'Fred');</code></p
     ><p
-    ><code class='pathsql_snippet'>SELECT * FROM clsfml(27, *);</code></p
+    ><code class='pathsql_inert'>SELECT * FROM clsfml(27, *);</code></p
     ></div
   ></div
 >

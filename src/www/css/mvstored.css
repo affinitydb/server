@@ -60,10 +60,9 @@ tr.selected { background-color:#d3c8b8; }
 
 /* content_left (batching tab) */
 #batching_left { position:absolute; top:50px; width:100%; bottom:0; margin:0; white-space:normal; border:none; padding:0; }
-#query_area { overflow:none; position:absolute; top:2px; width:80%; height:30%; border:none; padding-left:0.9em; padding-right:110px; }
+#query_area { overflow:none; position:absolute; top:2px; width:80%; height:35%; border:none; padding-left:0.9em; padding-right:110px; }
 #query_area_q { float:left; width:100%; height:100%; }
 #query_area_go { float:right; margin-left:5px; margin-right:-112px; width:100px; }
-#query_area_warning { float:left; width:100%; font-size:0.6em; line-height:1em; color:#400; }
 #result_area { overflow:none; margin-left:0.9em; position:absolute; top:40%; width:80%; bottom:10px; border:none; }
 #result_area_page { overflow:auto; height:90%; }
 

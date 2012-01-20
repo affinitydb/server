@@ -73,13 +73,6 @@
       <div id='query_area'>
         <textarea id='query_area_q' cols=10></textarea>
         <button id='query_area_go'>go</button>
-        <div id='query_area_warning'>
-          <p>
-          WARNING:<br>
-          &nbsp;Presently, statements are not guaranteed to be executed in a single stream; transactions may not be respected.<br>
-          &nbsp;Some browsers provide a means of avoiding this issue (e.g. in firefox, via about:config, set network.http.max-persistent-connections-per-server=1).
-          </p>
-        </div>
       </div>
       <div id='result_area'>
         <select name='results' id='result_area_selector'>
@@ -263,7 +256,10 @@
       <div class='tutorial_step'>names=['Abby', 'Bruce', 'Camille', 'Derek', 'Ed', 'Frank', 'Greg', 'Harold', 'Ivy', 'Joseph', 'Karl', 'Lynne', 'Mark', 'Nick', 'Oscar', 'Pam', 'Queen', 'Ramon', 'Steve', 'Ted', 'Ursula', 'Victor', 'Wayne', 'Xavier', 'Young', 'Zack'];</div>
       <div class='tutorial_step'>professions=['teacher', 'accompanist', 'accountant', 'actor', 'athlete', 'attorney', 'bacteriologist', 'botanist', 'conciliator', 'engineer', 'journalist', 'mathematician', 'mediator', 'meteorologist', 'salesman'];</div>
       <div class='tutorial_step'>pickFrom = function(array) { return array[Math.floor(Math.random() * array.length)]; };</div>
-      <div class='tutorial_step'>for (i = 0; i &lt; 15; i++) { save({name:pickFrom(names), age:Math.random()*100, profession:pickFrom(professions)}); }</div>
+      <div class='tutorial_step'>statements = []; for (i = 0; i &lt; 50; i++) statements.push("INSERT name='" + pickFrom(names) + "', age=" + Math.random()*100 + ", profession='" + pickFrom(professions) + "';");</div>
+      <div class='tutorial_step'>q("START TRANSACTION;");</div>
+      <div class='tutorial_step'>for (i = 0; i &lt; statements.length; i++) { q(statements[i]); }</div>
+      <div class='tutorial_step'>q("COMMIT;");</div>
     </div>
     <div id='step7'>
       <div>Step 7</div>
@@ -283,7 +279,10 @@
       <div>&nbsp;</div>
       <div class='tutorial_step'>pins = q("SELECT mv:pinID FROM workers;");</div>
       <div class='tutorial_step'>pickFriend = function() { return Math.floor(Math.random() * pins.length); };</div>
-      <div class='tutorial_step'>for (i = 0; i &lt; 30; i++) { from = pickFriend(); to = pickFriend(); if (pins[from].id != pins[to].id) q("UPDATE @" + pins[from].id + " ADD friends=@" + pins[to].id + " WHERE (NOT (@" + pins[to].id + " = @.friends));"); }</div>
+      <div class='tutorial_step'>statements = []; for (i = 0; i &lt; 2 * pins.length; i++) { from = pickFriend(); to = pickFriend(); if (pins[from].id != pins[to].id) statements.push("UPDATE @" + pins[from].id + " ADD friends=@" + pins[to].id + " WHERE (NOT (@" + pins[to].id + " = @.friends));"); }</div>
+      <div class='tutorial_step'>q("START TRANSACTION;");</div>
+      <div class='tutorial_step'>for (i = 0; i &lt; statements.length; i++) { q(statements[i]); }</div>
+      <div class='tutorial_step'>q("COMMIT;");</div>
     </div>
     <div id='step9'>
       <div>Step 9</div>
@@ -293,12 +292,15 @@
       <div class='tutorial_step'>makes=['Audi', 'Bentley', 'DaimlerChrysler', 'Ferrari', 'GM', 'Honda', 'Jaguar', 'KIA', 'Lamborghini', 'Maserati', 'Nissan', 'Porsche', 'Rolls-Royce', 'Suzuki', 'Toyota', 'Volvo'];</div>
       <div class='tutorial_step'>pins = q("SELECT mv:pinID FROM workers;");</div>
       <div class='tutorial_step'>pickFrom = function(array) { return array[Math.floor(Math.random() * array.length)]; };</div>
-      <div class='tutorial_step'>for (i = 0; i &lt; pins.length; i++) { q("UPDATE @" + pickFrom(pins).id + " ADD car=(INSERT car_make='" + pickFrom(makes) + "', color='" + pickFrom(colors) + "', year='" + (1950 + Math.floor(Math.random() * 62)) + "');"); }</div>
+      <div class='tutorial_step'>statements = []; for (i = 0; i &lt; pins.length; i++) { statements.push("UPDATE @" + pickFrom(pins).id + " ADD car=(INSERT car_make='" + pickFrom(makes) + "', color='" + pickFrom(colors) + "', year='" + (1950 + Math.floor(Math.random() * 62)) + "');"); }</div>
+      <div class='tutorial_step'>q("START TRANSACTION;");</div>
+      <div class='tutorial_step'>for (i = 0; i &lt; statements.length; i++) { q(statements[i]); }</div>
+      <div class='tutorial_step'>q("COMMIT;");</div>
       <div class='tutorial_step'>q("CREATE CLASS cars AS SELECT * WHERE EXISTS(car_make);")</div>
     </div>
     <div id='step10'>
       <div>Step 10</div>
-      <div>Path expressions provide a sophisticated means of navigating graphs.</div>
+      <div>Path expressions provide an easy yet powerful means of navigating graphs.</div>
       <div>Here are a few simple examples:</div>
       <div>&nbsp;</div>
       <div class='tutorial_step'>friends = q("SELECT * FROM workers.friends;");</div>
@@ -306,7 +308,7 @@
       <div class='tutorial_step'>q("SELECT * FROM workers('mathematician').friends.friends.friends;");</div>
       <div class='tutorial_step'>q("SELECT name, profession FROM workers(['d', 'n']).friends[age &gt; 10 AND age &lt; 50].friends;");</div>
       <div class='tutorial_step'>q("SELECT * FROM people(['A', 'J']).friends[SUBSTR(name, 0, 1) IN ['A', 'J']];");</div>
-      <div class='tutorial_step'>q("SELECT * FROM workers(['d', 'n']).friends{*}[age &lt; 50];");</div>
+      <div class='tutorial_step'>q("SELECT * FROM workers(['d', 'n']).friends{+}[age &lt; 50];");</div>
       <div class='tutorial_step'>q("SELECT * FROM workers(['d', 'n']).friends{*}.car[year IN [1980, 2000]];");</div>
     </div>
     <div id='step11'>
@@ -316,8 +318,19 @@
       <div>&nbsp;</div>
       <div class='tutorial_step'>q("SELECT * FROM cars AS c JOIN workers(['d', 'n']) AS w ON (c.mv:pinID = w.car) WHERE (c.year IN [1980, 2000]);");</div>
     </div>
+    <!-- <div id='step12'>
+      <div>Step 12</div>
+      <div>To finish, let's have a quick look at mvstore's integrated units of measurement.</div>
+      <div>&nbsp;</div>
+      <div class='tutorial_step'>people = q("SELECT * FROM people;");</div>
+      <div class='tutorial_step'>statements = []; for (i = 0; i &lt; people.length; i++) { infeet = (Math.random() > 0.5); statements.push("UPDATE @" + people[i].id + " ADD height=" + (infeet ? (4.5 + Math.random() * 2.5) : (1.5 + Math.random() * 0.5)) + (infeet ? "ft" : "m") + ";"); }</div>
+      <div class='tutorial_step'>q("START TRANSACTION;");</div>
+      <div class='tutorial_step'>for (i = 0; i &lt; statements.length; i++) { q(statements[i]); }</div>
+      <div class='tutorial_step'>q("COMMIT;");</div>
+      <div class='tutorial_step'>q("SELECT name, height FROM workers ORDER BY height;")</div>
+    </div> -->
   </div>
-  <div id='restart'>End of tutorial.<br>Type t to restart.<br>Or check out the 'Basic Console' tab, for more fun.<br>Or go and <a href='doc/mvStore%20getting%20started.html#setup'>install</a> mvStore!</div>
+  <div id='restart'>End of tutorial.<br>Type t to restart.<br>Or check out the 'Basic Console' tab, for more fun (watch out for tooltips!).<br>Or go and <a href='doc/mvStore%20getting%20started.html#setup'>install</a> mvStore!</div>
 </div>
 </body>
 </html>

@@ -84,7 +84,7 @@ public:
     };
 protected:
     typedef std::vector<MvStoreInstance *> TStores; /* Note: Later, could be sorted/arranged differently (by identity and/or by storectx). */
-    Mutex storesLock;
+    Mutex storesLock, creationLock;
     TStores stores;
 public:
     MvStoreMgr() {}
@@ -104,8 +104,12 @@ public:
         }
         MvStoreInstance * lInst = findByName( pUserName );
         if ( !lInst ) {
-            lInst = new MvStoreInstance( pUserName, pUserPw, pAutoCreate );
-            stores.push_back( lInst );
+            MutexP const lLock( &creationLock ); // At this stage, only newcomers will block each other.
+            lInst = findByName( pUserName );
+            if ( !lInst ) {
+                lInst = new MvStoreInstance( pUserName, pUserPw, pAutoCreate );
+                stores.push_back( lInst );
+            }
         }
         lInst->addref();
         return lInst->getStoreCtx();
@@ -113,8 +117,12 @@ public:
     MVStoreCtx beginUseInstance( void * pStoreCtx ) {
         MvStoreInstance * lInst = findByStore( ( MVStoreCtx )pStoreCtx );
         if ( !lInst ) {
-            lInst = new MvStoreInstance( ( MVStoreCtx )pStoreCtx );
-            stores.push_back( lInst );
+            MutexP const lLock( &creationLock ); // At this stage, only newcomers will block each other.
+            lInst = findByStore( ( MVStoreCtx )pStoreCtx );
+            if ( !lInst ) {
+                lInst = new MvStoreInstance( ( MVStoreCtx )pStoreCtx );
+                stores.push_back( lInst );
+            }
         }
         lInst->addref();
         return lInst->getStoreCtx();

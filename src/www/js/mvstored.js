@@ -359,6 +359,34 @@ BatchingSQL.prototype.go = function()
   this.mPages = new Array();
   var lThis = this;
   var lQueries = this.mQueryAreaQ.val().replace(/\n/g,"").split(';');
+  var lOnResults =
+    function(_pJson)
+    {
+      if (0 == _pJson.length || lQueries.length < _pJson.length)
+        return;
+      for (var iQ = 0; iQ < _pJson.length; iQ++)
+      {
+        var _lPage = {ui:$("<div />"), query:(lQueries[iQ] + ";"), result:null};
+        _lPage.result = new QResultTable(_lPage.ui, null);
+        MV_CONTEXT.mQueryHistory.recordQuery(_lPage.query);
+        _lPage.result._addRows(_pJson[iQ]);
+        lThis.mResultList.append($("<option>" + _lPage.query + "</option>"));
+        lThis.mPages.push(_lPage);
+        lThis.mResultPage.append(_lPage.ui);
+        _lPage.ui.css("display", "none");
+      }
+    };
+  mv_batch_query(lQueries, new QResultHandler(lOnResults, function(_pError){ print("error:" + _pError[0].responseText); }), {sync:true});
+  if (this.mPages.length > 0)
+    this.mPages[0].ui.css("display", "block");
+}
+BatchingSQL.prototype.go_1by1 = function() // No longer used.
+{
+  this.mResultList.empty();
+  this.mResultPage.empty();
+  this.mPages = new Array();
+  var lThis = this;
+  var lQueries = this.mQueryAreaQ.val().replace(/\n/g,"").split(';');
   $.each(
     lQueries,
     function(_pI, _pE)
@@ -579,11 +607,46 @@ function Tutorial()
       function print(__pWhat) { lThis.mHistory.append($("<p class='tutorial_result'>" + _stringify(__pWhat, false) + "</p>")); }
       function pathsql(__pSql)
       {
-        MV_CONTEXT.mQueryHistory.recordQuery(__pSql);
+        // Log in the query history.
+        // WARNING:
+        //   This proves to be catastrophically slow, and is so detrimental to the
+        //   performance of the tutorial that I decided to forget about it.
+        // MV_CONTEXT.mQueryHistory.recordQuery(__pSql);
+
         var __lEvalResult = null;
         var __lOnPathsql = function(__pJson, __pD) { _onPathsqlResult(__pJson); __lEvalResult = __pJson; }
-        mv_query(mv_sanitize_semicolon(__pSql), new QResultHandler(__lOnPathsql, function(__pError){ print("error:" + __pError[0].responseText); }), {sync:true});
-        return __lEvalResult;
+
+        // Note:
+        //   It doesn't appear to be possible to rely on keep-alive for transactions, in all browsers.
+        //   On the other hand, we would like to display the best performance possible (in the tutorial).
+        //   Therefore, we provide this compromise, where operations of a transaction will not return any
+        //   result synchronously.
+        // Note:
+        //   For the moment I'm not planning to use nested transactions in the tutorial,
+        //   so I don't add complexity here to support them.
+        if (undefined != lThis.mPendingTx)
+        {
+          lThis.mPendingTx.push(__pSql);
+          if (__pSql.match(/\s*commit/i))
+          {
+            mv_batch_query(lThis.mPendingTx, new QResultHandler(__lOnPathsql, function(__pError){ print("error:" + __pError[0].responseText); }), {sync:true});
+            lThis.mPendingTx = null;
+            return __lEvalResult;
+          }
+          else
+            return {"note":"in the web console, results of operations in a transaction are returned upon commit"};
+        }
+        else if (__pSql.match(/\s*start\s*transaction/i))
+        {
+          lThis.mPendingTx = new Array();
+          lThis.mPendingTx.push(__pSql);
+          return {"note":"in the web console, results of operations in a transaction are returned upon commit"};
+        }
+        else
+        {
+          mv_query(mv_sanitize_semicolon(__pSql), new QResultHandler(__lOnPathsql, function(__pError){ print("error:" + __pError[0].responseText); }), {sync:true});
+          return __lEvalResult;
+        }
       }
       function q(__pSql) { return pathsql(__pSql); }
       function save(__pJson)
@@ -692,7 +755,8 @@ function Tutorial()
       lThis.mStmtHistoryCursor = null;
       eval(_lStmt);
       lThis.mScroll();
-    }  
+    }
+  this.mPendingTx = null;
   this.mInput = $("#tutorial_input");
   this.mHistory = $("#tutorial_history");
   this.mStmtHistory = new Array();
@@ -772,6 +836,9 @@ $(document).ready(
     // Note:
     //   For the moment, for simplicity, we refresh classes everytime we come back from another tab
     //   (where classes may have been created).
+    // Note:
+    //   This also allows to land on the tutorial page without emitting any query to the store upfront,
+    //   which is nice in a setup where the front-end is hosted in a separate environment.
     $("#tab-basic").bind("activate_tab", function() { populate_classes(); $("#query").focus(); });
     // Setup the main navigational tab system.
     // Note: We set this up after the actual tabs, in order for them to receive the initial 'activate_tab'.
@@ -792,8 +859,6 @@ $(document).ready(
       $("#storeident").val(unescape(lInitialStoreId[1]));
       $("#storepw").val("");
     }
-    // Populate startup UI from queries.
-    populate_classes();
     // UI callback for query form.
     $("#form").submit(function() {
       var lResultList = $("#result_list");
@@ -931,7 +996,6 @@ function mv_with_qname_prefixes(pQueryStr)
 }
 function mv_sanitize_json_result(pResultStr)
 {
-  //var lStr = "[" + pResultStr.replace(/\n/g, "").replace(/\}\s*\{/g, "},{") + "]";
   try
   {
     var lJsonRaw = $.parseJSON(pResultStr.replace(/\s+/g, " ")); // Note: for some reason chrome is more sensitive to those extra characters than other browsers.
@@ -961,8 +1025,17 @@ function mv_sanitize_classname(pClassName)
 function mv_sanitize_semicolon(pQ)
 {
   // Remove the last semicolon, if any, to make sure the store recognizes single-instructions as such.
-  var _lChk = pQ.match(/(.*)(;)(\s*)$/);
-  return (undefined != _lChk && undefined != _lChk[1] && undefined != _lChk[2]) ? pQ.substr(0, _lChk[1].length) : pQ;
+  if (undefined == pQ || 0 == pQ.length) return "";
+  for (var _i = pQ.length - 1; _i >= 0; _i--)
+  {
+    switch (pQ.charAt(_i))
+    {
+      case ";": return pQ.substr(0, _i);
+      case " ": case "\n": continue;
+      default: return pQ;
+    }
+  }
+  return "";
 }
 function mv_escape_with_plus(pStr)
 {
@@ -999,6 +1072,39 @@ function mv_query(pSqlStr, pResultHandler, pOptions)
     global: false,
     success: function(data) { /*alert(data);*/ pResultHandler.onsuccess(mv_sanitize_json_result(data), pSqlStr); },
     error: function() { pResultHandler.onerror(arguments, pSqlStr); },
+    beforeSend : function(req) {
+      if (!lHasOption('keepalive') || pOptions.keepalive) { req.setRequestHeader('Connection', 'Keep-Alive'); } // Note: This doesn't seem to guaranty that a whole multi-statement transaction (e.g. batching console) will run in a single connection; in firefox, it works if I configure network.http.max-persistent-connections-per-server=1 (via the about:config page).
+      var lStoreIdent = $("#storeident").val();
+      var lStorePw = $("#storepw").val();
+      if (lStoreIdent.length > 0) { req.setRequestHeader('Authorization', "Basic " + base64_encode(lStoreIdent + ":" + lStorePw)); }
+    }
+  });
+}
+function mv_batch_query(pSqlStrArray, pResultHandler, pOptions)
+{
+  if (null == pSqlStrArray || 0 == pSqlStrArray.length)
+    { console.log("mv_query: invalid sql batch"); pResultHandler.onerror(null, pSqlStrArray); return; }
+  var lBody = "";
+  for (var iStmt = 0; iStmt < pSqlStrArray.length; iStmt++)
+  {
+    lBody = lBody + mv_with_qname_prefixes(pSqlStrArray[iStmt]);
+    var lChkSemicolon = pSqlStrArray[iStmt].match(/(.*)(;)(\s*)$/);
+    if (iStmt < pSqlStrArray.length - 1 && (undefined == lChkSemicolon || undefined == lChkSemicolon[2]))
+      lBody = lBody + ";";
+  }
+  var lHasOption = function(_pOption) { return (undefined != pOptions && _pOption in pOptions); }
+  lBody = "q=" + mv_escape_with_plus(lBody) + (lHasOption('countonly') ? "&type=count" : "") + (lHasOption('limit') ? ("&limit=" + pOptions.limit) : "") + (lHasOption('offset') ? ("&offset=" + pOptions.offset) : "");
+  $.ajax({
+    type: "POST",
+    data: lBody,
+    url: DB_ROOT + "?i=pathsql&o=json",
+    dataType: "text", // Review: until mvStore returns 100% clean json...
+    async: (lHasOption('sync') && pOptions.sync) ? false : true,
+    timeout: (lHasOption('sync') && pOptions.sync) ? 10000 : null,
+    cache: false,
+    global: false,
+    success: function(data) { /*alert(data);*/ pResultHandler.onsuccess(mv_sanitize_json_result(data), pSqlStrArray); },
+    error: function() { pResultHandler.onerror(arguments, pSqlStrArray); },
     beforeSend : function(req) {
       if (!lHasOption('keepalive') || pOptions.keepalive) { req.setRequestHeader('Connection', 'Keep-Alive'); } // Note: This doesn't seem to guaranty that a whole multi-statement transaction (e.g. batching console) will run in a single connection; in firefox, it works if I configure network.http.max-persistent-connections-per-server=1 (via the about:config page).
       var lStoreIdent = $("#storeident").val();
@@ -1178,7 +1284,4 @@ function update_qnames_ui()
 }
 
 // TODO (Ming): special hints for divergences from standard SQL
-// TODO (Ming): links from mvstore console to documentation and vice versa (e.g. execute code snippet)
-  // e.g. in tutorial, put links; in basic console, put a help beside the query string, and jump to the most relevant place; 
-  // also add a search somewhere
 // TODO: future modes (e.g. graph navigator, erdiagram, wizard to create pins that conform with 1..n classes, ...)
