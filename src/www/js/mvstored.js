@@ -583,19 +583,19 @@ function Tutorial()
         {
           if (__pWhat instanceof Array)
           {
-            var __lR = "[";
-            for (__i = 0; __i < __pWhat.length; __i++)
-              __lR = __lR + _stringify(__pWhat[__i]) + ",";
-            return __lR + "]";
+            var __lR = [];
+            for (var __i = 0; __i < __pWhat.length; __i++)
+              __lR.push(_stringify(__pWhat[__i], __pQuoteStrings));
+            return "[" + __lR.join(",") + "]<br>";
           }
           else if (__pWhat instanceof Date)
             return "'" + __pWhat.toString() + "'";
           else
           {
-            var __lR = "{";
-            for (__iP in __pWhat)
-              __lR = __lR + "  " + __iP + ":" + _stringify(__pWhat[__iP], true) + ",";
-            return __lR + "}";
+            var __lR = [];
+            for (var __iP in __pWhat)
+              __lR.push(__iP + ":" + _stringify(__pWhat[__iP], true));
+            return "{" + __lR.join(",") + "}";
           }
         }
         else if (typeof(__pWhat) == "string" && __pQuoteStrings)
@@ -986,7 +986,7 @@ function mv_with_qname_prefixes(pQueryStr)
       if (lPrefix in MV_CONTEXT.mQName2Prefix)
         lToDefine[lPrefix] = MV_CONTEXT.mQName2Prefix[lPrefix];
       else
-        alert("unknown prefix: " + lPrefix);
+        alert("Unknown prefix: " + lPrefix);
     }
   }
   var lProlog = "";
@@ -996,25 +996,35 @@ function mv_with_qname_prefixes(pQueryStr)
 }
 function mv_sanitize_json_result(pResultStr)
 {
+  var lTransform =
+    function(_pJsonRaw)
+    {
+      if (typeof(_pJsonRaw) == "number" || typeof(_pJsonRaw) == "boolean" || typeof(_pJsonRaw) == "string")
+        return _pJsonRaw;
+      if (typeof(_pJsonRaw) != "object")
+        { alert("Unexpected type: " + typeof(_pJsonRaw)); return _pJsonRaw; }
+      if (_pJsonRaw instanceof Array)
+      {
+        var _lNewArray = new Array();
+        for (var _iElm = 0; _iElm < _pJsonRaw.length; _iElm++)
+          _lNewArray.push(lTransform(_pJsonRaw[_iElm]));
+        return _lNewArray;
+      }
+      var _lNewObj = new Object();
+      for (var _iProp in _pJsonRaw)
+      {
+        var _lNewProp = mv_with_qname(_iProp);
+        if (_iProp == _lNewProp)
+          { _lNewObj[_iProp] = _pJsonRaw[_iProp]; continue; }
+        _lNewObj[_lNewProp] = _pJsonRaw[_iProp];
+      }
+      return _lNewObj;
+    };
   try
   {
     var lJsonRaw = $.parseJSON(pResultStr.replace(/\s+/g, " ")); // Note: for some reason chrome is more sensitive to those extra characters than other browsers.
     if (null == lJsonRaw) { return null; }
-    if (typeof(lJsonRaw) == "number") { return lJsonRaw; }
-    var lJson = new Array();
-    for (var i = 0; i < lJsonRaw.length; i++)
-    {
-      var lNewObj = new Object();
-      for (var iProp in lJsonRaw[i])
-      {
-        var lNewProp = mv_with_qname(iProp);
-        if (iProp == lNewProp)
-          { lNewObj[iProp] = lJsonRaw[i][iProp]; continue; }
-        lNewObj[lNewProp] = lJsonRaw[i][iProp];
-      }
-      lJson.push(lNewObj);
-    }
-    return lJson;
+    return lTransform(lJsonRaw);
   } catch(e) { console.log("mv_sanitize_json_result: " + e); }
   return null;
 }

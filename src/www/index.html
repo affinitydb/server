@@ -256,7 +256,7 @@
       <div class='tutorial_step'>names=['Abby', 'Bruce', 'Camille', 'Derek', 'Ed', 'Frank', 'Greg', 'Harold', 'Ivy', 'Joseph', 'Karl', 'Lynne', 'Mark', 'Nick', 'Oscar', 'Pam', 'Queen', 'Ramon', 'Steve', 'Ted', 'Ursula', 'Victor', 'Wayne', 'Xavier', 'Young', 'Zack'];</div>
       <div class='tutorial_step'>professions=['teacher', 'accompanist', 'accountant', 'actor', 'athlete', 'attorney', 'bacteriologist', 'botanist', 'conciliator', 'engineer', 'journalist', 'mathematician', 'mediator', 'meteorologist', 'salesman'];</div>
       <div class='tutorial_step'>pickFrom = function(array) { return array[Math.floor(Math.random() * array.length)]; };</div>
-      <div class='tutorial_step'>statements = []; for (i = 0; i &lt; 50; i++) statements.push("INSERT name='" + pickFrom(names) + "', age=" + Math.random()*100 + ", profession='" + pickFrom(professions) + "';");</div>
+      <div class='tutorial_step'>statements = []; for (i = 0; i &lt; 40; i++) statements.push("INSERT name='" + pickFrom(names) + "', age=" + Math.random()*100 + ", profession='" + pickFrom(professions) + "';");</div>
       <div class='tutorial_step'>q("START TRANSACTION;");</div>
       <div class='tutorial_step'>for (i = 0; i &lt; statements.length; i++) { q(statements[i]); }</div>
       <div class='tutorial_step'>q("COMMIT;");</div>
@@ -279,7 +279,7 @@
       <div>&nbsp;</div>
       <div class='tutorial_step'>pins = q("SELECT mv:pinID FROM workers;");</div>
       <div class='tutorial_step'>pickFriend = function() { return Math.floor(Math.random() * pins.length); };</div>
-      <div class='tutorial_step'>statements = []; for (i = 0; i &lt; 2 * pins.length; i++) { from = pickFriend(); to = pickFriend(); if (pins[from].id != pins[to].id) statements.push("UPDATE @" + pins[from].id + " ADD friends=@" + pins[to].id + " WHERE (NOT (@" + pins[to].id + " = @.friends));"); }</div>
+      <div class='tutorial_step'>statements = []; for (i = 0; i &lt; (3 * pins.length / 2); i++) { from = pickFriend(); to = pickFriend(); if (pins[from].id != pins[to].id) statements.push("UPDATE @" + pins[from].id + " ADD friends=@" + pins[to].id + " WHERE (NOT (@" + pins[to].id + " = @.friends));"); }</div>
       <div class='tutorial_step'>q("START TRANSACTION;");</div>
       <div class='tutorial_step'>for (i = 0; i &lt; statements.length; i++) { q(statements[i]); }</div>
       <div class='tutorial_step'>q("COMMIT;");</div>
