@@ -629,8 +629,11 @@ function Tutorial()
           lThis.mPendingTx.push(__pSql);
           if (__pSql.match(/\s*commit/i))
           {
-            mv_batch_query(lThis.mPendingTx, new QResultHandler(__lOnPathsql, function(__pError){ print("error:" + __pError[0].responseText); }), {sync:true});
-            lThis.mPendingTx = null;
+            mv_batch_query(
+              lThis.mPendingTx,
+              new QResultHandler(
+                function(__pJson, __pD){ lThis.mPendingTx = null; __lOnPathsql(__pJson, __pD); },
+                function(__pError){ lThis.mPendingTx = null; print("error:" + __pError[0].responseText); }), {sync:true});
             return __lEvalResult;
           }
           else
