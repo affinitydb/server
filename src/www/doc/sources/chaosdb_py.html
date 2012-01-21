@@ -1,9 +1,9 @@
 <head>
-  <link href='../css/mvdoc.css' rel='stylesheet' type='text/css' />
+  <link href='../css/ksdoc.css' rel='stylesheet' type='text/css' />
   <link href='../css/source.css' rel='stylesheet' type='text/css' />
 </head>
-<div id="mvstore_py">
-<h1>mvstore.py</h1>
+<div id="chaosdb_py">
+<h1>chaosdb.py</h1>
 
 <!-- begin highlighted code -->
 <div class="highlight"><pre><span class="c">#!/usr/bin/env python2.6</span>
@@ -1301,6 +1301,62 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_handlePINUpdate</span><span class="p">(</span><span class="n">PIN</span><span class="p">({</span> \
             <span class="n">PIN</span><span class="o">.</span><span class="n">SK_PID</span><span class="p">:</span><span class="bp">self</span><span class="o">.</span><span class="n">mPID</span><span class="p">,</span> \
             <span class="n">pProperty</span><span class="p">:(</span><span class="n">lE2</span><span class="p">,</span> <span class="n">PIN</span><span class="o">.</span><span class="n">Extra</span><span class="p">(</span><span class="n">pType</span><span class="o">=</span><span class="n">mvstore_pb2</span><span class="o">.</span><span class="n">Value</span><span class="o">.</span><span class="n">VT_UINT</span><span class="p">,</span> <span class="n">pOp</span><span class="o">=</span><span class="n">lOp</span><span class="p">,</span> <span class="n">pEid</span><span class="o">=</span><span class="n">lE1</span><span class="p">))}))</span>
+
+<span class="c"># TODO: document the effect of recordPINUpdate, and correct usage (e.g. since updates are deferred, queries can be affected)</span>
+<span class="c"># TODO: better del support, for the pin itself; better remove for last element of collection</span>
+<span class="c"># TODO: finish testing the more esoteric formats, to make sure their conversion is good</span>
+<span class="c"># TODO: test that units of measurement work ok back and forth between pathSQL and pure protobuf</span>
+<span class="c"># ---</span>
+<span class="c"># TODO: mark pins that have participated to a rolled-back transaction as dirty, and refresh them if reused</span>
+<span class="c"># TODO: make sure that all paths produce exceptions when necessary (e.g. all MVSTORE().get/post failures); show better in samples/tests</span>
+<span class="c"># TODO: could accept a PIN as a reference value (equivalent to PIN.Ref) - although it may open up hopes and questions that we may want to avoid</span>
+<span class="c"># TODO: could add mass moving helpers (for coll elements: move all in X=(...) before/after Y [in the order specified in X]).</span>
+<span class="c"># TODO: produce warnings/errors when (or deal with) a PIN with extras is manipulated in such a way that consistency between extras and values is lost.</span>
+<span class="c"># TODO: probably discard the notion of session in MVStoreConnection (it was desirable in a test environment, but here I feel it&#39;s more questionable).</span>
+<span class="c"># TODO: maybe implement __deepcopy__</span>
+<span class="c"># TODO: when available, offer the option to apply modifs only if the stamp didn&#39;t change</span>
+<span class="c"># TODO: support namespaces in protobuf mode?</span>
+
+<span class="c"># TODO: in PBTransactionCtx, introduce streaming, as an option to fetch the data as a cursor instead of as a MVStream. Probably a few more options as well: PB output, PIN output, PID output, cursor, ...</span>
+    <span class="c">#from google.protobuf.internal import decoder, encoder</span>
+    <span class="c">#def test_streaming(pPinIDs):</span>
+        <span class="c">## write something like InternalParse</span>
+        <span class="c">#lRawRes = gMvStore.q(&quot;SELECT * FROM {@%x};&quot; % pPinIDs[0].id)</span>
+        <span class="c">#lStreamObj = mvstore_pb2.MVStream()</span>
+        <span class="c">##lStreamRes.ParseFromString(lRawRes)</span>
+        <span class="c">## Note:</span>
+        <span class="c">##   I adapted the code below from protobuf/reflection.py:InternalParse,</span>
+        <span class="c">##   which is the implementation of ParseFromString. This highlights the</span>
+        <span class="c">##   required mechanisms to implement streaming of inner/repeated fields</span>
+        <span class="c">##   for read, in python. I will be using this in the upcoming python</span>
+        <span class="c">##   library.</span>
+        <span class="c">#lTag_pins = encoder.TagBytes(3, 2) # mvstore_pb2.MVStream.pins.number, length-delimited wire type</span>
+        <span class="c">#pos = 0</span>
+        <span class="c">#local_ReadTag = decoder.ReadTag</span>
+        <span class="c">#local_SkipField = decoder.SkipField</span>
+        <span class="c">#decoders_by_tag = lStreamObj.__class__._decoders_by_tag</span>
+        <span class="c">##print decoders_by_tag</span>
+        <span class="c">#lFieldDict = lStreamObj._fields</span>
+        <span class="c">#while pos != len(lRawRes):</span>
+          <span class="c">#(tag_bytes, new_pos) = local_ReadTag(lRawRes, pos)          </span>
+          <span class="c">#field_decoder = decoders_by_tag.get(tag_bytes)</span>
+          <span class="c">#if tag_bytes == lTag_pins and False:</span>
+              <span class="c">#print &quot;just for fun, skip the pins&quot;</span>
+              <span class="c">#field_decoder = None</span>
+          <span class="c">#if field_decoder is None:</span>
+            <span class="c">#new_pos = local_SkipField(lRawRes, new_pos, len(lRawRes), tag_bytes)</span>
+            <span class="c">#if new_pos == -1:</span>
+              <span class="c">#return pos</span>
+            <span class="c">#pos = new_pos</span>
+          <span class="c">#else:</span>
+            <span class="c">#pos = field_decoder(lRawRes, new_pos, len(lRawRes), lStreamObj, lFieldDict)</span>
+        <span class="c">#if pos != len(lRawRes):</span>
+            <span class="c">#raise Exception</span>
+        <span class="c">#print &quot;number of pins found via streaming: %d&quot; % len(lStreamObj.pins)</span>
+        <span class="c">#if len(lStreamObj.pins) &gt; 0:</span>
+            <span class="c">#lReader = MVStoreReader(lStreamObj)</span>
+            <span class="c">#lPinChk = lReader.readPIN(lStreamObj.pins[0])</span>
+            <span class="c">#print &quot;pin read via streaming: %s&quot; % lPinChk</span>
 </pre></div>
 <!-- end highlighted code -->
 

@@ -2,16 +2,16 @@
 $(document).ready(
   function() {
     // TOC.
-    var lTocBar = $("#mvtocbar");
-    $("#mvtoclist").change(
+    var lTocBar = $("#kstocbar");
+    $("#kstoclist").change(
       function()
       {
-        var _lCurPage = $("#mvtoclist option:selected").val();
+        var _lCurPage = $("#kstoclist option:selected").val();
         window.location.href = 'http://' + location.hostname + ":" + location.port + "/doc/" + escape(_lCurPage) + ".html";
       });
 
     // TODO: think about an implementation for search (possibly using a store).
-    // var lSearch = $("<input id='mvtocsearch'>");
+    // var lSearch = $("<input id='kstocsearch'>");
     // lTocBar.append(lSearch);
     
     // Activation + stylization of snippets.
@@ -42,7 +42,7 @@ $(document).ready(
               global: false,
               success: function(data) { lResult.text(data); },
               error: function() { lResult.text("error"); },
-              beforeSend : function(req) { req.setRequestHeader('Authorization', "Basic ZG9jc2FtcGxlOg=="); }
+              beforeSend : function(req) { req.setRequestHeader('Authorization', "Basic ZG9jc2FtcGxlOg=="/*docsample:*/); }
             });
           });
       });

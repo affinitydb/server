@@ -1,36 +1,36 @@
 <head>
   <script src='js/jquery.js' type='text/javascript'></script>
   <script src='js/snippets_to_console.js' type='text/javascript'></script>
-  <link href='css/mvdoc.css' rel='stylesheet' type='text/css' />
+  <link href='css/ksdoc.css' rel='stylesheet' type='text/css' />
 </head>
-<div id='mvtocbar'>
-  <select id='mvtoclist'>
-    <option value='features'>features</option>
+<div id='kstocbar'>
+  <select id='kstoclist'>
     <option value='intro'>intro</option>
-    <option value='mvStore FAQ'>mvStore FAQ</option>
-    <option value='mvStore cpp' SELECTED>mvStore cpp</option>
-    <option value='mvStore getting started'>mvStore getting started</option>
-    <option value='mvStore js'>mvStore js</option>
-    <option value='mvStore protobuf'>mvStore protobuf</option>
-    <option value='mvStore server'>mvStore server</option>
-    <option value='pathSQL getting started'>pathSQL getting started</option>
+    <option value='ChaosDB cpp' SELECTED>ChaosDB cpp</option>
+    <option value='ChaosDB js'>ChaosDB js</option>
+    <option value='ChaosDB protobuf'>ChaosDB protobuf</option>
+    <option value='ChaosDB server'>ChaosDB server</option>
+    <option value='FAQ'>FAQ</option>
+    <option value='features'>features</option>
+    <option value='getting started'>getting started</option>
+    <option value='pathSQL primer'>pathSQL primer</option>
     <option value='pathSQL reference'>pathSQL reference</option>
     <option value='release notes'>release notes</option>
     <option value='strengths'>strengths</option>
     <option value='terminology'>terminology</option>
   </select>
 </div>
-<div id="mvstore-c-interface"
+<div id="chaosdb-c-interface"
 ><h1
-  >mvStore C++ Interface</h1
+  >ChaosDB C++ Interface</h1
   ><p
   >Please read the brief <a href="./terminology.html#c-interface"
     >introduction</a
-    >. The bulk of the interface is defined in <a href="./sources/mvstore_h.html"
-    >mvstore.h</a
+    >. The bulk of the interface is defined in <a href="./sources/chaosdb_h.html"
+    >chaosdb.h</a
     >.</p
   ><p
-  >The main purpose of mvStore's C++ interface is to provide a means of integrating the mvStore database kernel into an embedding application, such as a database server or an embedded system. The &quot;bare-metal&quot; nature of the interface is meant to introduce no artificial overhead in those cases.</p
+  >The main purpose of ChaosDB's C++ interface is to provide a means of integrating the ChaosDB database kernel into an embedding application, such as a database server or an embedded system. The &quot;bare-metal&quot; nature of the interface is meant to introduce no artificial overhead in those cases.</p
   ><p
   >An essential part of the C++ interface is to give access to <a href="./terminology.html#pathsql"
     >pathSQL</a
@@ -46,7 +46,7 @@
     >expression building</a
     > methods etc.) that overlap with the functionality exposed via pathSQL and protocol-buffers. As a rule of thumb, all these elements should be avoided unless necessary (being in C++, and being inseparable from the kernel itself, they'd make the client code inseparable from the kernel, which is undesirable for normal database client code). Even an embedding process such as the <a href="./terminology.html#server"
     >server</a
-    > only uses a tiny fraction of the C++ interface (all in storecmd.cpp). A justification for using more of the C++ interface could be, for example, to implement additional query languages for mvStore.</p
+    > only uses a tiny fraction of the C++ interface (all in storecmd.cpp). A justification for using more of the C++ interface could be, for example, to implement additional query languages for ChaosDB.</p
   ><p
   >Without documenting each and every function (or parameter) of the C++ interface, this page presents enough information to use it successfully. The following interfaces and structures are covered: <a href="#isession"
     >ISession</a
@@ -82,12 +82,12 @@
   ><p
   ><a href="./sources/startup_h.html"
     >startup.h</a
-    > defines the initial entry point to mvStore. It provides functions to create, open and shutdown one or more instances of databases. <code
+    > defines the initial entry point to ChaosDB. It provides functions to create, open and shutdown one or more instances of databases. <code
     >openStore</code
     > and <code
     >createStore</code
     > produce an opaque <code
-    >MVStoreCtx</code
+    >ChaosDBCtx</code
     > token, used to initiate <a href="#isession"
     >sessions</a
     >.</p
@@ -109,7 +109,7 @@
       >identity</a
       > of this database. Although it can be changed via <code
       >ISession::changeStoreIdentity</code
-      >, mvStore provides no mechanism to propagate this change to other databases that may have stored <a href="./terminology.html#pin-reference"
+      >, ChaosDB provides no mechanism to propagate this change to other databases that may have stored <a href="./terminology.html#pin-reference"
       >references</a
       > and may assume that the name didn't change.<br
        /></li
@@ -127,7 +127,7 @@
       >STORE_OWNER</code
       > and guest <a href="./terminology.html#identity"
       >identities</a
-      >). When encryption is enabled, mvStore provides no mechanism to recover a forgotten password.<br
+      >). When encryption is enabled, ChaosDB provides no mechanism to recover a forgotten password.<br
        /></li
     ><li
     ><code
@@ -154,7 +154,7 @@
   ><li
     ><code
       >nBuffers</code
-      > determines the amount of memory reserved by mvStore for its page buffer.<br
+      > determines the amount of memory reserved by ChaosDB for its page buffer.<br
        /></li
     ><li
     ><code
@@ -276,7 +276,7 @@
       >ISession::commitPINs</code
       > is called. In either case, the typical flow is to create <a href="#value"
       >Value</a
-      >-s and pass them to these methods. As soon as the PINs become real in the database, mvStore assigns a <a href="./terminology.html#pin-id-pid"
+      >-s and pass them to these methods. As soon as the PINs become real in the database, ChaosDB assigns a <a href="./terminology.html#pin-id-pid"
       >PID</a
       > to each of them. PINs can be easily retrieved by their PID, using <code
       >ISession::getPIN</code
@@ -451,11 +451,11 @@
   ><p
   >The <code
     >Value</code
-    > structure defined in <a href="./sources/mvstore_h.html"
-    >mvstore.h</a
+    > structure defined in <a href="./sources/chaosdb_h.html"
+    >chaosdb.h</a
     > can represent any of the <a href="./pathSQL%20reference.html#data-types"
     >data types</a
-    > supported by mvStore. <code
+    > supported by ChaosDB. <code
     >Value</code
     > is used both as an input value (to create or modify PINs) and as an output value (to read the contents of PINs).</p
   ><div id="as-input-modify"
@@ -484,16 +484,16 @@
       >property</a
       > to which this value belongs. It can be one of the <code
       >PROP\_SPEC\_*</code
-      > values (documented in detail in <a href="./sources/mvstore_proto.html"
-      >mvstore.proto</a
+      > values (documented in detail in <a href="./sources/chaosdb_proto.html"
+      >chaosdb.proto</a
       >). Or it can be a property ID obtained via <a href="#isession::mapuris"
       >mapURIs</a
       >, described earlier.</p
     ><p
     >The <code
       >op</code
-      > field defines how the value is intended to be used. For a relatively thorough description of possibilities, please refer to line 198 in <a href="./sources/mvstore_proto.html"
-      >mvstore.proto</a
+      > field defines how the value is intended to be used. For a relatively thorough description of possibilities, please refer to line 198 in <a href="./sources/chaosdb_proto.html"
+      >chaosdb.proto</a
       >.</p
     ><p
     >The <code
@@ -506,8 +506,8 @@
       >OP_ADD</code
       > and <code
       >OP_ADD_BEFORE</code
-      > in <a href="./sources/mvstore_proto.html"
-      >mvstore.proto</a
+      > in <a href="./sources/chaosdb_proto.html"
+      >chaosdb.proto</a
       >]). For existing elements, <code
       >eid</code
       > can be used in conjunction with <code
@@ -526,8 +526,8 @@
       >SSV</a
       > etc. The <code
       >META\_PROP\_*</code
-      > flags are documented in <a href="./sources/mvstore_h.html"
-      >mvstore.h</a
+      > flags are documented in <a href="./sources/chaosdb_h.html"
+      >chaosdb.h</a
       >.</p
     ></div
   ><div id="as-output-read"
@@ -593,7 +593,7 @@
 <p
   >Usually, the root node of an expression is passed to <code
     >IStmt::addCondition</code
-    >. Internally, mvStore compiles the expression into a representation optimized for execution (<code
+    >. Internally, ChaosDB compiles the expression into a representation optimized for execution (<code
     >IExpr</code
     >). The methods of <code
     >IExprTree</code
@@ -732,8 +732,8 @@
     >IStream::dataType</code
     >, BLOBs can be marked as text-only (ascii or unicode), or binary. Note that BLOBs, like strings, can be modified via <code
     >OP_EDIT</code
-    >, described in detail in <a href="./sources/mvstore_proto.html"
-    >mvstore.proto's StrEdit</a
+    >, described in detail in <a href="./sources/chaosdb_proto.html"
+    >chaosdb.proto's StrEdit</a
     > (but in the current state of the implementation, this is not fully optimized for blobs). Note also that text BLOBs can participate to full-text indexes, just like any text property. It is possible to build <a href="./terminology.html#collection"
     >collections</a
     > of BLOBs.</p

@@ -1,0 +1,67 @@
+<head>
+  <script src='js/jquery.js' type='text/javascript'></script>
+  <script src='js/snippets_to_console.js' type='text/javascript'></script>
+  <link href='css/ksdoc.css' rel='stylesheet' type='text/css' />
+</head>
+<div id='kstocbar'>
+  <select id='kstoclist'>
+    <option value='intro'>intro</option>
+    <option value='ChaosDB cpp'>ChaosDB cpp</option>
+    <option value='ChaosDB js'>ChaosDB js</option>
+    <option value='ChaosDB protobuf'>ChaosDB protobuf</option>
+    <option value='ChaosDB server'>ChaosDB server</option>
+    <option value='FAQ' SELECTED>FAQ</option>
+    <option value='features'>features</option>
+    <option value='getting started'>getting started</option>
+    <option value='pathSQL primer'>pathSQL primer</option>
+    <option value='pathSQL reference'>pathSQL reference</option>
+    <option value='release notes'>release notes</option>
+    <option value='strengths'>strengths</option>
+    <option value='terminology'>terminology</option>
+  </select>
+</div>
+<div id="what-is-chaosdb"
+><h1
+  >What is ChaosDB?</h1
+  ><p
+  >ChaosDB is a new database kernel with features that borrow (we hope the best) aspects from RDBMS, OODBMS, document databases, graph databases, and RDF and XML stores. In academic terms, it is a hybrid between value-oriented databases (that distinguish entities primarily by their values [e.g. primary keys of relational systems]) and ID-based object-oriented databases.</p
+  ><p
+  >Unlike relational databases, ChaosDB is schema-less (no tables), yet provides a rich native <a href="./terminology.html#essential-concepts-data-model"
+    >data model</a
+    > including objects with fields of various native datatypes, ordered <a href="./terminology.html#collection"
+    >collections</a
+    > (for modeling XML-like list structures) and <a href="./terminology.html#pin-reference"
+    >references</a
+    > (for modeling relationships between objects). Objects are self-describing (every field is labeled with a URI) and freely extensible (different objects can have different fields). Schema or organization (<a href="./terminology.html#class"
+    >classes</a
+    >) can be overlaid on the data, without any change to the data.</p
+  ><p
+  >ChaosDB provides built-in <a href="./terminology.html#index"
+    >indexing</a
+    > (both structured and full-text) and query processing. However, unlike relational systems, ChaosDB does this using dynamic <a href="./terminology.html#class"
+    >classification</a
+    >. The result is that ChaosDB objects do not need to be declared as belonging to any specific class (or table) when they are created. Instead, objects can be stored first, and then dynamically classified into independently defined classes. Membership in these classes may change as the objects change, and as new applications with new classes begin operating in the database.</p
+  ><p
+  >The current C++ implementation of ChaosDB runs in a small-footprint, multithreaded process on OSX, linux, Windows and ARM-based systems. Data is persisted in the file system. There is support for ACID transactions with isolation and crash recovery.</p
+  ><p
+  >ChaosDB has a native <a href="./terminology.html#c-interface"
+    >C++ interface</a
+    >, as well as a remoteable interface operating through <a href="./terminology.html#protocol-buffer"
+    >protobuf</a
+    >-encoded request/response streams. Queries can be passed to the database via <a href="./terminology.html#pathsql"
+    >pathSQL</a
+    >, a SQL-like query language. ChaosDB also produces JSON responses.</p
+  ><p
+  >ChaosDB can also operate as a MySQL storage engine via ksEngine, which maps between the native ChaosDB data model and the MySQL relational data model. This component is not part of the initial release.</p
+  ><p
+  >Please refer to the <a href="./strengths.html"
+    >strengths</a
+    > page, for more information on the basic tenets of ChaosDB.</p
+  ></div
+><div id="faq"
+><h1
+  >FAQ</h1
+  ><p
+  >This section will provide answers to frequently-asked questions.</p
+  ></div
+>

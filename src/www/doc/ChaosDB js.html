@@ -1,32 +1,32 @@
 <head>
   <script src='js/jquery.js' type='text/javascript'></script>
   <script src='js/snippets_to_console.js' type='text/javascript'></script>
-  <link href='css/mvdoc.css' rel='stylesheet' type='text/css' />
+  <link href='css/ksdoc.css' rel='stylesheet' type='text/css' />
 </head>
-<div id='mvtocbar'>
-  <select id='mvtoclist'>
-    <option value='features'>features</option>
+<div id='kstocbar'>
+  <select id='kstoclist'>
     <option value='intro'>intro</option>
-    <option value='mvStore FAQ'>mvStore FAQ</option>
-    <option value='mvStore cpp'>mvStore cpp</option>
-    <option value='mvStore getting started'>mvStore getting started</option>
-    <option value='mvStore js' SELECTED>mvStore js</option>
-    <option value='mvStore protobuf'>mvStore protobuf</option>
-    <option value='mvStore server'>mvStore server</option>
-    <option value='pathSQL getting started'>pathSQL getting started</option>
+    <option value='ChaosDB cpp'>ChaosDB cpp</option>
+    <option value='ChaosDB js' SELECTED>ChaosDB js</option>
+    <option value='ChaosDB protobuf'>ChaosDB protobuf</option>
+    <option value='ChaosDB server'>ChaosDB server</option>
+    <option value='FAQ'>FAQ</option>
+    <option value='features'>features</option>
+    <option value='getting started'>getting started</option>
+    <option value='pathSQL primer'>pathSQL primer</option>
     <option value='pathSQL reference'>pathSQL reference</option>
     <option value='release notes'>release notes</option>
     <option value='strengths'>strengths</option>
     <option value='terminology'>terminology</option>
   </select>
 </div>
-<div id="mvstore-javascript-interface-for-node.js"
+<div id="chaosdb-javascript-interface-for-node.js"
 ><h1
-  >mvStore Javascript Interface for node.js</h1
+  >ChaosDB Javascript Interface for node.js</h1
   ><p
-  >The <a href="./sources/mvstore-client_js.html"
-    >mvstore-client.js</a
-    > module defines a simple interface between node.js and mvStore (via HTTP and the <a href="./terminology.html#server"
+  >The <a href="./sources/chaosdb-client_js.html"
+    >chaosdb-client.js</a
+    > module defines a simple interface between node.js and ChaosDB (via HTTP and the <a href="./terminology.html#server"
     >server</a
     >). The interface is divided in three parts: <a href="#connection-creation"
     >connection creation</a
@@ -41,10 +41,10 @@
     ><p
     >To establish a new connection, a client simply needs to do the following:</p
     ><pre>
-  var lib_mvstore = require('mvstore-client');
-  var lMvStore = lib_mvstore.createConnection("http://user:password@localhost:4560/db/", {keepalive:false});
+  var lib_chaosdb = require('chaosdb-client');
+  var lChaosDB = lib_chaosdb.createConnection("http://user:password@localhost:4560/db/", {keepalive:false});
   ...
-  lMvStore.terminate();
+  lChaosDB.terminate();
 </pre>
 <p
     >This example is assuming that the server runs on <code
@@ -52,7 +52,7 @@
       > and listens to port <code
       >4560</code
       >, and that the <code
-      >mvstore-client</code
+      >chaosdb-client</code
       > module for node.js is properly installed. If a <code
       >user</code
       > is specified, it determines the owner of the store. For a new store, the <code
@@ -66,7 +66,7 @@
       >), in which case a default store owner is used.</p
     ><p
     >The resulting <code
-      >lMvStore</code
+      >lChaosDB</code
       > object is the public interface of the connection, providing <a href="#pathsql-access-with-json-output"
       >pathSQL</a
       > access via its <code
@@ -88,22 +88,22 @@
       > or not. If <code
       >keepalive</code
       > is enabled, then the resulting <code
-      >lMvStore</code
+      >lChaosDB</code
       > object represents a physical connection, implying one stable store session in the server, for the whole lifetime of that connection. If <code
       >keepalive</code
       > is disabled, then the resulting <code
-      >lMvStore</code
+      >lChaosDB</code
       > object represents an abstract connection (which is effectively instantiating shorter physical connections on demand).</p
     ><p
     >Either way, <code
-      >lMvStore</code
-      > represents one logical connection, usable in one logical execution thread. Concurrent access to the mvStore server requires multiple instances of a connection.</p
+      >lChaosDB</code
+      > represents one logical connection, usable in one logical execution thread. Concurrent access to the ChaosDB server requires multiple instances of a connection.</p
     ><p
     >The connection must be terminated by calling <code
       >terminate</code
       >.</p
     ><p
-    >Her's a link to more information <a href="./mvStore%20protobuf.html#about-streaming-and-pagination"
+    >Her's a link to more information <a href="./ChaosDB%20protobuf.html#about-streaming-and-pagination"
       >about streaming and pagination</a
       >.</p
     ></div
@@ -114,16 +114,16 @@
     >This access path is self-sufficient and will feel most natural to people with SQL experience. Simply emit statements such as:</p
     ><pre>
   var lOnResult = function(pError, pResult) { console.log(pResult[0].id); /* ... */ };
-  lMvStore.q("INSERT (name, profession) VALUES ('Roger', 'Accountant');", lOnResult);
+  lChaosDB.q("INSERT (name, profession) VALUES ('Roger', 'Accountant');", lOnResult);
   /* ... */
-  lMvStore.q("SELECT * WHERE EXISTS(name);", lOnResult);
+  lChaosDB.q("SELECT * WHERE EXISTS(name);", lOnResult);
 </pre>
 <p
     ><code
       >pResult</code
-      > is a parsed JSON response produced by mvStore.</p
+      > is a parsed JSON response produced by ChaosDB.</p
     ><p
-    >Note that this simple access path does not include any ORM or any means of feeding javascript objects (or JSON) directly to mvStore as input data (for example, it doesn't enable saving a javascript object with properties <code
+    >Note that this simple access path does not include any ORM or any means of feeding javascript objects (or JSON) directly to ChaosDB as input data (for example, it doesn't enable saving a javascript object with properties <code
       >name</code
       > and <code
       >profession</code
@@ -172,15 +172,15 @@
     >Here are some examples:</p
     ><pre>
   var lOnResult = function(pError, pResult) { /* ... */ };
-  lMvStore.createPINs([{name:"Roger", profession:"Accountant"}], lOnResult);
+  lChaosDB.createPINs([{name:"Roger", profession:"Accountant"}], lOnResult);
   /* ... */
-  lMvStore.qProto(
+  lChaosDB.qProto(
     "SELECT * WHERE EXISTS(name);",
     function(pE, pR)
     {
-      lMvStore.startTx();
+      lChaosDB.startTx();
       pR[0].set("profession", "Lawyer");
-      lMvStore.commitTx(lOnResult);
+      lChaosDB.commitTx(lOnResult);
     });
 </pre>
 <div id="pin-interface"
@@ -307,7 +307,7 @@
     ><h4
       >About Special Data Types</h4
       ><p
-      >mvStore proposes a more comprehensive array of <a href="./pathSQL%20reference.html#data-types"
+      >ChaosDB proposes a more comprehensive array of <a href="./pathSQL%20reference.html#data-types"
 	>data types</a
 	> than javascript's core native types. This leads to the following special cases:</p
       ><ul
@@ -354,14 +354,14 @@
 	  >Url</code
 	  > object</li
 	><li
-	>compatibility with non-js mvStore applications: some applications, especially those designed natively in javascript, may not care about certain details such as the ideal (most compact, or most exact) representation of numeric values, but other applications may; in order to support a healthy coexistence, our javascript client library preserves the originally stored value types; in the future, more control may be provided</li
+	>compatibility with non-js ChaosDB applications: some applications, especially those designed natively in javascript, may not care about certain details such as the ideal (most compact, or most exact) representation of numeric values, but other applications may; in order to support a healthy coexistence, our javascript client library preserves the originally stored value types; in the future, more control may be provided</li
 	></ul
       ></div
     ><div id="about-transaction-control-with-object-friendly-access"
     ><h4
       >About Transaction Control with Object-friendly Access</h4
       ><p
-      >At the level of the mvStore kernel, presently, every protobuf stream is associated with a topmost transaction. That allows the client library to use transactions without <code
+      >At the level of the ChaosDB kernel, presently, every protobuf stream is associated with a topmost transaction. That allows the client library to use transactions without <code
 	>keepalive</code
 	>. Within the protobuf context, transaction control is specified via the connection's methods: <code
 	>startTx</code

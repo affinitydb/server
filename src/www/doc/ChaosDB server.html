@@ -1,19 +1,19 @@
 <head>
   <script src='js/jquery.js' type='text/javascript'></script>
   <script src='js/snippets_to_console.js' type='text/javascript'></script>
-  <link href='css/mvdoc.css' rel='stylesheet' type='text/css' />
+  <link href='css/ksdoc.css' rel='stylesheet' type='text/css' />
 </head>
-<div id='mvtocbar'>
-  <select id='mvtoclist'>
-    <option value='features'>features</option>
+<div id='kstocbar'>
+  <select id='kstoclist'>
     <option value='intro'>intro</option>
-    <option value='mvStore FAQ'>mvStore FAQ</option>
-    <option value='mvStore cpp'>mvStore cpp</option>
-    <option value='mvStore getting started'>mvStore getting started</option>
-    <option value='mvStore js'>mvStore js</option>
-    <option value='mvStore protobuf'>mvStore protobuf</option>
-    <option value='mvStore server' SELECTED>mvStore server</option>
-    <option value='pathSQL getting started'>pathSQL getting started</option>
+    <option value='ChaosDB cpp'>ChaosDB cpp</option>
+    <option value='ChaosDB js'>ChaosDB js</option>
+    <option value='ChaosDB protobuf'>ChaosDB protobuf</option>
+    <option value='ChaosDB server' SELECTED>ChaosDB server</option>
+    <option value='FAQ'>FAQ</option>
+    <option value='features'>features</option>
+    <option value='getting started'>getting started</option>
+    <option value='pathSQL primer'>pathSQL primer</option>
     <option value='pathSQL reference'>pathSQL reference</option>
     <option value='release notes'>release notes</option>
     <option value='strengths'>strengths</option>
@@ -24,21 +24,21 @@
 ><h2
   >NAME</h2
   ><p
-  >mvstored - embedded web server for CGI access to the mvstored db</p
+  >chaosdbd - embedded web server for CGI access to the chaosdbd db</p
   ></div
 ><div id="synopsis"
 ><h2
   >SYNOPSIS</h2
   ><p
   ><code
-    >mvstored</code
+    >chaosdbd</code
     > [ <options>... ]</p
   ></div
 ><div id="description"
 ><h2
   >DESCRIPTION</h2
   ><p
-  >mvstored is an embedded web server which provides CGI access to the mvstore database. It also includes a minimal simple static web server for its own internal purposes to serve basic web admin CGIs &amp; ui.</p
+  >chaosdbd is an embedded web server which provides CGI access to the ChaosDB database. It also includes a minimal simple static web server for its own internal purposes to serve basic web admin CGIs &amp; ui.</p
   ><p
   >(All CGIs are builtin, there is intentionally no support for user defined CGIs.)</p
   ></div
@@ -46,26 +46,26 @@
 ><h2
   >USAGE NOTES</h2
   ><p
-  >Mvstore natively supports two query languages pathSQL and protobuf, plus a native C++ api. pathSQL is a SQL dialect. protobuf is query/response serialization defined with google protobuf. The store server supports both pathSQL and protobuf.</p
+  >ChaosDB natively supports two query languages pathSQL and protobuf, plus a native C++ api. pathSQL is a SQL dialect. protobuf is query/response serialization defined with google protobuf. The store server supports both pathSQL and protobuf.</p
   ><p
   >With pathSQL queries, the result is sent in JSON encoding by default. (But you can alternatively request protobuf encoded results.)</p
   ><p
-  >With protobuf encoded queries, the result is sent in protobuf by default. (At present mvstore server does not support JSON encoded results for protobuf encoded requests.)</p
+  >With protobuf encoded queries, the result is sent in protobuf by default. (At present the ChaosDB server does not support JSON encoded results for protobuf encoded requests.)</p
   ><p
-  >Mvstore supports both HTTP GET and HTTP POST CGIs and parameters. With HTTP GET the arguments must be URL encoded, and with HTTP POST both binary and urlencoded parameters are supported. The POST handling also supports urlencoded url parameters (which is needed to avoid a bootstrap problem in specifying the encoding of POST parameters).</p
+  >ChaosDB supports both HTTP GET and HTTP POST CGIs and parameters. With HTTP GET the arguments must be URL encoded, and with HTTP POST both binary and urlencoded parameters are supported. The POST handling also supports urlencoded url parameters (which is needed to avoid a bootstrap problem in specifying the encoding of POST parameters).</p
   ></div
 ><div id="options"
 ><h2
   >OPTIONS</h2
   ><p
-  >The flags that are supported by mvstored are as follows:</p
+  >The flags that are supported by chaosdbd are as follows:</p
   ><pre
   ><code
     >`-d dir` document root for the web server.  Also the store file is
 read from this directory.  The docroot can also be specified using
 the DOCROOT environment variable.  The environment variable
-overrides the mvstored -d argument if both are present.  (Note: if
-mvstored is executed via mvEngine and the mvDaemon dll/so the
+overrides the chaosdbd -d argument if both are present.  (Note: if
+chaosdbd is executed via ksEngine and the ksDaemon dll/so the
 DOCROOT envorinment variable is the only way to set the document
 root).
 
@@ -187,7 +187,7 @@ For example query parameter 1 &quot;:1&quot; can be instantiated with value
   >FILES</h2
   ><pre
   ><code
-    >`mv.store` and `mv*.txlog`, in a sub-directory of the document-root,
+    >`chaos.db` and `chaos*.txlog`, in a sub-directory of the document-root,
 named after the basic-auth user connecting with the server
 (the default sub-directory name is `test` if no basic-auth header
 was specified).
@@ -201,18 +201,18 @@ was specified).
   >Copyright VMware <script type="text/javascript"
     >
 <!--
-h='&#118;&#x6d;&#x77;&#x61;&#114;&#x65;&#46;&#x63;&#x6f;&#x6d;';a='&#64;';n='&#x6d;&#118;&#x73;&#116;&#x6f;&#114;&#x65;';e=n+a+h;
+h='&#118;&#x6d;&#x77;&#x61;&#114;&#x65;&#46;&#x63;&#x6f;&#x6d;';a='&#64;';n='&#x63;&#104;&#x61;&#x6f;&#x73;&#100;&#98;';e=n+a+h;
 document.write('<a h'+'ref'+'="ma'+'ilto'+':'+e+'">'+'<code>'+e+'</code>'+'<\/'+'a'+'>');
 // -->
 </script
     ><noscript
-    >&#x6d;&#118;&#x73;&#116;&#x6f;&#114;&#x65;&#32;&#x61;&#116;&#32;&#118;&#x6d;&#x77;&#x61;&#114;&#x65;&#32;&#100;&#x6f;&#116;&#32;&#x63;&#x6f;&#x6d;</noscript
+    >&#x63;&#104;&#x61;&#x6f;&#x73;&#100;&#98;&#32;&#x61;&#116;&#32;&#118;&#x6d;&#x77;&#x61;&#114;&#x65;&#32;&#100;&#x6f;&#116;&#32;&#x63;&#x6f;&#x6d;</noscript
     ></p
   ></div
 ><div id="see-also"
 ><h2
   >SEE ALSO</h2
   ><p
-  >libmvstore(7), http://mvstore.eng.vmware.com/</p
+  >libchaosdb(7), http://chaosdb.eng.vmware.com/</p
   ></div
 >

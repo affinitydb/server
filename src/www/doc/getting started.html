@@ -1,33 +1,33 @@
 <head>
   <script src='js/jquery.js' type='text/javascript'></script>
   <script src='js/snippets_to_console.js' type='text/javascript'></script>
-  <link href='css/mvdoc.css' rel='stylesheet' type='text/css' />
+  <link href='css/ksdoc.css' rel='stylesheet' type='text/css' />
 </head>
-<div id='mvtocbar'>
-  <select id='mvtoclist'>
-    <option value='features'>features</option>
+<div id='kstocbar'>
+  <select id='kstoclist'>
     <option value='intro'>intro</option>
-    <option value='mvStore FAQ'>mvStore FAQ</option>
-    <option value='mvStore cpp'>mvStore cpp</option>
-    <option value='mvStore getting started' SELECTED>mvStore getting started</option>
-    <option value='mvStore js'>mvStore js</option>
-    <option value='mvStore protobuf'>mvStore protobuf</option>
-    <option value='mvStore server'>mvStore server</option>
-    <option value='pathSQL getting started'>pathSQL getting started</option>
+    <option value='ChaosDB cpp'>ChaosDB cpp</option>
+    <option value='ChaosDB js'>ChaosDB js</option>
+    <option value='ChaosDB protobuf'>ChaosDB protobuf</option>
+    <option value='ChaosDB server'>ChaosDB server</option>
+    <option value='FAQ'>FAQ</option>
+    <option value='features'>features</option>
+    <option value='getting started' SELECTED>getting started</option>
+    <option value='pathSQL primer'>pathSQL primer</option>
     <option value='pathSQL reference'>pathSQL reference</option>
     <option value='release notes'>release notes</option>
     <option value='strengths'>strengths</option>
     <option value='terminology'>terminology</option>
   </select>
 </div>
-<div id="getting-started-with-mvstore"
+<div id="getting-started-with-chaosdb"
 ><h1
-  >Getting Started with mvStore</h1
+  >Getting Started with ChaosDB</h1
   ><div id="setup"
   ><h2
     >Setup</h2
     ><p
-    >mvStore is hosted on github, from where it will be released as a series of open-source projects. Github requires these preliminary steps:</p
+    >ChaosDB is hosted on github, from where it will be released as a series of open-source projects. Github requires these preliminary steps:</p
     ><ol style="list-style-type: decimal;"
     ><li
       >create a personal (free) user account in github (visit https://github.com/)</li
@@ -35,19 +35,19 @@
       >setup a ssh keypair (uploading the public key to that github account)</li
       ></ol
     ><p
-    >mvStore is not yet open to the public. For now, it resides in private projects. Until mvStore becomes open-source, the procedure to install from github will involve the following steps (on linux):</p
+    >ChaosDB is not yet open to the public. For now, it resides in private projects. Until ChaosDB becomes open-source, the procedure to install from github will involve the following steps (on linux):</p
     ><ol start="3" style="list-style-type: decimal;"
     ><li
       >send your account's user name to maxw@vmware.com, to become a private collaborator</li
       ><li
-      >git clone git@github.com:mvStore/setup.git</li
+      >git clone git@github.com:ChaosDB/setup.git</li
       ><li
       >bash ./setup/linux/setup.sh</li
       ></ol
     ><p
     >This will install the kernel, server, nodejs, doc and other components of the release, and start the database server.</p
     ><p style="color:red"><em
-    >Note: When mvStore becomes open-source, the procedure will be further simplified: steps 3-5 will be replaced with a single step involving a publicly accessible setup script.</em
+    >Note: When ChaosDB becomes open-source, the procedure will be further simplified: steps 3-5 will be replaced with a single step involving a publicly accessible setup script.</em
     ><br
      /><em
     >Note: A similar setup procedure for Windows is planned but not yet available.</em
@@ -61,20 +61,20 @@
     >The database <a href="./terminology.html#server"
       >server</a
       > process is called <code
-      >mvstored</code
+      >chaosdbd</code
       > and listens to HTTP requests on port <code
       >4560</code
       > by default. For more details on how to run and parametrize <code
-      >mvstored</code
-      >, please refer to the <a href="./mvStore%20server.html"
+      >chaosdbd</code
+      >, please refer to the <a href="./ChaosDB%20server.html"
       >server</a
       > page, or run <code
-      >mvstored -h</code
+      >chaosdbd -h</code
       >.</p
     ><p
     >The server exposes a javascript online console at the root (e.g. <code
       >http://localhost:4560/</code
-      >), which allows to navigate the contents of the store and modify data (same as what you find <a href="http://mvStore.cloudfoundry.com"
+      >), which allows to navigate the contents of the store and modify data (same as what you find <a href="http://ChaosDB.cloudfoundry.com"
       >online</a
       >). Just open that URL in a browser. The console can also facilitate learning pathSQL.</p
     ></div
@@ -82,7 +82,7 @@
   ><h2
     >Quick pathSQL Guide</h2
     ><p
-    >Please find a quick guide <a href="./pathSQL%20getting%20started.html"
+    >Please find a quick guide <a href="./pathSQL%20primer.html"
       >here</a
       >.</p
     ></div
@@ -105,15 +105,15 @@
       ><tbody
       ><tr class="odd"
 	><td align="left"
-	  >mvstore.dll / libmvstore.so</td
+	  >chaosdb.dll / libchaosdb.so</td
 	  ><td align="left"
-	  >The <a href="./terminology.html#mvstore"
-	    >mvStore kernel library</a
+	  >The <a href="./terminology.html#chaosdb"
+	    >ChaosDB kernel library</a
 	    ></td
 	  ></tr
 	><tr class="even"
 	><td align="left"
-	  >mvstored[.exe]</td
+	  >chaosdbd[.exe]</td
 	  ><td align="left"
 	  >The database <a href="./terminology.html#server"
 	    >server</a
@@ -127,25 +127,23 @@
 	  ></tr
 	><tr class="even"
 	><td align="left"
-	  >mvstore-client.js</td
+	  >chaosdb-client.js</td
 	  ><td align="left"
-	  >The client library for <a href="./mvStore%20js.html"
+	  >The client library for <a href="./ChaosDB%20js.html"
 	    >node.js</a
 	    ></td
 	  ></tr
 	><tr class="odd"
 	><td align="left"
-	  >mvcommand[.exe]</td
+	  >kscommand[.exe]</td
 	  ><td align="left"
-	  >(optional) A <a href="./terminology.html#mvcommand"
-	    >command-line app</a
-	    > to interact with the db</td
+	  >(optional) A command-line app to interact with the db</td
 	  ></tr
 	><tr class="even"
 	><td align="left"
-	  >mvclient.dll / libmvclient.so</td
+	  >ksclient.dll / libksclient.so</td
 	  ><td align="left"
-	  >(optional) The http client library that mvcommand uses to talk to the db</td
+	  >(optional) The http client library that kscommand uses to talk to the db</td
 	  ></tr
 	><tr class="odd"
 	><td align="left"
@@ -163,17 +161,17 @@
     >Runtime Files</h2
     ><p
     >For each distinct store created by <code
-      >mvstored</code
+      >chaosdbd</code
       >, one file named <code
-      >mv.store</code
+      >ks.store</code
       > will be created. This is the data file. Additionally, any number of files following the pattern <code
-      >mv*.txlog</code
+      >ks*.txlog</code
       > may be created, containing transactional logs for database logging &amp; recovery. Upon a checkpoint or a clean shutdown, the <code
-      >mv*.txlog</code
+      >ks*.txlog</code
       > files are automatically deleted.</p
     ><p
     >By default, <code
-      >mvstored</code
+      >chaosdbd</code
       > puts those files in the parent folder of the docroot directory specified with the <code
       >-d</code
       > argument.</p
@@ -182,7 +180,7 @@
   ><h2
     >Links to MSVCP100 DLL (windows)</h2
     ><p
-    >Microsoft redistributable libraries can be retrieved here. Make sure that the version you obtain is compatible with mvStore binaries.<br
+    >Microsoft redistributable libraries can be retrieved here. Make sure that the version you obtain is compatible with ChaosDB binaries.<br
        /><a href="http://www.microsoft.com/downloads/en/confirmation.aspx?FamilyID=bd512d9e-43c8-4655-81bf-9350143d5867"
       >win64: MSVCP100.dll</a
       ><br

@@ -121,7 +121,7 @@ function bindStaticCtxMenus()
     { 
       var _lMenu = new CtxMenu();
       var _lSomePID = (undefined != MV_CONTEXT.mSelectedPID ? MV_CONTEXT.mSelectedPID : "50001");
-      var _lSomeClass = (undefined != MV_CONTEXT.mClasses && MV_CONTEXT.mClasses.length > 0 ? MV_CONTEXT.mClasses[0]["mv:classID"] : "myclass");
+      var _lSomeClass = (undefined != MV_CONTEXT.mClasses && MV_CONTEXT.mClasses.length > 0 ? MV_CONTEXT.mClasses[0]["ks:classID"] : "myclass");
       _lMenu.addItem($("#menuitem_query_pin").text(), function() { $("#query").val("SELECT * FROM @" + _lSomePID + ";"); });
       _lMenu.addItem($("#menuitem_query_class").text(), function() { $("#query").val("SELECT * FROM \"" + _lSomeClass + "\";"); });
       _lMenu.addItem($("#menuitem_query_classft").text(), function() { $("#query").val("SELECT * FROM \"" + _lSomeClass + "\" MATCH AGAINST ('hello');"); });
@@ -227,10 +227,10 @@ QResultTable.prototype._init = function(pJson)
   var lClass = null;
   if (this.mClassName)
   {
-    lClass = function(_pN){ for (var i = 0; null != MV_CONTEXT.mClasses && i < MV_CONTEXT.mClasses.length; i++) { if (MV_CONTEXT.mClasses[i]["mv:classID"] == _pN) return MV_CONTEXT.mClasses[i]; } return null; }(this.mClassName);
-    for (var iProp in lClass["mv:properties"])
+    lClass = function(_pN){ for (var i = 0; null != MV_CONTEXT.mClasses && i < MV_CONTEXT.mClasses.length; i++) { if (MV_CONTEXT.mClasses[i]["ks:classID"] == _pN) return MV_CONTEXT.mClasses[i]; } return null; }(this.mClassName);
+    for (var iProp in lClass["ks:properties"])
     {
-      var lPName = lClass["mv:properties"][iProp];
+      var lPName = lClass["ks:properties"][iProp];
       this.mClassProps[lPName] = 1;
       lHeadR.append($("<th align=\"left\">" + lPName + "</th>"));
     }
@@ -968,7 +968,7 @@ function mv_without_qname(pRawName)
 }
 function mv_with_qname_prefixes(pQueryStr)
 {
-  var lAlreadyDefined = {'http':1, 'mv':1};
+  var lAlreadyDefined = {'http':1, 'ks':1};
   {
     var lAlreadyDefinedPattern = /PREFIX\s*(\w*)\:/gi;
     var lAD;
@@ -1139,19 +1139,19 @@ function populate_classes()
     var lToDelete = [];
     for (var iC = 0; null != MV_CONTEXT.mClasses && iC < MV_CONTEXT.mClasses.length; iC++)
     {
-      if (undefined == MV_CONTEXT.mClasses[iC]["mv:classID"])
+      if (undefined == MV_CONTEXT.mClasses[iC]["ks:classID"])
         { lToDelete.push(iC); continue; }
-      MV_CONTEXT.mClasses[iC]["mv:classID"] = mv_with_qname(lTruncateLeadingDot(MV_CONTEXT.mClasses[iC]["mv:classID"])); // Remove the leading dot (if any) and transform into qname (prefix:name).
-      if ("http://localhost/mv/class/1.0/ClassDescription" == MV_CONTEXT.mClasses[iC]["mv:classID"])
+      MV_CONTEXT.mClasses[iC]["ks:classID"] = mv_with_qname(lTruncateLeadingDot(MV_CONTEXT.mClasses[iC]["ks:classID"])); // Remove the leading dot (if any) and transform into qname (prefix:name).
+      if ("http://localhost/mv/class/1.0/ClassDescription" == MV_CONTEXT.mClasses[iC]["ks:classID"])
         { MV_CONTEXT.mFullIntrospection = true; }
-      var lCProps = MV_CONTEXT.mClasses[iC]["mv:properties"];
+      var lCProps = MV_CONTEXT.mClasses[iC]["ks:properties"];
       var lNewProps = new Object();
       for (iP in lCProps)
       {
         var lNewName = mv_with_qname(lTruncateLeadingDot(lCProps[iP]));
         lNewProps[iP] = lNewName;
       }
-      MV_CONTEXT.mClasses[iC]["mv:properties"] = lNewProps;
+      MV_CONTEXT.mClasses[iC]["ks:properties"] = lNewProps;
     }
     for (var iD = lToDelete.length - 1; iD >= 0; iD--)
       MV_CONTEXT.mClasses.splice(lToDelete[iD], 1);
@@ -1163,7 +1163,7 @@ function populate_classes()
     if (undefined == _pJson) { console.log("populate_classes: undefined _pJson"); return; }
     for (var i = 0; i < _pJson.length; i++)
     {
-      var lCName = _pJson[i]["mv:classID"];
+      var lCName = _pJson[i]["ks:classID"];
       var lOption = "<option value=\"" + lCName + "\">" + lCName + "</option>";
       $("#classes").append(lOption);
     }
@@ -1171,7 +1171,7 @@ function populate_classes()
   };
   MV_CONTEXT.mQNamesDirty = true;
   var lOnClasses = new QResultHandler(lOnSuccess, null, null);
-  mv_query("SELECT * FROM mv:ClassOfClasses;", lOnClasses, {keepalive:false});
+  mv_query("SELECT * FROM ks:ClassOfClasses;", lOnClasses, {keepalive:false});
 }
 
 function on_class_change()
@@ -1179,12 +1179,12 @@ function on_class_change()
   update_qnames_ui();
 
   var lCurClassName = $("#classes option:selected").val();
-  var lCurClass = function(_pN){ for (var i = 0; null != MV_CONTEXT.mClasses && i < MV_CONTEXT.mClasses.length; i++) { if (MV_CONTEXT.mClasses[i]["mv:classID"] == _pN) return MV_CONTEXT.mClasses[i]; } return null; }(lCurClassName);
+  var lCurClass = function(_pN){ for (var i = 0; null != MV_CONTEXT.mClasses && i < MV_CONTEXT.mClasses.length; i++) { if (MV_CONTEXT.mClasses[i]["ks:classID"] == _pN) return MV_CONTEXT.mClasses[i]; } return null; }(lCurClassName);
   if (undefined == lCurClass) return;
   $("#class_properties").empty();
-  for (var iProp in lCurClass["mv:properties"])
+  for (var iProp in lCurClass["ks:properties"])
   {
-    var lPName = lCurClass["mv:properties"][iProp];
+    var lPName = lCurClass["ks:properties"][iProp];
     var lOption = "<option value=\"" + lPName + "\">" + lPName + "</option>";
     $("#class_properties").append(lOption);
     // TODO: for each prop, show all the classes that are related directly with it; show docstring.
@@ -1193,7 +1193,7 @@ function on_class_change()
 
   var lClassDoc = $("#class_doc");
   lClassDoc.empty();
-  lClassDoc.append($("<p><h4>predicate:</h4>&nbsp;" + lCurClass["mv:predicate"] + "<br/></p>"));
+  lClassDoc.append($("<p><h4>predicate:</h4>&nbsp;" + lCurClass["ks:predicate"] + "<br/></p>"));
   
   if (MV_CONTEXT.mFullIntrospection)
   {
@@ -1254,7 +1254,7 @@ function on_pin_click(pPID)
       function(__pClass)
       {        
         var __lOnCount = new QResultHandler(_mOnSuccess, null, __pClass);
-        mv_query("SELECT * FROM " + mv_sanitize_classname(__pClass) + " WHERE mv:pinID=@" + pPID + ";", __lOnCount, {countonly:true, keepalive:false});
+        mv_query("SELECT * FROM " + mv_sanitize_classname(__pClass) + " WHERE ks:pinID=@" + pPID + ";", __lOnCount, {countonly:true, keepalive:false});
       }
   }
   if (undefined != MV_CONTEXT.mClasses)
@@ -1262,7 +1262,7 @@ function on_pin_click(pPID)
     var lChk = new lCheckClasses(MV_CONTEXT.mClasses.length);
     for (var iC = 0; null != MV_CONTEXT.mClasses && iC < MV_CONTEXT.mClasses.length; iC++)
     {
-      var lClass = mv_without_qname(MV_CONTEXT.mClasses[iC]["mv:classID"]);
+      var lClass = mv_without_qname(MV_CONTEXT.mClasses[iC]["ks:classID"]);
       lChk.next(lClass);
     }
   }
@@ -1282,7 +1282,7 @@ function on_pin_click(pPID)
       { $("#" + iRef).click(function(){on_pin_click($(this).text()); return false;}); }
   }
   var lOnData = new QResultHandler(lOnDataSuccess, null, null);
-  mv_query("SELECT * WHERE mv:pinID=@" + pPID + ";", lOnData, {keepalive:false});
+  mv_query("SELECT * WHERE ks:pinID=@" + pPID + ";", lOnData, {keepalive:false});
 }
 
 function update_qnames_ui()

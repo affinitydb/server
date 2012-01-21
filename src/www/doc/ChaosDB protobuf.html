@@ -1,75 +1,75 @@
 <head>
   <script src='js/jquery.js' type='text/javascript'></script>
   <script src='js/snippets_to_console.js' type='text/javascript'></script>
-  <link href='css/mvdoc.css' rel='stylesheet' type='text/css' />
+  <link href='css/ksdoc.css' rel='stylesheet' type='text/css' />
 </head>
-<div id='mvtocbar'>
-  <select id='mvtoclist'>
-    <option value='features'>features</option>
+<div id='kstocbar'>
+  <select id='kstoclist'>
     <option value='intro'>intro</option>
-    <option value='mvStore FAQ'>mvStore FAQ</option>
-    <option value='mvStore cpp'>mvStore cpp</option>
-    <option value='mvStore getting started'>mvStore getting started</option>
-    <option value='mvStore js'>mvStore js</option>
-    <option value='mvStore protobuf' SELECTED>mvStore protobuf</option>
-    <option value='mvStore server'>mvStore server</option>
-    <option value='pathSQL getting started'>pathSQL getting started</option>
+    <option value='ChaosDB cpp'>ChaosDB cpp</option>
+    <option value='ChaosDB js'>ChaosDB js</option>
+    <option value='ChaosDB protobuf' SELECTED>ChaosDB protobuf</option>
+    <option value='ChaosDB server'>ChaosDB server</option>
+    <option value='FAQ'>FAQ</option>
+    <option value='features'>features</option>
+    <option value='getting started'>getting started</option>
+    <option value='pathSQL primer'>pathSQL primer</option>
     <option value='pathSQL reference'>pathSQL reference</option>
     <option value='release notes'>release notes</option>
     <option value='strengths'>strengths</option>
     <option value='terminology'>terminology</option>
   </select>
 </div>
-<div id="protocol-buffer-interface-for-mvstore"
+<div id="protocol-buffer-interface-for-chaosdb"
 ><h1
-  >Protocol-Buffer Interface for mvStore</h1
+  >Protocol-Buffer Interface for ChaosDB</h1
   ><p
   >Protocol-Buffers (aka <em
     >protobuf</em
     >) are Google's open-source interchange format. This format was designed to provide generic encoding and decoding of structured data in an efficient manner (that is both language and platform neutral). It's supported in many programming languages and on many platforms.</p
   ><p
-  >mvStore uses protobuf as a vehicle to export data outside of a store, and to import data (or updates) into a store. As such, protobuf can be viewed as another interface to mvStore, albeit a rather low-level interface. In most cases, the developer writing client code for mvStore is not expected to interact directly with protobuf.</p
+  >ChaosDB uses protobuf as a vehicle to export data outside of a store, and to import data (or updates) into a store. As such, protobuf can be viewed as another interface to ChaosDB, albeit a rather low-level interface. In most cases, the developer writing client code for ChaosDB is not expected to interact directly with protobuf.</p
   ><p
   >There are several obvious situations where the protobuf interface can be useful: dump &amp; load, replication, inter-store messaging etc.</p
   ><p
   >Another important use case is when protobuf is combined with <a href="./terminology.html#pathsql"
     >pathSQL</a
-    > to implement language-specific access layers for mvStore (aka <a href="./terminology.html#client-side-libraries"
+    > to implement language-specific access layers for ChaosDB (aka <a href="./terminology.html#client-side-libraries"
     >client libraries</a
     >). In this context, protobuf acts as a middle-man between the language's object model <em
     >(effectively allowing to export/serialize objects outside of the language and import/deserialize objects back into the language)</em
-    > and mvStore's own data model. This reduces considerably the need for an ORM when using mvStore <em
-    >(because mvStore's internal data model maps directly with the core native object model of most languages)</em
+    > and ChaosDB's own data model. This reduces considerably the need for an ORM when using ChaosDB <em
+    >(because ChaosDB's internal data model maps directly with the core native object model of most languages)</em
     >.</p
   ><p
   >Here are two typical examples.</p
   ><p
   >A client <em
     >writes</em
-    > to mvStore:</p
+    > to ChaosDB:</p
   ><pre>
-  the client has a javascript object to be stored in mvStore
+  the client has a javascript object to be stored in ChaosDB
   -> the client serializes it to protobuf, as a new object to be inserted (OP_INSERT)
-  -> the client sends the serialized stream to mvStore
-  -> mvStore deserializes the protobuf stream into its own internal data model
-  -> mvStore detects OP_INSERT and stores the new object
-  -> mvStore produces a response (including new PID, new eids etc.)
-  -> mvStore serializes the response to protobuf
+  -> the client sends the serialized stream to ChaosDB
+  -> ChaosDB deserializes the protobuf stream into its own internal data model
+  -> ChaosDB detects OP_INSERT and stores the new object
+  -> ChaosDB produces a response (including new PID, new eids etc.)
+  -> ChaosDB serializes the response to protobuf
   -> the client deserializes the response
 </pre>
 <p
   >A client <em
     >reads</em
-    > from mvStore:</p
+    > from ChaosDB:</p
   ><pre>
   the client wants to query PIN @50001 and interact with it as an object
   -> the client emits the query 'SELECT * FROM @50001;' via a protobuf-enabled interface
-  -> mvStore executes the query and serializes the response to protobuf
+  -> ChaosDB executes the query and serializes the response to protobuf
   -> the client deserializes the response into a javascript object
 </pre>
 <p
-  >The internal structure of the protobuf messages that can be understood by mvStore is defined in <a href="./sources/mvstore_proto.html"
-    >mvstore.proto</a
+  >The internal structure of the protobuf messages that can be understood by ChaosDB is defined in <a href="./sources/chaosdb_proto.html"
+    >chaosdb.proto</a
     >. It allows to express PIN inserts, updates and deletes, as well as generic queries, transactions, long-running transactions etc. It also provides extensive support for fine-grained updates, such as modifying the order of elements in a collection (e.g. <code
     >OP_MOVE_BEFORE</code
     >), performing server-side read-modify-write on specific properties (e.g. <code
@@ -77,18 +77,18 @@
     >), etc.</p
   ><p
   ><em
-    >Note: The process of serializing to protobuf and deserializing back into a client's object model may require a translation. Even though protobuf libraries typically produce a language-compliant structure, that structure is defined by mvstore.proto, for serialization purposes, and may not be sufficiently usable as a client object model. For example, mvstore.proto stores all property names as indexes, alongside a local translation table (for space efficiency). Typically, most languages will prefer to expose objects in a more natural form, where properties are standard named entities. This kind of translation is usually implemented in the client access library (e.g. <a href="./sources/mvstore-client_js.html"
-      >mvstore-client.js</a
-      > or <a href="./sources/mvstore_py.html"
-      >mvstore.py</a
+    >Note: The process of serializing to protobuf and deserializing back into a client's object model may require a translation. Even though protobuf libraries typically produce a language-compliant structure, that structure is defined by chaosdb.proto, for serialization purposes, and may not be sufficiently usable as a client object model. For example, chaosdb.proto stores all property names as indexes, alongside a local translation table (for space efficiency). Typically, most languages will prefer to expose objects in a more natural form, where properties are standard named entities. This kind of translation is usually implemented in the client access library (e.g. <a href="./sources/chaosdb-client_js.html"
+      >chaosdb-client.js</a
+      > or <a href="./sources/chaosdb_py.html"
+      >chaosdb.py</a
       >).</em
     ></p
-  ><div id="a-closer-look-at-mvstore.proto"
+  ><div id="a-closer-look-at-chaosdb.proto"
   ><h3
-    >A Closer Look at mvstore.proto</h3
+    >A Closer Look at chaosdb.proto</h3
     ><p
-    >All the components of a protobuf stream sent to or received from mvStore are defined in <a href="./sources/mvstore_proto.html"
-      >mvstore.proto</a
+    >All the components of a protobuf stream sent to or received from ChaosDB are defined in <a href="./sources/chaosdb_proto.html"
+      >chaosdb.proto</a
       >. The main elements of the structure are:</p
     ><ul
     ><li
@@ -96,11 +96,11 @@
       ><li
       >PID</li
       ><li
-      >MVStream.PIN</li
+      >KSStream.PIN</li
       ><li
-      >MVStream.PathSQL</li
+      >KSStream.PathSQL</li
       ><li
-      >MVStream</li
+      >KSStream</li
       ></ul
     ><p
     ><code
@@ -108,37 +108,37 @@
       > corresponds to the <a href="./terminology.html#value"
       >basic notion of value</a
       > used throughout the documentation, and constitutes the main building block of a <code
-      >MVStream.PIN</code
+      >KSStream.PIN</code
       > (the <a href="./terminology.html#pin"
       >PIN</a
       >). <code
       >PID</code
       > defines the serialization format of <a href="./terminology.html#pin-id-pid"
       >PIN IDs</a
-      >, which are generated by mvStore initially, and are then used to refer to existing PINs (e.g. to read, modify or delete them). <code
-      >MVStream.PathSQL</code
+      >, which are generated by ChaosDB initially, and are then used to refer to existing PINs (e.g. to read, modify or delete them). <code
+      >KSStream.PathSQL</code
       > allows to insert pathSQL statements in a protobuf stream (thus implying a serialized query result in the protobuf response, often in the form of an array of <code
-      >MVStream.PIN</code
+      >KSStream.PIN</code
       > objects).</p
     ><p
     ><code
-      >MVStream</code
-      > defines the possible contents of any of the contiguous segments of data in the actual physical stream. In other words, it should be possible to dissect any physical stream compliant with <a href="./sources/mvstore_proto.html"
-      >mvstore.proto</a
+      >KSStream</code
+      > defines the possible contents of any of the contiguous segments of data in the actual physical stream. In other words, it should be possible to dissect any physical stream compliant with <a href="./sources/chaosdb_proto.html"
+      >chaosdb.proto</a
       > and find a series of <code
-      >MVStream</code
+      >KSStream</code
       > instances.</p
     ><p
     >For example, the physical input and output streams involved in fetching a PIN, testing some conditions and then modifying the PIN in a single transaction could look like this (where each column is a physical stream, and each row represents one <code
-      >MVStream</code
+      >KSStream</code
       > segment of it):</p
     ><table
     ><thead
       ><tr class="header"
 	><th align="left"
-	  >Physical stream sent to mvStore</th
+	  >Physical stream sent to ChaosDB</th
 	  ><th align="left"
-	  >Physical stream returned by mvStore</th
+	  >Physical stream returned by ChaosDB</th
 	  ></tr
 	></thead
       ><tbody
@@ -197,39 +197,39 @@
     ><p
     ><sub> Note: This sequence is typically implemented as a single HTTP connection. </sub></p
     ><p
-    ><a href="./sources/mvstore_proto.html"
-      >mvstore.proto</a
+    ><a href="./sources/chaosdb_proto.html"
+      >chaosdb.proto</a
       > contains more structures and fields than described here. It also contains a large number of <code
       >enums</code
       >, some of which are sometimes used as constants <em
-      >(n.b.: some protobuf libraries don't support this strategy, in which case the values in mvstore.proto must be repeated as literals in the client code)</em
-      >. Please refer to the comments in <a href="./sources/mvstore_proto.html"
-      >mvstore.proto</a
+      >(n.b.: some protobuf libraries don't support this strategy, in which case the values in chaosdb.proto must be repeated as literals in the client code)</em
+      >. Please refer to the comments in <a href="./sources/chaosdb_proto.html"
+      >chaosdb.proto</a
       > for more information.</p
     ></div
   ><div id="about-streaming-and-pagination"
   ><h3
     >About Streaming and Pagination</h3
     ><p
-    >mvStore offers two distinct and complementary strategies for dealing with data streaming.</p
+    >ChaosDB offers two distinct and complementary strategies for dealing with data streaming.</p
     ><p
     >The simplest strategy consists in letting the client specify pagination OFFSET and LIMIT along with its pathSQL statement. This can be done via <code
-      >MVStream.PathSQL.offset</code
+      >KSStream.PathSQL.offset</code
       > and <code
-      >MVStream.PathSQL.limit</code
-      > (directly in the protobuf request). The <a href="./mvStore%20server.html"
+      >KSStream.PathSQL.limit</code
+      > (directly in the protobuf request). The <a href="./ChaosDB%20server.html"
       >server</a
-      > also allows to specify these parameters. mvStore interprets them and returns a subset of the whole result set <em
+      > also allows to specify these parameters. ChaosDB interprets them and returns a subset of the whole result set <em
       >(n.b. in the current implementation, the query is re-evaluated for every requested page; consistency can be secured with a transaction, but the performance is not optimal)</em
       >. The granularity is the PIN, which may be insufficient in some cases, such as data models involving huge collections.</p
     ><p
     >The second strategy involves a different method of reading the response stream, one atomic element at a time (instead of one <code
-      >MVStream</code
+      >KSStream</code
       >-segment at a time). This strategy provides full control over the stream (and the memory footprint involved in reading it). On the other hand, it also comes at a cost: on one hand, it usually implies a completely different programming model (if you can't afford to put a whole PIN in memory, then you probably can't interact with that object as a native object either); on the other hand, not all protobuf libraries expose this kind of access.</p
     ><p
-    >In their present implementation, the <a href="./sources/mvstore-client_js.html"
+    >In their present implementation, the <a href="./sources/chaosdb-client_js.html"
       >node.js</a
-      > and <a href="./sources/mvstore_py.html"
+      > and <a href="./sources/chaosdb_py.html"
       >python</a
       > client libraries only support the first strategy, but may expose a specialized interface using the second strategy in a near future.</p
     ></div
@@ -237,11 +237,11 @@
   ><h3
     >More Information</h3
     ><p
-    >For more information on mvStore's usage of protobuf, please refer to the comments in <a href="./sources/mvstore_proto.html"
-      >mvstore.proto</a
-      >. Another important source of information is the implementation of the <a href="./sources/mvstore-client_js.html"
+    >For more information on ChaosDB's usage of protobuf, please refer to the comments in <a href="./sources/chaosdb_proto.html"
+      >chaosdb.proto</a
+      >. Another important source of information is the implementation of the <a href="./sources/chaosdb-client_js.html"
       >node.js</a
-      > and <a href="./sources/mvstore_py.html"
+      > and <a href="./sources/chaosdb_py.html"
       >python</a
       > access layers, which can be used as examples to implement new access layers.</p
     ><p
