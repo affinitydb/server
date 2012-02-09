@@ -1,0 +1,70 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+  <link href='css/mvstored.css' rel='stylesheet' type='text/css' />
+  <script src='js/jquery.js' type='text/javascript'></script>
+  <script type="text/javascript">
+    $(document).ready(
+      function()
+      {
+        $("#user_email").focus();
+        $("#gh_logo").click(function() { window.location.href = 'http://' + location.hostname + ":" + location.port; });
+        $("#eula_ok").click(
+          function() {
+            if (!$("#eula_ack").is(":checked")) { alert("Please confirm that you have read and accept the terms of service."); return; }
+            var lEmail = $("#eula_notifs").is(":checked") ? $("#user_email").val() : "none@none";
+            if (undefined == lEmail.match(/[a-zA-Z0-9\._]+\@[a-zA-Z0-9\._]+/)) { alert("Invalid email address."); return; }
+            $.ajax({
+              type: "GET",
+              url: "/register?email=" + escape(lEmail),
+              dataType: "text",
+              async: true,
+              cache: false,
+              global: false,
+              success: function(data) { window.location.href = 'http://' + location.hostname + ":" + location.port + data; },
+              error: function() { alert("unexpected error during registration"); }
+            });
+          });
+      });
+  </script>
+  <title>Affinity</title>
+</head>
+<body>
+
+<div id='width_constraint' class='horizontally_centered'>
+
+  <div id='generic_header'>
+    <div id='gh_logo'><img src='images/logo_small.png' id='gh_logo_img'></img></div>
+  </div>
+
+  <div id='content'>
+    <div id='content_title'>
+      <img src='images/affinityheader.png' id='title_img'></img>
+      <div id='title_text'>Registration &amp; Terms of Service</div>
+    </div>
+    <div id='content_left'>
+      <p>In order to give you access to the documentation and demo site, VMware needs to ask you
+         to accept the <a href='doc/EULA_demo.html'>terms of service</a>.</p>
+      <div id='user'>
+        <span>Your email address:</span>
+        <input id='user_email' size=25></input>
+      </div>
+      <div id='eula'>
+        <input type='checkbox' id='eula_ack'></input>
+        <span>I have read and I accept the <a href='doc/EULA_demo.html'>terms of service</a>.</span><br>
+        <input type='checkbox' id='eula_notifs' checked></input>
+        <span>I want to receive Affinity announcements.</span><br>
+        <br>
+        <button id='eula_ok'> Done </button>
+      <div>
+    </div>
+  </div>
+
+  <div id='generic_footer'>
+    <img src='images/affinityfooter.png' id='footer_img' class='horizontally_centered'></img>
+    <div id='footer_text'>&copy; 2012 VMware, Inc. All rights reserved.</div>
+  </div>
+</div>
+
+</body>
+</html>

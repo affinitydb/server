@@ -3,7 +3,7 @@
  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
 <html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"> 
 <head> 
-  <title>ChaosDB in a nutshell</title> 
+  <title>Affinity in a nutshell</title> 
   <meta name="copyright" 
    content="Copyright &#169; 2011 vmware" /> 
   <link rel="stylesheet" type="text/css" media="screen, projection, print" 
@@ -22,17 +22,17 @@
   </div>
 
   <div class="slide">
-  <h1>ChaosDB in a nutshell</h1>
-  <p>ChaosDB is a powerful multi-schema, fully-transactional database, which:</p>
+  <h1>Affinity in a nutshell</h1>
+  <p>Affinity is a powerful multi-schema, fully-transactional database, which:</p>
   <ul>
     <li>speaks pathSQL, a SQL dialect with powerful path expressions, ideal for social network applications</li>
     <li>is written entirely in C++, with a tiny footprint suitable for any device</li>
   </ul>
-  <p>This document discusses ChaosDB's data model, query languages, interfaces &amp; components, strengths, and additional features.</p>
+  <p>This document discusses Affinity's data model, query languages, interfaces &amp; components, strengths, and additional features.</p>
   </div>
 
   <div class="slide">
-  <h1>ChaosDB in a nutshell: data model</h1>
+  <h1>Affinity in a nutshell: data model</h1>
   <ul>
     <li>a very flexible <b>object</b> (aka PIN), similar to javascript objects:
       <ul>
@@ -59,7 +59,7 @@
   </div>
 
   <div class="slide">
-  <h1>ChaosDB in a nutshell: query languages</h1>
+  <h1>Affinity in a nutshell: query languages</h1>
   <ul>
   <li>pathSQL extends SQL
     <ul>
@@ -68,12 +68,12 @@
     <li>the DML is mostly standard, with a few extensions, e.g. very powerful <b>path expressions</b></li>
     </ul>
   </li>
-  <li>ChaosDB also provides a low-level C++ query builder (to add languages such as XQuery, SPARQL, LINQ etc.)</li>
+  <li>Affinity also provides a low-level C++ query builder (to add languages such as XQuery, SPARQL, LINQ etc.)</li>
   </ul>
   </div>
 
   <div class="slide">
-  <h1>ChaosDB in a nutshell: interfaces &amp; components</h1>
+  <h1>Affinity in a nutshell: interfaces &amp; components</h1>
   <ul>
   <li>the kernel is self-contained and written entirely in C++ (~1Mb binary size)</li>
   <li>the kernel exposes C++ interfaces with 3 main entry points:
@@ -89,12 +89,11 @@
   </div>
   
   <div class="slide">
-  <h1>ChaosDB in a nutshell: strengths</h1>
+  <h1>Affinity in a nutshell: strengths</h1>
   <ul>
   <li>extremely flexible data model, allowing simultaneous storage and manipulation of table data, objects, graphs, documents etc.
   <ul>
     <li>optimized for social networks</li>
-    <li>from chaos emerges order</li>
   </ul>
   </li>
   <li>coexistence of multiple schema, and data sharing between applications (even unrelated)</li>

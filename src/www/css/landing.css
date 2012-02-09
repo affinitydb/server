@@ -1,0 +1,31 @@
+body { font-family:Helvetic; margin:0; font-size:0.8em; background-color:#e4e4e4; overflow:hidden; }
+.horizontally_centered { display:block; margin-left:auto; margin-right:auto; }
+.button_highlighted { opacity:0.7; cursor:pointer; }
+.button_highlighted_text { color:#000; cursor:pointer; }
+
+#width_constraint { top:0; width:960px; }
+
+#generic_header { position:relative; top:3px; left:0; width:100%; height:20px; margin:0; }
+#title { position:relative; top:10px; left:0; width:100%; }
+#topics { position:relative; top:30px; left:0; width:100%; height:180px; left:0; color:#335; }
+#generic_footer { position:relative; top:10px; left:0; width:100%; margin:0; text-align:center; }
+
+#gh_logo { float:left; margin-left:5px; }
+#gh_logo_img { position:absolute; height:25px; }
+#gh_links { float:right; margin-right:5px; }
+
+#title_img { width:100%; border:none; }
+#title_text { position:absolute; left:0; top:0; width:100%; height:100%; text-align:center; }
+#title_text_main { position:relative; top:100px; font-size:5em; }
+#title_text_sub { position:relative; top:200px; left:30px; font-size:1.0em; }
+
+#doc { position:relative; left:0; top:0; width:310px; height:100%; }
+#doc_button_text { position:absolute; left:0; top:30px; width:100%; height:100%; text-align:center; font-size:1.7em; }
+#doc_text { margin-left:5px; }
+
+#console { position:absolute; right:0; top:0; width:310px; height:100%; }
+#console_button_text { position:absolute; left:0; top:30px; width:100%; height:100%; text-align:center; font-size:1.7em; }
+#console_text { margin-left:5px; }
+
+#footer_img { width:100%; border:none; }
+#footer_text { position:absolute; left:0; top:14px; width:100%; font-size:0.8em; }

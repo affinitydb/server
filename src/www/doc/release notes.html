@@ -1,47 +1,69 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <head>
   <script src='js/jquery.js' type='text/javascript'></script>
   <script src='js/snippets_to_console.js' type='text/javascript'></script>
-  <link href='css/ksdoc.css' rel='stylesheet' type='text/css' />
+  <link href='css/afydoc.css' rel='stylesheet' type='text/css' />
+  <meta http-equiv='content-type' content='text/html; charset=utf-8'></meta>
 </head>
-<div id='kstocbar'>
-  <select id='kstoclist'>
+<div id='width_constraint' class='horizontally_centered'>
+<div id='generic_header'>
+<img src='images/logo_small.png' id='gh_logo_img'></img>
+<div id='afytocbar'>
+  <select id='afytoclist'>
     <option value='intro'>intro</option>
-    <option value='ChaosDB cpp'>ChaosDB cpp</option>
-    <option value='ChaosDB js'>ChaosDB js</option>
-    <option value='ChaosDB protobuf'>ChaosDB protobuf</option>
-    <option value='ChaosDB server'>ChaosDB server</option>
+    <option value='Affinity server'>Affinity server</option>
+    <option value='EULA_demo'>EULA_demo</option>
     <option value='FAQ'>FAQ</option>
+    <option value='cplusplus'>cplusplus</option>
     <option value='features'>features</option>
     <option value='getting started'>getting started</option>
+    <option value='javascript'>javascript</option>
     <option value='pathSQL primer'>pathSQL primer</option>
     <option value='pathSQL reference'>pathSQL reference</option>
+    <option value='protobuf'>protobuf</option>
     <option value='release notes' SELECTED>release notes</option>
     <option value='strengths'>strengths</option>
     <option value='terminology'>terminology</option>
   </select>
 </div>
+</div>
 <div id="release-notes"
 ><h1
   >Release Notes</h1
   ><p
-  >The following limitations are part of the initial version of ChaosDB.</p
+  >The following limitations are part of the initial release of Affinity.</p
   ><ul
   ><li
-    >dump&amp;load and replication not fully exposed</li
+    >dump&amp;load and replication not yet available</li
     ><li
-    >limitations related to introspection of a class's properties</li
+    >limitations with multi-segment indexes</li
+    ><li
+    >limitations with projections in JOIN and ORDER BY</li
+    ><li
+    >limitations with nested JOIN (bug 183)</li
+    ><li
+    >limitations with path expressions in clauses other than FROM</li
+    ><li
+    >limitations with projections in path expressions</li
+    ><li
+    >limitations related with introspection of a class's properties</li
+    ><li
+    >can't insert cyclic graphs in a single statement, with protobuf and pathSQL (bug 173)</li
+    ><li
+    >SELECT COUNT with protobuf (bug 249)</li
+    ><li
+    >the function to rebuild full-text indexes is disabled (bug 130)</li
+    ><li
+    >inconsistencies when dropping classes (bug 131)</li
+    ><li
+    >incompleteness of OP_CONCAT (bug 152)</li
+    ><li
+    >server clean shutdown (bug 200)</li
+    ><li
+    >weak support for uniqueness during insert (bug 166)</li
     ><li
     >a few marginal memory leaks</li
-    ><li
-    >Bug 130 - rebuildIndexFT ifdef-ed out</li
-    ><li
-    >Bug 131 - inconsistencies when dropping classes</li
-    ><li
-    >Bug 152 - OP_CONCAT should work on more than 2 values</li
-    ><li
-    >Bug 195 - can't create and drop the same class within one transaction</li
-    ><li
-    >Bug 237 - SELECT * FROM ks:ClassOfClasses; returns some classes with blank ks:URI</li
     ></ul
   ></div
 >
+</div>

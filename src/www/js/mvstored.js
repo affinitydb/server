@@ -16,12 +16,18 @@ MV_CONTEXT.mQNamesDirty = false;
 MV_CONTEXT.mTooltipTimer = null;
 
 /**
+ * General-purpose helpers.
+ */
+function countProperties(pO) { var lR = 0; for(var iP in pO) { if (pO.hasOwnProperty(iP)) lR++; } return lR; }
+
+/**
  * Tooltips.
  * Simple mechanism to bind #thetooltip to any
  * div section on the page.
  */
-function bindTooltip(pDiv, pMessage)
+function bindTooltip(pDiv, pMessage, pPos, pOptions/*{start:_, stop:_, once:_, offy:_}*/)
 {
+  var lGetOption = function(_pWhat, _pDefault) { return (undefined != pOptions && _pWhat in pOptions) ? pOptions[_pWhat] : _pDefault; }
   var lClearTimeout =
     function()
     {
@@ -43,28 +49,42 @@ function bindTooltip(pDiv, pMessage)
       // Set the tooltip's text.
       $("#thetooltip").text(pMessage);
       // Set the tooltip's position and make it visible.
-      var _lPos = pDiv.offset();
-      var _lTooltipW = $("#thetooltip").outerWidth(true);
-      if (_lTooltipW + 5 < _lPos.left)
-        _lPos.left -= (_lTooltipW + 5);
+      var _lPos;
+      if (undefined == pPos)
+      {
+        _lPos = pDiv.offset();
+        var _lTooltipW = $("#thetooltip").outerWidth(true);
+        if (_lTooltipW + 5 < _lPos.left)
+          _lPos.left -= (_lTooltipW + 5);
+        else
+          _lPos.left += pDiv.outerWidth(true) + 5;
+        _lPos.top += lGetOption('offy', 0);
+      }
       else
-        _lPos.left += pDiv.outerWidth(true) + 5;
+        _lPos = pPos;
       $("#thetooltip").css("left", _lPos.left + "px").css("top", _lPos.top + "px").css("display", "block");
       // Deactivate automatically after a few seconds.
       if (undefined == MV_CONTEXT.mTooltipTimer || (MV_CONTEXT.mTooltipTimer.task == "activate" && MV_CONTEXT.mTooltipTimer.message == pMessage))
-        MV_CONTEXT.mTooltipTimer = {timer:setTimeout(lDeactivate, 1500), task:"deactivate", message:pMessage};
+        MV_CONTEXT.mTooltipTimer = {timer:setTimeout(lDeactivate, lGetOption('stop', 1500)), task:"deactivate", message:pMessage};
     }
-  pDiv.hover(
-    // Activation.
+  var lDelayedActivate =
     function()
     {
       // Cancel any pending automatic tooltip activation/deactivation.
       lClearTimeout();
       // Schedule tooltip activation after a small delay (don't show tooltips right away).
-      MV_CONTEXT.mTooltipTimer = {timer:setTimeout(lActivate, 500), task:"activate", message:pMessage};
-    },
-    // Deactivation.
-    lDeactivate);
+      MV_CONTEXT.mTooltipTimer = {timer:setTimeout(lActivate, lGetOption('start', 500)), task:"activate", message:pMessage};
+    }
+
+  if (lGetOption('once', false))
+  {
+    if (0 != lGetOption('start', 500))
+      lDelayedActivate();
+    else
+      { lClearTimeout(); lActivate(); }
+  }
+  else
+    pDiv.hover(lDelayedActivate, lDeactivate);
 }
 function bindAutomaticTooltips()
 {
@@ -121,7 +141,7 @@ function bindStaticCtxMenus()
     { 
       var _lMenu = new CtxMenu();
       var _lSomePID = (undefined != MV_CONTEXT.mSelectedPID ? MV_CONTEXT.mSelectedPID : "50001");
-      var _lSomeClass = (undefined != MV_CONTEXT.mClasses && MV_CONTEXT.mClasses.length > 0 ? MV_CONTEXT.mClasses[0]["ks:classID"] : "myclass");
+      var _lSomeClass = (undefined != MV_CONTEXT.mClasses && MV_CONTEXT.mClasses.length > 0 ? MV_CONTEXT.mClasses[0]["afy:classID"] : "myclass");
       _lMenu.addItem($("#menuitem_query_pin").text(), function() { $("#query").val("SELECT * FROM @" + _lSomePID + ";"); });
       _lMenu.addItem($("#menuitem_query_class").text(), function() { $("#query").val("SELECT * FROM \"" + _lSomeClass + "\";"); });
       _lMenu.addItem($("#menuitem_query_classft").text(), function() { $("#query").val("SELECT * FROM \"" + _lSomeClass + "\" MATCH AGAINST ('hello');"); });
@@ -169,70 +189,182 @@ function bindStaticCtxMenus()
 }
 
 /**
+ * NavTabs.
+ * Interprets all <li> nodes of the #nav section as tabs;
+ * expects each to contain an <a> anchor,
+ * with href pointing to the <div> that defines the tab's contents
+ * (super-simplified tab system, not dependent on jquery-ui).
+ */
+function NavTabs()
+{
+  var lTabs = [] // An array of {name:, anchor:, content:}.
+  var lTabContentFromName = function(_pName) { return $("#" + _pName); }
+  var lTabNameFromA = function(_pAnchor) { return _pAnchor.toString().split('#').pop(); }
+  var lFindTab = function(_pName) { for (var _i = 0; _i < lTabs.length; _i++) if (_pName == lTabs[_i].name) { return lTabs[_i]; } return null; }
+  var lOnTab =
+    function(_pEvent)
+    {
+      // Hide all tabs.
+      $.each(lTabs, function(__pI, __pE) { __pE.content.css("display", "none"); $(__pE.anchor).children("img").removeClass("tab-selected"); });
+      // Display the selected tab.
+      var _lTargetA = $(_pEvent.target).parent()[0];
+      var _lTab = lTabContentFromName(lTabNameFromA(_lTargetA));
+      $(_lTargetA).children("img").addClass("tab-selected");
+      _lTab.css("display", "block");
+      _lTab.trigger("activate_tab");
+    }
+  // For each <li> of #nav, record it as a tab in lTabs, and bind lOnTab to the click event.
+  $("#nav li").each(
+    function(_pI, _pE)
+    {
+      var _lAnchor = $("a", _pE)[0];
+      var _lTab = {name:lTabNameFromA(_lAnchor), anchor:_lAnchor};
+      _lTab.content = lTabContentFromName(_lTab.name);
+      lTabs.push(_lTab);
+      $("img", _lAnchor).each(
+        function(__pI, __pE)
+        {
+          $(__pE).click(lOnTab);
+          $(__pE).hover(function() { $(this).addClass("tab-highlighted"); }, function() { $(this).removeClass("tab-highlighted"); });
+          bindTooltip($(__pE), $("#tooltip_" + _lTab.name).text());
+        });
+    });
+  // Select the first tab initially (either from the url, if one is specified, or just by index, otherwise).
+  var lLoadedUrl = location.href.split('#');
+  lOnTab({target:(lLoadedUrl.length > 1 ? $("img", lFindTab(lLoadedUrl.pop()).anchor) : $("#nav img")[0])});
+}
+
+/**
  * QResultTable.
+ * Deals with infinitely long results, using pagination and special scollbars.
  * Contains at least 2 columns: PID, Other Properties.
- * When the query is on a class (or eventually join etc.), add more columns.
+ * When the query is on a class (or eventually join etc.), adds more columns.
  * Goal: improve readability by showing common properties, and also reduce waste of space.
  */
+gQrtIndex = 0;
 function QResultTable(pContainer, pClassName)
 {
-  this.mAborted = false;
-  this.mClassName = pClassName;
-  this.mTable = $("<table id='qresulttable' width=\"100%\" />").appendTo(pContainer);
+  var lThis = this;
+  var lEvalVScrollerRowHeight =
+    function()
+    {
+      lThis.mQrtVScroller.css("visibility", "hidden").css("display", "block");
+      var _lLine = $("<p>HeightTest</p>").appendTo(lThis.mQrtVScroller);
+      var _lH = _lLine.height();
+      _lLine.remove();
+      lThis.mQrtVScroller.css("display", "none").css("visibility", "visible");
+      return _lH;
+    }
   this.mInitialized = false;
+  this.mAborted = false;
+  this.mQrtIndex = gQrtIndex++;
+  this.mUIContainer = pContainer; // In this div we will create all the widgets we need to operate our infinite table.
+  this.mClassName = pClassName;
+  this.mQrtContainer = $("<div id='qrt_cnt_" + this.mQrtIndex + "' class='qrt_cnt' />").appendTo(this.mUIContainer); // This div is used for horizontal scrolling; it contains the table.
+  this.mTables = []; // Double-buffering (due to our peculiar pagination mechanism).
+  this.mTables.push($("<table id='qrt_table1_" + this.mQrtIndex + "' class='qrt_table' />").appendTo(this.mQrtContainer));
+  this.mTables.push($("<table id='qrt_table2_" + this.mQrtIndex + "' class='qrt_table' style='visibility:hidden' />").appendTo(this.mQrtContainer));
+  this.mQrtHScroller = $("<div id='qrt_hscroller_" + this.mQrtIndex + "' class='qrt_hscroller' />").appendTo(this.mUIContainer);
+  this.mQrtHScrollerContent = $("<div id='qrt_hscroller_content_" + this.mQrtIndex + "' class='qrt_hscroller_content' />").appendTo(this.mQrtHScroller);
+  this.mQrtVScroller = $("<div id='qrt_vscroller_" + this.mQrtIndex + "' class='qrt_vscroller' />").appendTo(this.mUIContainer);
+  this.mQrtVScrollerContent = $("<div id='qrt_vscroller_content_" + this.mQrtIndex + "' class='qrt_vscroller_content' />").appendTo(this.mQrtVScroller);
+  this.mQrtVSNominalRowHeight = lEvalVScrollerRowHeight() + 4; // Hack: To this date, I have failed to identify why this +4 is needed; it reflects the scroll increment actually calculated by the browser, for this scroller's font.
+  this.mCurTable = 0; // Next table to update, in the double-buffered mechanism.
+  this.mRowCache = {}; // Cache of {rownum:rowdata}.
+  this.mRowLRU = []; // Array of rownum, from least recently used to most recently used.
+  this.mScrollPos = 0; // Last (raw) scroll position.
+  this.mNumRows = 0; // Total number of rows.
+  this.mQuery = null; // Query string producing the results.
+  this.mQrtVScroller.scroll(function() { lThis._onScroll(this.scrollTop); });
+  this.mQrtHScroller.scroll(function() { lThis.mQrtContainer.scrollLeft(this.scrollLeft); });
+  $(window).resize(function() { lThis._setNumRows(lThis.mNumRows); lThis._onScroll(lThis.mScrollPos); }); // To avoid half-empty pages when the display grows.
 }
+QResultTable.PAGESIZE = 50; // Review: Fine-tune this...
+QResultTable.CACHE_SIZE = 20 * QResultTable.PAGESIZE; // Note: Must be at least 2*PAGESIZE, to work with internal logic.
 QResultTable.prototype.populate = function(pQuery)
 {
-  // Count how many pins are expected for pQuery, and then proceed page by page.
   var lThis = this;
-  var lOnCountSuccess = function(_pJson) {
-    var lPaginationCtx = new Object();
-    lPaginationCtx.mNumPins = parseInt(_pJson);
-    lPaginationCtx.mOffset = 0;
-    lPaginationCtx.mPageSize = 20;
-    var lOnPageSuccess = function(_pJson, _pUserData) {
+  if (undefined == pQuery || 0 == pQuery.length)
+  {
+    this.mQuery = null;
+  }
+  else if (undefined == pQuery.match(/^\s*select/i))
+  {
+    // For insert/update/create-class, just run the query once.
+    this.mQuery = null;
+    var lOnResult = function(_pJson) { lThis._setNumRows(_pJson.length); lThis._recordRows(_pJson, 0); lThis._onScroll(0); };
+    mv_query(pQuery, new QResultHandler(lOnResult, null, null));
+  }
+  else
+  {
+    // For select, count how many pins are expected for pQuery, and then proceed page by page.
+    this.mQuery = pQuery;
+    var lOnCount = function(_pJson) { lThis._setNumRows(parseInt(_pJson)); lThis._onScroll(0); };
+    mv_query(this.mQuery, new QResultHandler(lOnCount, null, null), {countonly:true});
+  }
+}
+QResultTable.prototype._onScroll = function(pPos)
+{
+  // See if our cache can satisfy the request.
+  var lThis = this;
+  this.mScrollPos = pPos;
+  var lStartPos = Math.floor(pPos / this.mQrtVSNominalRowHeight);
+  var lEndPos = Math.min(lStartPos + QResultTable.PAGESIZE, this.mNumRows);
+  for (var iR = lStartPos; iR < lEndPos && (String(iR) in this.mRowCache); iR++);
+  if (iR >= lEndPos)
+  {
+    // If yes, then refresh the UI and we're done.
+    setTimeout(function() { lThis._fillTableUI(lThis.mCurTable, pPos); }, 20);
+    this.mCurTable = 1 - this.mCurTable;
+    return;
+  }
+
+  // Otherwise, query a page.
+  if (undefined == this.mQuery)
+    { alert("Unexpected: no query specified, yet not enough results"); return; }
+  if (iR == lStartPos && iR > 0)
+  {
+    // When scrolling upward, or seeking at a random point, fetch up to half a page upward (and the rest downward).
+    var lNewStart = Math.max(0, lStartPos - Math.floor(QResultTable.PAGESIZE / 2));
+    for (--iR; iR > lNewStart && !(String(iR) in this.mRowCache); iR--);
+  }
+  var lOnPage =
+    function(_pJson, _pUserData)
+    {
       if (undefined == _pJson)
         return;
-      lThis._addRows(_pJson);
-      _pUserData.mOffset += _pJson.length;
-      if (_pUserData.mOffset < _pUserData.mNumPins && !lThis.mAborted)
-      {
-        var _lOnPage = new QResultHandler(lOnPageSuccess, null, _pUserData);
-        setTimeout(function(){mv_query(pQuery, _lOnPage, {limit:_pUserData.mPageSize, offset:_pUserData.mOffset})}, 20); // For some unidentified reason, pagination was working smoothly for a few days, but then at some point it started to show signs of cpu starvation (e.g. slow/infrequent browser refreshes); I added this 20ms timeout between pages, and things came back to normal.
-      }
-      else if (undefined != pQuery.match(/^\s*create\s*class/i))
+      lThis._recordRows(_pJson, _pUserData.offset);
+      if (_pUserData.pos == lThis.mScrollPos)
+        lThis._onScroll(_pUserData.pos);
+      if (undefined != lThis.mQuery.match(/^\s*create\s*class/i))
         { populate_classes(); }
     };
-    var lOnPage = new QResultHandler(lOnPageSuccess, null, lPaginationCtx);
-    mv_query(pQuery, lOnPage, {limit:lPaginationCtx.mPageSize, offset:lPaginationCtx.mOffset});
-  };
-  var lOnCount = new QResultHandler(lOnCountSuccess, null, null);
-  mv_query(pQuery, lOnCount, {countonly:true});
+  mv_query(this.mQuery, new QResultHandler(lOnPage, null, {offset:iR, pos:pPos}), {limit:QResultTable.PAGESIZE, offset:iR});
 }
-QResultTable.prototype._init = function(pJson)
+QResultTable.prototype._setNumRows = function(pNum)
+{
+  this.mNumRows = pNum;
+  var lPhysH = this.mQrtContainer.height();
+  var lTotH = lPhysH + this.mQrtVSNominalRowHeight * (pNum - 1);
+  this.mQrtVScrollerContent.height(lTotH);
+  this.mQrtVScroller.scrollTop(0);
+}
+QResultTable.prototype._initTables = function(pJson)
 {
   if (this.mInitialized)
     return;
-  
-  // Clear the table.
-  this.mTable.empty();
 
-  // Create the column headers (PID, class props, common props, other props).
-  // REVIEW: We could decide to color-code the sections (class vs common vs other).
-  var lHead = $("<thead />").appendTo(this.mTable);
-  var lHeadR = $("<tr />").appendTo(lHead);
-  lHeadR.append($("<th align=\"left\">PID</th>"));
+  // Determine the column layout (from initial data/page).
   this.mClassProps = new Object();
   this.mCommonProps = new Object(), lCommonProps = new Object();
   var lClass = null;
   if (this.mClassName)
   {
-    lClass = function(_pN){ for (var i = 0; null != MV_CONTEXT.mClasses && i < MV_CONTEXT.mClasses.length; i++) { if (MV_CONTEXT.mClasses[i]["ks:classID"] == _pN) return MV_CONTEXT.mClasses[i]; } return null; }(this.mClassName);
-    for (var iProp in lClass["ks:properties"])
+    lClass = function(_pN){ for (var i = 0; null != MV_CONTEXT.mClasses && i < MV_CONTEXT.mClasses.length; i++) { if (MV_CONTEXT.mClasses[i]["afy:classID"] == _pN) return MV_CONTEXT.mClasses[i]; } return null; }(this.mClassName);
+    for (var iProp in lClass["afy:properties"])
     {
-      var lPName = lClass["ks:properties"][iProp];
+      var lPName = lClass["afy:properties"][iProp];
       this.mClassProps[lPName] = 1;
-      lHeadR.append($("<th align=\"left\">" + lPName + "</th>"));
     }
   }
   for (var i = 0; i < pJson.length; i++)
@@ -250,12 +382,15 @@ QResultTable.prototype._init = function(pJson)
   {
     if (lCommonProps[iProp] < (pJson.length / 2)) continue; // Only keep properties that appear at least in 50% of the results.
     this.mCommonProps[iProp] = 1;
-    lHeadR.append($("<th align=\"left\">" + iProp + "</th>"));
   }
-  lHeadR.append($("<th align=\"left\">Other Properties</th>"));
+
+  // Initialize the two tables (for double-buffering).
+  for (var iT = 0; iT < this.mTables.length; iT++)
+    this._initTableUI(iT);
+
   this.mInitialized = true;
 }
-QResultTable.prototype._addRows = function(pQResJson)
+QResultTable.prototype._recordRows = function(pQResJson, pOffset)
 {
   if (undefined == pQResJson)
     return;
@@ -263,53 +398,164 @@ QResultTable.prototype._addRows = function(pQResJson)
 
   // Initialize upon receiving the first batch of results,
   // in order to be able to gather "common" properties, based on that first batch.
-  this._init(lJson);
+  this._initTables(lJson);
 
+  // Throw away least-recently-used items from the cache, if necessary.
+  while (this.mRowLRU.length + lJson.length > QResultTable.CACHE_SIZE)
+    delete this.mRowCache[String(this.mRowLRU.pop())];
+  
   // Create the rows.
-  var lBody = $("<tbody />").appendTo(this.mTable);
   for (var i = 0; i < lJson.length; i++)
   {
     // For now, if an element of the result is a list (result from a JOIN), just take the leftmost pin.
     // When the kernel behavior stabilizes with respect to the structure and contents of JOIN results,
     // we can do more.
     var lPin = (lJson[i] instanceof Array || lJson[i][0] != undefined) ? lJson[i][0] : lJson[i];
-    
-    // Create a new row and bind mouse interactions.
-    var lRow = $("<tr id=\"" + lPin["id"] + "\"/>").appendTo(lBody);
-    lRow.mouseover(function(){$(this).addClass("highlighted");});
-    lRow.mouseout(function(){$(this).removeClass("highlighted");});
-    lRow.click(function(){on_pin_click($(this).attr("id")); return false;});
-    var lRefs = new Object();
-
-    // Create the first column.
-    lRow.append($("<td>" + lPin["id"] + "</td>"));
-
-    // Create the class-related columns, if any.
-    for (var iProp in this.mClassProps)
-      { lRow.append($("<td>" + this._createValueUI(lPin[iProp], lRefs, lPin["id"] + "rqt") + "</td>")); }
-
-    // Create the common props columns, if any.
-    for (var iProp in this.mCommonProps)
-      { lRow.append($("<td>" + (iProp in lPin ? this._createValueUI(lPin[iProp], lRefs, lPin["id"] + "rqt") : "") + "</td>")); }
-
-    // Create the last column (all remaining properties).
-    lOtherProps = $("<p />");
-    for (var iProp in lPin)
-    {
-      if (iProp == "id") continue;
-      if (iProp in this.mClassProps) continue;
-      if (iProp in this.mCommonProps) continue;
-      lOtherProps.append($("<span class='mvpropname'>" + iProp + "</span>"));
-      lOtherProps.append($("<span>:" + this._createValueUI(lPin[iProp], lRefs, lPin["id"] + "rqt") + "  </span>"));
-    }
-    var lOPD = $("<td />");
-    lOPD.append(lOtherProps);
-    lRow.append(lOPD);
-
-    // Bind mouse interactions for references.
-    for (iRef in lRefs)
-      { $("#" + iRef).click(function(){on_pin_click($(this).text()); return false;}); }
+    var lK = String(pOffset + i);
+    if (lK in this.mRowCache)
+      this._removeFromLRU(pOffset + i);
+    this.mRowCache[lK] = {pin:lPin};
+    this.mRowLRU.push(pOffset + i);
   }
+}
+QResultTable.prototype._initTableUI = function(pWhich)
+{
+  // Clear the table.
+  var lT = this.mTables[pWhich];
+  lT.empty();
+
+  // Create the column headers (PID, class props, common props, other props).
+  // REVIEW: We could decide to color-code the sections (class vs common vs other).
+  var lHead = $("<thead />").appendTo(lT);
+  var lHeadR = $("<tr />").appendTo(lHead);
+  lHeadR.append($("<th class='qrt_table_th' align=\"left\">PID</th>"));
+  var lClass = null;
+  for (var iProp in this.mClassProps)
+    lHeadR.append($("<th class='qrt_table_th' align=\"left\">" + iProp + "</th>"));
+  for (var iProp in this.mCommonProps)
+    lHeadR.append($("<th class='qrt_table_th' align=\"left\">" + iProp + "</th>"));
+  lHeadR.append($("<th class='qrt_table_th' align=\"left\">Other Properties</th>"));
+  $("<tbody />").appendTo(lT);
+}
+QResultTable.prototype._fillTableUI = function(pWhich, pPos)
+{
+  // Use the display height as a way to add the least number of rows possible.
+  var lCt = this.mTables[pWhich];
+  var lHt = lCt.parent().height();
+  var lWt = lCt.parent().width();
+
+  // Remove and recreate the offscreen-table's body.
+  lCt.children("tbody").each(function(_pI, _pE) { $(_pE).remove(); });
+  $("<tbody />").appendTo(lCt);
+
+  // Add the required rows.
+  // Note: We don't sum up the height of individual rows, because the layout engine can make them change as new rows are inserted.
+  var lAccH = lCt.height();
+  var lStartPos = Math.floor(pPos / this.mQrtVSNominalRowHeight);
+  var lEndPos = Math.min(lStartPos + QResultTable.PAGESIZE, this.mNumRows);
+  var lSuccess = true;
+  for (var iR = lStartPos; iR < lEndPos && ((0 == lHt && undefined == this.mQuery) || lAccH < lHt); iR++, lAccH = lCt.height())
+  {
+    var lK = String(iR);
+    if (!(lK in this.mRowCache)) { lSuccess = false; break; }
+    this._removeFromLRU(iR);
+    this._addRowUI(pWhich, this.mRowCache[String(iR)].pin);
+    this.mRowLRU.push(iR);
+  }
+  if (!lSuccess)
+    { console.log("Couldn't retrieve data in cache"); return; }
+
+  // Hide the vertical scroller, if there aren't enough results.
+  // Hack:
+  //   The lNormWidth calculation is an approximation, meant to deal with the fact that
+  //   a native scroller's physical dimension can't be evaluated precisely (for any zoom level).
+  //   This adjustment is required because css pixels are zoomed (while native scrollers aren't);
+  //   otherwise the browser sometimes chooses to hide the scroll bars (when zoomed out).
+  //   As far as I can tell, this touches an extremely messy aspect of browser coordinate systems.
+  // Note:
+  //   In ie the scrollbars are scaled along with browser zoom.
+  var lNormWidth = ("msie" in $.browser && $.browser["msie"]) ? 20 : Math.round(30 * screen.width / 1800);
+  var lNWs = "" + lNormWidth + "px";
+  if (0 == pPos && iR <= lEndPos && lAccH < lHt)
+  {
+    this.mQrtVScroller.css("display", "none");
+    this.mQrtContainer.css("right", "0px");
+    this.mQrtHScroller.css("right", "0px");
+  }
+  else
+  {
+    this.mQrtVScroller.css("display", "block");
+    this.mQrtVScroller.css("width", lNWs);
+    this.mQrtContainer.css("right", lNWs);
+    this.mQrtHScroller.css("right", lNWs);
+  }
+
+  // Hide the horizontal scroller, unless necessary.
+  if (lCt.width() <= lWt)
+  {
+    this.mQrtHScroller.css("display", "none");
+    this.mQrtContainer.css("bottom", "0px");
+    this.mQrtVScroller.css("bottom", lNWs); // Note: Normally this would be 0px, but because we hide/show the horizontal scroller on a page-by-page basis, I want to avoid having the downward scrolling arrow move...
+  }
+  else
+  {
+    this.mQrtHScrollerContent.width(lCt.width());
+    this.mQrtHScroller.css("display", "block");
+    this.mQrtHScroller.css("height", lNWs);
+    this.mQrtContainer.css("bottom", lNWs);
+    this.mQrtVScroller.css("bottom", lNWs);
+  }
+
+  // Swap visibility.
+  // Note: Using 'visibility' instead of 'display' allows to obtain row heigths while building the off-screen version.
+  this.mTables[1 - pWhich].css("visibility", "hidden");
+  lCt.css("visibility", "visible");
+}
+QResultTable.prototype._addRowUI = function(pWhich, pPin)
+{
+  // Create a new row and bind mouse interactions.
+  var lBody = this.mTables[pWhich].children("tbody");
+  var lRow = $("<tr id=\"" + pPin["id"] + "\"/>").appendTo(lBody);
+  lRow.mouseover(function(){$(this).addClass("highlighted");});
+  lRow.mouseout(function(){$(this).removeClass("highlighted");});
+  lRow.click(function(){on_pin_click($(this).attr("id")); return false;});
+  var lRefs = new Object();
+
+  // Create the first column.
+  lRow.append($("<td>" + pPin["id"] + "</td>"));
+
+  // Create the class-related columns, if any.
+  for (var iProp in this.mClassProps)
+    { lRow.append($("<td>" + this._createValueUI(pPin[iProp], lRefs, pPin["id"] + "rqt") + "</td>")); }
+
+  // Create the common props columns, if any.
+  for (var iProp in this.mCommonProps)
+    { lRow.append($("<td>" + (iProp in pPin ? this._createValueUI(pPin[iProp], lRefs, pPin["id"] + "rqt") : "") + "</td>")); }
+
+  // Create the last column (all remaining properties).
+  lOtherProps = $("<p />");
+  for (var iProp in pPin)
+  {
+    if (iProp == "id") continue;
+    if (iProp in this.mClassProps) continue;
+    if (iProp in this.mCommonProps) continue;
+    lOtherProps.append($("<span class='mvpropname'>" + iProp + "</span>"));
+    lOtherProps.append($("<span>:" + this._createValueUI(pPin[iProp], lRefs, pPin["id"] + "rqt") + "  </span>"));
+  }
+  var lOPD = $("<td />");
+  lOPD.append(lOtherProps);
+  lRow.append(lOPD);
+
+  // Bind mouse interactions for references.
+  for (iRef in lRefs)
+    { $("#" + iRef).click(function(){on_pin_click($(this).text()); return false;}); }  
+    
+  return lRow;
+}
+QResultTable.prototype._removeFromLRU = function(pKey)
+{
+  for (var iLRU = 0; iLRU < this.mRowLRU.length; iLRU++)
+    if (this.mRowLRU[iLRU] == pKey) { this.mRowLRU.splice(iLRU, 1); break; }
 }
 QResultTable.createValueUI = function(pProp, pRefs, pRefPrefix)
 {
@@ -366,83 +612,21 @@ BatchingSQL.prototype.go = function()
         return;
       for (var iQ = 0; iQ < _pJson.length; iQ++)
       {
-        var _lPage = {ui:$("<div />"), query:(lQueries[iQ] + ";"), result:null};
+        var _lPage = {ui:$("<div style='overflow:hidden; position:absolute; top:30px; width:100%; height:100%;'/>"), query:(lQueries[iQ] + ";"), result:null};
         _lPage.result = new QResultTable(_lPage.ui, null);
         MV_CONTEXT.mQueryHistory.recordQuery(_lPage.query);
-        _lPage.result._addRows(_pJson[iQ]);
         lThis.mResultList.append($("<option>" + _lPage.query + "</option>"));
         lThis.mPages.push(_lPage);
         lThis.mResultPage.append(_lPage.ui);
+        _lPage.result._setNumRows(_pJson[iQ].length);
+        _lPage.result._recordRows(_pJson[iQ], 0);
+        _lPage.result._onScroll(0);
         _lPage.ui.css("display", "none");
       }
     };
   mv_batch_query(lQueries, new QResultHandler(lOnResults, function(_pError){ print("error:" + _pError[0].responseText); }), {sync:true});
   if (this.mPages.length > 0)
     this.mPages[0].ui.css("display", "block");
-}
-BatchingSQL.prototype.go_1by1 = function() // No longer used.
-{
-  this.mResultList.empty();
-  this.mResultPage.empty();
-  this.mPages = new Array();
-  var lThis = this;
-  var lQueries = this.mQueryAreaQ.val().replace(/\n/g,"").split(';');
-  $.each(
-    lQueries,
-    function(_pI, _pE)
-    {
-      if (0 == _pE.length)
-        return;
-      var _lPage = {ui:$("<div />"), query:(_pE + ";"), result:null};
-      _lPage.result = new QResultTable(_lPage.ui, null);
-      MV_CONTEXT.mQueryHistory.recordQuery(_lPage.query);
-      _lPage.result.populate(_lPage.query);
-      lThis.mResultList.append($("<option>" + _lPage.query + "</option>"));
-      lThis.mPages.push(_lPage);
-      lThis.mResultPage.append(_lPage.ui);
-      _lPage.ui.css("display", "none");
-    });
-  if (this.mPages.length > 0)
-    this.mPages[0].ui.css("display", "block");
-}
-
-/**
- * NavTabs.
- * Interprets all <li> nodes of the #nav section as tabs;
- * expects each to contain an <a> anchor,
- * with href pointing to the <div> that defines the tab's contents
- * (super-simplified tab system, not dependent on jquery-ui).
- */
-function NavTabs()
-{
-  var lTabs = [] // An array of {name:, anchor:, content:}.
-  var lTabContentFromName = function(_pName) { return $("#" + _pName); }
-  var lTabNameFromA = function(_pAnchor) { return _pAnchor.toString().split('#').pop(); }
-  var lFindTab = function(_pName) { for (var _i = 0; _i < lTabs.length; _i++) if (_pName == lTabs[_i].name) { return lTabs[_i]; } return null; }
-  var lOnTab =
-    function(_pEvent)
-    {
-      // Hide all tabs.
-      $.each(lTabs, function(__pI, __pE) { __pE.content.css("display", "none"); });
-      // Display the selected tab.
-      var _lTargetA = $(_pEvent.target).parent()[0];
-      var _lTab = lTabContentFromName(lTabNameFromA(_lTargetA));
-      _lTab.css("display", "block");
-      _lTab.trigger("activate_tab");
-    }
-  // For each <li> of #nav, record it as a tab in lTabs, and bind lOnTab to the click event.
-  $("#nav li").each(
-    function(_pI, _pE)
-    {
-      var _lAnchor = $("a", _pE)[0];
-      var _lTab = {name:lTabNameFromA(_lAnchor), anchor:_lAnchor};
-      _lTab.content = lTabContentFromName(_lTab.name);
-      lTabs.push(_lTab);
-      $("img", _lAnchor).each(function(__pI, __pE) { $(__pE).click(lOnTab); bindTooltip($(__pE), $("#tooltip_" + _lTab.name).text()); });
-    });
-  // Select the first tab initially (either from the url, if one is specified, or just by index, otherwise).
-  var lLoadedUrl = location.href.split('#');
-  lOnTab({target:(lLoadedUrl.length > 1 ? $("img", lFindTab(lLoadedUrl.pop()).anchor) : $("#nav img")[0])});
 }
 
 /**
@@ -586,7 +770,9 @@ function Tutorial()
             var __lR = [];
             for (var __i = 0; __i < __pWhat.length; __i++)
               __lR.push(_stringify(__pWhat[__i], __pQuoteStrings));
-            return "[" + __lR.join(",") + "]<br>";
+            var __lRt = __lR.join(",");
+            if (__lRt.length > 100) { __lRt = __lR.join(",<br>"); }
+            return "[" + __lRt + "]";
           }
           else if (__pWhat instanceof Date)
             return "'" + __pWhat.toString() + "'";
@@ -719,6 +905,7 @@ function Tutorial()
         var lNumSteps = $("#thetutorial #steps > div").size();
         if (lThis.mTutorialStep < lNumSteps)
         {
+          lThis.mPendingTx = null; // Note: I need to figure out ASAP why mPendingTx is not always cleared properly on COMMIT (during the previous step); in the meantime, to eliminate the impact of this problem, I force-clear it when a new step starts.
           $("#thetutorial #steps #step" + lThis.mTutorialStep + " div").each(function(_pI, _pE) { _pushTutInstr($(_pE).html()); });
           if (lThis.mTutorialStep > 0)
           {
@@ -783,11 +970,528 @@ function Tutorial()
       }
     } // if 0 == pEvent.which ... 38:up 40:down
   this.mInput.keypress(this.mOnKey);
-  this.mPushInput = function() { lThis.mHistory.append($("<p class='tutorial_stmt'>&gt;" + lThis.mInput.val() + "</p>")); lThis.mInput.val(''); }
+  this.mPushInput = function() { lThis.mHistory.append($("<p class='tutorial_stmt'>&gt;" + lThis.mInput.val().replace(/<br>/g, "&lt;br&gt;") + "</p>")); lThis.mInput.val(''); }
   this.mScroll = function() { $("#tutorial_area").scrollTop(lThis.mHistory.height() + 2 * $("#tutorial_input").height() - $("#tutorial_area").height()); $("#tutorial_area").scrollLeft(0); }
   this.mTutorialStep = 0;
   $("#tutorial_area").click(function() { lThis.mInput.focus(); });
   $("#tab-tutorial").bind("activate_tab", function() { lThis.mInput.focus(); });
+}
+
+/**
+ * GraphMap.
+ * Manages the graph/map display.
+ * A clique is a group of pins related by something, such as:
+ * . pins that refer to each other via any property
+ * . pins that refer to each other via a specific set of properties
+ * . pins that belong to the same classes
+ * In order for pagination to be meaningful, a pin that doesn't gain new refs should remain where it was.
+ * For the moment, we only display homogeneous cliques (i.e. a pin belongs to only 1 clique).
+ * TODO: More filtering options.
+    - show only desired types of objects (e.g. people, not cars)
+      -> a series of checkboxes (maybe directly in the legend)
+      -> as a big bitarray, with hovering telling what it is :)
+    - traverse only specified relationships (e.g. friends, not parents)
+    - clique threshold: if only connected by <x, not in
+ * TODO: actual algo from Mark... plus generate 'real' cliques in sample material.
+ * TODO: Will always only render the query result (top filter).
+ * TODO: Will always draw everything; may accumulate layout info in a tmp db.
+ * TODO: Will allow to specify classes/props as additional criteria for 'closeness';
+ *       if classes are specified for closeness, walk by classes first
+ * TODO: Will color by classes...
+ */
+function gm_has(pArray, pO) { if (undefined == pArray) return; for (var i = 0; i < pArray.length; i++) if (pArray[i] == pO) return true; return false; }
+function gm_removeFrom(pArray, pO) { if (undefined == pArray) return; for (var i = 0; i < pArray.length; i++) if (pArray[i] == pO) { pArray.splice(i, 1); return; } }
+function gm_quantizePos(pX, pY, pGrid) { return "" + ((pX / pGrid) >> 0) + "," + ((pY / pGrid) >> 0); }
+function gm_LayoutCtx(pQuery, pUIUpdater)
+{
+  // TODO: This will gradually become an interface/caching layer to the layout db.
+  // TODO: For the moment, I want to observe and learn what I'll need.
+  var lThis = this;
+  this.query = pQuery; // The actual query defining the root domain. TODO: option to clip to this set...
+  this.ui_updater = pUIUpdater; // A function allowing to progressively update the UI as we progress through pagination.
+  this.processed = {}; // PIDs of all pins processed so far.
+  this.cliques_byref = []; // Cliques of pins referencing each other via any property (no single-pin clique).
+  this.solitaires = {}; // Single pins (not in any clique yet).
+  this.backrefs = {}; // To store/retrieve who's pointing to me.
+  this.hasClique = function(_pClique) { for (var _iC = 0; _iC < lThis.cliques_byref.length; _iC++) if (lThis.cliques_byref[_iC] == _pClique) return true; return false; }
+}
+gm_LayoutCtx.CLIQUE_RADIUS = 1000.0; // Each clique will be contained within a circle of 100.0 units of radius.
+gm_LayoutCtx.QUANTIZE_GRID = 10; // For 2d retrieval, objects will be mapped by position on a grid of 5-units squares.
+function gm_LayoutNodeInfo(pPin, pLayoutCtx)
+{
+  var lTrimPid = function(_pPid) { return _pPid.replace(/^0+/, ""); }
+  var lPid = lTrimPid(pPin.id);
+  var lDoExtractImmediateRefs =
+    function()
+    {
+      var _lRefs = [];
+      for (var _iProp in pPin)
+      {
+        if (typeof(pPin[_iProp]) == "object" && "$ref" in pPin[_iProp])
+          _lRefs.push(lTrimPid(pPin[_iProp]["$ref"]));
+        else if (typeof(pPin[_iProp]) == "object")
+        {
+          for (var _iElm in pPin[_iProp])
+          {
+            if (typeof(pPin[_iProp][_iElm]) == "object" && "$ref" in pPin[_iProp][_iElm])
+              _lRefs.push(lTrimPid(pPin[_iProp][_iElm]["$ref"]));
+          }
+        }
+      }
+      return _lRefs;
+    }
+  var lRegisterBackrefs =
+    function(_pRefs)
+    {
+      for (var _iR = 0; _iR < _pRefs.length; _iR++)
+      {
+        var _lTarget = _pRefs[_iR];
+        if (_lTarget in pLayoutCtx.backrefs) pLayoutCtx.backrefs[_lTarget].push(lPid);
+        else pLayoutCtx.backrefs[_lTarget] = [lPid];
+      }
+    }
+  var lThis = this;
+  this.pin = pPin;
+  this.id = lPid;
+  this.position = null; // {x:_, y:_, numrefs:_} where (x,y) are relative to the clique in logical cs, and numrefs is a snapshot of the number of backrefs at last evaluation of (x,y).
+  this.fwrefs = lDoExtractImmediateRefs(pPin);
+  this.clique = null; // at least for now, a node will belong to only 1 clique at a time (single level of cliques per display).
+  this.numrefs_cache = null;
+  this.numrefs_eval = function() { lThis.numrefs_cache = lThis.fwrefs.length + (lThis.id in pLayoutCtx.backrefs ? pLayoutCtx.backrefs[lThis.id].length : 0); }
+  this.setPosition = function(_pX, _pY) { lThis.position = {x:_pX, y:_pY, numrefs:lThis.numrefs_cache}; }
+  this.resetPosition = function() { lThis.position = null; }
+  lRegisterBackrefs(this.fwrefs);
+}
+function gm_Clique(pLayoutCtx)
+{
+  var lThis = this;
+  var lDebug = false;
+  this.data = {}
+  this.add =
+    function(_pNodeInfo)
+    {
+      if (lDebug)
+      {
+        var _l2 = [];
+        for (var _i in lThis.data)
+          _l2.push("@" + _i);
+        console.log("added @" + _pNodeInfo.id + " to " + _l2.join(","));
+      }
+      lThis.data[_pNodeInfo.id] = _pNodeInfo;
+      _pNodeInfo.clique = lThis;
+    }
+  this.merge =
+    function(_pOtherClique)
+    {
+      if (_pOtherClique == lThis)
+        return;
+      if (lDebug)
+      { 
+        var _l1 = [];
+        for (var _i in _pOtherClique.data)
+          _l1.push("@" + _i);
+        var _l2 = [];
+        for (var _i in lThis.data)
+          _l2.push("@" + _i);
+        console.log("merged " + _l1.join(",") + " with " + _l2.join(","));
+      }
+      for (var _iN in _pOtherClique.data)
+        lThis.add(_pOtherClique.data[_iN]);
+      gm_removeFrom(pLayoutCtx.cliques_byref, _pOtherClique);
+    }
+  pLayoutCtx.cliques_byref.push(this);
+}
+function gm_InstrSeq()
+{
+  var iSubStep = 0;
+  var lSubSteps = new Array();
+  this.next = function() { iSubStep++; if (iSubStep < lSubSteps.length) lSubSteps[iSubStep](); }
+  this.push = function(_pSubStep) { lSubSteps.push(_pSubStep); }
+  this.start = function() { iSubStep = 0; lSubSteps[iSubStep](); }
+  this.curstep = function() { return iSubStep; }
+}
+function gm_PageByPage(pQueryStr, pPageSize, pHandler, pUserData)
+{
+  var lAbort = false;
+  var lOnCount =
+    function(_pJson)
+    {
+      var _lPaginationCtx = new Object();
+      _lPaginationCtx.mNumPins = parseInt(_pJson);
+      _lPaginationCtx.mOffset = 0;
+      var _lOnPage =
+        function(__pJson, __pUserData)
+        {
+          if (undefined == __pJson) { return; }
+          pHandler(__pJson, pUserData);
+          __pUserData.mOffset += __pJson.length;
+          if (__pUserData.mOffset < __pUserData.mNumPins && !lAbort)
+            { setTimeout(function(){mv_query(pQueryStr, new QResultHandler(_lOnPage, null, __pUserData), {limit:pPageSize, offset:__pUserData.mOffset})}, 20); }
+        }
+      mv_query(pQueryStr, new QResultHandler(_lOnPage, null, _lPaginationCtx), {limit:pPageSize, offset:_lPaginationCtx.mOffset});
+    }
+  mv_query(pQueryStr, new QResultHandler(lOnCount, null, null), {countonly:true});
+  this.abort = function() { lAbort = true; }
+}
+function gm_LayoutEngine()
+{
+  var lThis = this;
+  var lPbP = null; // For interruptibility.
+  var lMergeReferers =
+    function(_pReferers, _pLayoutCtx)
+    {
+      var _lFirstInfoReferer = _pLayoutCtx.processed[_pReferers[0]];
+      for (var _iR = 1; _iR < _pReferers.length; _iR++)
+        _lFirstInfoReferer.clique.merge(_pLayoutCtx.processed[_pReferers[_iR]].clique);
+    }
+  var lBindLayoutInfo =
+    function(_pPin, _pLayoutCtx)
+    {
+      // Use trimmed-down PIDs (no leading 0s).
+      var _lPid = _pPin.id.replace(/^0+/, "");
+
+      // If this pin was already processed...
+      if (_lPid in _pLayoutCtx.processed)
+      {
+        // It may mean that we just discovered a pin pointing to it
+        // (which by now should already be registered in _pLayoutCtx.backrefs).
+        if (_lPid in _pLayoutCtx.backrefs)
+        {
+          // If the pin being pointed to was a solitaire, it no longer is.
+          // Note: If a pin is pointing to another pin, it necessarily already has a clique (i.e. not solitaire).
+          // Note: Many existing cliques may be pointing to this solitaire... must merge all.
+          var _lInfo = _pLayoutCtx.processed[_lPid];
+          var _lReferers = _pLayoutCtx.backrefs[_lPid];
+          var _lFirstInfoReferer = _pLayoutCtx.processed[_lReferers[0]];
+          if ((_lInfo.clique == _pLayoutCtx.solitaires) && (_lPid in _pLayoutCtx.solitaires))
+          {
+            delete _pLayoutCtx.solitaires[_lPid];
+            _lFirstInfoReferer.clique.add(_lInfo);
+            lMergeReferers(_lReferers, _pLayoutCtx);
+          }
+          // If it belonged to a clique, it's time to merge cliques.
+          else if (_lFirstInfoReferer.clique != _lInfo.clique && _pLayoutCtx.hasClique(_lInfo.clique))
+          {
+            _lFirstInfoReferer.clique.merge(_lInfo.clique);
+            lMergeReferers(_lReferers, _pLayoutCtx);
+          }
+        }
+        return null;
+      }
+
+      // This is a new pin; register it as such; scan its outward references.
+      var _lInfo = new gm_LayoutNodeInfo(_pPin, _pLayoutCtx);
+      _pLayoutCtx.processed[_lPid] = _lInfo;
+
+      // Determine its clique.
+      if (_lPid in _pLayoutCtx.backrefs)
+      {
+        // Some other pin is pointing to it, so it belongs to that clique (may involve merging multiple cliques).
+        var _lReferers = _pLayoutCtx.backrefs[_lPid];
+        var _lFirstInfoReferer = _pLayoutCtx.processed[_lReferers[0]];
+        _lFirstInfoReferer.clique.add(_lInfo);
+        lMergeReferers(_lReferers, _pLayoutCtx);
+      }
+      else if (0 == _lInfo.fwrefs.length)
+      {
+        // It points to nothing and nothing points to it so far, so it's a solitaire.
+        _pLayoutCtx.solitaires[_lPid] = _lInfo;
+        _lInfo.clique = _pLayoutCtx.solitaires;
+      }
+      else
+      {
+        // It points to other pins, so at least for now, it's the beginning of a new clique.
+        var _lNewClique = new gm_Clique(_pLayoutCtx);
+        _lNewClique.add(_lInfo);
+      }
+      return _lInfo;
+    }
+  var lRecomputePositions =
+    function(_pLayoutCtx)
+    {
+      var _lMaxRadius = gm_LayoutCtx.CLIQUE_RADIUS;
+      var _lSimpleHashAngle = function(_pPidStr) { var _lH = 0; for (var _i = 0; _i < _pPidStr.length; _i++) { _lH = (27 * _lH + 35 * _pPidStr.charCodeAt(_i)) % 100 ; } return _lH / 100; }
+      var _lSimpleHashDist = function(_pPidStr) { var _lH = 0; for (var _i = 0; _i < _pPidStr.length; _i++) { _lH = (37 * _lH + 19 * _pPidStr.charCodeAt(_i)) % _lMaxRadius ; } return _lH; }
+
+      // Solitaires.
+      for (var _iPid in _pLayoutCtx.solitaires)
+      {
+        var _lI = _pLayoutCtx.solitaires[_iPid];
+        if (undefined != _lI.position)
+          continue;
+        var _lDistance = _lSimpleHashDist(_iPid);
+        var _lAngle = 2 * Math.PI * _lSimpleHashAngle(_iPid);
+        _lI.setPosition(_lDistance * Math.cos(_lAngle), _lDistance * Math.sin(_lAngle));
+      }
+
+      // Cliques.
+      for (var _iC = 0; _iC < _pLayoutCtx.cliques_byref.length; _iC++)
+      {
+        var _lClique = _pLayoutCtx.cliques_byref[_iC];
+        
+        // In a clique, put the pins with most relationships closer to the center;
+        // don't move pins that have no more refs than at their last evaluation.
+        var _lRemaining = []
+        for (var _iPid in _lClique.data)
+        {
+          var _lI = _lClique.data[_iPid];
+          _lRemaining.push(_lI);
+          _lI.numrefs_eval();
+          if (undefined != _lI.position && _lI.position.numrefs < _lI.numrefs_cache)
+            _lI.resetPosition();
+        }
+        _lRemaining.sort(function(__a, __b) { return __a.numrefs_cache - __b.numrefs_cache; });
+
+        // Starting from the most 'friendly' downward, locate at a predictable distance from the center,
+        // but at a pseudo-random angle.
+        while (_lRemaining.length > 0)
+        {
+          var _lR = _lRemaining.pop();
+          if (undefined != _lR.position)
+            continue;
+          var _lDistance = (_lMaxRadius / _lR.numrefs_cache);
+          var _lAngle = 2 * Math.PI * _lSimpleHashAngle(_lR.id);
+          _lR.setPosition(_lDistance * Math.cos(_lAngle), _lDistance * Math.sin(_lAngle));
+        }
+      }
+    }
+  var lRequestRefs =
+    function(_pSS, _pRefs, _pOnResults, _pLayoutCtx)
+    {
+      _pSS.push(
+        function()
+        {
+          mv_query(
+            "SELECT * FROM {" + _pRefs.join(",") + "}",
+             new QResultHandler(function(__pJson) { _pOnResults(__pJson, _pLayoutCtx); _pSS.next(); }, null, null));
+        });
+    }
+  var lOnPage =
+    function(_pJson, _pLayoutCtx)
+    {
+      if (undefined == _pJson) return;
+
+      // First, scan references and bind layout infos for all new objects.
+      var _lNewInfos = [];
+      for (var _iPin = 0; _iPin < _pJson.length; _iPin++)
+      {
+        var _lI = lBindLayoutInfo(_pJson[_iPin], _pLayoutCtx);
+        if (undefined != _lI)
+        {
+          for (var _iR = 0; _iR < _lI.fwrefs.length; _iR++)
+            _lNewInfos.push("@" + _lI.fwrefs[_iR]);
+        }
+      }
+
+      // Second, walk all possible new paths generated by these references (bfs).
+      var _lSS = new gm_InstrSeq();
+      while (_lNewInfos.length > 0)
+        lRequestRefs(_lSS, _lNewInfos.splice(0, 200), lOnPage, _pLayoutCtx);
+
+      // Once all structural aspects of the page will be dealt with, attribute positions and refresh.
+      _lSS.push(function() { lRecomputePositions(_pLayoutCtx); _pLayoutCtx.ui_updater(); });
+      _lSS.start();
+    }
+  this.doLayout =
+    function(_pLayoutCtx)
+    {
+      // On a page by page basis (streaming), perform the layout and refresh along the way.
+      if (undefined != lPbP) { lPbP.abort(); }
+      lPbP = new gm_PageByPage(_pLayoutCtx.query, 200, lOnPage, _pLayoutCtx);
+    }
+}
+function GraphMap()
+{
+  var lThis = this;
+  var l2dCtx = document.getElementById("map_area").getContext("2d");
+  var lVPHeight = $("#map_area").height();
+  var lPan = {x:0, y:0}, lZoom = lVPHeight / (2 * gm_LayoutCtx.CLIQUE_RADIUS);
+  var lLayoutEngine = new gm_LayoutEngine();
+  var lLayoutCtx = null;
+  var lBypos = {};
+  var lDoDraw = // The rendering engine.
+    function()
+    {
+      // We assume, as seems to be the case, that
+      // browsers take care of double-buffering upon return
+      // from this function.  Should this need to be improved,
+      // see: http://stackoverflow.com/questions/2795269/does-html5-canvas-support-double-buffering.
+      
+      // Reset transfos and background.
+      l2dCtx.setTransform(1, 0, 0, 1, 0, 0);
+      l2dCtx.fillStyle = "#e4e4e4";
+      l2dCtx.fillRect(0, 0, l2dCtx.canvas.width, l2dCtx.canvas.height);
+      if (undefined == lLayoutCtx)
+        return;
+
+      // Apply current pan&zoom.
+      l2dCtx.scale(lZoom, lZoom);
+      l2dCtx.translate(lPan.x, lPan.y);
+
+      // Draw a shadow behind each clique (+ solitaires).
+      var _lCX = 0, _iC;
+      l2dCtx.fillStyle = "#eaeaea";
+      for (_iC = 0; _iC < 1 + lLayoutCtx.cliques_byref.length; _iC++, _lCX += 2 * gm_LayoutCtx.CLIQUE_RADIUS)
+      {
+        var _lClique = lLayoutCtx.cliques_byref[_iC];
+        l2dCtx.beginPath();
+        l2dCtx.arc(_lCX, gm_LayoutCtx.CLIQUE_RADIUS, gm_LayoutCtx.CLIQUE_RADIUS, 0, 2 * Math.PI, false);
+        l2dCtx.closePath();
+        l2dCtx.fill();
+      }
+
+      // Set some general attributes.
+      l2dCtx.strokeStyle = "#d0caed";
+      l2dCtx.fillStyle = "#444";
+      l2dCtx.lineWidth = 3;
+
+      // Draw edges.
+      for (_iC = 0, _lCX = 0; _iC < lLayoutCtx.cliques_byref.length; _iC++, _lCX += 2 * gm_LayoutCtx.CLIQUE_RADIUS)
+      {
+        var _lClique = lLayoutCtx.cliques_byref[_iC];
+        for (var _iPid in _lClique.data)
+        {
+          var _lI = _lClique.data[_iPid];
+          if (undefined == _lI.position)
+            continue;
+          for (var _iRef = 0; _iRef < _lI.fwrefs.length; _iRef++)
+          {
+            var _lITo = lLayoutCtx.processed[_lI.fwrefs[_iRef]];
+            if (undefined == _lITo.position)
+              continue;
+            l2dCtx.beginPath();
+            l2dCtx.moveTo(_lCX + _lI.position.x, gm_LayoutCtx.CLIQUE_RADIUS + _lI.position.y);
+            l2dCtx.lineTo(_lCX + _lITo.position.x, gm_LayoutCtx.CLIQUE_RADIUS + _lITo.position.y);
+            l2dCtx.closePath();
+            l2dCtx.stroke();
+          }
+        }
+      }
+
+      // Draw vertices.
+      // TODO: add a coloring phase to the layout, and then here use either a default color, or colors representing the classes (pie slices).
+      var _lDrawVertex =
+        function(__pInfo, __pXOffset)
+        {
+          if (undefined == __pInfo.position)
+            return;
+          var __lX = __pXOffset + __pInfo.position.x;
+          var __lY = gm_LayoutCtx.CLIQUE_RADIUS + __pInfo.position.y;
+          var __lQpos = gm_quantizePos(__lX, __lY, gm_LayoutCtx.QUANTIZE_GRID);
+          if (__lQpos in lBypos) { if (!gm_has(lBypos[__lQpos], __pInfo)) lBypos[__lQpos].push(__pInfo); } else lBypos[__lQpos] = [__pInfo];
+          l2dCtx.beginPath();
+          l2dCtx.arc(__lX, __lY, 5, 0, 2 * Math.PI, false);
+          l2dCtx.closePath();
+          l2dCtx.fill();
+          l2dCtx.stroke();
+          l2dCtx.fillText("@" + __pInfo.id /*+ "[" + __lQpos + "]"*/, __lX + 5, __lY + 2);
+        }
+      for (_iC = 0, _lCX = 0; _iC < lLayoutCtx.cliques_byref.length; _iC++, _lCX += 2 * gm_LayoutCtx.CLIQUE_RADIUS)
+      {
+        var _lClique = lLayoutCtx.cliques_byref[_iC];
+        for (var _iPid in _lClique.data)
+          _lDrawVertex(_lClique.data[_iPid], _lCX);
+      }
+      for (var _iPid in lLayoutCtx.solitaires)
+        _lDrawVertex(lLayoutCtx.solitaires[_iPid], _lCX);
+
+      // Draw legend etc.
+      l2dCtx.setTransform(1, 0, 0, 1, 0, 0);
+      l2dCtx.fillStyle = "#444";
+      l2dCtx.lineWidth = 1;
+      l2dCtx.fillText("pan:", 5, lVPHeight - 42);
+      l2dCtx.fillText("zoom:", 5, lVPHeight - 22);
+      l2dCtx.fillText("classes:", 5, lVPHeight - 2);
+      l2dCtx.fillStyle = "#666";
+      l2dCtx.strokeStyle = "#666";
+      l2dCtx.fillText("click&drag", 50, lVPHeight - 42);
+      l2dCtx.fillText("z + click&drag", 50, lVPHeight - 22);
+      if (undefined != MV_CONTEXT.mClasses)
+      {
+        l2dCtx.fillStyle = "#0a0";
+        for (var _iC = 0; _iC < MV_CONTEXT.mClasses.length; _iC++)
+        {
+          l2dCtx.fillRect(50 + _iC * 15, lVPHeight - 15 - 2, 15, 15);
+          l2dCtx.strokeRect(50 + _iC * 15, lVPHeight - 15 - 2, 15, 15);
+        }
+      }
+    }
+  var lDoLayout =
+    function()
+    {
+      lLayoutCtx = new gm_LayoutCtx(mv_sanitize_semicolon($("#map_query").val()), lDoDraw);
+      lLayoutEngine.doLayout(lLayoutCtx);
+      lBypos = {};
+    }
+
+  // Pan & Zoom.
+  var lButtonDown = false, lZoomKeyDown = false;
+  var lAnchorPoint = {x:0, y:0}, lDynAnchorPoint = {x:0, y:0}, lLastPoint = {x:0, y:0};
+  var lMouseMove =
+    function(e)
+    {
+      lLastPoint.x = e.pageX; lLastPoint.y = e.pageY;
+      if (lButtonDown)
+      {
+        if (lZoomKeyDown) 
+        { 
+          var _lOffset = $("#map_area").offset();
+          var _lAP = {x:lAnchorPoint.x - _lOffset.left, y:lAnchorPoint.y - _lOffset.top};
+          var _lLog = {x:_lAP.x / lZoom - lPan.x, y:_lAP.y / lZoom - lPan.y};
+          lZoom = lZoom + lZoom * (0.2 * (lDynAnchorPoint.y < lLastPoint.y ? -1 : 1)); 
+          lPan.x = (_lAP.x / lZoom) - _lLog.x; // ecr = (log + pan) * zoom -> pan = ecr/zoom - log
+          lPan.y = (_lAP.y / lZoom) - _lLog.y;
+        }
+        else
+        {
+          lPan.x += (lLastPoint.x - lDynAnchorPoint.x) / lZoom;
+          lPan.y += (lLastPoint.y - lDynAnchorPoint.y) / lZoom;
+        }
+        lDynAnchorPoint.x = lLastPoint.x;
+        lDynAnchorPoint.y = lLastPoint.y;
+        lDoDraw();
+      }
+      else if (undefined != lLayoutCtx && undefined != MV_CONTEXT.mClasses)
+      {
+        var _lOffset = $("#map_area").offset();
+        var _lNLP = {x:lLastPoint.x - _lOffset.left, y:lLastPoint.y - _lOffset.top};
+        if (_lNLP.x >= 50 && _lNLP.x < 50 + 15 * MV_CONTEXT.mClasses.length && _lNLP.y >= lVPHeight - 15 && _lNLP.y <= lVPHeight - 2)
+        {
+          var _lClassIndex = Math.floor((_lNLP.x - 50) / 15);
+          if (_lClassIndex >= 0 && _lClassIndex < MV_CONTEXT.mClasses.length)
+            bindTooltip($("#map_area"), MV_CONTEXT.mClasses[_lClassIndex]["afy:classID"], {left:lLastPoint.x, top:lLastPoint.y - 40}, {once:true, start:0, end:500, offy:-15});
+        }
+          
+        /*
+        var _lOffset = $("#map_area").offset();
+        var _lQpos = gm_quantizePos(((lLastPoint.x - _lOffset.left + gm_LayoutCtx.QUANTIZE_GRID) / lZoom - lPan.x), ((lLastPoint.y - _lOffset.top + gm_LayoutCtx.QUANTIZE_GRID) / lZoom - lPan.y), gm_LayoutCtx.QUANTIZE_GRID);
+        $("#map_status").text("at: " + _lQpos);
+        if (_lQpos in lBypos)
+        {
+          var _lIds = [];
+          for (var _iP = 0; _iP < lBypos[_lQpos].length; _iP++)
+            _lIds.push("@" + lBypos[_lQpos][_iP].id);
+          bindTooltip($("#map_area"), _lIds.join(","), {left:lLastPoint.x, top:lLastPoint.y}, {start:100, stop:500, once:true});
+        }
+        */
+      }
+    }
+  $("#map_area").mousemove(lMouseMove);
+  $("#map_area").mousedown(function(e) { lButtonDown = true; lDynAnchorPoint.x = lAnchorPoint.x = lLastPoint.x; lDynAnchorPoint.y = lAnchorPoint.y = lLastPoint.y; });
+  $("#map_area").mouseup(function() { lButtonDown = false; });
+  $("#map_area").mouseout(function() { lButtonDown = false; });
+  $("#map_area").mouseleave(function() { lButtonDown = false; });
+  window.addEventListener('keydown', function(e) { if (e.which == 90) lZoomKeyDown = true; }, true);
+  window.addEventListener('keyup', function() { lZoomKeyDown = false; }, true);
+
+  // Other interactions.
+  $("#map_query").keypress(function(e) { if (13 == e.keyCode) { lDoLayout(); lDoDraw(); } return true; });
+  $("#map_querygo").click(function() { lDoLayout(); lDoDraw(); return false; });
+  $("#tab-map").bind("activate_tab", function() { populate_classes(); lDoDraw(); });
+
+  // Initialize the canvas's dimensions (critical for rendering quality).
+  $("#map_area").attr("width", $("#map_area").width());
+  $("#map_area").attr("height", $("#map_area").height());
 }
 
 /**
@@ -820,6 +1524,9 @@ function base64_encode(data)
  */
 $(document).ready(
   function() {
+    // Home/logo button.
+    $("#gh_logo_img").hover(function() { $(this).addClass("logo-highlighted"); }, function() { $(this).removeClass("logo-highlighted"); });
+    $("#gh_logo_img").click(function() { window.location.href = 'http://' + location.hostname + ":" + location.port; });
     // Setup a client-side persistent memory.
     MV_CONTEXT.mUIStore = new Persist.Store("mvStore Console Persistence");
     if (undefined != MV_CONTEXT.mUIStore)
@@ -833,6 +1540,8 @@ $(document).ready(
     }
     // Setup the tutorial.
     new Tutorial();
+    // Setup the graph/map.
+    new GraphMap();
     // Setup the batching UI.
     new BatchingSQL();
     // Setup tab-dependent aspects of the basic console.
@@ -864,7 +1573,7 @@ $(document).ready(
     }
     // UI callback for query form.
     $("#form").submit(function() {
-      var lResultList = $("#result_list");
+      var lResultList = $("#result_table");
       lResultList.html("loading...");
       if ($("#result_pin pre").size() > 0) // If the contents of the #result_pin represent an error report from a previous query, clear it now; otherwise, let the contents stay there.
         $("#result_pin").empty(); 
@@ -892,7 +1601,7 @@ $(document).ready(
           global: false,
           data: lQuery,
           complete: function (e, xhr, s) {
-            $("#result_list").html(hqbr(lQueryStr + "\n\n" + e.responseText + "\n" + xhr));
+            $("#result_table").html(hqbr(lQueryStr + "\n\n" + e.responseText + "\n" + xhr));
           },
           beforeSend : function(req) {
             req.setRequestHeader('Connection', 'Keep-Alive');
@@ -968,7 +1677,7 @@ function mv_without_qname(pRawName)
 }
 function mv_with_qname_prefixes(pQueryStr)
 {
-  var lAlreadyDefined = {'http':1, 'ks':1};
+  var lAlreadyDefined = {'http':1, 'afy':1};
   {
     var lAlreadyDefinedPattern = /PREFIX\s*(\w*)\:/gi;
     var lAD;
@@ -1139,19 +1848,19 @@ function populate_classes()
     var lToDelete = [];
     for (var iC = 0; null != MV_CONTEXT.mClasses && iC < MV_CONTEXT.mClasses.length; iC++)
     {
-      if (undefined == MV_CONTEXT.mClasses[iC]["ks:classID"])
+      if (undefined == MV_CONTEXT.mClasses[iC]["afy:classID"])
         { lToDelete.push(iC); continue; }
-      MV_CONTEXT.mClasses[iC]["ks:classID"] = mv_with_qname(lTruncateLeadingDot(MV_CONTEXT.mClasses[iC]["ks:classID"])); // Remove the leading dot (if any) and transform into qname (prefix:name).
-      if ("http://localhost/mv/class/1.0/ClassDescription" == MV_CONTEXT.mClasses[iC]["ks:classID"])
+      MV_CONTEXT.mClasses[iC]["afy:classID"] = mv_with_qname(lTruncateLeadingDot(MV_CONTEXT.mClasses[iC]["afy:classID"])); // Remove the leading dot (if any) and transform into qname (prefix:name).
+      if ("http://localhost/mv/class/1.0/ClassDescription" == MV_CONTEXT.mClasses[iC]["afy:classID"])
         { MV_CONTEXT.mFullIntrospection = true; }
-      var lCProps = MV_CONTEXT.mClasses[iC]["ks:properties"];
+      var lCProps = MV_CONTEXT.mClasses[iC]["afy:properties"];
       var lNewProps = new Object();
       for (iP in lCProps)
       {
         var lNewName = mv_with_qname(lTruncateLeadingDot(lCProps[iP]));
         lNewProps[iP] = lNewName;
       }
-      MV_CONTEXT.mClasses[iC]["ks:properties"] = lNewProps;
+      MV_CONTEXT.mClasses[iC]["afy:properties"] = lNewProps;
     }
     for (var iD = lToDelete.length - 1; iD >= 0; iD--)
       MV_CONTEXT.mClasses.splice(lToDelete[iD], 1);
@@ -1163,7 +1872,7 @@ function populate_classes()
     if (undefined == _pJson) { console.log("populate_classes: undefined _pJson"); return; }
     for (var i = 0; i < _pJson.length; i++)
     {
-      var lCName = _pJson[i]["ks:classID"];
+      var lCName = _pJson[i]["afy:classID"];
       var lOption = "<option value=\"" + lCName + "\">" + lCName + "</option>";
       $("#classes").append(lOption);
     }
@@ -1171,7 +1880,7 @@ function populate_classes()
   };
   MV_CONTEXT.mQNamesDirty = true;
   var lOnClasses = new QResultHandler(lOnSuccess, null, null);
-  mv_query("SELECT * FROM ks:ClassOfClasses;", lOnClasses, {keepalive:false});
+  mv_query("SELECT * FROM afy:ClassOfClasses;", lOnClasses, {keepalive:false});
 }
 
 function on_class_change()
@@ -1179,12 +1888,12 @@ function on_class_change()
   update_qnames_ui();
 
   var lCurClassName = $("#classes option:selected").val();
-  var lCurClass = function(_pN){ for (var i = 0; null != MV_CONTEXT.mClasses && i < MV_CONTEXT.mClasses.length; i++) { if (MV_CONTEXT.mClasses[i]["ks:classID"] == _pN) return MV_CONTEXT.mClasses[i]; } return null; }(lCurClassName);
+  var lCurClass = function(_pN){ for (var i = 0; null != MV_CONTEXT.mClasses && i < MV_CONTEXT.mClasses.length; i++) { if (MV_CONTEXT.mClasses[i]["afy:classID"] == _pN) return MV_CONTEXT.mClasses[i]; } return null; }(lCurClassName);
   if (undefined == lCurClass) return;
   $("#class_properties").empty();
-  for (var iProp in lCurClass["ks:properties"])
+  for (var iProp in lCurClass["afy:properties"])
   {
-    var lPName = lCurClass["ks:properties"][iProp];
+    var lPName = lCurClass["afy:properties"][iProp];
     var lOption = "<option value=\"" + lPName + "\">" + lPName + "</option>";
     $("#class_properties").append(lOption);
     // TODO: for each prop, show all the classes that are related directly with it; show docstring.
@@ -1193,7 +1902,7 @@ function on_class_change()
 
   var lClassDoc = $("#class_doc");
   lClassDoc.empty();
-  lClassDoc.append($("<p><h4>predicate:</h4>&nbsp;" + lCurClass["ks:predicate"] + "<br/></p>"));
+  lClassDoc.append($("<p><h4>predicate:</h4>&nbsp;" + lCurClass["afy:predicate"] + "<br/></p>"));
   
   if (MV_CONTEXT.mFullIntrospection)
   {
@@ -1254,7 +1963,7 @@ function on_pin_click(pPID)
       function(__pClass)
       {        
         var __lOnCount = new QResultHandler(_mOnSuccess, null, __pClass);
-        mv_query("SELECT * FROM " + mv_sanitize_classname(__pClass) + " WHERE ks:pinID=@" + pPID + ";", __lOnCount, {countonly:true, keepalive:false});
+        mv_query("SELECT * FROM " + mv_sanitize_classname(__pClass) + " WHERE afy:pinID=@" + pPID + ";", __lOnCount, {countonly:true, keepalive:false});
       }
   }
   if (undefined != MV_CONTEXT.mClasses)
@@ -1262,7 +1971,7 @@ function on_pin_click(pPID)
     var lChk = new lCheckClasses(MV_CONTEXT.mClasses.length);
     for (var iC = 0; null != MV_CONTEXT.mClasses && iC < MV_CONTEXT.mClasses.length; iC++)
     {
-      var lClass = mv_without_qname(MV_CONTEXT.mClasses[iC]["ks:classID"]);
+      var lClass = mv_without_qname(MV_CONTEXT.mClasses[iC]["afy:classID"]);
       lChk.next(lClass);
     }
   }
@@ -1282,7 +1991,7 @@ function on_pin_click(pPID)
       { $("#" + iRef).click(function(){on_pin_click($(this).text()); return false;}); }
   }
   var lOnData = new QResultHandler(lOnDataSuccess, null, null);
-  mv_query("SELECT * WHERE ks:pinID=@" + pPID + ";", lOnData, {keepalive:false});
+  mv_query("SELECT * WHERE afy:pinID=@" + pPID + ";", lOnData, {keepalive:false});
 }
 
 function update_qnames_ui()
@@ -1297,4 +2006,5 @@ function update_qnames_ui()
 }
 
 // TODO (Ming): special hints for divergences from standard SQL
-// TODO: future modes (e.g. graph navigator, erdiagram, wizard to create pins that conform with 1..n classes, ...)
+// TODO: syntax completion etc.
+// TODO: future modes (e.g. erdiagram, wizard to create pins that conform with 1..n classes, ...)

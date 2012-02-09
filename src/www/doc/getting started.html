@@ -1,33 +1,40 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <head>
   <script src='js/jquery.js' type='text/javascript'></script>
   <script src='js/snippets_to_console.js' type='text/javascript'></script>
-  <link href='css/ksdoc.css' rel='stylesheet' type='text/css' />
+  <link href='css/afydoc.css' rel='stylesheet' type='text/css' />
+  <meta http-equiv='content-type' content='text/html; charset=utf-8'></meta>
 </head>
-<div id='kstocbar'>
-  <select id='kstoclist'>
+<div id='width_constraint' class='horizontally_centered'>
+<div id='generic_header'>
+<img src='images/logo_small.png' id='gh_logo_img'></img>
+<div id='afytocbar'>
+  <select id='afytoclist'>
     <option value='intro'>intro</option>
-    <option value='ChaosDB cpp'>ChaosDB cpp</option>
-    <option value='ChaosDB js'>ChaosDB js</option>
-    <option value='ChaosDB protobuf'>ChaosDB protobuf</option>
-    <option value='ChaosDB server'>ChaosDB server</option>
+    <option value='Affinity server'>Affinity server</option>
+    <option value='EULA_demo'>EULA_demo</option>
     <option value='FAQ'>FAQ</option>
+    <option value='cplusplus'>cplusplus</option>
     <option value='features'>features</option>
     <option value='getting started' SELECTED>getting started</option>
+    <option value='javascript'>javascript</option>
     <option value='pathSQL primer'>pathSQL primer</option>
     <option value='pathSQL reference'>pathSQL reference</option>
+    <option value='protobuf'>protobuf</option>
     <option value='release notes'>release notes</option>
     <option value='strengths'>strengths</option>
     <option value='terminology'>terminology</option>
   </select>
 </div>
-<div id="getting-started-with-chaosdb"
+</div>
+<div id="getting-started-with-affinity"
 ><h1
-  >Getting Started with ChaosDB</h1
+  >Getting Started with Affinity</h1
   ><div id="setup"
   ><h2
     >Setup</h2
     ><p
-    >ChaosDB is hosted on github, from where it will be released as a series of open-source projects. Github requires these preliminary steps:</p
+    >Affinity is hosted on github, from where it will be released as a series of open-source projects. Github requires these preliminary steps:</p
     ><ol style="list-style-type: decimal;"
     ><li
       >create a personal (free) user account in github (visit https://github.com/)</li
@@ -35,19 +42,19 @@
       >setup a ssh keypair (uploading the public key to that github account)</li
       ></ol
     ><p
-    >ChaosDB is not yet open to the public. For now, it resides in private projects. Until ChaosDB becomes open-source, the procedure to install from github will involve the following steps (on linux):</p
+    >Affinity is not yet open to the public. For now, it resides in private projects. Until Affinity becomes open-source, the procedure to install from github will involve the following steps (on linux):</p
     ><ol start="3" style="list-style-type: decimal;"
     ><li
       >send your account's user name to maxw@vmware.com, to become a private collaborator</li
       ><li
-      >git clone git@github.com:ChaosDB/setup.git</li
+      >git clone git@github.com:Affinity/setup.git</li
       ><li
       >bash ./setup/linux/setup.sh</li
       ></ol
     ><p
     >This will install the kernel, server, nodejs, doc and other components of the release, and start the database server.</p
     ><p style="color:red"><em
-    >Note: When ChaosDB becomes open-source, the procedure will be further simplified: steps 3-5 will be replaced with a single step involving a publicly accessible setup script.</em
+    >Note: When Affinity becomes open-source, the procedure will be further simplified: steps 3-5 will be replaced with a single step involving a publicly accessible setup script.</em
     ><br
      /><em
     >Note: A similar setup procedure for Windows is planned but not yet available.</em
@@ -61,20 +68,20 @@
     >The database <a href="./terminology.html#server"
       >server</a
       > process is called <code
-      >chaosdbd</code
+      >affinityd</code
       > and listens to HTTP requests on port <code
       >4560</code
       > by default. For more details on how to run and parametrize <code
-      >chaosdbd</code
-      >, please refer to the <a href="./ChaosDB%20server.html"
+      >affinityd</code
+      >, please refer to the <a href="./Affinity%20server.html"
       >server</a
       > page, or run <code
-      >chaosdbd -h</code
+      >affinityd -h</code
       >.</p
     ><p
     >The server exposes a javascript online console at the root (e.g. <code
       >http://localhost:4560/</code
-      >), which allows to navigate the contents of the store and modify data (same as what you find <a href="http://ChaosDB.cloudfoundry.com"
+      >), which allows to navigate the contents of the store and modify data (same as what you find <a href="http://Affinity.cloudfoundry.com"
       >online</a
       >). Just open that URL in a browser. The console can also facilitate learning pathSQL.</p
     ></div
@@ -105,15 +112,15 @@
       ><tbody
       ><tr class="odd"
 	><td align="left"
-	  >chaosdb.dll / libchaosdb.so</td
+	  >affinity.dll / libaffinity.so</td
 	  ><td align="left"
-	  >The <a href="./terminology.html#chaosdb"
-	    >ChaosDB kernel library</a
+	  >The <a href="./terminology.html#affinity"
+	    >Affinity kernel library</a
 	    ></td
 	  ></tr
 	><tr class="even"
 	><td align="left"
-	  >chaosdbd[.exe]</td
+	  >affinityd[.exe]</td
 	  ><td align="left"
 	  >The database <a href="./terminology.html#server"
 	    >server</a
@@ -127,23 +134,23 @@
 	  ></tr
 	><tr class="even"
 	><td align="left"
-	  >chaosdb-client.js</td
+	  >affinity-client.js</td
 	  ><td align="left"
-	  >The client library for <a href="./ChaosDB%20js.html"
+	  >The client library for <a href="./javascript.html"
 	    >node.js</a
 	    ></td
 	  ></tr
 	><tr class="odd"
 	><td align="left"
-	  >kscommand[.exe]</td
+	  >afycommand[.exe]</td
 	  ><td align="left"
 	  >(optional) A command-line app to interact with the db</td
 	  ></tr
 	><tr class="even"
 	><td align="left"
-	  >ksclient.dll / libksclient.so</td
+	  >afyclient.dll / libafyclient.so</td
 	  ><td align="left"
-	  >(optional) The http client library that kscommand uses to talk to the db</td
+	  >(optional) The http client library that afycommand uses to talk to the db</td
 	  ></tr
 	><tr class="odd"
 	><td align="left"
@@ -161,17 +168,17 @@
     >Runtime Files</h2
     ><p
     >For each distinct store created by <code
-      >chaosdbd</code
+      >affinityd</code
       >, one file named <code
-      >ks.store</code
+      >affinity.db</code
       > will be created. This is the data file. Additionally, any number of files following the pattern <code
-      >ks*.txlog</code
+      >affinity*.txlog</code
       > may be created, containing transactional logs for database logging &amp; recovery. Upon a checkpoint or a clean shutdown, the <code
-      >ks*.txlog</code
+      >affinity*.txlog</code
       > files are automatically deleted.</p
     ><p
     >By default, <code
-      >chaosdbd</code
+      >affinityd</code
       > puts those files in the parent folder of the docroot directory specified with the <code
       >-d</code
       > argument.</p
@@ -180,7 +187,7 @@
   ><h2
     >Links to MSVCP100 DLL (windows)</h2
     ><p
-    >Microsoft redistributable libraries can be retrieved here. Make sure that the version you obtain is compatible with ChaosDB binaries.<br
+    >Microsoft redistributable libraries can be retrieved here. Make sure that the version you obtain is compatible with Affinity binaries.<br
        /><a href="http://www.microsoft.com/downloads/en/confirmation.aspx?FamilyID=bd512d9e-43c8-4655-81bf-9350143d5867"
       >win64: MSVCP100.dll</a
       ><br
@@ -190,3 +197,4 @@
     ></div
   ></div
 >
+</div>

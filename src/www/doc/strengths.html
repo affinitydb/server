@@ -1,24 +1,31 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <head>
   <script src='js/jquery.js' type='text/javascript'></script>
   <script src='js/snippets_to_console.js' type='text/javascript'></script>
-  <link href='css/ksdoc.css' rel='stylesheet' type='text/css' />
+  <link href='css/afydoc.css' rel='stylesheet' type='text/css' />
+  <meta http-equiv='content-type' content='text/html; charset=utf-8'></meta>
 </head>
-<div id='kstocbar'>
-  <select id='kstoclist'>
+<div id='width_constraint' class='horizontally_centered'>
+<div id='generic_header'>
+<img src='images/logo_small.png' id='gh_logo_img'></img>
+<div id='afytocbar'>
+  <select id='afytoclist'>
     <option value='intro'>intro</option>
-    <option value='ChaosDB cpp'>ChaosDB cpp</option>
-    <option value='ChaosDB js'>ChaosDB js</option>
-    <option value='ChaosDB protobuf'>ChaosDB protobuf</option>
-    <option value='ChaosDB server'>ChaosDB server</option>
+    <option value='Affinity server'>Affinity server</option>
+    <option value='EULA_demo'>EULA_demo</option>
     <option value='FAQ'>FAQ</option>
+    <option value='cplusplus'>cplusplus</option>
     <option value='features'>features</option>
     <option value='getting started'>getting started</option>
+    <option value='javascript'>javascript</option>
     <option value='pathSQL primer'>pathSQL primer</option>
     <option value='pathSQL reference'>pathSQL reference</option>
+    <option value='protobuf'>protobuf</option>
     <option value='release notes'>release notes</option>
     <option value='strengths' SELECTED>strengths</option>
     <option value='terminology'>terminology</option>
   </select>
+</div>
 </div>
 <div id="strengths"
 ><h1
@@ -26,9 +33,9 @@
   ><p
   >As a whole, the set of <a href="./features.html"
     >features</a
-    > proposed by ChaosDB aims at bringing together the best from existing database technologies (including relational, object-oriented, graph-oriented, document-based and RDF systems). The intent is to give more options to application developers, by providing a unified and powerful database solution that facilitates integration, and reduces the long-term impacts of choosing any one specialized technology.</p
+    > proposed by Affinity aims at bringing together the best from existing database technologies (including relational, object-oriented, graph-oriented, document-based and RDF systems). The intent is to give more options to application developers, by providing a unified and powerful database solution that facilitates integration, and reduces the long-term impacts of choosing any one specialized technology.</p
   ><p
-  >This page further describes the comparative strengths of ChaosDB. Here's a table that emphasizes some of the capabilities that you can expect to find in ChaosDB, in a nutshell:</p
+  >This page further describes the comparative strengths of Affinity. Here's a table that emphasizes some of the capabilities that you can expect to find in Affinity, in a nutshell:</p
   ><table
   ><thead
     ><tr class="header"
@@ -43,7 +50,7 @@
 	><th align="left"
 	>Document DB</th
 	><th align="left"
-	>ChaosDB</th
+	>Affinity</th
 	></tr
       ></thead
     ><tbody
@@ -123,7 +130,7 @@
 	><td align="left"
 	>some</td
 	><td align="left"
-	>no</td
+	>nk</td
 	><td align="left"
 	>YES</td
 	></tr
@@ -169,7 +176,7 @@
 	><td align="left"
 	>some</td
 	><td align="left"
-	>no</td
+	>nk</td
 	><td align="left"
 	>some</td
 	><td align="left"
@@ -245,7 +252,7 @@
   ><h2
     >Entities evolving freely over time</h2
     ><p
-    >In ChaosDB, each instance of an entity (aka <em
+    >In Affinity, each instance of an entity (aka <em
       ><a href="./terminology.html#pin"
 	>PIN</a
 	></em
@@ -267,7 +274,7 @@
   ><h2
     >Discoverability, information re-use, and information sharing</h2
     ><p
-    >While objects can evolve freely in ChaosDB, it remains possible to discover and track them at any moment. ChaosDB provides several mechanisms: <a href="./terminology.html#class"
+    >While objects can evolve freely in Affinity, it remains possible to discover and track them at any moment. Affinity provides several mechanisms: <a href="./terminology.html#class"
       >classification</a
       >, full-scan queries (not recommended for deployed applications but convenient during development), and <a href="./terminology.html#notification"
       >notifications</a
@@ -283,15 +290,15 @@
   ><h2
     >Self-descriptiveness</h2
     ><p
-    >Objects in ChaosDB are naturally serializable as dictionaries that fully describe their full contents. Therefore, it's trivial to export or transport objects.</p
+    >Objects in Affinity are naturally serializable as dictionaries that fully describe their full contents. Therefore, it's trivial to export or transport objects.</p
     ></div
   ><div id="data-before-structure-a-two-step-modeling-process"
   ><h2
     >Data before structure (a two-step modeling process)</h2
     ><p
-    >ChaosDB makes it possible for data to exist before structures (or schema) are defined, refined or modified. This capability rests in part on the definition (by applications) of a globally meaningful, consistent and stable vocabulary of <a href="./terminology.html#property"
+    >Affinity makes it possible for data to exist before structures (or schema) are defined, refined or modified. This capability rests in part on the definition (by applications) of a globally meaningful, consistent and stable vocabulary of <a href="./terminology.html#property"
       >property names</a
-      >. The selection (or creation) of such a vocabulary represents the first step of data modeling with ChaosDB, and suffices to enable the creation of data. The second step is categorization, and it happens independently and dynamically. ChaosDB recognizes that pre-defined structures and schema are essential for most computer programs. This separation between pure (intrinsic) data structure and application-enabling schema is designed to facilitate the coexistence of applications, and their sharing of data. ChaosDB also allows to transform data at query time.</p
+      >. The selection (or creation) of such a vocabulary represents the first step of data modeling with Affinity, and suffices to enable the creation of data. The second step is categorization, and it happens independently and dynamically. Affinity recognizes that pre-defined structures and schema are essential for most computer programs. This separation between pure (intrinsic) data structure and application-enabling schema is designed to facilitate the coexistence of applications, and their sharing of data. Affinity also allows to transform data at query time.</p
     ></div
   ><div id="property-names-as-uris:-avoiding-confusion"
   ><h2
@@ -299,13 +306,13 @@
     ><p
     >By requiring a global vocabulary of <a href="./terminology.html#property"
       >property names</a
-      >, and emphasizing the importance of selecting universal, high-quality definitions from the start (that will last throughout the life-cycle and at every level of the modeling process), ChaosDB reduces the chances of confusion related to imprecise terminology.</p
+      >, and emphasizing the importance of selecting universal, high-quality definitions from the start (that will last throughout the life-cycle and at every level of the modeling process), Affinity reduces the chances of confusion related to imprecise terminology.</p
     ></div
   ><div id="agile-categorization"
   ><h2
     >Agile categorization</h2
     ><p
-    >The relational approach implies a water-fall modeling process: an a-priori, all-or-nothing exercise of categorization (one cannot insert rows in a table that is not yet defined). This often crystallizes into rigid physical models (tables, views, indexes), where objects can only be represented in one state of their potentially evolving structure (for example, in real life a merchandise item may be moved or modified; depending on where the merchandise is located, more or less attributes may be required to track it; it's not possible in a relational database to just move that row across various tables). Also, it is difficult to 'correct' pitfalls once the database contains data. Incomplete or extensible models (such as plug-in architectures) require awkward modeling strategies. Integration with external data sources can be painful. In contrast, ChaosDB proposes a much more agile approach, where <a href="./terminology.html#class"
+    >The relational approach implies a water-fall modeling process: an a-priori, all-or-nothing exercise of categorization (one cannot insert rows in a table that is not yet defined). This often crystallizes into rigid physical models (tables, views, indexes), where objects can only be represented in one state of their potentially evolving structure (for example, in real life a merchandise item may be moved or modified; depending on where the merchandise is located, more or less attributes may be required to track it; it's not possible in a relational database to just move that row across various tables). Also, it is difficult to 'correct' pitfalls once the database contains data. Incomplete or extensible models (such as plug-in architectures) require awkward modeling strategies. Integration with external data sources can be painful. In contrast, Affinity proposes a much more agile approach, where <a href="./terminology.html#class"
       >categories</a
       > can be created and modified iteratively, without affecting the data. Categories and structures can be known to (or defined by) some software components (e.g. plug-ins), and ignored by others.</p
     ></div
@@ -313,17 +320,17 @@
   ><h2
     >Super-types as first-class citizens</h2
     ><p
-    >With ChaosDB, the identity of objects is automatically secured (by their <a href="./terminology.html#pin-id-pid"
+    >With Affinity, the identity of objects is automatically secured (by their <a href="./terminology.html#pin-id-pid"
       >PID</a
       >), and the type hierarchy is free to evolve independently from instances. Super-types can pre-exist sub-types, and when sub-types are declared they don't modify, invalidate or hide super-types, or force any manual reorganization of the data. Types can be specialized and combined. Objects can match multiple types (aka <a href="./terminology.html#class"
       >classes</a
-      > or categories). Use-cases that imply a proliferation of sub-types are not a problem for ChaosDB. Software components are free to interact with super-types or sub-types, at their convenience.</p
+      > or categories). Use-cases that imply a proliferation of sub-types are not a problem for Affinity. Software components are free to interact with super-types or sub-types, at their convenience.</p
     ></div
   ><div id="no-need-to-model-attributes-as-entities"
   ><h2
     >No need to model attributes as entities</h2
     ><p
-    >In the relational model, when it becomes too difficult to model complex problems due to unstable or unpredictable structures, a last-resort solution involves a method sometimes referred to as &quot;very high level of attribute generalization&quot;, which consists in modeling attributes as entities, such that arbitrary sets of attributes can be combined to represent a wider variety of things. ChaosDB's <a href="./terminology.html#pin"
+    >In the relational model, when it becomes too difficult to model complex problems due to unstable or unpredictable structures, a last-resort solution involves a method sometimes referred to as &quot;very high level of attribute generalization&quot;, which consists in modeling attributes as entities, such that arbitrary sets of attributes can be combined to represent a wider variety of things. Affinity's <a href="./terminology.html#pin"
       >PIN</a
       > does that implicitly.</p
     ></div
@@ -331,21 +338,21 @@
   ><h2
     >No need to create unnecessary structures</h2
     ><p
-    >Not all structures require the same level of detail in modeling, or the same accessibility. For example, applications that handle catalogs of components will be primarily interested in organizing common aspects of these components, and would gladly leave out the minute details of each component (plug-ins can take care of these details; or generic introspective methods can walk the complementary information). The exercise of fitting all this component-specific data into a relational model becomes a waste of time, justified mainly by the need for a unified storage infrastructure. ChaosDB allows these structures to coexist (without the pain of rigid modeling), and to evolve into their ideal usage in due time (with the help of dynamic classification).</p
+    >Not all structures require the same level of detail in modeling, or the same accessibility. For example, applications that handle catalogs of components will be primarily interested in organizing common aspects of these components, and would gladly leave out the minute details of each component (plug-ins can take care of these details; or generic introspective methods can walk the complementary information). The exercise of fitting all this component-specific data into a relational model becomes a waste of time, justified mainly by the need for a unified storage infrastructure. Affinity allows these structures to coexist (without the pain of rigid modeling), and to evolve into their ideal usage in due time (with the help of dynamic classification).</p
     ></div
   ><div id="temporary-data-in-place-and-implicitly-indexed"
   ><h2
     >Temporary data in-place, and implicitly indexed</h2
     ><p
-    >Another consequence of ChaosDB's data model is that temporary data can be attached directly to already existing <a href="./terminology.html#pin"
+    >Another consequence of Affinity's data model is that temporary data can be attached directly to already existing <a href="./terminology.html#pin"
       >PINs</a
-      >. All pre-existing indexes on those PINs remain valid access paths to the temporary data, and come at no extra cost. The same holds for references. Compared with temporary tables, this can represent a significant performance advantage (in terms of indexing and locking, for example). ChaosDB does not require any special (in-advance) modeling or planning.</p
+      >. All pre-existing indexes on those PINs remain valid access paths to the temporary data, and come at no extra cost. The same holds for references. Compared with temporary tables, this can represent a significant performance advantage (in terms of indexing and locking, for example). Affinity does not require any special (in-advance) modeling or planning.</p
     ></div
   ><div id="exclusivity-arcs-in-place"
   ><h2
     >Exclusivity-arcs in-place</h2
     ><p
-    >In relational modeling, exclusivity-arcs model mutually exclusive relationships between entities (e.g. an inventory item can only be at one place at one time). In the object-oriented realm, this can be represented with a pointer to a base-class, and sub-classes. With ChaosDB, another option is to implement this in-place, with a single <a href="./terminology.html#pin"
+    >In relational modeling, exclusivity-arcs model mutually exclusive relationships between entities (e.g. an inventory item can only be at one place at one time). In the object-oriented realm, this can be represented with a pointer to a base-class, and sub-classes. With Affinity, another option is to implement this in-place, with a single <a href="./terminology.html#pin"
       >PIN</a
       > that just evolves over time.</p
     ></div
@@ -353,7 +360,7 @@
   ><h2
     >Automatic assignment of globally-unique IDs to all instances</h2
     ><p
-    >The relational model implies a complex decision process for each table: the selection of a primary key. Object databases in general, and ChaosDB in particular simplify this process by attributing a globally unique surrogate key (<a href="./terminology.html#pin-id-pid"
+    >The relational model implies a complex decision process for each table: the selection of a primary key. Object databases in general, and Affinity in particular simplify this process by attributing a globally unique surrogate key (<a href="./terminology.html#pin-id-pid"
       >PID</a
       >) to every object (<a href="./terminology.html#pin"
       >PIN</a
@@ -365,7 +372,7 @@
   ><h2
     >References and easy graph navigation</h2
     ><p
-    >By avoiding joins for traversals on specific instances, ChaosDB provides similar advantages as object and graph databases, in comparison with relational systems. ChaosDB also allows set operations on references, and <a href="./terminology.html#collection"
+    >By avoiding joins for traversals on specific instances, Affinity provides similar advantages as object and graph databases, in comparison with relational systems. Affinity also allows set operations on references, and <a href="./terminology.html#collection"
       >collections</a
       > of <a href="./terminology.html#pin-reference"
       >references</a
@@ -390,7 +397,7 @@
 </code
       ></pre
     ><p
-    >Can be written in a more compact form with ChaosDB, in a model using <a href="./terminology.html#pin-reference"
+    >Can be written in a more compact form with Affinity, in a model using <a href="./terminology.html#pin-reference"
       >references</a
       >:</p
     ><pre
@@ -421,7 +428,10 @@
     >The difference is even more striking when arbitrarily deep recursion is involved. Just imagine how to translate the following statement with traditional SQL:</p
     ><pre
     ><code
-      >    SELECT * FROM qn1:orgid(3).qn2:friendof[CONTAINS(qn2:occupation, 'ist')]{5}.qn2:friendof[BEGINS(qn2:lastname, 'M')];
+      >    SELECT * FROM
+      qn1:orgid(3).
+      qn2:friendof[CONTAINS(qn2:occupation, 'ist')]{+}.
+      qn2:friendof[BEGINS(qn2:lastname, 'M')];
 </code
       ></pre
     ></div
@@ -429,7 +439,7 @@
   ><h2
     >Ordered collections to retain sequential information</h2
     ><p
-    >When normalizing a relational model, there is sometimes a risk of missing or losing sequential information (e.g. the order of repeating column groups, that could have implicitly represented a sequence). ChaosDB's <a href="./terminology.html#collection"
+    >When normalizing a relational model, there is sometimes a risk of missing or losing sequential information (e.g. the order of repeating column groups, that could have implicitly represented a sequence). Affinity's <a href="./terminology.html#collection"
       >collections</a
       > allow to easily model this information, without any need to fall back on weaker representations such as repeating column groups or sequence columns.</p
     ></div
@@ -437,7 +447,7 @@
   ><h2
     >Simpler modeling with less entities</h2
     ><p
-    >In many cases, ChaosDB reduces the number of entities or columns required to model data. For example, <a href="./terminology.html#pin-reference"
+    >In many cases, Affinity reduces the number of entities or columns required to model data. For example, <a href="./terminology.html#pin-reference"
       >references</a
       > simplify the representation of many-to-many relationships. <a href="./terminology.html#collection"
       >Collections</a
@@ -449,13 +459,13 @@
   ><h2
     >Transactional, automatic full-text indexing</h2
     ><p
-    >ChaosDB automatically indexes text properties, without any additional work required by the client, while allowing to easily exclude undesired properties and PINs. Values of collections are indexed as well. Indexing happens synchronously alongside all other transaction operations, and queries can combine text searching with other conditions, with the same ACID expectations as for any other index.</p
+    >Affinity automatically indexes text properties, without any additional work required by the client, while allowing to easily exclude undesired properties and PINs. Values of collections are indexed as well. Indexing happens synchronously alongside all other transaction operations, and queries can combine text searching with other conditions, with the same ACID expectations as for any other index.</p
     ></div
   ><div id="units-of-measurement"
   ><h2
     >Units of measurement</h2
     ><p
-    >ChaosDB allows to easily attach semantic value to floating point values, using <a href="./terminology.html#unit-of-measurement"
+    >Affinity allows to easily attach semantic value to floating point values, using <a href="./terminology.html#unit-of-measurement"
       >units of measurement</a
       >. This simplifies modeling, enhances the semantic value of data, and enables automatic conversions in the evaluation of expressions involving those values.</p
     ></div
@@ -463,13 +473,13 @@
   ><h2
     >SQL for non-relational data</h2
     ><p
-    >Even though the ChaosDB <a href="./terminology.html#essential-concepts-data-model"
+    >Even though the Affinity <a href="./terminology.html#essential-concepts-data-model"
       >data model</a
       > is quite different from relational databases, <a href="./terminology.html#pathsql"
       >pathSQL</a
       > is designed to be as close to SQL as possible (especially the <a href="./pathSQL%20reference.html#keywords"
       >DML</a
-      >). ChaosDB and pathSQL can handle relational modeling as well as modeling by references.</p
+      >). Affinity and pathSQL can handle relational modeling as well as modeling by references.</p
     ></div
   ><div id="xml-friendliness"
   ><h2
@@ -484,20 +494,20 @@
       > and <a href="./terminology.html#property"
       >property names</a
       > (as URIs) further facilitate the mapping. It is possible to map the whole database to a single virtual XML document, in which XPath can navigate efficiently and comprehensively. <em
-      >Note: ChaosDB doesn't currently provide a XQuery or XPath interface, but did in the past and may in the future.</em
+      >Note: Affinity doesn't currently provide a XQuery or XPath interface, but did in the past and may in the future.</em
       ></p
     ></div
   ><div id="rdf-friendliness"
   ><h2
     >RDF-friendliness</h2
     ><p
-    >The &quot;subject-predicate-object&quot; model can be easily represented in ChaosDB with the PIN as subject, the property as predicate, and the value as object.</p
+    >The &quot;subject-predicate-object&quot; model can be easily represented in Affinity with the PIN as subject, the property as predicate, and the value as object.</p
     ></div
   ><div id="no-constraint-on-string-length"
   ><h2
     >No constraint on string length</h2
     ><p
-    >ChaosDB is designed to deal with very flexible data structures, without sacrificing performance. In particular, it does not require any upfront decision regarding the length of strings: no CHAR vs VARCHAR vs LONG specification. Long strings can be explicitly stored on <a href="./terminology.html#ssv"
+    >Affinity is designed to deal with very flexible data structures, without sacrificing performance. In particular, it does not require any upfront decision regarding the length of strings: no CHAR vs VARCHAR vs LONG specification. Long strings can be explicitly stored on <a href="./terminology.html#ssv"
       >separate pages</a
       > if desired, and very long strings can be accessed via a streaming interface.</p
     ></div
@@ -505,7 +515,7 @@
   ><h2
     >No compromise with structured data</h2
     ><p
-    >Even though ChaosDB opens up the data modeling options and emphasizes a freedom that could be associated with object-oriented, graph or document databases for example, no compromise is made when the time comes to process structured data. Great care is invested to represent data on <a href="./terminology.html#page"
+    >Even though Affinity opens up the data modeling options and emphasizes a freedom that could be associated with object-oriented, graph or document databases for example, no compromise is made when the time comes to process structured data. Great care is invested to represent data on <a href="./terminology.html#page"
       >pages</a
       > in the most compact form possible, and to ensure data locality.</p
     ></div
@@ -521,13 +531,13 @@
   ><h2
     >No compromise with transactions</h2
     ><p
-    >ChaosDB makes no compromise with transactions. For example, it integrates full-text indexing and searching into the transaction boundaries, with the same ACID guaranties as everything else. The default PIN locking protocol used is &quot;strong 2-phase-locking&quot; (all locks that a top-level transaction has acquired are held until the transaction terminates). Unlike document databases, which usually can't do multi-object transactions, ChaosDB takes no shortcut with respect to transactions. This choice makes room for the coexistence of applications that require full transactional support, along with applications that require weaker transactional guaranties (such as those well suited for document databases).</p
+    >Affinity makes no compromise with transactions. For example, it integrates full-text indexing and searching into the transaction boundaries, with the same ACID guaranties as everything else. The default PIN locking protocol used is &quot;strong 2-phase-locking&quot; (all locks that a top-level transaction has acquired are held until the transaction terminates). Unlike document databases, which usually can't do multi-object transactions, Affinity takes no shortcut with respect to transactions. This choice makes room for the coexistence of applications that require full transactional support, along with applications that require weaker transactional guaranties (such as those well suited for document databases).</p
     ></div
   ><div id="transactional-ddl"
   ><h2
     >Transactional DDL</h2
     ><p
-    >ChaosDB's model is not only less tightly coupled with schema, but its DDL (Data Definition Language) is transactional. This contributes to a simpler database maintenance process, for example when applying migration patches (no need to worry about half-applied migration patches).</p
+    >Affinity's model is not only less tightly coupled with schema, but its DDL (Data Definition Language) is transactional. This contributes to a simpler database maintenance process, for example when applying migration patches (no need to worry about half-applied migration patches).</p
     ></div
   ><div id="snapshot-isolation-for-high-concurrency"
   ><h2
@@ -541,27 +551,27 @@
   ><h2
     >Nested transactions</h2
     ><p
-    >ChaosDB conveniently allows code in a session to emit transactions inside already existing transactions. This can be useful, for example, when integrating third-party software components.</p
+    >Affinity conveniently allows code in a session to emit transactions inside already existing transactions. This can be useful, for example, when integrating third-party software components.</p
     ></div
   ><div id="robust-recovery"
   ><h2
     >Robust recovery</h2
     ><p
-    >Database recovery (the process that guaranties consistency when restarting the database after a crash) is one of those features that are practically invisible... until you need to count on it. It's difficult to implement properly, difficult to test, and difficult to prove for correctness in practice (even though the algorithms are formally established). Considerable efforts were invested to make ChaosDB's recovery rock-solid.</p
+    >Database recovery (the process that guaranties consistency when restarting the database after a crash) is one of those features that are practically invisible... until you need to count on it. It's difficult to implement properly, difficult to test, and difficult to prove for correctness in practice (even though the algorithms are formally established). Considerable efforts were invested to make Affinity's recovery rock-solid.</p
     ></div
   ><div id="small-portable-embeddable"
   ><h2
     >Small, portable, embeddable</h2
     ><p
-    >The <a href="./terminology.html#chaosdb"
-      >ChaosDB kernel</a
+    >The <a href="./terminology.html#affinity"
+      >Affinity kernel</a
       > is a small library (&lt;50K LOC, &lt; 1Mb binary) written in C++ and ported to all mainstream platforms (OSX, linux, windows, ARM-based devices). It allows one to configure all essential aspects of its runtime footprint (global memory usage, memory usage per session, disk usage, file sizes etc.).</p
     ></div
   ><div id="uniform-programming-environment-with-notifications"
   ><h2
     >Uniform programming environment with notifications</h2
     ><p
-    >The ChaosDB kernel does not accept stored procedures, and does not process triggers directly. Instead, it forwards <a href="./terminology.html#notification"
+    >The Affinity kernel does not accept stored procedures, and does not process triggers directly. Instead, it forwards <a href="./terminology.html#notification"
       >notifications</a
       > (e.g. via the <a href="./terminology.html#server"
       >server</a
@@ -581,21 +591,22 @@
       >PIDs</a
       >) and <a href="./terminology.html#pin-reference"
       >references</a
-      >, technically ChaosDB can be considered an object-oriented database. Interacting with entities as objects is a deliberate choice. However, ChaosDB avoids intimate associations with any particular object-oriented programming language, by providing a pure-data abstraction (the <a href="./terminology.html#pin"
+      >, technically Affinity can be considered an object-oriented database. Interacting with entities as objects is a deliberate choice. However, Affinity avoids intimate associations with any particular object-oriented programming language, by providing a pure-data abstraction (the <a href="./terminology.html#pin"
       >PIN</a
-      >) and low-level expression evaluation primitives. Also, ChaosDB does not attempt to solve the memory management complications implicit in traditional object-oriented systems. In that respect, ChaosDB adopts a stance similar to some of the recent graph and document databases.</p
+      >) and low-level expression evaluation primitives. Also, Affinity does not attempt to solve the memory management complications implicit in traditional object-oriented systems. In that respect, Affinity adopts a stance similar to some of the recent graph and document databases.</p
     ></div
   ><div id="constraints-transformed-into-qualifying-criteria-for-classification"
   ><h2
     >Constraints transformed into qualifying criteria for classification</h2
     ><p
-    >In general, constraints are conspicuously absent from ChaosDB's interfaces. This is because ChaosDB is designed to bridge together various data storage approaches and representations of knowledge, with special care to allow evolution of structures in time. As a result, ChaosDB functions with an open-world assumption. In relational modeling, even simple attributes can actually model constraints (e.g. only a woman can have a maiden name). With ChaosDB, constraints become qualifying criteria for classification (if a class requires a maiden name, then only objects with a maiden name will be classified by it; or conversely, if a class excludes maiden names, then objects with a maiden name will not be classified by it).</p
+    >In general, constraints are conspicuously absent from Affinity's interfaces. This is because Affinity is designed to bridge together various data storage approaches and representations of knowledge, with special care to allow evolution of structures in time. In relational modeling, even simple attributes can actually model constraints (e.g. only a woman can have a maiden name). With Affinity, constraints become qualifying criteria for classification (if a class requires a maiden name, then only objects with a maiden name will be classified by it; or conversely, if a class excludes maiden names, then objects with a maiden name will not be classified by it). However, pathSQL also provides a way to emulate traditional constraints, with its syntax to insert objects into a set of existing classes (in which case, if a new object doesn't comply with any of the specified classes, it won't be inserted).</p
     ></div
   ><div id="flexible-security-features"
   ><h2
     >Flexible security features</h2
     ><p
-    >ChaosDB offers AES encryption of pages and log files. It can also attach a HMAC signed cryptographic checksum to each page, thus preventing attacks (in a context where encrypted pages may be stored on external or cloud storage), and also providing redundant page-level integrity check. Sessions are authenticated for owner and guest users. ChaosDB's interface also prevents SQL injection attacks.</p
+    >Affinity offers AES encryption of pages and log files. It can also attach a HMAC signed cryptographic checksum to each page, thus preventing attacks (in a context where encrypted pages may be stored on external or cloud storage), and also providing redundant page-level integrity check. Sessions are authenticated for owner and guest users. Affinity's interface also prevents SQL injection attacks.</p
     ></div
   ></div
 >
+</div>
