@@ -28,8 +28,9 @@
       <li><a href="#tab-basic"><img src='images/basic.png'></a></li>
       <li><a href="#tab-batching"><img src='images/batch.png'></a></li>
       <li><a href="#tab-map"><img src='images/map.png'></a></li>
+      <li><a href="#tab-histogram"><img src='images/histo.png'></a></li>
       <li><a href="#tab-queryhistory"><img src='images/history.png'></a></li>
-      <li><a href="#tab-config" style='display:none'><img src='images/config.png'></a></li>
+      <li><a href="#tab-config"><img src='images/config.png'></a></li>
     </ul>
   </div>
   <div id='gh_links'><a href="doc/intro.html">Doc</a> &middot; <a href="doc/FAQ.html">About</a></div>
@@ -125,6 +126,7 @@
     <div id='map_left'>
       <div id='map_query_spec'>
         <input id='map_query' name='map_query'></input>
+        <input type='checkbox' id='map_query_withrefs' checked></input><span id='map_query_withrefs_txt'>Extend with refs</span>
         <button id='map_querygo'> go </button>
       </div>
       <div id='map_area_c'>
@@ -132,6 +134,29 @@
         </canvas>
       </div>
       <div id='map_status'>
+      </div>
+    </div>
+  </div>
+  <!-- Histogram -->
+  <div id="tab-histogram">
+    <div id='content_title'>
+      <img src='images/affinityheader.png' id='title_img'></img>
+      <div id='title_text'>Histogram</div>
+    </div>
+    <div id='histo_left'>
+      <div id='histo_spec'>
+        <span>Domain:</span>
+        <select name="histo_class" id="histo_class"></select>
+        <span>Property:</span>
+        <select name="histo_property" id="histo_property"></select>
+        <button id='histo_go' style='display:none'> go </button>
+        <div id="histo_query">Please select a class and a property...</div>
+      </div>
+      <div id='histo_area_c'>
+        <canvas id='histo_area'>
+        </canvas>
+      </div>
+      <div id='histo_status'>
       </div>
     </div>
   </div>
@@ -181,6 +206,7 @@
     <div id='tooltip_tab-batching'>Batching Console</div>
     <div id='tooltip_tab-tutorial'>Interactive Tutorial</div>
     <div id='tooltip_tab-map'>2D-Map</div>
+    <div id='tooltip_tab-histogram'>Histogram</div>
     <div id='tooltip_tab-queryhistory'>Query History</div>
     <div id='tooltip_tab-config'>Configuration &amp; Administration</div>
   </div>
@@ -325,7 +351,7 @@
       <div>&nbsp;</div>
       <div class='tutorial_step'>pins = q("SELECT afy:pinID FROM workers;");</div>
       <div class='tutorial_step'>pickFriend = function() { return Math.floor(Math.random() * pins.length); };</div>
-      <div class='tutorial_step'>statements = []; for (i = 0; i &lt; (3 * pins.length / 2); i++) { from = pickFriend(); to = pickFriend(); if (pins[from]['$ref'] != pins[to]['$ref']) statements.push("UPDATE @" + pins[from]['$ref'] + " ADD friends=@" + pins[to]['$ref'] + " WHERE (NOT (@" + pins[to]['$ref'] + " = @.friends));"); }</div>
+      <div class='tutorial_step'>statements = []; for (i = 0; i &lt; (3 * pins.length / 2); i++) { from = pins[pickFriend()]['afy:pinID']['$ref']; to = pins[pickFriend()]['afy:pinID']['$ref']; if (from != to) statements.push("UPDATE @" + from + " ADD friends=@" + to + " WHERE (NOT (@" + to + " = @.friends));"); }</div>
       <div class='tutorial_step'>q("START TRANSACTION;");</div>
       <div class='tutorial_step'>for (i = 0; i &lt; statements.length; i++) { q(statements[i]); }</div>
       <div class='tutorial_step'>q("COMMIT;");</div>
@@ -338,7 +364,7 @@
       <div class='tutorial_step'>makes=['Audi', 'Bentley', 'DaimlerChrysler', 'Ferrari', 'GM', 'Honda', 'Jaguar', 'KIA', 'Lamborghini', 'Maserati', 'Nissan', 'Porsche', 'Rolls-Royce', 'Suzuki', 'Toyota', 'Volvo'];</div>
       <div class='tutorial_step'>pins = q("SELECT afy:pinID FROM workers;");</div>
       <div class='tutorial_step'>pickFrom = function(array) { return array[Math.floor(Math.random() * array.length)]; };</div>
-      <div class='tutorial_step'>statements = []; for (i = 0; i &lt; pins.length; i++) { statements.push("UPDATE @" + pickFrom(pins)['$ref'] + " ADD car=(INSERT car_make='" + pickFrom(makes) + "', color='" + pickFrom(colors) + "', year='" + (1950 + Math.floor(Math.random() * 62)) + "');"); }</div>
+      <div class='tutorial_step'>statements = []; for (i = 0; i &lt; pins.length; i++) { statements.push("UPDATE @" + pickFrom(pins)['afy:pinID']['$ref'] + " ADD car=(INSERT car_make='" + pickFrom(makes) + "', color='" + pickFrom(colors) + "', year='" + (1950 + Math.floor(Math.random() * 62)) + "');"); }</div>
       <div class='tutorial_step'>q("START TRANSACTION;");</div>
       <div class='tutorial_step'>for (i = 0; i &lt; statements.length; i++) { q(statements[i]); }</div>
       <div class='tutorial_step'>q("COMMIT;"); print("&lt;br&gt;");</div>

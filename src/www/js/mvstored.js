@@ -18,7 +18,37 @@ MV_CONTEXT.mTooltipTimer = null;
 /**
  * General-purpose helpers.
  */
+function trimPID(pPID) { return undefined != pPID ? pPID.replace(/^0+/, "") : undefined; }
 function countProperties(pO) { var lR = 0; for(var iP in pO) { if (pO.hasOwnProperty(iP)) lR++; } return lR; }
+function myLog(pMsg) { if ("msie" in $.browser && $.browser["msie"]) return; console.log(pMsg); }
+function myStringify(pWhat, pOptions/*{quoteStrings:true/false, lineBreaks:true/false}*/)
+{
+  var lGetOption = function(_pWhat, _pDefault) { return (undefined != pOptions && _pWhat in pOptions) ? pOptions[_pWhat] : _pDefault; }
+  if (typeof(pWhat) == "object")
+  {
+    if (pWhat instanceof Array)
+    {
+      var lR = [];
+      for (var i = 0; i < pWhat.length; i++)
+        lR.push(myStringify(pWhat[i], pOptions));
+      var lRt = lR.join(",");
+      if (lRt.length > 100 && lGetOption('lineBreaks', false)) { lRt = lR.join(",<br>"); }
+      return "[" + lRt + "]";
+    }
+    else if (pWhat instanceof Date)
+      return "'" + pWhat.toString() + "'";
+    else
+    {
+      var lR = [];
+      for (var iP in pWhat)
+        lR.push(iP + ":" + myStringify(pWhat[iP], {quoteStrings:true, lineBreaks:lGetOption('lineBreaks', false)}));
+      return "{" + lR.join(",") + "}";
+    }
+  }
+  else if (typeof(pWhat) == "string" && lGetOption('quoteStrings', false))
+    return "'" + pWhat + "'";
+  return pWhat;
+}
 
 /**
  * Tooltips.
@@ -114,7 +144,7 @@ CtxMenu.prototype.addItem = function(pText, pCallback, pUserData, pBold)
   var lThis = this;
   var lMenuItem = $("<div />").addClass("ctxmenuitem").appendTo(this.mMenu);
   lMenuItem.append(pBold ? $("<b>" + pText + "</b>") : pText);
-  lMenuItem.click(function(_pEvent) { lThis.hide(); if (pCallback) { pCallback(_pEvent, pUserData); } else { console.log("CtxMenu.addItem: unhandled item: " + pText); } });
+  lMenuItem.click(function(_pEvent) { lThis.hide(); if (pCallback) { pCallback(_pEvent, pUserData); } else { myLog("CtxMenu.addItem: unhandled item: " + pText); } });
   lMenuItem.hover(
     function() { $(this).addClass("ctxmenu-highlighted-item"); },
     function() { $(this).removeClass("ctxmenu-highlighted-item"); });
@@ -231,7 +261,25 @@ function NavTabs()
     });
   // Select the first tab initially (either from the url, if one is specified, or just by index, otherwise).
   var lLoadedUrl = location.href.split('#');
-  lOnTab({target:(lLoadedUrl.length > 1 ? $("img", lFindTab(lLoadedUrl.pop()).anchor) : $("#nav img")[0])});
+  var lDone = false;
+  while (lLoadedUrl.length > 1 && !lDone)
+  {
+    var lTf = lFindTab(lLoadedUrl.pop());
+    if (undefined != lTf && 'anchor' in lTf)
+      { lOnTab({target:$("img", lTf.anchor)}); lDone = true; }
+  }
+  if (!lDone)
+    lOnTab({target:$("#nav img")[0]});
+}
+function disableTab(pName)
+{
+  $("#nav li").each(
+    function(_pI, _pE)
+    {
+      var _lAnchor = $("a", _pE)[0];
+      if (undefined != _lAnchor && undefined != _lAnchor.toString().match(new RegExp(pName + "$")))
+        $(_pE).css("display", "none");
+    });
 }
 
 /**
@@ -275,6 +323,7 @@ function QResultTable(pContainer, pClassName)
   this.mScrollPos = 0; // Last (raw) scroll position.
   this.mNumRows = 0; // Total number of rows.
   this.mQuery = null; // Query string producing the results.
+  this.mAddPIDColumn = true; // Whether or not to add a afy:pinID column.
   this.mQrtVScroller.scroll(function() { lThis._onScroll(this.scrollTop); });
   this.mQrtHScroller.scroll(function() { lThis.mQrtContainer.scrollLeft(this.scrollLeft); });
   $(window).resize(function() { lThis._setNumRows(lThis.mNumRows); lThis._onScroll(lThis.mScrollPos); }); // To avoid half-empty pages when the display grows.
@@ -367,17 +416,19 @@ QResultTable.prototype._initTables = function(pJson)
       this.mClassProps[lPName] = 1;
     }
   }
+  this.mAddPIDColumn = false;
   for (var i = 0; i < pJson.length; i++)
   {
     var lPin = (pJson[i] instanceof Array || pJson[i][0] != undefined) ? pJson[i][0] : pJson[i];
     for (var iProp in lPin)
     {
-      if (iProp == "id") continue;
+      if (iProp == "id" || iProp == "afy:pinID") { this.mAddPIDColumn = true; continue; }
       if (iProp in this.mClassProps) continue;
       if (iProp in lCommonProps) { lCommonProps[iProp] = lCommonProps[iProp] + 1; continue; }
       lCommonProps[iProp] = 1;
     }
   }
+  
   for (var iProp in lCommonProps)
   {
     if (lCommonProps[iProp] < (pJson.length / 2)) continue; // Only keep properties that appear at least in 50% of the results.
@@ -402,7 +453,7 @@ QResultTable.prototype._recordRows = function(pQResJson, pOffset)
 
   // Throw away least-recently-used items from the cache, if necessary.
   while (this.mRowLRU.length + lJson.length > QResultTable.CACHE_SIZE)
-    delete this.mRowCache[String(this.mRowLRU.pop())];
+    delete this.mRowCache[String(this.mRowLRU.splice(0, 1))];
   
   // Create the rows.
   for (var i = 0; i < lJson.length; i++)
@@ -428,7 +479,8 @@ QResultTable.prototype._initTableUI = function(pWhich)
   // REVIEW: We could decide to color-code the sections (class vs common vs other).
   var lHead = $("<thead />").appendTo(lT);
   var lHeadR = $("<tr />").appendTo(lHead);
-  lHeadR.append($("<th class='qrt_table_th' align=\"left\">PID</th>"));
+  if (this.mAddPIDColumn)
+    lHeadR.append($("<th class='qrt_table_th' align=\"left\">afy:pinID</th>"));
   var lClass = null;
   for (var iProp in this.mClassProps)
     lHeadR.append($("<th class='qrt_table_th' align=\"left\">" + iProp + "</th>"));
@@ -463,7 +515,7 @@ QResultTable.prototype._fillTableUI = function(pWhich, pPos)
     this.mRowLRU.push(iR);
   }
   if (!lSuccess)
-    { console.log("Couldn't retrieve data in cache"); return; }
+    { myLog("Couldn't retrieve data in cache"); return; }
 
   // Hide the vertical scroller, if there aren't enough results.
   // Hack:
@@ -515,32 +567,34 @@ QResultTable.prototype._addRowUI = function(pWhich, pPin)
 {
   // Create a new row and bind mouse interactions.
   var lBody = this.mTables[pWhich].children("tbody");
-  var lRow = $("<tr id=\"" + pPin["id"] + "\"/>").appendTo(lBody);
+  var lShortPid = trimPID('id' in pPin ? pPin['id'] : ('afy:pinID' in pPin ? pPin['afy:pinID'] : null));
+  var lRow = $("<tr id=\"" + lShortPid + "\"/>").appendTo(lBody);
   lRow.mouseover(function(){$(this).addClass("highlighted");});
   lRow.mouseout(function(){$(this).removeClass("highlighted");});
   lRow.click(function(){on_pin_click($(this).attr("id")); return false;});
   var lRefs = new Object();
 
   // Create the first column.
-  lRow.append($("<td>" + pPin["id"] + "</td>"));
+  if (this.mAddPIDColumn)
+    lRow.append($("<td>@" + lShortPid + "</td>"));
 
   // Create the class-related columns, if any.
   for (var iProp in this.mClassProps)
-    { lRow.append($("<td>" + this._createValueUI(pPin[iProp], lRefs, pPin["id"] + "rqt") + "</td>")); }
+    { lRow.append($("<td>" + this._createValueUI(pPin[iProp], lRefs, lShortPid + "rqt") + "</td>")); }
 
   // Create the common props columns, if any.
   for (var iProp in this.mCommonProps)
-    { lRow.append($("<td>" + (iProp in pPin ? this._createValueUI(pPin[iProp], lRefs, pPin["id"] + "rqt") : "") + "</td>")); }
+    { lRow.append($("<td>" + (iProp in pPin ? this._createValueUI(pPin[iProp], lRefs, lShortPid + "rqt") : "") + "</td>")); }
 
   // Create the last column (all remaining properties).
   lOtherProps = $("<p />");
   for (var iProp in pPin)
   {
-    if (iProp == "id") continue;
+    if (iProp == "id" || iProp == "afy:pinID") continue;
     if (iProp in this.mClassProps) continue;
     if (iProp in this.mCommonProps) continue;
     lOtherProps.append($("<span class='mvpropname'>" + iProp + "</span>"));
-    lOtherProps.append($("<span>:" + this._createValueUI(pPin[iProp], lRefs, pPin["id"] + "rqt") + "  </span>"));
+    lOtherProps.append($("<span>:" + this._createValueUI(pPin[iProp], lRefs, lShortPid + "rqt") + "  </span>"));
   }
   var lOPD = $("<td />");
   lOPD.append(lOtherProps);
@@ -548,7 +602,7 @@ QResultTable.prototype._addRowUI = function(pWhich, pPin)
 
   // Bind mouse interactions for references.
   for (iRef in lRefs)
-    { $("#" + iRef).click(function(){on_pin_click($(this).text()); return false;}); }  
+    { $("#" + iRef).click(function(){on_pin_click($(this).text().replace(/^@/, "")); return false;}); }  
     
   return lRow;
 }
@@ -565,8 +619,9 @@ QResultTable.createValueUI = function(pProp, pRefs, pRefPrefix)
   {
     if (iElm == "$ref")
     {
-      pRefs[pRefPrefix + pProp[iElm]] = true;
-      return "<a id=\"" + pRefPrefix + pProp[iElm] + "\" href=\"#" + pProp[iElm] + "\">" + pProp[iElm] + "</a>";
+      var lShortRef = trimPID(pProp[iElm]);
+      pRefs[pRefPrefix + lShortRef] = true;
+      return "<a id=\"" + pRefPrefix + lShortRef + "\" href=\"#" + lShortRef + "\">@" + lShortRef + "</a>";
     }
     else if (!isNaN(parseInt(iElm)))
     {
@@ -575,7 +630,7 @@ QResultTable.createValueUI = function(pProp, pRefs, pRefPrefix)
         { lElements.push(QResultTable.createValueUI(pProp[iElm], pRefs, pRefPrefix)); }      
       return "{" + lElements.join(",") + "}";
     }
-    else { console.log("QResultTable.createValueUI: unexpected property: " + iElm); }
+    else { myLog("QResultTable.createValueUI: unexpected property: " + iElm); }
   }
 }
 QResultTable.prototype._createValueUI = QResultTable.createValueUI;
@@ -618,8 +673,9 @@ BatchingSQL.prototype.go = function()
         lThis.mResultList.append($("<option>" + _lPage.query + "</option>"));
         lThis.mPages.push(_lPage);
         lThis.mResultPage.append(_lPage.ui);
-        _lPage.result._setNumRows(_pJson[iQ].length);
-        _lPage.result._recordRows(_pJson[iQ], 0);
+        var _lData = (1 == _pJson.length) ? _pJson : _pJson[iQ];
+        _lPage.result._setNumRows(_lData.length);
+        _lPage.result._recordRows(_lData, 0);
         _lPage.result._onScroll(0);
         _lPage.ui.css("display", "none");
       }
@@ -678,7 +734,7 @@ QHistory.prototype._iterate = function(pHandler)
       }
     }
   }
-  catch(e) { console.log("QHistory._init: " + e); }
+  catch(e) { myLog("QHistory._init: " + e); }
 }
 QHistory.prototype._removeRow = function(pKey)
 {
@@ -687,7 +743,7 @@ QHistory.prototype._removeRow = function(pKey)
     this.mStore.remove(pKey);
     $("#" + pKey).remove();
   }
-  catch(e) { console.log("QHistory._removeRow: " + e); }
+  catch(e) { myLog("QHistory._removeRow: " + e); }
 }
 QHistory.prototype._addRow = function(pKey, pValue)
 {
@@ -733,7 +789,7 @@ QHistory.prototype.recordQuery = function(pQuery)
     // Add it to the table.
     this._addRow('hist_' + lCacheKey, pQuery);
   }
-  catch(e) { console.log("QHistory.recordQuery: " + e); }
+  catch(e) { myLog("QHistory.recordQuery: " + e); }
 }
 QHistory.prototype.clearHistory = function()
 {
@@ -748,7 +804,7 @@ QHistory.prototype.clearHistory = function()
     lThis.mStore.remove('hist_lastkey');
     $("#qhistorybody").empty();
   }
-  catch(e) { console.log("QHistory.clearHistory: " + e); }
+  catch(e) { myLog("QHistory.clearHistory: " + e); }
 }
 
 /**
@@ -761,33 +817,7 @@ function Tutorial()
   var lExecuteLine =
     function()
     {
-      function _stringify(__pWhat, __pQuoteStrings)
-      {
-        if (typeof(__pWhat) == "object")
-        {
-          if (__pWhat instanceof Array)
-          {
-            var __lR = [];
-            for (var __i = 0; __i < __pWhat.length; __i++)
-              __lR.push(_stringify(__pWhat[__i], __pQuoteStrings));
-            var __lRt = __lR.join(",");
-            if (__lRt.length > 100) { __lRt = __lR.join(",<br>"); }
-            return "[" + __lRt + "]";
-          }
-          else if (__pWhat instanceof Date)
-            return "'" + __pWhat.toString() + "'";
-          else
-          {
-            var __lR = [];
-            for (var __iP in __pWhat)
-              __lR.push(__iP + ":" + _stringify(__pWhat[__iP], true));
-            return "{" + __lR.join(",") + "}";
-          }
-        }
-        else if (typeof(__pWhat) == "string" && __pQuoteStrings)
-          return "'" + __pWhat + "'";
-        return __pWhat;
-      }
+      function _stringify(__pWhat, __pQuoteStrings) { return myStringify(__pWhat, {quoteStrings:__pQuoteStrings, lineBreaks:true}); }
       function _onPathsqlResult(__pJson) { print(__pJson); }
       function _pushTutInstr(__pLine) { lThis.mHistory.append($("<p class='tutorial_instructions'>" + __pLine + "</p>")); }
       function print(__pWhat) { lThis.mHistory.append($("<p class='tutorial_result'>" + _stringify(__pWhat, false) + "</p>")); }
@@ -978,6 +1008,61 @@ function Tutorial()
 }
 
 /**
+ * PanZoom.
+ * Common functionality for canvas-based views.
+ */
+function PanZoom(pArea, pZoom)
+{
+  var lThis = this;
+  var lButtonDown = false, lZoomKeyDown = false;
+  var lAnchorPoint = {x:0, y:0}, lDynAnchorPoint = {x:0, y:0}, lLastPoint = {x:0, y:0};
+  var lStableZoom =
+    function(_pFactor)
+    {
+      var _lOffset = lThis.area.offset();
+      var _lAP = {x:lAnchorPoint.x - _lOffset.left, y:lAnchorPoint.y - _lOffset.top};
+      var _lLog = {x:_lAP.x / lThis.zoom - lThis.pan.x, y:_lAP.y / lThis.zoom - lThis.pan.y};
+      lThis.zoom = lThis.zoom + lThis.zoom * _pFactor; 
+      lThis.pan.x = (_lAP.x / lThis.zoom) - _lLog.x; // ecr = (log + pan) * zoom -> pan = ecr/zoom - log
+      lThis.pan.y = (_lAP.y / lThis.zoom) - _lLog.y;
+    }
+  this.area = pArea;
+  this.pan = {x:0, y:0};
+  this.zoom = (undefined != pZoom) ? pZoom : 1.0;
+  this.curX = function() { return lLastPoint.x; }
+  this.curY = function() { return lLastPoint.y; }
+  this.isButtonDown = function() { return lButtonDown; }
+  this.onMouseDown =
+    function()
+    {
+      lButtonDown = true;
+      lDynAnchorPoint.x = lAnchorPoint.x = lLastPoint.x;
+      lDynAnchorPoint.y = lAnchorPoint.y = lLastPoint.y;
+    }
+  this.onMouseMove =
+    function(e)
+    {
+      lLastPoint.x = e.pageX; lLastPoint.y = e.pageY;
+      if (lButtonDown)
+      {
+        if (lZoomKeyDown) 
+          lStableZoom(0.2 * (((lLastPoint.x - lLastPoint.y) - (lDynAnchorPoint.x - lDynAnchorPoint.y) > 0) ? 1 : -1));
+        else
+        {
+          lThis.pan.x += (lLastPoint.x - lDynAnchorPoint.x) / lThis.zoom;
+          lThis.pan.y += (lLastPoint.y - lDynAnchorPoint.y) / lThis.zoom;
+        }
+        lDynAnchorPoint.x = lLastPoint.x;
+        lDynAnchorPoint.y = lLastPoint.y;
+      }
+    }
+  this.onMouseUp = function() { lButtonDown = false; lZoomKeyDown = false; }
+  this.onKeyDown = function(e) { if (e.which == 90) lZoomKeyDown = true; }
+  this.onKeyUp = function(e) { if (e.which == 90) lZoomKeyDown = false; }
+  this.onWheel = function(e) { e = (undefined != e) ? e : window.event; lAnchorPoint.x = lLastPoint.x; lAnchorPoint.y = lLastPoint.y; var _lV = ('wheelDelta' in e ? -e.wheelDelta : e.detail); lStableZoom(0.2 * (_lV > 0 ? -1 : 1)); }
+}
+
+/**
  * GraphMap.
  * Manages the graph/map display.
  * A clique is a group of pins related by something, such as:
@@ -986,29 +1071,27 @@ function Tutorial()
  * . pins that belong to the same classes
  * In order for pagination to be meaningful, a pin that doesn't gain new refs should remain where it was.
  * For the moment, we only display homogeneous cliques (i.e. a pin belongs to only 1 clique).
- * TODO: More filtering options.
-    - show only desired types of objects (e.g. people, not cars)
-      -> a series of checkboxes (maybe directly in the legend)
-      -> as a big bitarray, with hovering telling what it is :)
-    - traverse only specified relationships (e.g. friends, not parents)
-    - clique threshold: if only connected by <x, not in
- * TODO: actual algo from Mark... plus generate 'real' cliques in sample material.
- * TODO: Will always only render the query result (top filter).
- * TODO: Will always draw everything; may accumulate layout info in a tmp db.
- * TODO: Will allow to specify classes/props as additional criteria for 'closeness';
- *       if classes are specified for closeness, walk by classes first
- * TODO: Will color by classes...
+ * TODO: actual algo from Mark... plus generate 'real' cliques in sample material
+ * TODO: manage layout info in a tmp db (instead of memory)
+ * TODO: traverse only specified relationships (e.g. friends, not parents)
+ * TODO: clique threshold: if only connected by <x, not in
+ * TODO: allow to specify classes/props as additional criteria for 'closeness'?
+ * TODO: color by classes?
  */
 function gm_has(pArray, pO) { if (undefined == pArray) return; for (var i = 0; i < pArray.length; i++) if (pArray[i] == pO) return true; return false; }
 function gm_removeFrom(pArray, pO) { if (undefined == pArray) return; for (var i = 0; i < pArray.length; i++) if (pArray[i] == pO) { pArray.splice(i, 1); return; } }
 function gm_quantizePos(pX, pY, pGrid) { return "" + ((pX / pGrid) >> 0) + "," + ((pY / pGrid) >> 0); }
-function gm_LayoutCtx(pQuery, pUIUpdater)
+function gm_LayoutCtx(pQuery, pOptions/*{walkrefs:true/false, progressive:true/false, draw:func, hideClasses:dict/null}*/)
 {
+  var lGetOption = function(_pWhat, _pDefault) { return (undefined != pOptions && _pWhat in pOptions) ? pOptions[_pWhat] : _pDefault; }
   // TODO: This will gradually become an interface/caching layer to the layout db.
   // TODO: For the moment, I want to observe and learn what I'll need.
   var lThis = this;
   this.query = pQuery; // The actual query defining the root domain. TODO: option to clip to this set...
-  this.ui_updater = pUIUpdater; // A function allowing to progressively update the UI as we progress through pagination.
+  this.walkrefs = lGetOption('walkrefs', true); // Whether or not to walk references to augment the visualization domain.
+  this.progressiveDraw = lGetOption('progressive', false); // Whether or not to update the display during pagination.
+  this.draw = lGetOption('draw', null); // The redraw function, invoked optionally during pagination, plus at the end.
+  this.hideClasses = lGetOption('hideClasses', null); // Class names of classes to be excluded from the visualization domain.
   this.processed = {}; // PIDs of all pins processed so far.
   this.cliques_byref = []; // Cliques of pins referencing each other via any property (no single-pin clique).
   this.solitaires = {}; // Single pins (not in any clique yet).
@@ -1019,8 +1102,7 @@ gm_LayoutCtx.CLIQUE_RADIUS = 1000.0; // Each clique will be contained within a c
 gm_LayoutCtx.QUANTIZE_GRID = 10; // For 2d retrieval, objects will be mapped by position on a grid of 5-units squares.
 function gm_LayoutNodeInfo(pPin, pLayoutCtx)
 {
-  var lTrimPid = function(_pPid) { return _pPid.replace(/^0+/, ""); }
-  var lPid = lTrimPid(pPin.id);
+  var lPid = trimPID(pPin.id);
   var lDoExtractImmediateRefs =
     function()
     {
@@ -1028,13 +1110,13 @@ function gm_LayoutNodeInfo(pPin, pLayoutCtx)
       for (var _iProp in pPin)
       {
         if (typeof(pPin[_iProp]) == "object" && "$ref" in pPin[_iProp])
-          _lRefs.push(lTrimPid(pPin[_iProp]["$ref"]));
+          _lRefs.push(trimPID(pPin[_iProp]["$ref"]));
         else if (typeof(pPin[_iProp]) == "object")
         {
           for (var _iElm in pPin[_iProp])
           {
             if (typeof(pPin[_iProp][_iElm]) == "object" && "$ref" in pPin[_iProp][_iElm])
-              _lRefs.push(lTrimPid(pPin[_iProp][_iElm]["$ref"]));
+              _lRefs.push(trimPID(pPin[_iProp][_iElm]["$ref"]));
           }
         }
       }
@@ -1075,7 +1157,7 @@ function gm_Clique(pLayoutCtx)
         var _l2 = [];
         for (var _i in lThis.data)
           _l2.push("@" + _i);
-        console.log("added @" + _pNodeInfo.id + " to " + _l2.join(","));
+        myLog("added @" + _pNodeInfo.id + " to " + _l2.join(","));
       }
       lThis.data[_pNodeInfo.id] = _pNodeInfo;
       _pNodeInfo.clique = lThis;
@@ -1093,7 +1175,7 @@ function gm_Clique(pLayoutCtx)
         var _l2 = [];
         for (var _i in lThis.data)
           _l2.push("@" + _i);
-        console.log("merged " + _l1.join(",") + " with " + _l2.join(","));
+        myLog("merged " + _l1.join(",") + " with " + _l2.join(","));
       }
       for (var _iN in _pOtherClique.data)
         lThis.add(_pOtherClique.data[_iN]);
@@ -1123,12 +1205,16 @@ function gm_PageByPage(pQueryStr, pPageSize, pHandler, pUserData)
         function(__pJson, __pUserData)
         {
           if (undefined == __pJson) { return; }
-          pHandler(__pJson, pUserData);
+          var __lIsLastPage = (__pUserData.mOffset >= __pUserData.mNumPins);
+          pHandler(__pJson, pUserData, __lIsLastPage);
           __pUserData.mOffset += __pJson.length;
-          if (__pUserData.mOffset < __pUserData.mNumPins && !lAbort)
+          if (!__lIsLastPage && !lAbort)
             { setTimeout(function(){mv_query(pQueryStr, new QResultHandler(_lOnPage, null, __pUserData), {limit:pPageSize, offset:__pUserData.mOffset})}, 20); }
         }
-      mv_query(pQueryStr, new QResultHandler(_lOnPage, null, _lPaginationCtx), {limit:pPageSize, offset:_lPaginationCtx.mOffset});
+      if (0 == _lPaginationCtx.mNumPins)
+        pHandler([], pUserData, true);
+      else
+        mv_query(pQueryStr, new QResultHandler(_lOnPage, null, _lPaginationCtx), {limit:pPageSize, offset:_lPaginationCtx.mOffset});
     }
   mv_query(pQueryStr, new QResultHandler(lOnCount, null, null), {countonly:true});
   this.abort = function() { lAbort = true; }
@@ -1148,7 +1234,7 @@ function gm_LayoutEngine()
     function(_pPin, _pLayoutCtx)
     {
       // Use trimmed-down PIDs (no leading 0s).
-      var _lPid = _pPin.id.replace(/^0+/, "");
+      var _lPid = trimPID(_pPin.id);
 
       // If this pin was already processed...
       if (_lPid in _pLayoutCtx.processed)
@@ -1254,6 +1340,18 @@ function gm_LayoutEngine()
           _lR.setPosition(_lDistance * Math.cos(_lAngle), _lDistance * Math.sin(_lAngle));
         }
       }
+      
+      // Sort cliques by size.
+      // Note: This is to try to get as stable an output as possible, when playing with filtering options.
+      _pLayoutCtx.cliques_byref.sort(function(__c1, __c2) { return countProperties(__c2.data) - countProperties(__c1.data); });
+    }
+  var lGetClassFilters =
+    function(_pLayoutCtx)
+    {
+      var _lFilters = [];
+      for (var _iF in _pLayoutCtx.hideClasses)
+        _lFilters.push("@ IS NOT A " + _iF);
+      return _lFilters;
     }
   var lRequestRefs =
     function(_pSS, _pRefs, _pOnResults, _pLayoutCtx)
@@ -1261,13 +1359,15 @@ function gm_LayoutEngine()
       _pSS.push(
         function()
         {
-          mv_query(
-            "SELECT * FROM {" + _pRefs.join(",") + "}",
-             new QResultHandler(function(__pJson) { _pOnResults(__pJson, _pLayoutCtx); _pSS.next(); }, null, null));
+          var _lQ = "SELECT * FROM {" + _pRefs.join(",") + "}";
+          var _lFilters = lGetClassFilters(_pLayoutCtx);
+          if (_lFilters.length > 0)
+            _lQ = _lQ + " WHERE (" + _lFilters.join(" AND ") + ")";
+          mv_query(_lQ, new QResultHandler(function(__pJson) { _pOnResults(__pJson, _pLayoutCtx); _pSS.next(); }, null, null));
         });
     }
   var lOnPage =
-    function(_pJson, _pLayoutCtx)
+    function(_pJson, _pLayoutCtx, _pLastPage)
     {
       if (undefined == _pJson) return;
 
@@ -1285,11 +1385,11 @@ function gm_LayoutEngine()
 
       // Second, walk all possible new paths generated by these references (bfs).
       var _lSS = new gm_InstrSeq();
-      while (_lNewInfos.length > 0)
+      while (_pLayoutCtx.walkrefs && _lNewInfos.length > 0)
         lRequestRefs(_lSS, _lNewInfos.splice(0, 200), lOnPage, _pLayoutCtx);
 
       // Once all structural aspects of the page will be dealt with, attribute positions and refresh.
-      _lSS.push(function() { lRecomputePositions(_pLayoutCtx); _pLayoutCtx.ui_updater(); });
+      _lSS.push(function() { lRecomputePositions(_pLayoutCtx); if (_pLastPage || undefined != _pLayoutCtx.progressiveDraw) _pLayoutCtx.draw(); });
       _lSS.start();
     }
   this.doLayout =
@@ -1297,17 +1397,33 @@ function gm_LayoutEngine()
     {
       // On a page by page basis (streaming), perform the layout and refresh along the way.
       if (undefined != lPbP) { lPbP.abort(); }
-      lPbP = new gm_PageByPage(_pLayoutCtx.query, 200, lOnPage, _pLayoutCtx);
+      var _lFilters = lGetClassFilters(_pLayoutCtx);
+      var _lQ = _pLayoutCtx.query;
+      if (_lFilters.length > 0)
+      {
+        // TODO: Improve this very sketchy parsing...
+        var _lWhere = _lQ.match(/\Wwhere\W/i);
+        var _lFstr = "(" + _lFilters.join(" AND ") + ")";
+        if (undefined == _lWhere)
+          _lQ = _lQ + " WHERE " + _lFstr;
+        else
+          _lQ = _lQ.substr(0, _lWhere.index + _lWhere[0].length) + _lFstr + " AND " + _lQ.substr(_lWhere.index + _lWhere[0].length, _lQ.length);
+      }
+      lPbP = new gm_PageByPage(_lQ, 200, lOnPage, _pLayoutCtx);
     }
 }
 function GraphMap()
 {
   var lThis = this;
-  var l2dCtx = document.getElementById("map_area").getContext("2d");
+  if ("msie" in $.browser && $.browser["msie"])
+    { var lV = $.browser.version.match(/^([0-9]+)\./); if (undefined == lV || parseInt(lV[0]) < 9) { disableTab("#tab-map"); return; } }
+  var l2dCtx;
+  try { l2dCtx = document.getElementById("map_area").getContext("2d"); } catch(e) { myLog("html5 canvas not supported"); disableTab("#tab-map"); return; }
   var lVPHeight = $("#map_area").height();
-  var lPan = {x:0, y:0}, lZoom = lVPHeight / (2 * gm_LayoutCtx.CLIQUE_RADIUS);
+  var lPanZoom = new PanZoom($("#map_area"), lVPHeight / (2 * gm_LayoutCtx.CLIQUE_RADIUS));
   var lLayoutEngine = new gm_LayoutEngine();
   var lLayoutCtx = null;
+  var lHideClasses = {};
   var lBypos = {};
   var lDoDraw = // The rendering engine.
     function()
@@ -1325,8 +1441,8 @@ function GraphMap()
         return;
 
       // Apply current pan&zoom.
-      l2dCtx.scale(lZoom, lZoom);
-      l2dCtx.translate(lPan.x, lPan.y);
+      l2dCtx.scale(lPanZoom.zoom, lPanZoom.zoom);
+      l2dCtx.translate(lPanZoom.pan.x, lPanZoom.pan.y);
 
       // Draw a shadow behind each clique (+ solitaires).
       var _lCX = 0, _iC;
@@ -1357,7 +1473,7 @@ function GraphMap()
           for (var _iRef = 0; _iRef < _lI.fwrefs.length; _iRef++)
           {
             var _lITo = lLayoutCtx.processed[_lI.fwrefs[_iRef]];
-            if (undefined == _lITo.position)
+            if (undefined == _lITo || undefined == _lITo.position)
               continue;
             l2dCtx.beginPath();
             l2dCtx.moveTo(_lCX + _lI.position.x, gm_LayoutCtx.CLIQUE_RADIUS + _lI.position.y);
@@ -1408,90 +1524,258 @@ function GraphMap()
       l2dCtx.fillText("z + click&drag", 50, lVPHeight - 22);
       if (undefined != MV_CONTEXT.mClasses)
       {
-        l2dCtx.fillStyle = "#0a0";
         for (var _iC = 0; _iC < MV_CONTEXT.mClasses.length; _iC++)
         {
+          l2dCtx.fillStyle = (MV_CONTEXT.mClasses[_iC]["afy:classID"] in lLayoutCtx.hideClasses) ? "#d0caed" : "#8f8";
           l2dCtx.fillRect(50 + _iC * 15, lVPHeight - 15 - 2, 15, 15);
           l2dCtx.strokeRect(50 + _iC * 15, lVPHeight - 15 - 2, 15, 15);
         }
       }
     }
   var lDoLayout =
-    function()
+    function(_pProgressive)
     {
-      lLayoutCtx = new gm_LayoutCtx(mv_sanitize_semicolon($("#map_query").val()), lDoDraw);
+      lLayoutCtx = new gm_LayoutCtx(
+        mv_sanitize_semicolon($("#map_query").val()),
+        {walkrefs:$("#map_query_withrefs").is(":checked"), progressive:_pProgressive, draw:lDoDraw, hideClasses:lHideClasses});
       lLayoutEngine.doLayout(lLayoutCtx);
       lBypos = {};
     }
+  var lDoRefresh = function(_pProgressive) { lDoLayout(_pProgressive); }
 
-  // Pan & Zoom.
-  var lButtonDown = false, lZoomKeyDown = false;
-  var lAnchorPoint = {x:0, y:0}, lDynAnchorPoint = {x:0, y:0}, lLastPoint = {x:0, y:0};
+  // Pan & Zoom etc.
+  var lClassIndexModified = null;
+  var lClassIndexFromPoint =
+    function()
+    {
+      if (undefined == MV_CONTEXT.mClasses)
+        return null;
+      var _lOffset = $("#map_area").offset();
+      var _lNLP = {x:(lPanZoom.curX() - _lOffset.left - 50), y:(lPanZoom.curY() - _lOffset.top - (lVPHeight - 17))};
+      if (_lNLP.x >= 0 && _lNLP.x < 15 * MV_CONTEXT.mClasses.length && _lNLP.y >= 0 && _lNLP.y <= 15)
+        return Math.floor(_lNLP.x / 15);
+      return null;
+    }
   var lMouseMove =
     function(e)
     {
-      lLastPoint.x = e.pageX; lLastPoint.y = e.pageY;
-      if (lButtonDown)
-      {
-        if (lZoomKeyDown) 
-        { 
-          var _lOffset = $("#map_area").offset();
-          var _lAP = {x:lAnchorPoint.x - _lOffset.left, y:lAnchorPoint.y - _lOffset.top};
-          var _lLog = {x:_lAP.x / lZoom - lPan.x, y:_lAP.y / lZoom - lPan.y};
-          lZoom = lZoom + lZoom * (0.2 * (lDynAnchorPoint.y < lLastPoint.y ? -1 : 1)); 
-          lPan.x = (_lAP.x / lZoom) - _lLog.x; // ecr = (log + pan) * zoom -> pan = ecr/zoom - log
-          lPan.y = (_lAP.y / lZoom) - _lLog.y;
-        }
-        else
-        {
-          lPan.x += (lLastPoint.x - lDynAnchorPoint.x) / lZoom;
-          lPan.y += (lLastPoint.y - lDynAnchorPoint.y) / lZoom;
-        }
-        lDynAnchorPoint.x = lLastPoint.x;
-        lDynAnchorPoint.y = lLastPoint.y;
+      lPanZoom.onMouseMove(e);
+      if (lPanZoom.isButtonDown())
         lDoDraw();
-      }
       else if (undefined != lLayoutCtx && undefined != MV_CONTEXT.mClasses)
       {
-        var _lOffset = $("#map_area").offset();
-        var _lNLP = {x:lLastPoint.x - _lOffset.left, y:lLastPoint.y - _lOffset.top};
-        if (_lNLP.x >= 50 && _lNLP.x < 50 + 15 * MV_CONTEXT.mClasses.length && _lNLP.y >= lVPHeight - 15 && _lNLP.y <= lVPHeight - 2)
-        {
-          var _lClassIndex = Math.floor((_lNLP.x - 50) / 15);
-          if (_lClassIndex >= 0 && _lClassIndex < MV_CONTEXT.mClasses.length)
-            bindTooltip($("#map_area"), MV_CONTEXT.mClasses[_lClassIndex]["afy:classID"], {left:lLastPoint.x, top:lLastPoint.y - 40}, {once:true, start:0, end:500, offy:-15});
-        }
-          
-        /*
-        var _lOffset = $("#map_area").offset();
-        var _lQpos = gm_quantizePos(((lLastPoint.x - _lOffset.left + gm_LayoutCtx.QUANTIZE_GRID) / lZoom - lPan.x), ((lLastPoint.y - _lOffset.top + gm_LayoutCtx.QUANTIZE_GRID) / lZoom - lPan.y), gm_LayoutCtx.QUANTIZE_GRID);
-        $("#map_status").text("at: " + _lQpos);
-        if (_lQpos in lBypos)
-        {
-          var _lIds = [];
-          for (var _iP = 0; _iP < lBypos[_lQpos].length; _iP++)
-            _lIds.push("@" + lBypos[_lQpos][_iP].id);
-          bindTooltip($("#map_area"), _lIds.join(","), {left:lLastPoint.x, top:lLastPoint.y}, {start:100, stop:500, once:true});
-        }
-        */
+        var _lClassIndex = lClassIndexFromPoint();
+        if (undefined != _lClassIndex)
+          bindTooltip($("#map_area"), MV_CONTEXT.mClasses[_lClassIndex]["afy:classID"], {left:lPanZoom.curX(), top:lPanZoom.curY() - 40}, {once:true, start:0, end:500, offy:-15});
       }
     }
   $("#map_area").mousemove(lMouseMove);
-  $("#map_area").mousedown(function(e) { lButtonDown = true; lDynAnchorPoint.x = lAnchorPoint.x = lLastPoint.x; lDynAnchorPoint.y = lAnchorPoint.y = lLastPoint.y; });
-  $("#map_area").mouseup(function() { lButtonDown = false; });
-  $("#map_area").mouseout(function() { lButtonDown = false; });
-  $("#map_area").mouseleave(function() { lButtonDown = false; });
-  window.addEventListener('keydown', function(e) { if (e.which == 90) lZoomKeyDown = true; }, true);
-  window.addEventListener('keyup', function() { lZoomKeyDown = false; }, true);
+  $("#map_area").mousedown(
+    function(e)
+    {
+      var _lClassIndex = lClassIndexFromPoint();
+      if (undefined != _lClassIndex && undefined != lLayoutCtx)
+      {
+        lClassIndexModified = _lClassIndex;
+        l2dCtx.fillStyle = (MV_CONTEXT.mClasses[_lClassIndex]["afy:classID"] in lHideClasses) ? "#8f8" : "#d0caed";
+        l2dCtx.strokeStyle = "#666";
+        var _lX = 50 + _lClassIndex * 15;
+        l2dCtx.fillRect(_lX, lVPHeight - 17, 15, 15);
+        l2dCtx.strokeRect(_lX, lVPHeight - 17, 15, 15);
+      }
+      else
+        lPanZoom.onMouseDown();
+    });
+  $("#map_area").mouseup(
+    function()
+    {
+      lPanZoom.onMouseUp();
+      if (undefined != lClassIndexModified)
+      {
+        var _lClassName = MV_CONTEXT.mClasses[lClassIndexModified]["afy:classID"];
+        if (_lClassName in lHideClasses)
+          delete lHideClasses[_lClassName];
+        else
+          lHideClasses[_lClassName] = true;
+        lDoRefresh(false);
+        lClassIndexModified = null;
+      }
+    });
+  $("#map_area").mouseout(function() { lPanZoom.onMouseUp(); });
+  $("#map_area").mouseleave(function() { lPanZoom.onMouseUp(); });
+  window.addEventListener('mousewheel', function(e) { lPanZoom.onWheel(e); lDoDraw(); return false; }, true);
+  window.addEventListener('DOMMouseScroll', function(e) { lPanZoom.onWheel(e); lDoDraw(); return false; }, true);
+  window.addEventListener('keydown', function(e) { lPanZoom.onKeyDown(e); }, true);
+  window.addEventListener('keyup', function(e) { lPanZoom.onKeyUp(e); }, true);
 
   // Other interactions.
-  $("#map_query").keypress(function(e) { if (13 == e.keyCode) { lDoLayout(); lDoDraw(); } return true; });
-  $("#map_querygo").click(function() { lDoLayout(); lDoDraw(); return false; });
+  $("#map_query").keypress(function(e) { if (13 == e.keyCode) { lDoRefresh(true); } return true; });
+  $("#map_querygo").click(function() { lDoRefresh(true); return false; });
+  $("#map_query_withrefs").click(function() { lDoRefresh(false); return true; });
   $("#tab-map").bind("activate_tab", function() { populate_classes(); lDoDraw(); });
 
   // Initialize the canvas's dimensions (critical for rendering quality).
   $("#map_area").attr("width", $("#map_area").width());
   $("#map_area").attr("height", $("#map_area").height());
+}
+
+/**
+ * Histogram.
+ * Displays histograms of specified properties in specified contexts,
+ * using the store's native support.
+ */
+function histo_LayoutCtx(pQuery, pOptions/*{draw:func}*/)
+{
+  var lGetOption = function(_pWhat, _pDefault) { return (undefined != pOptions && _pWhat in pOptions) ? pOptions[_pWhat] : _pDefault; }
+  var lThis = this;
+  this.query = pQuery;
+  this.draw = lGetOption('draw', null);
+  this.result = {};
+  this.range = {min:999999, max:1};
+}
+function histo_LayoutEngine()
+{
+  var lOnResult =
+    function(_pJson, _pLayoutCtx)
+    {
+      if (undefined != _pJson)
+      {
+        _pLayoutCtx.result = _pJson[0]["afy:value"];
+        for (var _iE in _pLayoutCtx.result)
+        {
+          var _lV = parseInt(_pLayoutCtx.result[_iE]["afy:value"]);
+          if (_lV < _pLayoutCtx.range.min)
+            _pLayoutCtx.range.min = _lV;
+          if (_lV > _pLayoutCtx.range.max)
+            _pLayoutCtx.range.max = _lV;
+        }
+      }
+      else
+        _pLayoutCtx.result = null;
+      _pLayoutCtx.draw();
+    }
+  this.doLayout = function(_pLayoutCtx) { mv_query(_pLayoutCtx.query, new QResultHandler(lOnResult, null, _pLayoutCtx)); }
+}
+function Histogram()
+{
+  var lThis = this;
+  if ("msie" in $.browser && $.browser["msie"])
+    { var lV = $.browser.version.match(/^([0-9]+)\./); if (undefined == lV || parseInt(lV[0]) < 9) { disableTab("#tab-histogram"); return; } }
+  var l2dCtx;
+  try { l2dCtx = document.getElementById("histo_area").getContext("2d"); } catch(e) { myLog("html5 canvas not supported"); disableTab("#tab-histogram"); return; }
+  var lVPHeight = $("#histo_area").height();
+  var lPanZoom = new PanZoom($("#histo_area"), 1.0);
+  var lLayoutEngine = new histo_LayoutEngine();
+  var lLayoutCtx = null;
+  var lQClass = null, lQProp = null;
+  var lDoDraw = // The rendering engine.
+    function()
+    {
+      // Reset transfos and background.
+      l2dCtx.setTransform(1, 0, 0, 1, 0, 0);
+      l2dCtx.fillStyle = "#e4e4e4";
+      l2dCtx.fillRect(0, 0, l2dCtx.canvas.width, l2dCtx.canvas.height);
+      if (undefined == lLayoutCtx)
+        return;
+
+      // Apply current pan&zoom.
+      l2dCtx.scale(lPanZoom.zoom, lPanZoom.zoom);
+      l2dCtx.translate(lPanZoom.pan.x, lPanZoom.pan.y);
+
+      // Draw the histogram.
+      if (undefined != lLayoutCtx && undefined != lLayoutCtx.result)
+      {
+        var _lHUnit = Math.floor(lVPHeight / lLayoutCtx.range.max);
+        var _lX = 0;
+        for (var _iE in lLayoutCtx.result)
+        {
+          var _lVal = parseInt(lLayoutCtx.result[_iE]["afy:value"]);
+          var _lHeight = _lHUnit * _lVal;
+          l2dCtx.fillStyle = "#d0caed";
+          l2dCtx.fillRect(_lX, lVPHeight - 2 - _lHeight, 20, _lHeight);
+          l2dCtx.fillStyle = "#444";
+          l2dCtx.rotate(-0.5 * Math.PI);
+          l2dCtx.fillText(myStringify(lLayoutCtx.result[_iE]["afy:key"]) + " (" + _lVal + ")", - lVPHeight + 5, _lX + 14);
+          l2dCtx.rotate(0.5 * Math.PI);
+          _lX += 25;
+        }
+      }
+    }
+  var lDoLayout =
+    function()
+    {
+      lLayoutCtx = new histo_LayoutCtx(mv_sanitize_semicolon($("#histo_query").text()), {draw:lDoDraw});
+      lLayoutEngine.doLayout(lLayoutCtx);
+    }
+  var lDoRefresh = function() { lDoLayout(); }
+  var lDoUpdateQuery =
+    function()
+    {
+      if (undefined == lQClass || undefined == lQProp)
+        { $("#histo_query").text("Please select a class and a property..."); return; }
+      $("#histo_query").text(mv_with_qname_prefixes("SELECT HISTOGRAM(" + lQProp + ") FROM " + lQClass));
+      lDoRefresh();
+    }
+  var lDoUpdateProperties =
+    function()
+    {
+      var lOnPage =
+        function(_pJson, _pUserData)
+        {
+          if (undefined != _pJson)
+          {
+            var __lProps = {};
+            for (var __iPin = 0; __iPin < _pJson.length; __iPin++)
+              for (var __iProp in _pJson[__iPin])
+                __lProps[__iProp] = 1;
+            delete __lProps.id;
+            $("#histo_property").empty();
+            for (var __iProp in __lProps)
+              $("#histo_property").append($("<option value='" + __iProp + "'>" + __iProp + "</option>"));
+            lQProp = $("#histo_property option:selected").val();
+          }
+          lDoUpdateQuery();
+        };
+      mv_query("SELECT FROM " + lQClass, new QResultHandler(lOnPage, null, null), {limit:20, offset:0});
+    }
+  var lDoUpdateClasses = function()
+  {
+    $("#histo_class").empty();
+    $("#histo_class").append("<option value='*'>*</option>");
+    if (undefined == MV_CONTEXT.mClasses)
+      lQClass = "*";
+    else
+    {
+      for (var _iC = 0; _iC < MV_CONTEXT.mClasses.length; _iC++)
+      {
+        var _lCn = MV_CONTEXT.mClasses[_iC]["afy:classID"];
+        $("#histo_class").append($("<option value=\"" + _lCn + "\">" + _lCn + "</option>"));
+      }
+      lQClass = $("#histo_class option:selected").val();
+    }
+    lDoUpdateProperties();
+  }
+
+  // Pan & Zoom etc.
+  $("#histo_area").mousemove(function(e) { lPanZoom.onMouseMove(e); if (lPanZoom.isButtonDown()) lDoDraw(); });
+  $("#histo_area").mousedown(function(e) { lPanZoom.onMouseDown(); });
+  $("#histo_area").mouseup(function() { lPanZoom.onMouseUp(); });
+  $("#histo_area").mouseout(function() { lPanZoom.onMouseUp(); });
+  $("#histo_area").mouseleave(function() { lPanZoom.onMouseUp(); });
+  window.addEventListener('mousewheel', function(e) { lPanZoom.onWheel(e); lDoDraw(); return true; }, true);
+  window.addEventListener('DOMMouseScroll', function(e) { lPanZoom.onWheel(e); lDoDraw(); return true; }, true);
+  window.addEventListener('keydown', function(e) { lPanZoom.onKeyDown(e); }, true);
+  window.addEventListener('keyup', function(e) { lPanZoom.onKeyUp(e); }, true);
+
+  // Other interactions.
+  $("#histo_class").click(function() { lQClass = $("#histo_class option:selected").val(); lDoUpdateProperties(); });
+  $("#histo_property").click(function() { lQProp = $("#histo_property option:selected").val(); lDoUpdateQuery(); });
+  $("#histo_go").click(function() { lDoRefresh(); return false; });
+  $("#tab-histogram").bind("activate_tab", function() { populate_classes(function() { lDoUpdateClasses(); lDoDraw(); }); });
+
+  // Initialize the canvas's dimensions (critical for rendering quality).
+  $("#histo_area").attr("width", $("#histo_area").width());
+  $("#histo_area").attr("height", $("#histo_area").height());
 }
 
 /**
@@ -1542,6 +1826,8 @@ $(document).ready(
     new Tutorial();
     // Setup the graph/map.
     new GraphMap();
+    // Setup the histogram.
+    new Histogram();
     // Setup the batching UI.
     new BatchingSQL();
     // Setup tab-dependent aspects of the basic console.
@@ -1561,6 +1847,9 @@ $(document).ready(
     bindStaticCtxMenus();
     // Setup the persistent cache for the query history.
     MV_CONTEXT.mQueryHistory = new QHistory($("#query_history"), MV_CONTEXT.mUIStore);
+    // Unless the deployment is local, don't show the administration tab.
+    if (undefined == location.hostname.match(/(localhost|127\.0\.0\.1)/i))
+      disableTab("#tab-config");
     // Setup the initial query string, if one was specified (used for links from doc to console).
     var lInitialQ = location.href.match(/query\=(.*?)((&.*)|(#.*)|\0)?$/i);
     if (undefined != lInitialQ && lInitialQ.length > 0)
@@ -1648,6 +1937,8 @@ function mv_with_qname(pRawName)
     { return pRawName; }
   var lPrefix = pRawName.substr(0, lLastSlash);
   var lSuffix = pRawName.substr(lLastSlash + 1);
+  if (lSuffix.indexOf(":") > 0)
+    lSuffix = "\"" + lSuffix + "\"";
   if (lPrefix in MV_CONTEXT.mPrefix2QName)
     { return MV_CONTEXT.mPrefix2QName[lPrefix] + ":" + lSuffix; }
   else
@@ -1698,7 +1989,7 @@ function mv_with_qname_prefixes(pQueryStr)
       if (lPrefix in MV_CONTEXT.mQName2Prefix)
         lToDefine[lPrefix] = MV_CONTEXT.mQName2Prefix[lPrefix];
       else
-        alert("Unknown prefix: " + lPrefix);
+        myLog("Unknown prefix: " + lPrefix); // Note: Could happen if for example a URI contains a colon - no big deal.
     }
   }
   var lProlog = "";
@@ -1737,7 +2028,7 @@ function mv_sanitize_json_result(pResultStr)
     var lJsonRaw = $.parseJSON(pResultStr.replace(/\s+/g, " ")); // Note: for some reason chrome is more sensitive to those extra characters than other browsers.
     if (null == lJsonRaw) { return null; }
     return lTransform(lJsonRaw);
-  } catch(e) { console.log("mv_sanitize_json_result: " + e); }
+  } catch(e) { myLog("mv_sanitize_json_result: " + e); }
   return null;
 }
 function mv_sanitize_classname(pClassName)
@@ -1773,7 +2064,7 @@ QResultHandler.prototype.onerror = function(pArgs, pSql)
   else
   {
     var lT = pSql + "\n" + pArgs[0].responseText;
-    console.log(lT);
+    myLog(lT);
     lT = lT.replace(/\n/g, "<br>").replace(/\s/, "&nbsp;");
     $("#result_pin").empty(); $("#result_pin").append("<pre style='color:red'>" + lT + "</pre>");
   }
@@ -1781,7 +2072,7 @@ QResultHandler.prototype.onerror = function(pArgs, pSql)
 function mv_query(pSqlStr, pResultHandler, pOptions)
 {
   if (null == pSqlStr || 0 == pSqlStr.length)
-    { console.log("mv_query: invalid sql " + pSqlStr); pResultHandler.onerror(null, pSqlStr); return; }
+    { myLog("mv_query: invalid sql " + pSqlStr); pResultHandler.onerror(null, pSqlStr); return; }
   var lSqlStr = mv_with_qname_prefixes(pSqlStr);
   var lHasOption = function(_pOption) { return (undefined != pOptions && _pOption in pOptions); }
   $.ajax({
@@ -1805,7 +2096,7 @@ function mv_query(pSqlStr, pResultHandler, pOptions)
 function mv_batch_query(pSqlStrArray, pResultHandler, pOptions)
 {
   if (null == pSqlStrArray || 0 == pSqlStrArray.length)
-    { console.log("mv_query: invalid sql batch"); pResultHandler.onerror(null, pSqlStrArray); return; }
+    { myLog("mv_query: invalid sql batch"); pResultHandler.onerror(null, pSqlStrArray); return; }
   var lBody = "";
   for (var iStmt = 0; iStmt < pSqlStrArray.length; iStmt++)
   {
@@ -1839,7 +2130,7 @@ function mv_batch_query(pSqlStrArray, pResultHandler, pOptions)
 /**
  * Classes/properties UI.
  */
-function populate_classes()
+function populate_classes(pOnDone)
 {
   var lTruncateLeadingDot = function(_pStr) { return _pStr.charAt(0) == "." ? _pStr.substr(1) : _pStr; }
   var lOnSuccess = function(_pJson) {
@@ -1869,7 +2160,7 @@ function populate_classes()
     $("#class_doc").empty();
     $("#property_doc").empty();
     $("#qnames").empty();
-    if (undefined == _pJson) { console.log("populate_classes: undefined _pJson"); return; }
+    if (undefined == _pJson) { myLog("populate_classes: undefined _pJson"); return; }
     for (var i = 0; i < _pJson.length; i++)
     {
       var lCName = _pJson[i]["afy:classID"];
@@ -1877,6 +2168,8 @@ function populate_classes()
       $("#classes").append(lOption);
     }
     on_class_change();
+    if (undefined != pOnDone)
+      pOnDone();
   };
   MV_CONTEXT.mQNamesDirty = true;
   var lOnClasses = new QResultHandler(lOnSuccess, null, null);
@@ -1944,15 +2237,19 @@ function on_pin_click(pPID)
   update_qnames_ui();
 
   // Manage the row selection.
-  if (null != MV_CONTEXT.mSelectedPID)
-    { $("#" + MV_CONTEXT.mSelectedPID).removeClass("selected"); }
+  if (undefined != MV_CONTEXT.mSelectedPID)
+  {
+    if (pPID == MV_CONTEXT.mSelectedPID)
+      return;
+    $("#" + MV_CONTEXT.mSelectedPID).removeClass("selected");
+  }
   MV_CONTEXT.mSelectedPID = pPID;
   $("#" + MV_CONTEXT.mSelectedPID).addClass("selected");
 
   // Update the selected PIN's information section.
   var lPinArea = $("#result_pin");
   lPinArea.empty();
-  lPinClasses = $("<p>PIN:" + pPID + ", IS A </p>").appendTo(lPinArea);
+  lPinClasses = $("<p>PIN @" + trimPID(pPID) + " IS A </p>").appendTo(lPinArea);
   var lCheckClasses = function(_pNumC)
   {
     var _mNumCTotal = _pNumC;
@@ -1988,7 +2285,7 @@ function on_pin_click(pPID)
     }
     lPinArea.append(lTxt);
     for (iRef in lRefs)
-      { $("#" + iRef).click(function(){on_pin_click($(this).text()); return false;}); }
+      { $("#" + iRef).click(function(){on_pin_click($(this).text().replace(/^@/, "")); return false;}); }
   }
   var lOnData = new QResultHandler(lOnDataSuccess, null, null);
   mv_query("SELECT * WHERE afy:pinID=@" + pPID + ";", lOnData, {keepalive:false});
