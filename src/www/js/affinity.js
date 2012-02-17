@@ -2,24 +2,24 @@
  * Globals/Constants.
  */
 var DB_ROOT = "/db/";
-var MV_CONTEXT = new Object();
-MV_CONTEXT.mNavTabs = null;
-MV_CONTEXT.mQueryHistory = null;
-MV_CONTEXT.mClasses = null;
-MV_CONTEXT.mFullIntrospection = false;
-MV_CONTEXT.mLastQueriedClassName = "";
-MV_CONTEXT.mLastQResult = null;
-MV_CONTEXT.mSelectedPID = null;
-MV_CONTEXT.mPrefix2QName = new Object();
-MV_CONTEXT.mQName2Prefix = new Object();
-MV_CONTEXT.mQNamesDirty = false;
-MV_CONTEXT.mTooltipTimer = null;
+var MV_CONTEXT = new Object(); // Global app context.
+MV_CONTEXT.mNavTabs = null; // Main tab/page-navigation system.
+MV_CONTEXT.mQueryHistory = null; // Query history view.
+MV_CONTEXT.mClasses = null; // The current result of 'SELECT FROM afy:ClassOfClasses'.
+MV_CONTEXT.mFullIntrospection = false; // Whether or not additional introspection hints are present (such as produced by modeling.py).
+MV_CONTEXT.mLastQResult = null; // The last query result table (for 'abort' - might be deprecated).
+MV_CONTEXT.mSelectedPID = null; // In the 'Basic Console', the currently selected pin.
+MV_CONTEXT.mDef2QnPrefix = new Object(); // Dictionary of 'http://bla/bla' to 'qn123'.
+MV_CONTEXT.mQnPrefix2Def = new Object(); // Dictionary of 'qn123' to 'http://bla/bla'.
+MV_CONTEXT.mQNamesDirty = false; // For lazy update of qname prefixes, based on new query results.
+MV_CONTEXT.mTooltipTimer = null; // For tooltips.
 
 /**
  * General-purpose helpers.
  */
 function trimPID(pPID) { return undefined != pPID ? pPID.replace(/^0+/, "") : undefined; }
 function countProperties(pO) { var lR = 0; for(var iP in pO) { if (pO.hasOwnProperty(iP)) lR++; } return lR; }
+function nthProperty(pO, pN) { var i = 0; var lPn = null; for (var iP in pO) { if (i == pN) { lPn = iP; break; } i++; } return lPn; }
 function myLog(pMsg) { if ("msie" in $.browser && $.browser["msie"]) return; console.log(pMsg); }
 function myStringify(pWhat, pOptions/*{quoteStrings:true/false, lineBreaks:true/false}*/)
 {
@@ -143,11 +143,16 @@ CtxMenu.prototype.addItem = function(pText, pCallback, pUserData, pBold)
 {
   var lThis = this;
   var lMenuItem = $("<div />").addClass("ctxmenuitem").appendTo(this.mMenu);
-  lMenuItem.append(pBold ? $("<b>" + pText + "</b>") : pText);
-  lMenuItem.click(function(_pEvent) { lThis.hide(); if (pCallback) { pCallback(_pEvent, pUserData); } else { myLog("CtxMenu.addItem: unhandled item: " + pText); } });
-  lMenuItem.hover(
-    function() { $(this).addClass("ctxmenu-highlighted-item"); },
-    function() { $(this).removeClass("ctxmenu-highlighted-item"); });
+  if (undefined != pText && pText.length > 0)
+  {
+    lMenuItem.append(pBold ? $("<b>" + pText + "</b>") : pText);
+    lMenuItem.click(function(_pEvent) { lThis.hide(); if (pCallback) { pCallback(_pEvent, pUserData); } else { myLog("CtxMenu.addItem: unhandled item: " + pText); } });
+    lMenuItem.hover(
+      function() { $(this).addClass("ctxmenu-highlighted-item"); },
+      function() { $(this).removeClass("ctxmenu-highlighted-item"); });
+  }
+  else
+    lMenuItem.css("height", "0").css("margin", "0").css("padding", "0 0.2em 0 0.2em"); // Separator.
   lMenuItem.appendTo(this.mMenu);
 }
 CtxMenu.prototype.start = function(pX, pY)
@@ -165,27 +170,41 @@ function bindStaticCtxMenus()
   //   (e.g. graph insert dml, path expressions, collections, more joins etc.)
   // REVIEW: Ideally we should have menu enablers also...
 
-  $("#query").bind(
-    "contextmenu", null,
-    function(_pEvent)
-    { 
-      var _lMenu = new CtxMenu();
-      var _lSomePID = (undefined != MV_CONTEXT.mSelectedPID ? MV_CONTEXT.mSelectedPID : "50001");
-      var _lSomeClass = (undefined != MV_CONTEXT.mClasses && MV_CONTEXT.mClasses.length > 0 ? MV_CONTEXT.mClasses[0]["afy:classID"] : "myclass");
-      _lMenu.addItem($("#menuitem_query_pin").text(), function() { $("#query").val("SELECT * FROM @" + _lSomePID + ";"); });
-      _lMenu.addItem($("#menuitem_query_class").text(), function() { $("#query").val("SELECT * FROM \"" + _lSomeClass + "\";"); });
-      _lMenu.addItem($("#menuitem_query_classft").text(), function() { $("#query").val("SELECT * FROM \"" + _lSomeClass + "\" MATCH AGAINST ('hello');"); });
-      _lMenu.addItem($("#menuitem_query_classjoin").text(), function() { $("#query").val("SELECT * FROM myclass1 AS c1 JOIN myclass2 AS c2 ON (c1.myprop1 = c2.myprop2);"); });
-      _lMenu.addItem($("#menuitem_query_all").text(), function() { $("#query").val("SELECT *;"); });
-      _lMenu.addItem($("#menuitem_query_insertpin").text(), function() { $("#query").val("INSERT (\"myprop\", \"myotherprop\") VALUES (1, {2, 'hello', TIMESTAMP'1976-05-02 10:10:10'});"); });
-      //_lMenu.addItem($("#menuitem_query_insertgraph").text(), function() { $("#query").val("INSERT \"myname\"='Fred', \"myfriends\"={(INSERT \"myname\"='John', \"myfriends\"={(SELECT * WHERE \"myname\" MATCH AGAINST('Fr')), (INSERT \"myname\"='Jack')}), (INSERT \"myname\"='Tony')};"); });
-      _lMenu.addItem($("#menuitem_query_insertclass").text(), function() { $("#query").val("CREATE CLASS \"myclass\" AS SELECT * WHERE EXISTS(\"myprop\");"); });
-      _lMenu.addItem($("#menuitem_query_updatepin").text(), function() { $("#query").val("UPDATE @" + _lSomePID + " SET \"mythirdprop\"=123;"); });
-      _lMenu.addItem($("#menuitem_query_deletepin").text(), function() { $("#query").val("DELETE FROM @" + _lSomePID + ";"); });
-      _lMenu.addItem($("#menuitem_query_dropclass").text(), function() { $("#query").val("DROP CLASS \"" + _lSomeClass + "\";"); }); 
-      _lMenu.start(_pEvent.pageX, _pEvent.pageY);
-      return false;
-    });
+  var lQuerySuggestions =
+    function()
+    {
+      var _lThis = this;
+      var _lMenu = null, _lTarget = null, _lSomePID = "50001", _lSomeClass = "myclass";
+      var _lBegin =
+        function(e)
+        {
+          _lMenu = new CtxMenu(); _lTarget = $(e.target);
+          _lSomePID = (undefined != MV_CONTEXT.mSelectedPID ? MV_CONTEXT.mSelectedPID : "50001");
+          _lSomeClass = (undefined != MV_CONTEXT.mClasses && MV_CONTEXT.mClasses.length > 0 ? MV_CONTEXT.mClasses[0]["afy:classID"] : "myclass");
+        }
+      var _lAddSelect =
+        function()
+        {
+          _lMenu.addItem($("#menuitem_query_pin").text(), function() { _lTarget.val("SELECT * FROM @" + _lSomePID + ";"); });
+          _lMenu.addItem($("#menuitem_query_class").text(), function() { _lTarget.val("SELECT * FROM " + _lSomeClass + ";"); });
+          _lMenu.addItem($("#menuitem_query_all").text(), function() { _lTarget.val("SELECT *;"); });
+          _lMenu.addItem($("#menuitem_query_classft").text(), function() { _lTarget.val("SELECT * FROM " + _lSomeClass + " MATCH AGAINST ('hello');"); });
+          _lMenu.addItem($("#menuitem_query_classjoin").text(), function() { _lTarget.val("SELECT * FROM myclass1 AS c1 JOIN myclass2 AS c2 ON (c1.myprop1 = c2.myprop2);"); });
+        }
+      var _lAddUpdate =
+        function()
+        {
+          _lMenu.addItem($("#menuitem_query_insertpin").text(), function() { _lTarget.val("INSERT (\"myprop\", \"myotherprop\") VALUES (1, {2, 'hello', TIMESTAMP'1976-05-02 10:10:10'});"); });
+          _lMenu.addItem($("#menuitem_query_insertclass").text(), function() { _lTarget.val("CREATE CLASS \"myclass\" AS SELECT * WHERE EXISTS(\"myprop\");"); });
+          _lMenu.addItem($("#menuitem_query_updatepin").text(), function() { _lTarget.val("UPDATE @" + _lSomePID + " SET \"mythirdprop\"=123;"); });
+          _lMenu.addItem($("#menuitem_query_deletepin").text(), function() { _lTarget.val("DELETE FROM @" + _lSomePID + ";"); });
+          _lMenu.addItem($("#menuitem_query_dropclass").text(), function() { _lTarget.val("DROP CLASS " + _lSomeClass + ";"); }); 
+        }
+      this.handlerAll = function(e) { _lBegin(e); _lAddSelect(); _lMenu.addItem("", null); _lAddUpdate(); _lMenu.start(e.pageX, e.pageY); return false; }
+      this.handlerSelect = function(e) { _lBegin(e); _lAddSelect(); _lMenu.start(e.pageX, e.pageY); return false; }
+    }
+  $("#query").bind("contextmenu", null, function(e) { return new lQuerySuggestions().handlerAll(e); });
+  $("#map_query").bind("contextmenu", null, function(e) { return new lQuerySuggestions().handlerSelect(e); });
 
   $("#result_pin").bind(
     "contextmenu", null,
@@ -235,7 +254,7 @@ function NavTabs()
     function(_pEvent)
     {
       // Hide all tabs.
-      $.each(lTabs, function(__pI, __pE) { __pE.content.css("display", "none"); $(__pE.anchor).children("img").removeClass("tab-selected"); });
+      $.each(lTabs, function(__pI, __pE) { __pE.content.css("display", "none"); var __lImg = $(__pE.anchor).children("img"); if (__lImg.hasClass("tab-selected")) { __pE.content.trigger("deactivate_tab"); __lImg.removeClass("tab-selected"); } });
       // Display the selected tab.
       var _lTargetA = $(_pEvent.target).parent()[0];
       var _lTab = lTabContentFromName(lTabNameFromA(_lTargetA));
@@ -649,8 +668,10 @@ function BatchingSQL()
   this.mResultList.change(
     function()
     {
-      var _lCurPageQ = $("#result_area_selector option:selected").val();
-      $.each(lThis.mPages, function(_pI, _pE) { _pE.ui.css("display", (_pE.query == _lCurPageQ) ? "block" : "none"); });
+      var _lCurPage = $("#result_area_selector option:selected").index();
+      $.each(lThis.mPages, function(_pI, _pE) { _pE.ui.css("display", "none"); });
+      if (_lCurPage >= 0 && _lCurPage < lThis.mPages.length)
+        lThis.mPages[_lCurPage].ui.css("display", "block");
     });
 }
 BatchingSQL.prototype.go = function()
@@ -659,24 +680,32 @@ BatchingSQL.prototype.go = function()
   this.mResultPage.empty();
   this.mPages = new Array();
   var lThis = this;
-  var lQueries = this.mQueryAreaQ.val().replace(/\n/g,"").split(';');
+  var lQueries = this.mQueryAreaQ.val().replace(/\n/g,"").replace(/;\s*$/, "").split(';');
   var lOnResults =
     function(_pJson)
     {
       if (0 == _pJson.length || lQueries.length < _pJson.length)
         return;
-      for (var iQ = 0; iQ < _pJson.length; iQ++)
+      var iQr = 0;
+      for (var iQ = 0; iQ < lQueries.length; iQ++)
       {
         var _lPage = {ui:$("<div style='overflow:hidden; position:absolute; top:30px; width:100%; height:100%;'/>"), query:(lQueries[iQ] + ";"), result:null};
-        _lPage.result = new QResultTable(_lPage.ui, null);
+        var _lTxOp = (undefined != _lPage.query.match(/(\s*start\s*transaction\s*)|(\s*commit\s*)|(\s*rollback\s*)/i));
+        if (_lTxOp) // Currently, txops don't produce any json result.
+          _lPage.ui.append($("<p>ok</p>"));
+        else
+          _lPage.result = new QResultTable(_lPage.ui, null);
         MV_CONTEXT.mQueryHistory.recordQuery(_lPage.query);
         lThis.mResultList.append($("<option>" + _lPage.query + "</option>"));
         lThis.mPages.push(_lPage);
         lThis.mResultPage.append(_lPage.ui);
-        var _lData = (1 == _pJson.length) ? _pJson : _pJson[iQ];
-        _lPage.result._setNumRows(_lData.length);
-        _lPage.result._recordRows(_lData, 0);
-        _lPage.result._onScroll(0);
+        if (!_lTxOp)
+        {
+          var _lData = (1 == _pJson.length) ? _pJson : _pJson[iQr++];
+          _lPage.result._setNumRows(_lData.length);
+          _lPage.result._recordRows(_lData, 0);
+          _lPage.result._onScroll(0);
+        }
         _lPage.ui.css("display", "none");
       }
     };
@@ -1080,7 +1109,7 @@ function PanZoom(pArea, pZoom)
  */
 function gm_has(pArray, pO) { if (undefined == pArray) return; for (var i = 0; i < pArray.length; i++) if (pArray[i] == pO) return true; return false; }
 function gm_removeFrom(pArray, pO) { if (undefined == pArray) return; for (var i = 0; i < pArray.length; i++) if (pArray[i] == pO) { pArray.splice(i, 1); return; } }
-function gm_quantizePos(pX, pY, pGrid) { return "" + ((pX / pGrid) >> 0) + "," + ((pY / pGrid) >> 0); }
+function gm_quantizePos(pX, pY, pGrid) { return "" + Math.floor(pX / pGrid) + "," + Math.floor(pY / pGrid); }
 function gm_LayoutCtx(pQuery, pOptions/*{walkrefs:true/false, progressive:true/false, draw:func, hideClasses:dict/null}*/)
 {
   var lGetOption = function(_pWhat, _pDefault) { return (undefined != pOptions && _pWhat in pOptions) ? pOptions[_pWhat] : _pDefault; }
@@ -1092,14 +1121,17 @@ function gm_LayoutCtx(pQuery, pOptions/*{walkrefs:true/false, progressive:true/f
   this.progressiveDraw = lGetOption('progressive', false); // Whether or not to update the display during pagination.
   this.draw = lGetOption('draw', null); // The redraw function, invoked optionally during pagination, plus at the end.
   this.hideClasses = lGetOption('hideClasses', null); // Class names of classes to be excluded from the visualization domain.
-  this.processed = {}; // PIDs of all pins processed so far.
+  this.hideRefprops = lGetOption('hideRefprops', null); // Property names of properties to be excluded from graph traversal.
+  this.refprops = {}; // Dictionary of names of properties detected to contain references to other pins, during the traversal.
+  this.processed = {}; // {pid:layout_info} of all pins processed so far.
   this.cliques_byref = []; // Cliques of pins referencing each other via any property (no single-pin clique).
   this.solitaires = {}; // Single pins (not in any clique yet).
   this.backrefs = {}; // To store/retrieve who's pointing to me.
   this.hasClique = function(_pClique) { for (var _iC = 0; _iC < lThis.cliques_byref.length; _iC++) if (lThis.cliques_byref[_iC] == _pClique) return true; return false; }
+  this.registerRefprop = function(_pProp) { lThis.refprops[_pProp] = (_pProp in lThis.refprops ? (lThis.refprops[_pProp] + 1) : 1); }
 }
 gm_LayoutCtx.CLIQUE_RADIUS = 1000.0; // Each clique will be contained within a circle of 100.0 units of radius.
-gm_LayoutCtx.QUANTIZE_GRID = 10; // For 2d retrieval, objects will be mapped by position on a grid of 5-units squares.
+gm_LayoutCtx.QUANTIZE_GRID = 10; // For 2d retrieval.
 function gm_LayoutNodeInfo(pPin, pLayoutCtx)
 {
   var lPid = trimPID(pPin.id);
@@ -1109,14 +1141,22 @@ function gm_LayoutNodeInfo(pPin, pLayoutCtx)
       var _lRefs = [];
       for (var _iProp in pPin)
       {
+        if (_iProp in pLayoutCtx.hideRefprops)
+          { pLayoutCtx.registerRefprop(_iProp); continue; }
         if (typeof(pPin[_iProp]) == "object" && "$ref" in pPin[_iProp])
+        {
+          pLayoutCtx.registerRefprop(_iProp);
           _lRefs.push(trimPID(pPin[_iProp]["$ref"]));
+        }
         else if (typeof(pPin[_iProp]) == "object")
         {
           for (var _iElm in pPin[_iProp])
           {
             if (typeof(pPin[_iProp][_iElm]) == "object" && "$ref" in pPin[_iProp][_iElm])
+            {
+              pLayoutCtx.registerRefprop(_iProp);
               _lRefs.push(trimPID(pPin[_iProp][_iElm]["$ref"]));
+            }
           }
         }
       }
@@ -1142,6 +1182,29 @@ function gm_LayoutNodeInfo(pPin, pLayoutCtx)
   this.numrefs_eval = function() { lThis.numrefs_cache = lThis.fwrefs.length + (lThis.id in pLayoutCtx.backrefs ? pLayoutCtx.backrefs[lThis.id].length : 0); }
   this.setPosition = function(_pX, _pY) { lThis.position = {x:_pX, y:_pY, numrefs:lThis.numrefs_cache}; }
   this.resetPosition = function() { lThis.position = null; }
+  this.getCliqueIndex = function() { return (undefined == lThis.clique ? 0 : (lThis.clique == pLayoutCtx.solitaires ? pLayoutCtx.cliques_byref.length : lThis.clique.cindex)); }
+  this.drawVertex =
+    function(_pXOffset, _p2dCtx, _pPanZoom, _pRecordPos)
+    {
+      if (undefined == lThis.position)
+        return;
+      var _lX = _pXOffset + lThis.position.x;
+      var _lY = gm_LayoutCtx.CLIQUE_RADIUS + lThis.position.y;
+      var _lQpos = undefined;
+      if (undefined != _pRecordPos)
+      {
+        var _lPx = (_lX + _pPanZoom.pan.x) * _pPanZoom.zoom;
+        var _lPy = (_lY + _pPanZoom.pan.y) * _pPanZoom.zoom;
+        _lQpos = gm_quantizePos(_lPx, _lPy, gm_LayoutCtx.QUANTIZE_GRID * _pPanZoom.zoom);
+        if (_lQpos in _pRecordPos) { if (!gm_has(_pRecordPos[_lQpos], lThis)) _pRecordPos[_lQpos].push(lThis); } else _pRecordPos[_lQpos] = [lThis];
+      }
+      _p2dCtx.beginPath();
+      _p2dCtx.arc(_lX, _lY, 5, 0, 2 * Math.PI, false);
+      _p2dCtx.closePath();
+      _p2dCtx.fill();
+      _p2dCtx.stroke();
+      _p2dCtx.fillText("@" + lThis.id /*+ "[" + _lQpos + "]"*/, _lX + 5, _lY + 2);
+    }
   lRegisterBackrefs(this.fwrefs);
 }
 function gm_Clique(pLayoutCtx)
@@ -1181,6 +1244,7 @@ function gm_Clique(pLayoutCtx)
         lThis.add(_pOtherClique.data[_iN]);
       gm_removeFrom(pLayoutCtx.cliques_byref, _pOtherClique);
     }
+  this.cindex = null;
   pLayoutCtx.cliques_byref.push(this);
 }
 function gm_InstrSeq()
@@ -1205,7 +1269,7 @@ function gm_PageByPage(pQueryStr, pPageSize, pHandler, pUserData)
         function(__pJson, __pUserData)
         {
           if (undefined == __pJson) { return; }
-          var __lIsLastPage = (__pUserData.mOffset >= __pUserData.mNumPins);
+          var __lIsLastPage = (__pUserData.mOffset + __pJson.length >= __pUserData.mNumPins);
           pHandler(__pJson, pUserData, __lIsLastPage);
           __pUserData.mOffset += __pJson.length;
           if (!__lIsLastPage && !lAbort)
@@ -1256,9 +1320,10 @@ function gm_LayoutEngine()
             lMergeReferers(_lReferers, _pLayoutCtx);
           }
           // If it belonged to a clique, it's time to merge cliques.
-          else if (_lFirstInfoReferer.clique != _lInfo.clique && _pLayoutCtx.hasClique(_lInfo.clique))
+          else if (_pLayoutCtx.hasClique(_lInfo.clique))
           {
-            _lFirstInfoReferer.clique.merge(_lInfo.clique);
+            if (_lFirstInfoReferer.clique != _lInfo.clique)
+              _lFirstInfoReferer.clique.merge(_lInfo.clique);
             lMergeReferers(_lReferers, _pLayoutCtx);
           }
         }
@@ -1296,7 +1361,7 @@ function gm_LayoutEngine()
     function(_pLayoutCtx)
     {
       var _lMaxRadius = gm_LayoutCtx.CLIQUE_RADIUS;
-      var _lSimpleHashAngle = function(_pPidStr) { var _lH = 0; for (var _i = 0; _i < _pPidStr.length; _i++) { _lH = (27 * _lH + 35 * _pPidStr.charCodeAt(_i)) % 100 ; } return _lH / 100; }
+      var _lSimpleHashAngle = function(_pPidStr) { var _lH = 0; for (var _i = 0; _i < _pPidStr.length; _i++) { _lH = (2.71828 * _lH + 3.14159 * _pPidStr.charCodeAt(_i)) % 100 ; } return _lH / 100; }
       var _lSimpleHashDist = function(_pPidStr) { var _lH = 0; for (var _i = 0; _i < _pPidStr.length; _i++) { _lH = (37 * _lH + 19 * _pPidStr.charCodeAt(_i)) % _lMaxRadius ; } return _lH; }
 
       // Solitaires.
@@ -1344,6 +1409,8 @@ function gm_LayoutEngine()
       // Sort cliques by size.
       // Note: This is to try to get as stable an output as possible, when playing with filtering options.
       _pLayoutCtx.cliques_byref.sort(function(__c1, __c2) { return countProperties(__c2.data) - countProperties(__c1.data); });
+      for (var _iC = 0; _iC < _pLayoutCtx.cliques_byref.length; _iC++)
+        _pLayoutCtx.cliques_byref[_iC].cindex = _iC;
     }
   var lGetClassFilters =
     function(_pLayoutCtx)
@@ -1371,7 +1438,7 @@ function gm_LayoutEngine()
     {
       if (undefined == _pJson) return;
 
-      // First, scan references and bind layout infos for all new objects.
+      // First, bind layout infos + scan references, for all new objects.
       var _lNewInfos = [];
       for (var _iPin = 0; _iPin < _pJson.length; _iPin++)
       {
@@ -1383,13 +1450,35 @@ function gm_LayoutEngine()
         }
       }
 
-      // Second, walk all possible new paths generated by these references (bfs).
+      // Second, if the 'extend with refs' option is selected, walk all possible new paths generated by these references (bfs).
       var _lSS = new gm_InstrSeq();
       while (_pLayoutCtx.walkrefs && _lNewInfos.length > 0)
         lRequestRefs(_lSS, _lNewInfos.splice(0, 200), lOnPage, _pLayoutCtx);
 
-      // Once all structural aspects of the page will be dealt with, attribute positions and refresh.
-      _lSS.push(function() { lRecomputePositions(_pLayoutCtx); if (_pLastPage || undefined != _pLayoutCtx.progressiveDraw) _pLayoutCtx.draw(); });
+      // Once all structural aspects of the page are dealt with, attribute positions and refresh.
+      _lSS.push(
+        function()
+        {
+          if (_pLastPage && !_pLayoutCtx.walkrefs)
+          {
+            // If the 'extend with refs' option was not selected, then we need to walk all references within
+            // the final domain, to make sure all cliques are consolidated.
+            for (var _iPid in _pLayoutCtx.processed)
+            {
+              lBindLayoutInfo({id:_iPid}, _pLayoutCtx);
+              var _lI = _pLayoutCtx.processed[_iPid];
+              for (var _iR = 0; _iR < _lI.fwrefs.length; _iR++)
+              {
+                var _lR = _lI.fwrefs[_iR];
+                if (_lR in _pLayoutCtx.processed)
+                  lBindLayoutInfo({id:_lR}, _pLayoutCtx);
+              }
+            }
+          }
+          lRecomputePositions(_pLayoutCtx);
+          if (_pLastPage || undefined != _pLayoutCtx.progressiveDraw)
+            _pLayoutCtx.draw();
+        });
       _lSS.start();
     }
   this.doLayout =
@@ -1412,6 +1501,106 @@ function gm_LayoutEngine()
       lPbP = new gm_PageByPage(_lQ, 200, lOnPage, _pLayoutCtx);
     }
 }
+function gm_Background(p2dCtx)
+{
+  var lThis = this;
+  this.bg = null;
+  this.release = function() { lThis.bg = null; }
+  this.capture = function() { if (undefined == lThis.bg) try { lThis.bg = p2dCtx.getImageData(0, 0, p2dCtx.canvas.width, p2dCtx.canvas.height); } catch(e) {} return (undefined != lThis.bg); }
+  this.restore = function() { if (undefined != lThis.bg) { p2dCtx.save(); p2dCtx.setTransform(1, 0, 0, 1, 0, 0); p2dCtx.putImageData(lThis.bg, 0, 0); p2dCtx.restore(); return true; } return false; }
+}
+function gm_PinDetails(p2dCtx, pBackground)
+{
+  var lThis = this;
+  var lWidth = 400;
+  var lHeight = 120;
+  this.pid = null;
+  this.pulling = false;
+  this.reset = function() { lThis.pid = null; }
+  this.displayHighlights =
+    function(_pPid, _pLayoutCtx, _pPanZoom)
+    {
+      lThis.pid = _pPid;
+      if (!pBackground.restore() || undefined == lThis.pid || undefined == _pLayoutCtx || !(lThis.pid in _pLayoutCtx.processed))
+        return;
+      var _lInfo = _pLayoutCtx.processed[lThis.pid];
+      if (undefined == _lInfo.position)
+        return;
+      p2dCtx.setTransform(1, 0, 0, 1, 0, 0);
+      p2dCtx.scale(_pPanZoom.zoom, _pPanZoom.zoom);
+      p2dCtx.translate(_pPanZoom.pan.x, _pPanZoom.pan.y);
+      p2dCtx.strokeStyle = "#fcc";
+      p2dCtx.fillStyle = "#866";
+      p2dCtx.lineWidth = 3;
+      var _lCX = _lInfo.getCliqueIndex() * 2 * gm_LayoutCtx.CLIQUE_RADIUS;
+      var _lAllRefs = [];
+      for (var _iTo = 0; _iTo < _lInfo.fwrefs.length; _iTo++)
+      {
+        var _lITo = _pLayoutCtx.processed[_lInfo.fwrefs[_iTo]];
+        if (undefined != _lITo && undefined != _lITo.position)
+          _lAllRefs.push(_lITo.position);
+      }
+      var _lBrefs = _pLayoutCtx.backrefs[lThis.pid];
+      for (var _iFrom = 0; undefined != _lBrefs && _iFrom < _lBrefs.length; _iFrom++)
+        if (undefined != _pLayoutCtx.processed[_lBrefs[_iFrom]].position)
+          _lAllRefs.push(_pLayoutCtx.processed[_lBrefs[_iFrom]].position);
+      for (var _i = 0; _i < _lAllRefs.length; _i++)
+      {
+        p2dCtx.beginPath();
+        p2dCtx.moveTo(_lCX + _lInfo.position.x, gm_LayoutCtx.CLIQUE_RADIUS + _lInfo.position.y);
+        p2dCtx.lineTo(_lCX + _lAllRefs[_i].x, gm_LayoutCtx.CLIQUE_RADIUS + _lAllRefs[_i].y);
+        p2dCtx.closePath();
+        p2dCtx.stroke();
+      }
+      _lInfo.drawVertex(_lCX, p2dCtx, _pPanZoom, null);
+    }
+  var lDisplayDetails =
+    function(_pPinInfo, _pPos)
+    {
+      lThis.pid = _pPinInfo.pid;
+      if (!pBackground.restore())
+        return;
+      var _lPos = {x:Math.min(_pPos.x + 10, p2dCtx.canvas.width - lWidth), y:Math.min(_pPos.y + 10, p2dCtx.canvas.height - lHeight)};
+      p2dCtx.save();
+      p2dCtx.setTransform(1, 0, 0, 1, 0, 0);
+      p2dCtx.globalAlpha = 0.7;
+      p2dCtx.fillStyle = "#888";
+      p2dCtx.beginPath(); p2dCtx.rect(_lPos.x, _lPos.y, lWidth, lHeight); p2dCtx.closePath();
+      p2dCtx.fill(); p2dCtx.clip();
+      p2dCtx.fillStyle = "#fff";
+      p2dCtx.font = "8pt monospace";
+      var _lProps = []
+      for (var _iProp in _pPinInfo.data)
+      {
+        if (_iProp == "id" || _iProp == "afy:pinID") continue;
+        _lProps.push(_iProp + ":" + myStringify(_pPinInfo.data[_iProp]));
+      }
+      var _lTxt = "@" + _pPinInfo.pid + " IS A " + _pPinInfo.classes.join(",") + ": " + _lProps.join(", ");
+      var _lMw = p2dCtx.measureText(_lTxt).width;
+      var _lCpl = Math.floor((lWidth - 30) * _lTxt.length / _lMw);
+      for (var _iL = 0, _iC = 0; _iC < _lTxt.length; _iL++)
+      {
+        var _lL = _lTxt.substr(_iC, _lCpl);
+        var _lLastAlnum = _lL.match(/\W\w*$/);
+        var _lLen = _lCpl;
+        if (undefined != _lLastAlnum && _lLastAlnum.index >= _lCpl / 2)
+        {
+          var _lPunct = _lLastAlnum[0].charAt(0);
+          _lLen = ((_lPunct == ":" || _lPunct == "," || _lPunct == "}" || _lPunct == "]") ? 1 : 0) + _lLastAlnum.index;
+        }
+        p2dCtx.fillText(_lL.substr(0, _lLen), _lPos.x + 15, _lPos.y + 25 + _iL * 10);
+        _iC += _lLen;
+      }
+      p2dCtx.restore();
+    }
+  this.pull =
+    function(_pPid, _pAnchor)
+    {
+      lDisplayDetails({pid:_pPid, classes:[], data:{}}, _pAnchor);
+      lThis.pulling = true;
+      get_pin_info(_pPid, function(__pInfo) { lThis.pulling = false; lDisplayDetails(__pInfo, _pAnchor); });
+    }
+}
 function GraphMap()
 {
   var lThis = this;
@@ -1424,7 +1613,10 @@ function GraphMap()
   var lLayoutEngine = new gm_LayoutEngine();
   var lLayoutCtx = null;
   var lHideClasses = {};
-  var lBypos = {};
+  var lHideRefprops = {};
+  var lBypos = {}; // In screen coordinates.
+  var lBackground = new gm_Background(l2dCtx); // Once a view is rendered, we immediately capture it to be able to draw/erase over it, quickly.
+  var lPinDetails = new gm_PinDetails(l2dCtx, lBackground);
   var lDoDraw = // The rendering engine.
     function()
     {
@@ -1432,7 +1624,11 @@ function GraphMap()
       // browsers take care of double-buffering upon return
       // from this function.  Should this need to be improved,
       // see: http://stackoverflow.com/questions/2795269/does-html5-canvas-support-double-buffering.
-      
+
+      // Release old background captures.
+      lBackground.release();
+      lBypos = {};
+
       // Reset transfos and background.
       l2dCtx.setTransform(1, 0, 0, 1, 0, 0);
       l2dCtx.fillStyle = "#e4e4e4";
@@ -1447,9 +1643,8 @@ function GraphMap()
       // Draw a shadow behind each clique (+ solitaires).
       var _lCX = 0, _iC;
       l2dCtx.fillStyle = "#eaeaea";
-      for (_iC = 0; _iC < 1 + lLayoutCtx.cliques_byref.length; _iC++, _lCX += 2 * gm_LayoutCtx.CLIQUE_RADIUS)
+      for (_iC = lLayoutCtx.cliques_byref.length + (countProperties(lLayoutCtx.solitaires) > 0 ? 1 : 0); _iC > 0; _iC--, _lCX += 2 * gm_LayoutCtx.CLIQUE_RADIUS)
       {
-        var _lClique = lLayoutCtx.cliques_byref[_iC];
         l2dCtx.beginPath();
         l2dCtx.arc(_lCX, gm_LayoutCtx.CLIQUE_RADIUS, gm_LayoutCtx.CLIQUE_RADIUS, 0, 2 * Math.PI, false);
         l2dCtx.closePath();
@@ -1486,75 +1681,107 @@ function GraphMap()
 
       // Draw vertices.
       // TODO: add a coloring phase to the layout, and then here use either a default color, or colors representing the classes (pie slices).
-      var _lDrawVertex =
-        function(__pInfo, __pXOffset)
-        {
-          if (undefined == __pInfo.position)
-            return;
-          var __lX = __pXOffset + __pInfo.position.x;
-          var __lY = gm_LayoutCtx.CLIQUE_RADIUS + __pInfo.position.y;
-          var __lQpos = gm_quantizePos(__lX, __lY, gm_LayoutCtx.QUANTIZE_GRID);
-          if (__lQpos in lBypos) { if (!gm_has(lBypos[__lQpos], __pInfo)) lBypos[__lQpos].push(__pInfo); } else lBypos[__lQpos] = [__pInfo];
-          l2dCtx.beginPath();
-          l2dCtx.arc(__lX, __lY, 5, 0, 2 * Math.PI, false);
-          l2dCtx.closePath();
-          l2dCtx.fill();
-          l2dCtx.stroke();
-          l2dCtx.fillText("@" + __pInfo.id /*+ "[" + __lQpos + "]"*/, __lX + 5, __lY + 2);
-        }
       for (_iC = 0, _lCX = 0; _iC < lLayoutCtx.cliques_byref.length; _iC++, _lCX += 2 * gm_LayoutCtx.CLIQUE_RADIUS)
       {
         var _lClique = lLayoutCtx.cliques_byref[_iC];
         for (var _iPid in _lClique.data)
-          _lDrawVertex(_lClique.data[_iPid], _lCX);
+          _lClique.data[_iPid].drawVertex(_lCX, l2dCtx, lPanZoom, lBypos);
       }
       for (var _iPid in lLayoutCtx.solitaires)
-        _lDrawVertex(lLayoutCtx.solitaires[_iPid], _lCX);
+        lLayoutCtx.solitaires[_iPid].drawVertex(_lCX, l2dCtx, lPanZoom, lBypos);
 
       // Draw legend etc.
       l2dCtx.setTransform(1, 0, 0, 1, 0, 0);
       l2dCtx.fillStyle = "#444";
       l2dCtx.lineWidth = 1;
-      l2dCtx.fillText("pan:", 5, lVPHeight - 42);
-      l2dCtx.fillText("zoom:", 5, lVPHeight - 22);
-      l2dCtx.fillText("classes:", 5, lVPHeight - 2);
+      l2dCtx.fillText("pan:", 5, lVPHeight - 62);
+      l2dCtx.fillText("zoom:", 5, lVPHeight - 42);
+      l2dCtx.fillText("classes:", 5, lVPHeight - 22);
+      l2dCtx.fillText("refs:", 5, lVPHeight - 2);
       l2dCtx.fillStyle = "#666";
       l2dCtx.strokeStyle = "#666";
-      l2dCtx.fillText("click&drag", 50, lVPHeight - 42);
-      l2dCtx.fillText("z + click&drag", 50, lVPHeight - 22);
+      l2dCtx.fillText("click&drag", 50, lVPHeight - 62);
+      l2dCtx.fillText("scroll or z+click&drag", 50, lVPHeight - 42);
       if (undefined != MV_CONTEXT.mClasses)
       {
         for (var _iC = 0; _iC < MV_CONTEXT.mClasses.length; _iC++)
         {
           l2dCtx.fillStyle = (MV_CONTEXT.mClasses[_iC]["afy:classID"] in lLayoutCtx.hideClasses) ? "#d0caed" : "#8f8";
-          l2dCtx.fillRect(50 + _iC * 15, lVPHeight - 15 - 2, 15, 15);
-          l2dCtx.strokeRect(50 + _iC * 15, lVPHeight - 15 - 2, 15, 15);
+          l2dCtx.fillRect(50 + _iC * 15, lVPHeight - 15 - 22, 15, 15);
+          l2dCtx.strokeRect(50 + _iC * 15, lVPHeight - 15 - 22, 15, 15);
         }
       }
+      var _iPi = 0;
+      for (var _iP in lLayoutCtx.refprops)
+      {
+        l2dCtx.fillStyle = (_iP in lLayoutCtx.hideRefprops) ? "#d0caed" : "#8f8";
+        l2dCtx.fillRect(50 + _iPi * 15, lVPHeight - 15 - 2, 15, 15);
+        l2dCtx.strokeRect(50 + _iPi * 15, lVPHeight - 15 - 2, 15, 15);
+        _iPi++;
+      }
+
+      // Capture the rendered scene.
+      lBackground.capture();
     }
   var lDoLayout =
     function(_pProgressive)
     {
       lLayoutCtx = new gm_LayoutCtx(
         mv_sanitize_semicolon($("#map_query").val()),
-        {walkrefs:$("#map_query_withrefs").is(":checked"), progressive:_pProgressive, draw:lDoDraw, hideClasses:lHideClasses});
+        {walkrefs:$("#map_query_withrefs").is(":checked"), progressive:_pProgressive, draw:lDoDraw, hideClasses:lHideClasses, hideRefprops:lHideRefprops});
       lLayoutEngine.doLayout(lLayoutCtx);
-      lBypos = {};
     }
   var lDoRefresh = function(_pProgressive) { lDoLayout(_pProgressive); }
 
-  // Pan & Zoom etc.
-  var lClassIndexModified = null;
-  var lClassIndexFromPoint =
-    function()
+  // Pan & Zoom, checkboxes etc.
+  var lClassIndex_modified = null, lPropIndex_modified = null;
+  var lDoCheckBox =
+    function(_pIndex, _pY, _pStyle)
     {
-      if (undefined == MV_CONTEXT.mClasses)
-        return null;
+      l2dCtx.fillStyle = _pStyle;
+      l2dCtx.strokeStyle = "#666";
+      var _lX = 50 + _pIndex * 15;
+      l2dCtx.fillRect(_lX, _pY, 15, 15);
+      l2dCtx.strokeRect(_lX, _pY, 15, 15);
+    }
+  var lCheckboxIndexFromPoint =
+    function(_pY)
+    {
       var _lOffset = $("#map_area").offset();
-      var _lNLP = {x:(lPanZoom.curX() - _lOffset.left - 50), y:(lPanZoom.curY() - _lOffset.top - (lVPHeight - 17))};
+      var _lNLP = {x:(lPanZoom.curX() - _lOffset.left - 50), y:(lPanZoom.curY() - _lOffset.top - _pY)};
       if (_lNLP.x >= 0 && _lNLP.x < 15 * MV_CONTEXT.mClasses.length && _lNLP.y >= 0 && _lNLP.y <= 15)
         return Math.floor(_lNLP.x / 15);
       return null;
+    }    
+  var lClassIndexFromPoint = function() { return (undefined != MV_CONTEXT.mClasses) ? lCheckboxIndexFromPoint(lVPHeight - 37) : null; }
+  var lPropIndexFromPoint = function() { var _lNumProps = countProperties(lLayoutCtx.refprops); return (0 != _lNumProps) ? lCheckboxIndexFromPoint(lVPHeight - 17): null; }
+  var lPinfoFromPoint =
+    function()
+    {
+      var _lOffset = $("#map_area").offset();
+      var _lLx = ((lPanZoom.curX() - _lOffset.left) / lPanZoom.zoom) - lPanZoom.pan.x;
+      var _lLy = ((lPanZoom.curY() - _lOffset.top) / lPanZoom.zoom) - lPanZoom.pan.y;
+      var _lQg = gm_LayoutCtx.QUANTIZE_GRID * lPanZoom.zoom;
+      var _lQx = Math.floor((lPanZoom.curX() - _lOffset.left) / _lQg);
+      var _lQy = Math.floor((lPanZoom.curY() - _lOffset.top) / _lQg);
+      var _lCandidate = null, _lDist2Min = 1e+200;
+      for (var _iQx = _lQx - 1; _iQx <= _lQx + 1; _iQx++)
+        for (var _iQy = _lQy - 1; _iQy <= _lQy + 1; _iQy++)
+        {
+          var _lQpos = "" + _iQx + "," + _iQy;
+          if (_lQpos in lBypos)
+          {
+            for (var _iP = 0; _iP < lBypos[_lQpos].length; _iP++)
+            {
+              var _lChk = lBypos[_lQpos][_iP];
+              if (undefined == _lChk.position) continue;
+              var _lDist2 = Math.pow((2 * gm_LayoutCtx.CLIQUE_RADIUS * _lChk.getCliqueIndex()) + _lChk.position.x - _lLx, 2) + Math.pow(gm_LayoutCtx.CLIQUE_RADIUS + _lChk.position.y - _lLy, 2);
+              if (_lDist2 < _lDist2Min)
+                { _lCandidate = _lChk; _lDist2Min = _lDist2; }
+            }
+          }
+        }
+      return _lCandidate;
     }
   var lMouseMove =
     function(e)
@@ -1562,57 +1789,123 @@ function GraphMap()
       lPanZoom.onMouseMove(e);
       if (lPanZoom.isButtonDown())
         lDoDraw();
-      else if (undefined != lLayoutCtx && undefined != MV_CONTEXT.mClasses)
+      else
       {
-        var _lClassIndex = lClassIndexFromPoint();
-        if (undefined != _lClassIndex)
-          bindTooltip($("#map_area"), MV_CONTEXT.mClasses[_lClassIndex]["afy:classID"], {left:lPanZoom.curX(), top:lPanZoom.curY() - 40}, {once:true, start:0, end:500, offy:-15});
+        var _lDone = false;
+        if (undefined != lLayoutCtx)
+        {
+          var _lClassIndex = lClassIndexFromPoint();
+          if (undefined != _lClassIndex)
+            { bindTooltip($("#map_area"), MV_CONTEXT.mClasses[_lClassIndex]["afy:classID"], {left:lPanZoom.curX(), top:lPanZoom.curY() - 40}, {once:true, start:0, end:500, offy:-15}); _lDone = true; }
+          if (!_lDone)
+          {
+            var _lPropIndex = lPropIndexFromPoint();
+            if (undefined != _lPropIndex)
+              { bindTooltip($("#map_area"), nthProperty(lLayoutCtx.refprops, _lPropIndex), {left:lPanZoom.curX(), top:lPanZoom.curY() - 40}, {once:true, start:0, end:500, offy:-15}); _lDone = true; }
+          }
+        }
+        if (!_lDone)
+        {
+          var _lPinfo = lPinfoFromPoint();
+          if (undefined == _lPinfo)
+            { if (undefined != lPinDetails.pid) { lPinDetails.reset(); lBackground.restore(); } }
+          else if (_lPinfo.id != lPinDetails.pid)
+            lPinDetails.displayHighlights(_lPinfo.id, lLayoutCtx, lPanZoom);
+        }
       }
     }
   $("#map_area").mousemove(lMouseMove);
   $("#map_area").mousedown(
     function(e)
     {
-      var _lClassIndex = lClassIndexFromPoint();
-      if (undefined != _lClassIndex && undefined != lLayoutCtx)
+      var _lDone = false;
+      if (undefined != lLayoutCtx)
       {
-        lClassIndexModified = _lClassIndex;
-        l2dCtx.fillStyle = (MV_CONTEXT.mClasses[_lClassIndex]["afy:classID"] in lHideClasses) ? "#8f8" : "#d0caed";
-        l2dCtx.strokeStyle = "#666";
-        var _lX = 50 + _lClassIndex * 15;
-        l2dCtx.fillRect(_lX, lVPHeight - 17, 15, 15);
-        l2dCtx.strokeRect(_lX, lVPHeight - 17, 15, 15);
+        var _lClassIndex, _lPropIndex;
+        if (undefined != (_lClassIndex = lClassIndexFromPoint()))
+        {
+          lDoCheckBox(lClassIndex_modified = _lClassIndex, lVPHeight - 37, (MV_CONTEXT.mClasses[_lClassIndex]["afy:classID"] in lHideClasses) ? "#8f8" : "#d0caed");
+          _lDone = true;
+        }
+        else if (undefined != (_lPropIndex = lPropIndexFromPoint()))
+        {
+          lDoCheckBox(lPropIndex_modified = _lPropIndex, lVPHeight - 17, (nthProperty(lLayoutCtx.refprops, _lPropIndex) in lHideRefprops) ? "#8f8" : "#d0caed");
+          _lDone = true;
+        }
       }
-      else
+      if (!_lDone)
         lPanZoom.onMouseDown();
     });
   $("#map_area").mouseup(
     function()
     {
       lPanZoom.onMouseUp();
-      if (undefined != lClassIndexModified)
+      if (undefined != lClassIndex_modified)
       {
-        var _lClassName = MV_CONTEXT.mClasses[lClassIndexModified]["afy:classID"];
+        var _lClassName = MV_CONTEXT.mClasses[lClassIndex_modified]["afy:classID"];
         if (_lClassName in lHideClasses)
           delete lHideClasses[_lClassName];
         else
           lHideClasses[_lClassName] = true;
         lDoRefresh(false);
-        lClassIndexModified = null;
+        lClassIndex_modified = null;
+      }
+      else if (undefined != lPropIndex_modified)
+      {
+        var _lPropName = nthProperty(lLayoutCtx.refprops, lPropIndex_modified);
+        if (_lPropName in lHideRefprops)
+          delete lHideRefprops[_lPropName];
+        else
+          lHideRefprops[_lPropName] = true;
+        lDoRefresh(false);
+        lPropIndex_modified = null;
+      }
+      else
+      {
+        var _lPinfo = lPinfoFromPoint();
+        if (undefined == _lPinfo)
+          { if (undefined != lPinDetails.pid) { lPinDetails.reset(); lBackground.restore(); } }
+        else
+        {
+          var _lOffset = $("#map_area").offset();
+          var _lA = {x:lPanZoom.curX() - _lOffset.left, y:lPanZoom.curY() - _lOffset.top};
+          lPinDetails.pull(_lPinfo.id, _lA);
+        }
       }
     });
   $("#map_area").mouseout(function() { lPanZoom.onMouseUp(); });
   $("#map_area").mouseleave(function() { lPanZoom.onMouseUp(); });
-  window.addEventListener('mousewheel', function(e) { lPanZoom.onWheel(e); lDoDraw(); return false; }, true);
-  window.addEventListener('DOMMouseScroll', function(e) { lPanZoom.onWheel(e); lDoDraw(); return false; }, true);
-  window.addEventListener('keydown', function(e) { lPanZoom.onKeyDown(e); }, true);
-  window.addEventListener('keyup', function(e) { lPanZoom.onKeyUp(e); }, true);
+  var lOnWheel = function(e) { lPanZoom.onWheel(e); lDoDraw(); return false; }
+  var lManageWindowEvents =
+    function(_pOn)
+    {
+      var _lFunc = _pOn ? window.addEventListener : window.removeEventListener;
+      _lFunc('mousewheel', lOnWheel, true);
+      _lFunc('DOMMouseScroll', lOnWheel, true);
+      _lFunc('keydown', lPanZoom.onKeyDown, true);
+      _lFunc('keyup', lPanZoom.onKeyUp, true);
+    }
 
   // Other interactions.
   $("#map_query").keypress(function(e) { if (13 == e.keyCode) { lDoRefresh(true); } return true; });
   $("#map_querygo").click(function() { lDoRefresh(true); return false; });
   $("#map_query_withrefs").click(function() { lDoRefresh(false); return true; });
-  $("#tab-map").bind("activate_tab", function() { populate_classes(); lDoDraw(); });
+  $("#tab-map").bind(
+    "activate_tab",
+    function()
+    {
+      lManageWindowEvents(true);
+      populate_classes(
+        function()
+        {
+          var __lL = (undefined != MV_CONTEXT.mClasses) ? MV_CONTEXT.mClasses.length : 0;
+          if (0 == $("#map_query").val().length)
+            { $("#map_query").val("SELECT FROM " + (__lL > 1 ? MV_CONTEXT.mClasses[1]['afy:classID'] : "*")); lDoRefresh(true); }
+          else
+            lDoDraw(); // In case classes changed...
+        });
+    });
+  $("#tab-map").bind("deactivate_tab", function() { lManageWindowEvents(false); });
 
   // Initialize the canvas's dimensions (critical for rendering quality).
   $("#map_area").attr("width", $("#map_area").width());
@@ -1762,16 +2055,23 @@ function Histogram()
   $("#histo_area").mouseup(function() { lPanZoom.onMouseUp(); });
   $("#histo_area").mouseout(function() { lPanZoom.onMouseUp(); });
   $("#histo_area").mouseleave(function() { lPanZoom.onMouseUp(); });
-  window.addEventListener('mousewheel', function(e) { lPanZoom.onWheel(e); lDoDraw(); return true; }, true);
-  window.addEventListener('DOMMouseScroll', function(e) { lPanZoom.onWheel(e); lDoDraw(); return true; }, true);
-  window.addEventListener('keydown', function(e) { lPanZoom.onKeyDown(e); }, true);
-  window.addEventListener('keyup', function(e) { lPanZoom.onKeyUp(e); }, true);
+  var lOnWheel = function(e) { lPanZoom.onWheel(e); lDoDraw(); return false; }
+  var lManageWindowEvents =
+    function(_pOn)
+    {
+      var _lFunc = _pOn ? window.addEventListener : window.removeEventListener;
+      _lFunc('mousewheel', lOnWheel, true);
+      _lFunc('DOMMouseScroll', lOnWheel, true);
+      _lFunc('keydown', lPanZoom.onKeyDown, true);
+      _lFunc('keyup', lPanZoom.onKeyUp, true);
+    }
 
   // Other interactions.
   $("#histo_class").click(function() { lQClass = $("#histo_class option:selected").val(); lDoUpdateProperties(); });
   $("#histo_property").click(function() { lQProp = $("#histo_property option:selected").val(); lDoUpdateQuery(); });
   $("#histo_go").click(function() { lDoRefresh(); return false; });
-  $("#tab-histogram").bind("activate_tab", function() { populate_classes(function() { lDoUpdateClasses(); lDoDraw(); }); });
+  $("#tab-histogram").bind("activate_tab", function() { lManageWindowEvents(true); populate_classes(function() { lDoUpdateClasses(); lDoDraw(); }); });
+  $("#tab-histogram").bind("deactivate_tab", function() { lManageWindowEvents(false); });
 
   // Initialize the canvas's dimensions (critical for rendering quality).
   $("#histo_area").attr("width", $("#histo_area").width());
@@ -1822,6 +2122,10 @@ $(document).ready(
       if (undefined != lLastStorePw)
         $("#storepw").val(lLastStorePw);
     }
+    // Setup hard-coded prefixes.
+    var lAfy = 'http://www.affinitydb.org/builtin';
+    MV_CONTEXT.mDef2QnPrefix[lAfy] = 'afy';
+    MV_CONTEXT.mQnPrefix2Def['afy'] = lAfy;
     // Setup the tutorial.
     new Tutorial();
     // Setup the graph/map.
@@ -1868,13 +2172,13 @@ $(document).ready(
         $("#result_pin").empty(); 
       var lCurClassName = $("#classes option:selected").val();
       var lQueryStr = mv_sanitize_semicolon($("#query").val());
-      MV_CONTEXT.mLastQueriedClassName = (lQueryStr.indexOf(mv_without_qname(lCurClassName)) >= 0) ? lCurClassName : null;
+      var lClassName = (lQueryStr.indexOf(mv_without_qname(lCurClassName)) >= 0) ? lCurClassName : null;
       if ($("#querytype option:selected").val() == "query" && null == lQueryStr.match(/select\s*count/i))
       {
         if (null != MV_CONTEXT.mLastQResult)
           { MV_CONTEXT.mLastQResult.mAborted = true; }
         lResultList.empty();
-        MV_CONTEXT.mLastQResult = new QResultTable(lResultList, MV_CONTEXT.mLastQueriedClassName);
+        MV_CONTEXT.mLastQResult = new QResultTable(lResultList, lClassName);
         MV_CONTEXT.mLastQResult.populate(lQueryStr);
         MV_CONTEXT.mQueryHistory.recordQuery(lQueryStr);
       }
@@ -1939,15 +2243,15 @@ function mv_with_qname(pRawName)
   var lSuffix = pRawName.substr(lLastSlash + 1);
   if (lSuffix.indexOf(":") > 0)
     lSuffix = "\"" + lSuffix + "\"";
-  if (lPrefix in MV_CONTEXT.mPrefix2QName)
-    { return MV_CONTEXT.mPrefix2QName[lPrefix] + ":" + lSuffix; }
+  if (lPrefix in MV_CONTEXT.mDef2QnPrefix)
+    { return MV_CONTEXT.mDef2QnPrefix[lPrefix] + ":" + lSuffix; }
   else
   {
     var lNumQNames = 0;
-    for (iQN in MV_CONTEXT.mPrefix2QName) { if (MV_CONTEXT.mPrefix2QName.hasOwnProperty(iQN)) lNumQNames++; }
+    for (iQN in MV_CONTEXT.mDef2QnPrefix) { if (MV_CONTEXT.mDef2QnPrefix.hasOwnProperty(iQN)) lNumQNames++; }
     var lNewQName = "qn" + lNumQNames;
-    MV_CONTEXT.mPrefix2QName[lPrefix] = lNewQName;
-    MV_CONTEXT.mQName2Prefix[lNewQName] = lPrefix;
+    MV_CONTEXT.mDef2QnPrefix[lPrefix] = lNewQName;
+    MV_CONTEXT.mQnPrefix2Def[lNewQName] = lPrefix;
     MV_CONTEXT.mQNamesDirty = true;
     setTimeout(update_qnames_ui, 2000);
     return lNewQName + ":" + lSuffix;
@@ -1962,8 +2266,8 @@ function mv_without_qname(pRawName)
     { return pRawName; }
   var lQName = pRawName.substr(0, lColon);
   var lSuffix = pRawName.substr(lColon + 1);
-  if (lQName in MV_CONTEXT.mQName2Prefix)
-    { return MV_CONTEXT.mQName2Prefix[lQName] + "/" + lSuffix; }
+  if (lQName in MV_CONTEXT.mQnPrefix2Def)
+    { return MV_CONTEXT.mQnPrefix2Def[lQName] + "/" + lSuffix; }
   return pRawName;
 }
 function mv_with_qname_prefixes(pQueryStr)
@@ -1986,8 +2290,8 @@ function mv_with_qname_prefixes(pQueryStr)
         continue;
       if (!isNaN(Number(lPrefix)))
         continue;
-      if (lPrefix in MV_CONTEXT.mQName2Prefix)
-        lToDefine[lPrefix] = MV_CONTEXT.mQName2Prefix[lPrefix];
+      if (lPrefix in MV_CONTEXT.mQnPrefix2Def)
+        lToDefine[lPrefix] = MV_CONTEXT.mQnPrefix2Def[lPrefix];
       else
         myLog("Unknown prefix: " + lPrefix); // Note: Could happen if for example a URI contains a colon - no big deal.
     }
@@ -2247,48 +2551,53 @@ function on_pin_click(pPID)
   $("#" + MV_CONTEXT.mSelectedPID).addClass("selected");
 
   // Update the selected PIN's information section.
-  var lPinArea = $("#result_pin");
-  lPinArea.empty();
-  lPinClasses = $("<p>PIN @" + trimPID(pPID) + " IS A </p>").appendTo(lPinArea);
-  var lCheckClasses = function(_pNumC)
-  {
-    var _mNumCTotal = _pNumC;
-    var _mNumCTested = 0;
-    var _mNumCValidated = 0;
-    var _mOnSuccess = function(__pJson, __pClass) { _mNumCTested += 1; if (parseInt(__pJson) > 0) { lPinClasses.append(" " + mv_with_qname(__pClass)); _mNumCValidated += 1; } if (_mNumCTested >= _mNumCTotal && 0 == _mNumCValidated) { lPinClasses.append("unclassified pin"); } };
-    this.next =
-      function(__pClass)
-      {        
-        var __lOnCount = new QResultHandler(_mOnSuccess, null, __pClass);
-        mv_query("SELECT * FROM " + mv_sanitize_classname(__pClass) + " WHERE afy:pinID=@" + pPID + ";", __lOnCount, {countonly:true, keepalive:false});
+  get_pin_info(
+    pPID,
+    function(_pInfo)
+    {
+      var lPinArea = $("#result_pin");
+      lPinArea.empty();
+
+      // Class info.
+      if (0 == _pInfo.classes.length)
+        _pInfo.classes.push("unclassified pin");
+      lPinClasses = $("<p>PIN @" + _pInfo.pid + " IS A " + _pInfo.classes.join(",") + "</p>").appendTo(lPinArea);
+
+      // Data info.
+      var lRefs = new Object();
+      var lTxt = $("<p />");
+      for (iProp in _pInfo.data)
+      {
+        if (iProp == "id" || iProp == "afy:pinID") continue;
+        lTxt.append($("<span class='mvpropname'>" + iProp + "</span>"));
+        lTxt.append($("<span>:" + QResultTable.createValueUI(_pInfo.data[iProp], lRefs, pPID + "refdet") + "  </span>"));
       }
-  }
-  if (undefined != MV_CONTEXT.mClasses)
-  {
-    var lChk = new lCheckClasses(MV_CONTEXT.mClasses.length);
-    for (var iC = 0; null != MV_CONTEXT.mClasses && iC < MV_CONTEXT.mClasses.length; iC++)
+      lPinArea.append(lTxt);
+      for (iRef in lRefs)
+        { $("#" + iRef).click(function(){on_pin_click($(this).text().replace(/^@/, "")); return false;}); }
+    });
+}
+
+function get_pin_info(pPID, pCallback)
+{
+  var lInfo = {pid:trimPID(pPID), classes:[], data:{}};
+  var lClassesToCheck = [];
+  for (var iC = 0; undefined != MV_CONTEXT.mClasses && iC < MV_CONTEXT.mClasses.length; iC++)
+    lClassesToCheck.push(mv_without_qname(MV_CONTEXT.mClasses[iC]["afy:classID"]));
+  var lGetData =
+    function()
     {
-      var lClass = mv_without_qname(MV_CONTEXT.mClasses[iC]["afy:classID"]);
-      lChk.next(lClass);
+      var _lOnData = function(__pJson) { lInfo.data = (undefined != __pJson && __pJson.length > 0) ? __pJson[0] : null; pCallback(lInfo); }
+      mv_query("SELECT * FROM @" + pPID + ";", new QResultHandler(_lOnData, null, null), {keepalive:false});
     }
-  }
-  else
-    lPinClasses.append("unclassified pin");
-  var lOnDataSuccess = function(_pJson) {
-    var lRefs = new Object();
-    var lTxt = $("<p />");
-    for (iProp in _pJson[0])
+  var lGetClasses =
+    function()
     {
-      if (iProp == "id") continue;
-      lTxt.append($("<span class='mvpropname'>" + iProp + "</span>"));
-      lTxt.append($("<span>:" + QResultTable.createValueUI(_pJson[0][iProp], lRefs, pPID + "refdet") + "  </span>"));
+      var _lOnSuccess = function(__pJson, __pClass) { if (parseInt(__pJson) > 0) { lInfo.classes.push(mv_with_qname(__pClass)); } if (lClassesToCheck.length > 0) lGetClasses(); else lGetData(); }
+      var _lClass = lClassesToCheck.pop();
+      mv_query("SELECT * FROM " + mv_sanitize_classname(_lClass) + " WHERE afy:pinID=@" + pPID + ";", new QResultHandler(_lOnSuccess, null, _lClass), {countonly:true, keepalive:false});
     }
-    lPinArea.append(lTxt);
-    for (iRef in lRefs)
-      { $("#" + iRef).click(function(){on_pin_click($(this).text().replace(/^@/, "")); return false;}); }
-  }
-  var lOnData = new QResultHandler(lOnDataSuccess, null, null);
-  mv_query("SELECT * WHERE afy:pinID=@" + pPID + ";", lOnData, {keepalive:false});
+  lGetClasses();
 }
 
 function update_qnames_ui()
@@ -2297,8 +2606,8 @@ function update_qnames_ui()
     { return; }
   var lQNames = $("#qnames");
   lQNames.empty();
-  for (iP in MV_CONTEXT.mPrefix2QName)
-    { lQNames.append("<option>" + MV_CONTEXT.mPrefix2QName[iP] + "=" + iP + "</option>"); }
+  for (iP in MV_CONTEXT.mDef2QnPrefix)
+    { lQNames.append("<option>" + MV_CONTEXT.mDef2QnPrefix[iP] + "=" + iP + "</option>"); }
   MV_CONTEXT.mQNamesDirty = false;
 }
 
