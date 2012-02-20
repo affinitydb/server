@@ -1,12 +1,12 @@
 /* -*- Mode: C; c-file-style: "stroustrup"; indent-tabs-mode:nil; -*- */
 
-#include "mvclient.h"
+#include "afyclient.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "portability.h"
-#include "mvdaemon.h"
-#include "mvhttp.h"
+#include "afydaemon.h"
+#include "afyhttp.h"
 
 #define BUF_SIZE 16384
 
@@ -29,19 +29,19 @@
 #define CMD_LIMIT "limit "
 #define CMD_LIMIT_LEN strlen( CMD_LIMIT )
 
-int cmd_send( mvc_t* db, const void* buf, size_t buf_len ) {
-    size_t res = mvc_write( db, (char*)buf, buf_len );
-    if ( res < buf_len ) { mvc_disconnect( db ); return 0; }
-    return mvc_done( db );
+int cmd_send( afyc_t* db, const void* buf, size_t buf_len ) {
+    size_t res = afyc_write( db, (char*)buf, buf_len );
+    if ( res < buf_len ) { afyc_disconnect( db ); return 0; }
+    return afyc_done( db );
 }
 
-int cmd_recv( mvc_t* db, FILE* f ) {
+int cmd_recv( afyc_t* db, FILE* f ) {
     int len = 1, olen = 0;
     char buf[BUF_SIZE+1];
 
     buf[0] = '\0';
     while ( len > 0 ) {	/* read to EOF == end of query response */
-	len = mvc_read( db, buf, BUF_SIZE );
+	len = afyc_read( db, buf, BUF_SIZE );
 	if ( len > 0 ) {
 	    buf[len] = '\0';	/* fputs works on 0 terminated strings */
 	    fputs( buf, f );
@@ -72,7 +72,7 @@ size_t chomp( char* cmd ) {
 
 void print_help( void ) {
     fprintf( stderr, 
-             "mvctest [options]\n\n"
+             "afyctest [options]\n\n"
              "-h\t\t\thelp\n"
              "-s <server>\t\tserver name (default localhost)\n"
              "-p <port>\t\tport (defaults to 4560)\n"
@@ -91,7 +91,7 @@ int main( int argc, char* argv[] ) {
     size_t cmd_len = 0, cmp_len = 0, offset = 0, limit = 0;
     char cmd_dat[MAX_CMD+1], *cmd = cmd_dat, *endp = NULL;
     char *host = "localhost", *end=NULL, *enc = NULL, *query = NULL;
-    mvc_t user, admin, *db = &user;
+    afyc_t user, admin, *db = &user;
     query_t type = QUERY;
 
     while ( (opt=getopt(argc, argv, "chs:t:p:q:vV" )) > 0 ) {
@@ -104,7 +104,7 @@ int main( int argc, char* argv[] ) {
         case 'q': query = optarg; break;
         case 'v': verbose = 1; break;
         case 'V': 
-            fprintf( stderr, "Version: %1.2f\n", MVD_VERS ); 
+            fprintf( stderr, "Version: %1.2f\n", AFYD_VERS ); 
             exit( EXIT_FAILURE );
             break;
         }
@@ -115,14 +115,14 @@ int main( int argc, char* argv[] ) {
         close_flag = 0;         /* cant do close GET */
     }
 
-    res = mvc_connect( &user, host, port, "test", "default", "user", "pass" );
-    if ( res == MVC_CONNECTION_FAIL ) {
+    res = afyc_connect( &user, host, port, "test", "default", "user", "pass" );
+    if ( res == AFYC_CONNECTION_FAIL ) {
         fprintf( stderr, "error: failed to connect to server %s port %d\n",
                  user.host, user.port ); 
     }
 
-    res = mvc_connect( &admin, host, port, "admin", "none", "user", "pass" );
-    if ( res == MVC_CONNECTION_FAIL ) {
+    res = afyc_connect( &admin, host, port, "admin", "none", "user", "pass" );
+    if ( res == AFYC_CONNECTION_FAIL ) {
         fprintf( stderr, "error: failed to connect to server %s port %d\n",
                  admin.host, admin.port ); 
     }
@@ -163,9 +163,9 @@ int main( int argc, char* argv[] ) {
                 type = DISPLAY; prefix = CMD_DISPLAY_LEN;
             } else if ( strncasecmp( cmd, CMD_RECONNECT, cmp_len ) == 0 ) { 
                 cmd_len = 0;
-                res = mvc_reconnect( db );
+                res = afyc_reconnect( db );
                 if ( res < 0 ) {
-                    if ( res == MVC_CONNECTION_FAIL ) {
+                    if ( res == AFYC_CONNECTION_FAIL ) {
                         fprintf( stderr, "error: failed to connect to "
                                  "server %s port %d\n", db->host, db->port ); 
                     } else {
@@ -194,34 +194,34 @@ int main( int argc, char* argv[] ) {
         }
         if ( cmd_len > 0 ) {
             if ( type == CREATE ) {
-                res = mvc_create( &admin, "default" );
-                mvc_disconnect( &user );
+                res = afyc_create( &admin, "default" );
+                afyc_disconnect( &user );
             } else if ( type == DROP ) {
-                res = mvc_drop( &admin, "default" );
-                mvc_disconnect( &user );
+                res = afyc_drop( &admin, "default" );
+                afyc_disconnect( &user );
             } else {
-                res = mvc_sql( db, close_flag ? NULL : cmd + prefix, enc, 
+                res = afyc_sql( db, close_flag ? NULL : cmd + prefix, enc, 
                                JSON, type, offset, limit );
             }
             if ( res < 0 ) {
                 switch ( res ) {
-                case MVC_SQL_ERROR:
+                case AFYC_SQL_ERROR:
                     fputs( cmd, stderr );
                     fputc( '\n', stderr );
                     cmd_recv( db, stderr );
                     break;
-                case MVC_CONNECTION_FAIL:
+                case AFYC_CONNECTION_FAIL:
                     fprintf( stderr, "lost connection to server\n" );
                     break;
-                case MVC_UNSUPPORTED:
+                case AFYC_UNSUPPORTED:
                     fprintf( stderr, "unsupported request type\n" );
                     break;
-                case MVC_ERROR:
-                    fprintf( stderr, "mvclient internal error\n" );
+                case AFYC_ERROR:
+                    fprintf( stderr, "afyclient internal error\n" );
                     break;
                 }
             } else {
-                if ( res == MVC_CONTINUE ) {
+                if ( res == AFYC_CONTINUE ) {
                     if ( !cmd_send( db, cmd, strlen(cmd) ) ) {
                         fprintf( stderr, "lost connection to server\n" );
                         continue;
@@ -233,7 +233,7 @@ int main( int argc, char* argv[] ) {
             }
         }
     } while ( !query );
-    mvc_disconnect( &user );
-    mvc_disconnect( &admin );
+    afyc_disconnect( &user );
+    afyc_disconnect( &admin );
     exit( res > 0 ? EXIT_SUCCESS : EXIT_FAILURE );
 }

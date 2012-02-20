@@ -13,22 +13,22 @@
 #include "socket.h"
 #include "storecmd.h"
 #include "http.h"
-#include "mvhttp.h"
-#include "mvdaemon.h"
+#include "afyhttp.h"
+#include "afydaemon.h"
 #include "intr.h"
 
-/* MVSTORED: an embedded server - simple, threading so allowing
+/* AFFINITYD: an embedded server - simple, threading so allowing
    blocking, CPU and IO intensive DB calls, also includes a static web
    server and basic mime support */
 
-int mvd_verbose = 0;
+int afyd_verbose = 0;
 int www_service = 0;
 
-#define MVD_SERVER "mvstored"
-#define MVD_ENGINE "mvengine"
+#define AFYD_SERVER "affinityd"
+#define AFYD_ENGINE "afyengine"
 
-#define MVD_NAME_MAX 100
-char MVD_NAME[MVD_NAME_MAX] = MVD_SERVER;
+#define AFYD_NAME_MAX 100
+char AFYD_NAME[AFYD_NAME_MAX] = AFYD_SERVER;
 
 #define BUF_SIZE 16384
 
@@ -63,13 +63,13 @@ ssize_t http_resp( int sock, int code, const char* desc, const char* header,
 		     "%s"       /* extra headers */
                      "%s%s%s"   /* optional Content-length: %d \r\n */
                      CRLF,
-                     code, desc, MVD_NAME, MVD_VERS, 
+                     code, desc, AFYD_NAME, AFYD_VERS, 
 		     header ? header : "", explain ? LENGTH : "", 
                      explain ? conlen : "", explain ? CRLF : "" );
     if ( code >= 300 ) {		/* only log on error codes */
 	LOG_LINE( kLogError, explain );
     }
-    if ( mvd_verbose ) {
+    if ( afyd_verbose ) {
         LOG_LINE( kLogInfo, "response headers: %s", err );
     }
     r = sock_write( sock, err, elen );
@@ -78,7 +78,7 @@ ssize_t http_resp( int sock, int code, const char* desc, const char* header,
         if ( rt > 0 ) {
             r += rt;
         }
-        if ( mvd_verbose > 1 ) {
+        if ( afyd_verbose > 1 ) {
             LOG_LINE( kLogInfo, "response body (len = %d): %s", expl_len, explain );
         }
     }
@@ -191,7 +191,7 @@ ssize_t sock_web( int sock, const char* path ) {
                      TYPE "%s" CRLF
                      LENGTH "%ld" CRLF, mime, (long int)flen );
     http_resp( sock, HTTP_OK, HTTP_OK_DESC, exp, NULL, 0 );
-    res = mv_sendfile( sock, fd, NULL, flen );
+    res = afy_sendfile( sock, fd, NULL, flen );
     close( fd );
     if ( res < flen ) { return 0; }
     return res;
@@ -383,7 +383,7 @@ int parse_params( char* str, cgi_params_t* cgi, query_params_t* params,
     return n;
 }
 
-ssize_t mvs_read( mvs_stream_t* ctx, void* in, size_t in_len ) {
+ssize_t afy_read( afy_stream_t* ctx, void* in, size_t in_len ) {
     if ( !ctx || !in ) { return -2; }   /* internal error */
     if ( ctx->clen == 0 ) { return -1; } /* eof */
     if ( ctx->clen >= 0 ) { in_len = MIN( in_len, (size_t)ctx->clen ); }
@@ -400,15 +400,15 @@ ssize_t mvs_read( mvs_stream_t* ctx, void* in, size_t in_len ) {
     return recv( ctx->sock, in, in_len, 0 );
 }
 
-ssize_t mvs_write( mvs_stream_t* ctx, const void* out, size_t out_len ) {
+ssize_t afy_write( afy_stream_t* ctx, const void* out, size_t out_len ) {
     return sock_write( ctx->sock, out, out_len );
 }
 
 const char* alias[] = {
     "",
-    MVD_QUERY_ALIAS,
-    MVD_CREATE_ALIAS,
-    MVD_DROP_ALIAS
+    AFYD_QUERY_ALIAS,
+    AFYD_CREATE_ALIAS,
+    AFYD_DROP_ALIAS
 };
 
 #define CGI_STATIC 0
@@ -417,11 +417,11 @@ const char* alias[] = {
 #define CGI_DROP 3
 
 int match_cgi( const char* sep, const char* path ) {
-    if ( match_alias( MVD_QUERY_ALIAS, sep, path ) ) {
+    if ( match_alias( AFYD_QUERY_ALIAS, sep, path ) ) {
         return CGI_QUERY;
-    } else if ( match_alias( MVD_CREATE_ALIAS, sep, path ) ) {
+    } else if ( match_alias( AFYD_CREATE_ALIAS, sep, path ) ) {
         return CGI_CREATE;
-    } else if ( match_alias( MVD_DROP_ALIAS, sep, path ) ) {
+    } else if ( match_alias( AFYD_DROP_ALIAS, sep, path ) ) {
         return CGI_DROP;
     } else {
         return CGI_STATIC;
@@ -576,16 +576,16 @@ int thread_delete( pthread_t th ) {
 
 int sock_cgi( int sock, int method, int action, char* path, char* body, 
               int blen, int bsz, int clen, void* storemgr, int auto_create,
-              mvs_connection_ctx_t** cctxp, char* req, 
+              afy_connection_ctx_t** cctxp, char* req, 
               const char* user, const char* pass ) {
     char *query = NULL, *frag = NULL, *buf = NULL;
     char exp[BUF_SIZE+1];
     int elen = 0, isclose = 0, alloc = 0;
-    mvs_stream_t ctx;
+    afy_stream_t ctx;
     cgi_params_t cgi;
     query_params_t qparams;
     page_params_t page;
-#ifdef MVSTORE_LINK
+#ifdef AFFINITY_LINK
     int rc;
     ssize_t rd;
     char* res = NULL;
@@ -614,15 +614,15 @@ int sock_cgi( int sock, int method, int action, char* path, char* body,
  
     if ( action == CGI_DROP ) {
         if ( external_db ) { // REVIEW: With multi-store this has become a way too coarse test; but mvengine is a secondary matter at the moment.
-            http_resp( sock, HTTP_INT, "can not DROP mvengine store",
+            http_resp( sock, HTTP_INT, "can not DROP afyengine store",
                        TYPE MIME_HTML CRLF, 
                        "can not DROP mveninge managed store", 0 );
             return 0;
         }
         pthread_mutex_lock( &main_mutex );
         #if 1
-            if ( *cctxp ) { mvs_term_connection( *cctxp ); *cctxp = NULL; }
-            rc = 0 == mvs_drop_store( storemgr, user, pass );
+            if ( *cctxp ) { afy_term_connection( *cctxp ); *cctxp = NULL; }
+            rc = 0 == afy_drop_store( storemgr, user, pass );
         #else
             // NOTE (maxw): With multi-store this drastic approach is no longer applicable...
             // REVIEW (maxw): If drop is called say at startup, after unclean shutdown, this code doesn't delete the logs...
@@ -630,14 +630,14 @@ int sock_cgi( int sock, int method, int action, char* path, char* body,
                 /* not at all safe... */
                 /* thread_cancelall( thread_main ); */
             }
-            mvs_close( sess );
-            mvs_term( main_db );
+            afy_close( sess );
+            afy_term( main_db );
             main_db = NULL;
-            elen = MIN( strlen(storedir), BUF_SIZE - 1 - strlen("mv.store")-1 );
+            elen = MIN( strlen(storedir), BUF_SIZE - 1 - strlen("affinity.db")-1 );
             strncpy( exp, storedir, elen+1 );
             if ( elen > 0 && exp[elen-1] != '/' ) { exp[elen++] = '/'; }
-            strcpy( exp+elen, "mv.store" );
-            if ( mvd_verbose ) { 
+            strcpy( exp+elen, "affinity.db" );
+            if ( afyd_verbose ) { 
                 LOG_LINE( kLogInfo, "dropping store \"%s\"", exp );
             }
             rc = unlink( exp ) == 0;
@@ -653,13 +653,13 @@ int sock_cgi( int sock, int method, int action, char* path, char* body,
     /* if the client switches stores within a single connection, deal with it */
     /* REVIEW: we could also decide to not allow this */
     if ( *cctxp != NULL && user != NULL && 0 != strcmp( user, ( *cctxp )->storeident ) ) {
-        mvs_term_connection( *cctxp );
+        afy_term_connection( *cctxp );
         *cctxp = NULL;
     }
 
     /* auto-open if no previous requests opened */
     if ( *cctxp == NULL ) {
-        *cctxp = mvs_init_connection( storemgr, user, pass );
+        *cctxp = afy_init_connection( storemgr, user, pass );
     }
     if ( *cctxp == NULL ) {
         LOG_LINE( kLogWarning, "db request, but db not AVAILABLE" );
@@ -684,10 +684,10 @@ int sock_cgi( int sock, int method, int action, char* path, char* body,
             if ( cgi.type && 
                  ( strcmp( cgi.type, "class" ) == 0 || 
                    strcmp( cgi.type, "pin" ) == 0 ) ) {
-                rc = mvs_regNotif( *cctxp, cgi.type, 
+                rc = afy_regNotif( *cctxp, cgi.type, 
                                    cgi.notifparam, cgi.clientid, &res );
                 http_resp( sock, rc ? HTTP_OK : HTTP_INT, 
-                           rc ? HTTP_OK_DESC : "mvstore error", 
+                           rc ? HTTP_OK_DESC : "affinity error", 
                            TYPE MIME_HTML CRLF, res, 0 );
                 return 1;
             }
@@ -699,18 +699,18 @@ int sock_cgi( int sock, int method, int action, char* path, char* body,
             return 1;
         }
         if ( strcmp( cgi.input, "unregnotif" ) == 0 ) {
-            rc = mvs_unregNotif( *cctxp, 
+            rc = afy_unregNotif( *cctxp, 
                                  cgi.notifparam, cgi.clientid, &res );
             http_resp( sock, rc ? HTTP_OK : HTTP_INT, 
-                       rc ? HTTP_OK_DESC : "mvstore error", 
+                       rc ? HTTP_OK_DESC : "affinity error", 
                        TYPE MIME_HTML CRLF, res, 0 );
             return 1;
         }
         if ( strcmp( cgi.input, "waitnotif" ) == 0 ) {
-            rc = mvs_waitNotif( *cctxp, cgi.notifparam, 
+            rc = afy_waitNotif( *cctxp, cgi.notifparam, 
                                 cgi.clientid, cgi.timeout, &res );
             http_resp( sock, rc ? HTTP_OK : HTTP_INT, 
-                       rc ? HTTP_OK_DESC : "mvstore error", 
+                       rc ? HTTP_OK_DESC : "affinity error", 
                        TYPE MIME_HTML CRLF, res, 0 );
             return 1;
         }
@@ -728,20 +728,20 @@ int sock_cgi( int sock, int method, int action, char* path, char* body,
 
         if ( strcmp( cgi.output, "json" ) == 0 ) {
             if ( cgi.type && strcmp( cgi.type, "count" ) == 0 ) {
-                rc = mvs_sql2count( *cctxp, cgi.query, &res, NULL,
+                rc = afy_sql2count( *cctxp, cgi.query, &res, NULL,
                                     qparams.params, qparams.n, &count );
                 if ( rc ) { sprintf( numstr, "%llu", count ); }
             } else if ( cgi.type && strcmp( cgi.type, "plan" ) == 0 ) {
-                rc = mvs_sql2plan( *cctxp, cgi.query, &res,
+                rc = afy_sql2plan( *cctxp, cgi.query, &res,
                                    qparams.params, qparams.n );
             } else if ( cgi.type && strcmp( cgi.type, "display" ) == 0 ) {
-                rc = mvs_sql2display( *cctxp, cgi.query, &res );
+                rc = afy_sql2display( *cctxp, cgi.query, &res );
             } else if ( cgi.type && strcmp( cgi.type, "expression" ) == 0 ) {
-                rc = mvs_expr2json( *cctxp, cgi.query, &res, NULL,
+                rc = afy_expr2json( *cctxp, cgi.query, &res, NULL,
                                     qparams.params, qparams.n, &val );
-                if ( val ) { res = (char*)mvs_val2str( val ); }
+                if ( val ) { res = (char*)afy_val2str( val ); }
             } else if ( !cgi.type || strcmp( cgi.type, "query" ) == 0 ) {
-                rc = mvs_sql2json( *cctxp, cgi.query, &res, NULL, 
+                rc = afy_sql2json( *cctxp, cgi.query, &res, NULL, 
                                    qparams.params, qparams.n,
                                    page.off, page.lim );
             } else {
@@ -754,12 +754,12 @@ int sock_cgi( int sock, int method, int action, char* path, char* body,
             }
             query_free( &qparams );
             http_resp( sock, rc ? HTTP_OK : HTTP_INT, 
-                       rc ? HTTP_OK_DESC : "mvstore error", 
+                       rc ? HTTP_OK_DESC : "affinity error", 
                        rc && ( !cgi.type || strcmp( cgi.type, "query" )==0 ) ? 
                        TYPE MIME_JSON CRLF : TYPE MIME_HTML CRLF,
                        numstr[0] ? numstr : (res?res:""), 0 );
-            if ( res && !val ) { mvs_free( *cctxp, res ); }
-            if ( val ) { mvs_freev( *cctxp, val ); }
+            if ( res && !val ) { afy_free( *cctxp, res ); }
+            if ( val ) { afy_freev( *cctxp, val ); }
             return 1;
         } else if ( strcmp( cgi.output, "proto" ) == 0 ) {
             ctx.sock = sock;
@@ -768,8 +768,8 @@ int sock_cgi( int sock, int method, int action, char* path, char* body,
                        CONNECTION CLOSE CRLF
                        TYPE MIME_PROTO CRLF, NULL );
 #endif
-            rd = mvs_sql2raw( *cctxp, cgi.query, &res, &ctx, 
-                              &mvs_write, qparams.params, qparams.n, 
+            rd = afy_sql2raw( *cctxp, cgi.query, &res, &ctx, 
+                              &afy_write, qparams.params, qparams.n, 
                               page.off, page.lim );
             query_free( &qparams );
 #ifndef STREAM_CLOSE
@@ -782,7 +782,7 @@ int sock_cgi( int sock, int method, int action, char* path, char* body,
                            TYPE MIME_PROTO CRLF,
                            res ? res : "", rd );
             }
-            mvs_free( *cctxp, res );
+            afy_free( *cctxp, res );
             return 1;
 #else
             return 0;
@@ -848,7 +848,7 @@ int sock_cgi( int sock, int method, int action, char* path, char* body,
                 }
 	    }
             body[clen] = '\0';
-            if ( mvd_verbose > 1 ) {
+            if ( afyd_verbose > 1 ) {
                 LOG_LINE( kLogInfo, "request post: %s", body );
             }
 	    parse_params( body, &cgi, &qparams, &page );
@@ -863,20 +863,20 @@ int sock_cgi( int sock, int method, int action, char* path, char* body,
             if ( strcmp( cgi.output, "json" ) == 0 || 
                  (cgi.type && strcmp( cgi.type, "query" ) != 0) ) {
                 if ( cgi.type && strcmp( cgi.type, "count" ) == 0 ) {
-                    rc = mvs_sql2count( *cctxp, cgi.query, &res,NULL,
+                    rc = afy_sql2count( *cctxp, cgi.query, &res,NULL,
                                         qparams.params, qparams.n, &count );
                     if ( rc ) { sprintf( numstr, "%llu", count ); }
                 } else if ( cgi.type && strcmp( cgi.type, "plan" ) == 0 ) {
-                    rc = mvs_sql2plan( *cctxp, cgi.query, &res,
+                    rc = afy_sql2plan( *cctxp, cgi.query, &res,
                                        qparams.params, qparams.n );
                 } else if ( cgi.type && strcmp( cgi.type, "display" ) == 0 ) {
-                    rc = mvs_sql2display( *cctxp, cgi.query, &res );
+                    rc = afy_sql2display( *cctxp, cgi.query, &res );
                 } else if ( cgi.type && strcmp( cgi.type, "expression" )==0 ) {
-                    rc = mvs_expr2json( *cctxp, cgi.query, &res, NULL,
+                    rc = afy_expr2json( *cctxp, cgi.query, &res, NULL,
                                         qparams.params, qparams.n, &val );
-                    if ( val ) { res = (char*)mvs_val2str( val ); }
+                    if ( val ) { res = (char*)afy_val2str( val ); }
                 } else if ( !cgi.type || strcmp( cgi.type, "query" ) == 0 ) {
-                    rc = mvs_sql2json( *cctxp, cgi.query, &res,NULL, 
+                    rc = afy_sql2json( *cctxp, cgi.query, &res,NULL, 
                                        qparams.params, qparams.n,
                                        page.off, page.lim );
                 } else {
@@ -889,7 +889,7 @@ int sock_cgi( int sock, int method, int action, char* path, char* body,
                 }
                 query_free( &qparams );
                 ret = http_resp( sock, rc ? HTTP_OK : HTTP_INT, 
-                                 rc ? HTTP_OK_DESC : "mvstore error", 
+                                 rc ? HTTP_OK_DESC : "affinity error", 
                                  rc && 
                                  ( !cgi.type||strcmp(cgi.type,"query")==0 ) ?
                                  TYPE MIME_JSON CRLF : TYPE MIME_HTML CRLF,
@@ -901,8 +901,8 @@ int sock_cgi( int sock, int method, int action, char* path, char* body,
                                       strlen( numstr[0] ? numstr : 
                                               (res?res:"") ) );
                 }
-                if ( res && !val ) { mvs_free( *cctxp, res ); }
-                if ( val ) { mvs_freev( *cctxp, val ); }
+                if ( res && !val ) { afy_free( *cctxp, res ); }
+                if ( val ) { afy_freev( *cctxp, val ); }
                 if ( alloc ) { free( body ); }
                 return isclose ? 0 : ret;
             } else if ( strcmp( cgi.output, "proto" ) == 0 ) {
@@ -912,8 +912,8 @@ int sock_cgi( int sock, int method, int action, char* path, char* body,
                            CONNECTION CLOSE CRLF
                            TYPE MIME_PROTO CRLF, NULL );
 #endif
-                rd = mvs_sql2raw( *cctxp, cgi.query, &res, &ctx, 
-                                  &mvs_write, qparams.params, qparams.n,
+                rd = afy_sql2raw( *cctxp, cgi.query, &res, &ctx, 
+                                  &afy_write, qparams.params, qparams.n,
                                   page.off, page.lim );
                 if ( alloc ) { free( body ); }
 #ifndef STREAM_CLOSE
@@ -926,7 +926,7 @@ int sock_cgi( int sock, int method, int action, char* path, char* body,
                                TYPE MIME_PROTO CRLF,
                                res ? res : "", rd );
                 }
-                mvs_free( *cctxp, res );
+                afy_free( *cctxp, res );
                 return 1;
 #else
                 return 0;
@@ -939,7 +939,7 @@ int sock_cgi( int sock, int method, int action, char* path, char* body,
                 ctx.len = blen;
                 ctx.clen = clen;
                 http_resp( sock, HTTP_OK, HTTP_OK_DESC, CONNECTION CLOSE CRLF, NULL, 0 );
-                mvs_raw2raw( *cctxp, &ctx, &mvs_read, &mvs_write );
+                afy_raw2raw( *cctxp, &ctx, &afy_read, &afy_write );
                 return 0;
             } else if ( strcmp( cgi.output, "json" ) == 0 ) {
                 /* unsupported */
@@ -1006,7 +1006,7 @@ int auth_extract( char* auth, char** user, char** pass ) {
     return 1;
 }
 
-ssize_t sock_server( int client, void* storemgr, int auto_create, mvs_connection_ctx_t** cctxp ) {
+ssize_t sock_server( int client, void* storemgr, int auto_create, afy_connection_ctx_t** cctxp ) {
     int res, rlen, elen, blen = 0, cmd, clen = -1, cgi = 0;
     char req[BUF_SIZE+1], exp[BUF_SIZE+1];
     char *body = NULL, *path = NULL, *space = NULL, *headers = NULL;
@@ -1092,7 +1092,7 @@ ssize_t sock_server( int client, void* storemgr, int auto_create, mvs_connection
         return res;
     } else {
         LOG_LINE( kLogReport, "db request: %s %s", req, path );
-        if ( mvd_verbose ) {
+        if ( afyd_verbose ) {
             LOG_LINE( kLogInfo, "request headers: %s", headers );
         }
 
@@ -1146,7 +1146,7 @@ ssize_t sock_server( int client, void* storemgr, int auto_create, mvs_connection
         }
 	
 #if 0
-        /* temporarily disable this until we have auth support in mvclient */
+        /* temporarily disable this until we have auth support in afyclient */
         /* auth is mandatory for CGI_CREATE & CGI_DROP */
 	if ( !auth && ( cgi == CGI_CREATE || cgi == CGI_DROP ) ) { 
 	    http_resp( client, HTTP_UNAUTH, HTTP_UNAUTH_DESC, 
@@ -1171,7 +1171,7 @@ ssize_t sock_server( int client, void* storemgr, int auto_create, mvs_connection
 
 void* thread_container( void* arg ) {
     thread_arg_t* tctx;
-    mvs_connection_ctx_t* cctx = NULL;
+    afy_connection_ctx_t* cctx = NULL;
     pthread_t me = pthread_self();
 
     if ( !arg ) { return NULL; }
@@ -1182,7 +1182,7 @@ void* thread_container( void* arg ) {
     while ( !intr && 
             sock_server( tctx->sock, tctx->storemgr, tctx->auto_create, &cctx ) );
     sock_close( tctx->sock );
-    if ( cctx ) { mvs_term_connection( cctx ); }
+    if ( cctx ) { afy_term_connection( cctx ); }
     free( arg );
 
     thread_delete( me );
@@ -1226,7 +1226,7 @@ const char* abs_dir( const char* dir, const char* curdir ) {
     return res;
 }
 
-int mvdaemon_stop( uint32_t usec ) {
+int afydaemon_stop( uint32_t usec ) {
     if ( !thread_killall( 0, usec ) ) {
         thread_cancelall( 0 );
         return 0;
@@ -1234,7 +1234,7 @@ int mvdaemon_stop( uint32_t usec ) {
     return 1;
 }
 
-int mvdaemon( void *ctx, const char* www, const char* store, 
+int afydaemon( void *ctx, const char* www, const char* store, 
               uint16_t port, int verbose, int auto_create ) {
     int list;
     int elen, res, www_alloc = 0;
@@ -1249,17 +1249,17 @@ int mvdaemon( void *ctx, const char* www, const char* store,
     loggingInit();
     external_db = ctx;
 
-    /* if called from mvengine, start with a different server string */
+    /* if called from afyengine, start with a different server string */
     if ( ctx ) {
-        dlen = MIN( strlen( MVD_ENGINE ), MVD_NAME_MAX );
-        strncpy( MVD_NAME, MVD_ENGINE, dlen );
-        MVD_NAME[dlen] = '\0';
+        dlen = MIN( strlen( AFYD_ENGINE ), AFYD_NAME_MAX );
+        strncpy( AFYD_NAME, AFYD_ENGINE, dlen );
+        AFYD_NAME[dlen] = '\0';
     }
 
     docroot[0] = '\0';
-    mvd_verbose = verbose;
+    afyd_verbose = verbose;
 
-    if ( port == 0 ) { port = MVD_PORT; }
+    if ( port == 0 ) { port = AFYD_PORT; }
     
     curdir = getcwd( exp, BUF_SIZE );
     if ( curdir == NULL ) {
@@ -1302,7 +1302,7 @@ int mvdaemon( void *ctx, const char* www, const char* store,
         }
         www_service = validate_dir( wwwdir, "docroot" );
 
-        if ( www_service ) {    /* in mvdaemon use abs path */
+        if ( www_service ) {    /* in afydaemon use abs path */
             if ( ctx ) {        /* as cannot chdir  */
                 docroot_len = MIN( strlen( wwwdir ), PATH_MAX );
                 strncpy( docroot, wwwdir, docroot_len+1 );
@@ -1312,7 +1312,7 @@ int mvdaemon( void *ctx, const char* www, const char* store,
                     docroot[docroot_len] = '\0';
                 }
                 LOG_LINE( kLogReport, "started with docroot \"%s\"", docroot );
-            } else {            /* in mvstored use relative path */
+            } else {            /* in affinityd use relative path */
                 res = chdir( wwwdir );
                 if ( res < 0 ) {
                     LOG_LINE( kLogWarning, "can't open docroot \"%s\"", wwwdir );
@@ -1356,7 +1356,7 @@ int mvdaemon( void *ctx, const char* www, const char* store,
     intr_hook( 0 );
     thread_init( THREAD_MAX );
     
-    storemgr = mvs_init( ctx );
+    storemgr = afy_init( ctx );
     
     while ( 1 ) {
         pthread_mutex_lock( &main_mutex ); /* barrier stop accepting */
@@ -1385,8 +1385,8 @@ int mvdaemon( void *ctx, const char* www, const char* store,
 	}
     }
     if ( storedir_alloc ) { free( (void*)storedir ); }
-#ifdef MVSTORE_LINK
-    mvs_term( storemgr );
+#ifdef AFFINITY_LINK
+    afy_term( storemgr );
 #endif
     intr_unhook();
     loggingTerm();
@@ -1394,10 +1394,10 @@ int mvdaemon( void *ctx, const char* www, const char* store,
 
 #ifdef DYNAMIC_LIBRARY
 void attr_init dl_init( void ) {
-    fprintf( stderr, "mvdaemon starting up...\n" );
+    fprintf( stderr, "afydaemon starting up...\n" );
 }
 
 void attr_fini dl_fini( void ) {
-    fprintf( stderr, "mvdaemon shutting down...\n" );
+    fprintf( stderr, "afydaemon shutting down...\n" );
 }
 #endif

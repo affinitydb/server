@@ -38,11 +38,11 @@ const char* ltime( void );
 #include <sys/socket.h>
 #if defined(__linux__)
     #include <sys/sendfile.h>
-    #define mv_sendfile sendfile
+    #define afy_sendfile sendfile
 #elif defined(Darwin)
     #include <netinet/tcp.h>
     #include <sys/uio.h>
-    ssize_t mv_sendfile( int sock, int fd, off_t* offset, size_t count );
+    ssize_t afy_sendfile( int sock, int fd, off_t* offset, size_t count );
 #endif
 #include <netinet/in.h>
 #include <netdb.h>
@@ -68,7 +68,7 @@ const char* ltime( void );
 /* lots of b0rken windows stuff */
 
 /* nb this ifndef can be removec with next store version, but for now */
-/* kernel/include/mvstore.h conflicts with stdint.h */
+/* kernel/include/affinity.h conflicts with stdint.h */
 #ifndef UINT64_DEFINED
 #include <stdint.h>		
 #endif
@@ -147,7 +147,7 @@ const char* ltime( void );
 #define pthread_mutex_lock( m ) WaitForSingleObject( *(m), INFINITE )
 #define pthread_mutex_unlock( m ) ReleaseMutex( *(m) )
     ssize_t sendfile( int sock, int fd, off_t* offset, size_t count );
-    #define mv_sendfile sendfile
+    #define afy_sendfile sendfile
     char *strsep(char **stringp, const char *delim);
     const char* s_strerror( int errn );
 

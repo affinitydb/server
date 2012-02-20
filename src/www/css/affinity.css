@@ -13,7 +13,7 @@ tr.selected { background-color:#a2a2a2; }
 .ctxmenu { border:none; padding:0; }
 .ctxmenuitem { width:100%; border:solid 1px #777; padding:0.2em; background-color:#eee; cursor:pointer; }
 .ctxmenu-highlighted-item { background-color:#f6f6f6; }
-.mvpropname { color:#555; }
+.afypropname { color:#555; }
 .tutorial_help { color:green; }
 .tutorial_stmt { color:black; }
 .tutorial_result { color:#555; }

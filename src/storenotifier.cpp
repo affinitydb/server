@@ -13,11 +13,11 @@
 #endif
 #include <errno.h>
 #include "startup.h"
-#include "mvstore.h"
+#include "affinity.h"
 #include "portability.h"
 #include "storenotifier.h"
 
-using namespace MVStore;
+using namespace AfyDB;
 
 #ifdef WIN32
 #define _LX_FM "%016I64X"
@@ -217,7 +217,7 @@ protected:
 protected:
     typedef std::map<uint64_t, std::string> TTxStacks;
     typedef std::set<PID> TPIDs;
-    TTxStacks mHitStacks; // To manage the transaction stack and notify only upon tx commit (n.b. this will be done by mvstore later on).
+    TTxStacks mHitStacks; // To manage the transaction stack and notify only upon tx commit (n.b. this will be done by Affinity later on).
     TPIDs mReasons; // What caused the notifications; always expressed in terms of PIDs. Note: Currently in case of nested rollbacks, this will be inaccurate, but not in a dangerous way, and I don't want to invest too much effort on this considering Mark's upcoming changes.
     Mutex mLock;
 public:
@@ -421,7 +421,7 @@ public:
     }
 };
 
-RC mvs_regNotifi( MainNotificationHandler& mainh, ISession& sess, char const* type, char const* notifparam, char const* clientid, char** res, bool persistent ) {
+RC afy_regNotifi( MainNotificationHandler& mainh, ISession& sess, char const* type, char const* notifparam, char const* clientid, char** res, bool persistent ) {
     if ( res ) {
         *res = NULL;
     }
@@ -465,7 +465,7 @@ RC mvs_regNotifi( MainNotificationHandler& mainh, ISession& sess, char const* ty
     return RC_OK;
 }
 
-RC mvs_unregNotifi( MainNotificationHandler& mainh, ISession& sess, char const* notifparam, char const* clientid, char**res ) {
+RC afy_unregNotifi( MainNotificationHandler& mainh, ISession& sess, char const* notifparam, char const* clientid, char**res ) {
     if ( res ) {
         *res = NULL;
     }
@@ -493,7 +493,7 @@ RC mvs_unregNotifi( MainNotificationHandler& mainh, ISession& sess, char const* 
     return RC_OTHER;
 }
 
-RC mvs_waitNotifi( MainNotificationHandler& mainh, ISession& sess, char const* notifparam, char const* clientid, int timeout, char**res ) {
+RC afy_waitNotifi( MainNotificationHandler& mainh, ISession& sess, char const* notifparam, char const* clientid, int timeout, char**res ) {
     if ( res ) {
         *res = NULL;
     }

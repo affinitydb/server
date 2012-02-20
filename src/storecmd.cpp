@@ -7,7 +7,7 @@
 #include <malloc.h>
 #endif
 #include <errno.h>
-#include "mvstore.h"
+#include "affinity.h"
 #include "startup.h"
 #include "storenotifier.h"
 #include "portability.h"
@@ -15,7 +15,7 @@
 #include "storecmd.h"
 #include <vector>
 
-using namespace MVStore;
+using namespace AfyDB;
 
 const char* storedir = NULL;
 const char* const default_storeident = "test"; 
@@ -27,21 +27,21 @@ const char* const default_storeident = "test";
 #endif
 
 /**
- * MvStoreMgr is the manager of all store instances.
+ * AffinityStoresMgr is the manager of all store instances.
  * Note: Later on multi-store management can become much more sophisticated (e.g. open on demand etc.).
  */
-class MvStoreMgr {
+class AffinityStoresMgr {
 public:
-    class MvStoreInstance {
+    class AffinityInstance {
     protected:
-        MVStoreCtx storeCtx;
+        AfyDBCtx storeCtx;
         MainNotificationHandler* notificationHandler;
         std::string userName;
         long volatile useCount;
-        int bMVEngine;
+        int bAfyEngine;
     public:
-        MvStoreInstance( char const * pUserName, char const * pUserPw, bool pAutoCreate )
-        : storeCtx( 0 ), notificationHandler( 0 ), userName( pUserName ), useCount( 0 ), bMVEngine( 0 ) {
+        AffinityInstance( char const * pUserName, char const * pUserPw, bool pAutoCreate )
+        : storeCtx( 0 ), notificationHandler( 0 ), userName( pUserName ), useCount( 0 ), bAfyEngine( 0 ) {
             StartupParameters params;
             std::string lStoreDir;
             params.directory = getStoreDir( pUserName, lStoreDir );
@@ -59,18 +59,18 @@ public:
                 create_params.pageSize = 32768; // Note: Don't take chances with default...
                 res = createStore( create_params, params, storeCtx );
                 if ( res != RC_OK ) {
-                    LOG_LINE(kLogError, "mvstore error %d", res);
+                    LOG_LINE(kLogError, "affinity error %d", res);
                 }
             }
         }
-        MvStoreInstance( void * pStoreCtx ) : storeCtx( ( MVStoreCtx )pStoreCtx ), useCount( 0 ), bMVEngine( 1 ) {}
-        ~MvStoreInstance() { if ( !bMVEngine ) { shutdownStore( storeCtx ); } delete notificationHandler; }
+        AffinityInstance( void * pStoreCtx ) : storeCtx( ( AfyDBCtx )pStoreCtx ), useCount( 0 ), bAfyEngine( 1 ) {}
+        ~AffinityInstance() { if ( !bAfyEngine ) { shutdownStore( storeCtx ); } delete notificationHandler; }
     public:
         long refcount() { return useCount; }
         long addref() { return InterlockedIncrement( &useCount ); }
         long release() { return InterlockedDecrement( &useCount ); }
         char const * getUserName() const { return userName.c_str(); }
-        MVStoreCtx getStoreCtx() const { return storeCtx; }
+        AfyDBCtx getStoreCtx() const { return storeCtx; }
         MainNotificationHandler * getNotificationHandler() const { return notificationHandler; }
     public:
         static char const * getStoreDir( char const * pUserName, std::string & pResult )
@@ -83,12 +83,12 @@ public:
         }
     };
 protected:
-    typedef std::vector<MvStoreInstance *> TStores; /* Note: Later, could be sorted/arranged differently (by identity and/or by storectx). */
+    typedef std::vector<AffinityInstance *> TStores; /* Note: Later, could be sorted/arranged differently (by identity and/or by storectx). */
     Mutex storesLock, creationLock;
     TStores stores;
 public:
-    MvStoreMgr() {}
-    ~MvStoreMgr() {
+    AffinityStoresMgr() {}
+    ~AffinityStoresMgr() {
         for ( TStores::const_iterator iS = stores.begin(); stores.end() != iS; iS++ ) {
             delete *iS;
         }
@@ -98,37 +98,37 @@ public:
     // beginUseInstance - endUseInstance
     // This interface sets up the caller to facilitate on-demand load/unload later on;
     // allows recursion.
-    MVStoreCtx beginUseInstance( char const * pUserName, char const * pUserPw, bool pAutoCreate ) {
+    AfyDBCtx beginUseInstance( char const * pUserName, char const * pUserPw, bool pAutoCreate ) {
         if ( !pUserName ) {
             pUserName = default_storeident;
         }
-        MvStoreInstance * lInst = findByName( pUserName );
+        AffinityInstance * lInst = findByName( pUserName );
         if ( !lInst ) {
             MutexP const lLock( &creationLock ); // At this stage, only newcomers will block each other.
             lInst = findByName( pUserName );
             if ( !lInst ) {
-                lInst = new MvStoreInstance( pUserName, pUserPw, pAutoCreate );
+                lInst = new AffinityInstance( pUserName, pUserPw, pAutoCreate );
                 stores.push_back( lInst );
             }
         }
         lInst->addref();
         return lInst->getStoreCtx();
     }
-    MVStoreCtx beginUseInstance( void * pStoreCtx ) {
-        MvStoreInstance * lInst = findByStore( ( MVStoreCtx )pStoreCtx );
+    AfyDBCtx beginUseInstance( void * pStoreCtx ) {
+        AffinityInstance * lInst = findByStore( ( AfyDBCtx )pStoreCtx );
         if ( !lInst ) {
             MutexP const lLock( &creationLock ); // At this stage, only newcomers will block each other.
-            lInst = findByStore( ( MVStoreCtx )pStoreCtx );
+            lInst = findByStore( ( AfyDBCtx )pStoreCtx );
             if ( !lInst ) {
-                lInst = new MvStoreInstance( ( MVStoreCtx )pStoreCtx );
+                lInst = new AffinityInstance( ( AfyDBCtx )pStoreCtx );
                 stores.push_back( lInst );
             }
         }
         lInst->addref();
         return lInst->getStoreCtx();
     }
-    void endUseInstance( MVStoreCtx pStoreCtx ) {
-        MvStoreInstance * lI = findByStore( ( MVStoreCtx )pStoreCtx );
+    void endUseInstance( AfyDBCtx pStoreCtx ) {
+        AffinityInstance * lI = findByStore( ( AfyDBCtx )pStoreCtx );
         if ( lI && 0 == lI->release() ) {
             #if 0
                 // Review:
@@ -144,7 +144,7 @@ public:
         if ( !pUserName ) {
             pUserName = default_storeident;
         }
-        MvStoreInstance * lI = findByName( pUserName, true );
+        AffinityInstance * lI = findByName( pUserName, true );
         if ( lI && ( 0 == lI->refcount() || 0 == lI->release() ) ) {
             delete lI;
             lI = NULL;
@@ -152,8 +152,8 @@ public:
         if ( !lI ) {
             // REVIEW: If drop is called at startup, after unclean shutdown, this code doesn't delete the logs...
             std::string lStoreFN;
-            MvStoreInstance::getStoreDir( pUserName, lStoreFN );
-            lStoreFN += "/mv.store";
+            AffinityInstance::getStoreDir( pUserName, lStoreFN );
+            lStoreFN += "/affinity.db";
             unlink( lStoreFN.c_str() );
             return true;
         }
@@ -161,7 +161,7 @@ public:
     }
 
 public:
-    static ISession * haveSession( mvs_connection_ctx_t * pCCtx ) {
+    static ISession * haveSession( afy_connection_ctx_t * pCCtx ) {
         if ( pCCtx->session ) {
             return ( ISession* )pCCtx->session;
         }
@@ -169,10 +169,10 @@ public:
             LOG_LINE(kLogError, "invalid state (no storectx)");
             return NULL;
         }
-        pCCtx->session = ISession::startSession( ( MVStoreCtx )pCCtx->storectx, pCCtx->storeident, pCCtx->storepw );
+        pCCtx->session = ISession::startSession( ( AfyDBCtx )pCCtx->storectx, pCCtx->storeident, pCCtx->storepw );
         return ( ISession* )pCCtx->session;
     }
-    MvStoreInstance * findByName( char const * pUserName, bool pDrop=false ) {
+    AffinityInstance * findByName( char const * pUserName, bool pDrop=false ) {
         if ( !pUserName ) {
             LOG_LINE(kLogError, "invalid argument");
             return NULL;
@@ -180,7 +180,7 @@ public:
         MutexP const lLock( &storesLock );
         for ( TStores::iterator iS = stores.begin(); stores.end() != iS; iS++) {
             if ( 0 == strcmp( ( *iS )->getUserName(), pUserName ) ) {
-                MvStoreInstance * lI = *iS;
+                AffinityInstance * lI = *iS;
                 if ( pDrop ) {
                     stores.erase( iS );
                 }
@@ -189,7 +189,7 @@ public:
         }
         return NULL;
     }
-    MvStoreInstance * findByStore( MVStoreCtx pStoreCtx ) {
+    AffinityInstance * findByStore( AfyDBCtx pStoreCtx ) {
         if ( !pStoreCtx ) {
             LOG_LINE(kLogError, "invalid argument");
             return NULL;
@@ -217,7 +217,7 @@ void strerror( RC rc, ISession& sess, CompilationError& ce,
         if ( !res ) {
             len = 50; res = (char*)sess.alloc( len+1 );
         }
-        len = snprintf( res, len, "Mvstore error: (%d)\n", rc );
+        len = snprintf( res, len, "affinity error: (%d)\n", rc );
     }
 }
 
@@ -249,7 +249,7 @@ void str2value( ISession& sess, Value* vals,
 #define AFREE( se, yes, ptr ) \
     do { if ( (yes) && (ptr) ) { (se)->free(ptr); } } while (0)
 
-RC mvs_expr2jsoni( ISession& sess, const char* pExpr, 
+RC afy_expr2jsoni( ISession& sess, const char* pExpr, 
                    char*& pErr, size_t& len, 
                    char** params, unsigned nparams,
                    Value** v ) {
@@ -270,7 +270,7 @@ RC mvs_expr2jsoni( ISession& sess, const char* pExpr,
     *v = (Value*)sess.alloc( sizeof( Value ) );
     const RC rc = expr->execute( **v, vals, nparams ); 
     if ( rc != RC_OK ) {
-        LOG_LINE(kLogError, "mvstore error %d", rc);
+        LOG_LINE(kLogError, "affinity error %d", rc);
     } else {
         sess.convertValue( **v, **v, VT_STRING );
     }
@@ -278,7 +278,7 @@ RC mvs_expr2jsoni( ISession& sess, const char* pExpr,
     return rc;
 }
 
-RC mvs_sql2jsoni( ISession& sess, const char* pCmd, 
+RC afy_sql2jsoni( ISession& sess, const char* pCmd, 
                   char*& pResult, size_t& len, 
                   char** params, unsigned nparams,
                   unsigned off = 0, unsigned lim = ~0u ) {
@@ -293,12 +293,16 @@ RC mvs_sql2jsoni( ISession& sess, const char* pCmd,
     const RC rc = sess.execute( pCmd, strlen(pCmd), &pResult, NULL, 0, 
                                 vals, nparams, &lCE, NULL, lim, off );
     AFREE( &sess, alloc, vals );
-    if ( rc != RC_OK ) { strerror( rc, sess, lCE, pResult, len ); }
+    if ( rc != RC_OK ) {
+        LOG_LINE(kLogError, "error %d on command: %s", rc, pCmd);
+        LOG_LINE(kLogError, "error: %s", lCE.msg);
+        strerror( rc, sess, lCE, pResult, len );
+    }
 
     return rc;
 }
 
-ssize_t mvs_sql2rawi( ISession& sess, mvs_stream_t* pCtx, 
+ssize_t afy_sql2rawi( ISession& sess, afy_stream_t* pCtx, 
                       const char* pCmd, char*& pResult, Twriter pWriter,
                       char** params, unsigned nparams,
                       unsigned offset = 0, unsigned limit = ~0u ) {
@@ -326,7 +330,7 @@ ssize_t mvs_sql2rawi( ISession& sess, mvs_stream_t* pCtx,
     //    lCE.msg, lCE.pos, lCE.line);
     ssize_t off = 0;
     if ( res != RC_OK ) {
-        LOG_LINE(kLogError, "mvstore error %d", res);
+        LOG_LINE(kLogError, "affinity error %d", res);
     } else {
 #ifdef STREAM_CLOSE
         unsigned char buf[0x1000];
@@ -380,11 +384,11 @@ class MvReader : public IStreamIn
 
 class WriterIStreamIn : public IStreamIn {
     Twriter writer;
-    mvs_stream_t* ctx;
+    afy_stream_t* ctx;
 protected:
     WriterIStreamIn() {}
 public:
-    WriterIStreamIn( Twriter& w, mvs_stream_t* c ) { writer = w; ctx = c; }
+    WriterIStreamIn( Twriter& w, afy_stream_t* c ) { writer = w; ctx = c; }
     virtual RC next( const unsigned char *buf, size_t len ) {
         ssize_t wrote = writer( ctx, buf, len );
         if ( wrote < 0 || (size_t)wrote < len ) {
@@ -396,7 +400,7 @@ public:
     virtual void destroy( void ) {}
 };
 
-int mvs_raw2rawi( ISession& sess, mvs_stream_t* ctx, 
+int afy_raw2rawi( ISession& sess, afy_stream_t* ctx, 
                   Treader reader, Twriter writer ) {
     // For the moment this is limited to raw in, simple ack out.
 
@@ -433,19 +437,19 @@ int mvs_raw2rawi( ISession& sess, mvs_stream_t* ctx,
 
 extern "C"
 {
-    void* mvs_init( void* storectx ) { 
-        MvStoreMgr* mgr = new MvStoreMgr();
-        if ( storectx ) { /* store instance from mvEngine */
+    void* afy_init( void* storectx ) { 
+        AffinityStoresMgr* mgr = new AffinityStoresMgr();
+        if ( storectx ) { /* store instance from afyEngine */
             mgr->beginUseInstance( storectx );
         }
         return mgr;
     }
 
-    void mvs_term( void *mgrp ) { 
-        if ( mgrp ) { delete (MvStoreMgr *)mgrp; }
+    void afy_term( void *mgrp ) { 
+        if ( mgrp ) { delete (AffinityStoresMgr *)mgrp; }
     }
 
-    mvs_connection_ctx_t* mvs_init_connection( void* mgrp, const char* storeident, const char* storepw ) {
+    afy_connection_ctx_t* afy_init_connection( void* mgrp, const char* storeident, const char* storepw ) {
         if ( !mgrp ) {
             LOG_LINE(kLogError, "invalid arguments");
             return NULL;
@@ -454,8 +458,8 @@ extern "C"
             storeident = default_storeident;
         }
         LOG_LINE(kLogDebug, "connection for: %s", storeident);
-        mvs_connection_ctx_t* cctxp = new mvs_connection_ctx_t;
-        memset( cctxp, 0, sizeof( mvs_connection_ctx_t ) );
+        afy_connection_ctx_t* cctxp = new afy_connection_ctx_t;
+        memset( cctxp, 0, sizeof( afy_connection_ctx_t ) );
         cctxp->mgr = mgrp;
         size_t l = 1 + strlen( storeident );
         cctxp->storeident = new char[ l ];
@@ -465,11 +469,11 @@ extern "C"
             cctxp->storepw = new char[ l ];
             memcpy( cctxp->storepw, storepw, l );
         }
-        cctxp->storectx = ( ( MvStoreMgr* )mgrp )->beginUseInstance( storeident, storepw, true );
+        cctxp->storectx = ( ( AffinityStoresMgr* )mgrp )->beginUseInstance( storeident, storepw, true );
         return cctxp;
     }
     
-    void mvs_term_connection( mvs_connection_ctx_t* cctxp ) {
+    void afy_term_connection( afy_connection_ctx_t* cctxp ) {
         if ( !cctxp ) {
             LOG_LINE(kLogError, "invalid arguments");
             return;
@@ -478,78 +482,78 @@ extern "C"
             ( ( ISession* )cctxp->session )->terminate();
         }
         if ( cctxp->storectx ) {
-            ( ( MvStoreMgr* )cctxp->mgr )->endUseInstance( ( MVStoreCtx )cctxp->storectx );
+            ( ( AffinityStoresMgr* )cctxp->mgr )->endUseInstance( ( AfyDBCtx )cctxp->storectx );
         }
         delete [] cctxp->storeident;
         delete [] cctxp->storepw;
         delete cctxp;
     }
     
-    int mvs_drop_store( void* mgrp, const char* storeident, const char* storepw ) {
+    int afy_drop_store( void* mgrp, const char* storeident, const char* storepw ) {
         if ( !mgrp ) {
             LOG_LINE(kLogError, "invalid arguments");
             return 1;
         }
-        return ( ( MvStoreMgr* )mgrp )->dropInstance( storeident, storepw ) ? 0 : 1;
+        return ( ( AffinityStoresMgr* )mgrp )->dropInstance( storeident, storepw ) ? 0 : 1;
     }
 
-    int mvs_expr2json( mvs_connection_ctx_t* cctxp,
+    int afy_expr2json( afy_connection_ctx_t* cctxp,
                        const char* pCmd, 
                        char** ppError, size_t* len, 
                        char** params, unsigned nparams,
                        void** ppValue ) {
-        ISession* sess = MvStoreMgr::haveSession( cctxp );
+        ISession* sess = AffinityStoresMgr::haveSession( cctxp );
         if ( !sess ) { return 0; }
         size_t ignore = 0;
         if ( ppError == NULL ) { return 0; }
         char*& pError = *ppError;
         if ( len == NULL ) { len = &ignore; }
-        RC res = mvs_expr2jsoni( *sess, pCmd, pError, *len, 
+        RC res = afy_expr2jsoni( *sess, pCmd, pError, *len, 
                                 params, nparams, (Value**)ppValue );
         return res == RC_OK ? 1 : 0;
     }
 
-    int mvs_sql2json( mvs_connection_ctx_t* cctxp,
+    int afy_sql2json( afy_connection_ctx_t* cctxp,
                       const char* pCmd, 
                       char** ppResult, size_t* len, 
                       char** params, unsigned nparams,
                       unsigned off, unsigned lim ) {
-        ISession* sess = MvStoreMgr::haveSession( cctxp );
+        ISession* sess = AffinityStoresMgr::haveSession( cctxp );
         if ( !sess ) { return 0; }
         size_t ignore = 0;
         if ( ppResult == NULL ) { return 0; }
         char*& pResult = *ppResult;
         if ( len == NULL ) { len = &ignore; }
-        RC res = mvs_sql2jsoni( *sess, pCmd, pResult, *len, 
+        RC res = afy_sql2jsoni( *sess, pCmd, pResult, *len, 
                                 params, nparams, off, lim );
 
         return res == RC_OK ? 1 : 0;
     }
 
-    ssize_t mvs_sql2raw( mvs_connection_ctx_t* cctxp,
+    ssize_t afy_sql2raw( afy_connection_ctx_t* cctxp,
                          const char* qry, char** ppResult, 
-                         mvs_stream_t* ctx, Twriter writer,
+                         afy_stream_t* ctx, Twriter writer,
                          char** params, unsigned nparams,
                          unsigned off, unsigned lim ) {
-        ISession* sess = MvStoreMgr::haveSession( cctxp );
+        ISession* sess = AffinityStoresMgr::haveSession( cctxp );
         if ( !sess ) { return 0; }
         char*& pResult = *ppResult;
-        ssize_t res = mvs_sql2rawi( *sess, ctx, qry, pResult, writer, 
+        ssize_t res = afy_sql2rawi( *sess, ctx, qry, pResult, writer, 
                                     params, nparams, off, lim );
         return res;
     }
 
-    int mvs_raw2raw( mvs_connection_ctx_t* cctxp,
-                     mvs_stream_t* pCtx, Treader pReader, Twriter pWriter ) {
-        ISession* sess = MvStoreMgr::haveSession( cctxp );
-        int res = mvs_raw2rawi(*sess, pCtx, pReader, pWriter);
+    int afy_raw2raw( afy_connection_ctx_t* cctxp,
+                     afy_stream_t* pCtx, Treader pReader, Twriter pWriter ) {
+        ISession* sess = AffinityStoresMgr::haveSession( cctxp );
+        int res = afy_raw2rawi(*sess, pCtx, pReader, pWriter);
         return res;
     }
 
-    int mvs_sql2count( mvs_connection_ctx_t* cctxp,
+    int afy_sql2count( afy_connection_ctx_t* cctxp,
                        const char* query, char** res, size_t* len,
                        char** params, unsigned nparams, uint64_t* count ) {
-        ISession* sess = MvStoreMgr::haveSession( cctxp );
+        ISession* sess = AffinityStoresMgr::haveSession( cctxp );
         if ( !sess ) { return 0; }
         if ( !count ) { return 0; }
         *count = 0;
@@ -577,10 +581,10 @@ extern "C"
         return 1;
     }
 
-    int mvs_sql2plan( mvs_connection_ctx_t* cctxp,
+    int afy_sql2plan( afy_connection_ctx_t* cctxp,
                       const char* query, char** res,
                       char** params, unsigned nparams ) {
-        ISession* sess = MvStoreMgr::haveSession( cctxp );
+        ISession* sess = AffinityStoresMgr::haveSession( cctxp );
         if ( !sess ) { return 0; }
         CompilationError ce;
         IStmt *const stmt = sess->createStmt( query, NULL, 0, &ce );
@@ -610,9 +614,9 @@ extern "C"
         return 1;
     }
     
-    int mvs_sql2display( mvs_connection_ctx_t* cctxp,
+    int afy_sql2display( afy_connection_ctx_t* cctxp,
                          const char* query, char** res ) {
-        ISession* sess = MvStoreMgr::haveSession( cctxp );
+        ISession* sess = AffinityStoresMgr::haveSession( cctxp );
         if ( !sess ) { return 0; }
         CompilationError ce;
         IStmt *const stmt = sess->createStmt( query, NULL, 0, &ce );
@@ -628,42 +632,42 @@ extern "C"
         return 1;
     }
 
-    int mvs_regNotif( mvs_connection_ctx_t* cctxp,
+    int afy_regNotif( afy_connection_ctx_t* cctxp,
                       const char* type, const char* notifparam, 
                       const char* clientid, char **res ) {
-        MainNotificationHandler* const mainh = ((MvStoreMgr*)cctxp->mgr)->findByStore((MVStoreCtx)cctxp->storectx)->getNotificationHandler();
-        ISession* const sess = MvStoreMgr::haveSession(cctxp);
-        return ( mainh && RC_OK == mvs_regNotifi( *mainh, *sess, type, notifparam, clientid, res ) ) ? 1 : 0;
+        MainNotificationHandler* const mainh = ((AffinityStoresMgr*)cctxp->mgr)->findByStore((AfyDBCtx)cctxp->storectx)->getNotificationHandler();
+        ISession* const sess = AffinityStoresMgr::haveSession(cctxp);
+        return ( mainh && RC_OK == afy_regNotifi( *mainh, *sess, type, notifparam, clientid, res ) ) ? 1 : 0;
     }
 
-    int mvs_unregNotif( mvs_connection_ctx_t* cctxp,
+    int afy_unregNotif( afy_connection_ctx_t* cctxp,
                         const char* notifparam, const char* clientid, 
                         char **res ) {
-        MainNotificationHandler* const mainh = ((MvStoreMgr*)cctxp->mgr)->findByStore((MVStoreCtx)cctxp->storectx)->getNotificationHandler();
-        ISession* const sess = MvStoreMgr::haveSession(cctxp);
-        return ( mainh && RC_OK == mvs_unregNotifi( *mainh, *sess, notifparam, clientid, res ) ) ? 1 : 0;
+        MainNotificationHandler* const mainh = ((AffinityStoresMgr*)cctxp->mgr)->findByStore((AfyDBCtx)cctxp->storectx)->getNotificationHandler();
+        ISession* const sess = AffinityStoresMgr::haveSession(cctxp);
+        return ( mainh && RC_OK == afy_unregNotifi( *mainh, *sess, notifparam, clientid, res ) ) ? 1 : 0;
     }
 
-    int mvs_waitNotif( mvs_connection_ctx_t* cctxp,
+    int afy_waitNotif( afy_connection_ctx_t* cctxp,
                        const char* notifparam, const char* clientid, 
                        int timeout, char **res ) {
-        MainNotificationHandler* const mainh = ((MvStoreMgr*)cctxp->mgr)->findByStore((MVStoreCtx)cctxp->storectx)->getNotificationHandler();
-        ISession* const sess = MvStoreMgr::haveSession(cctxp);
-        return ( mainh && RC_OK == mvs_waitNotifi( *mainh, *sess, notifparam, clientid, timeout, res ) ) ? 1 : 0;
+        MainNotificationHandler* const mainh = ((AffinityStoresMgr*)cctxp->mgr)->findByStore((AfyDBCtx)cctxp->storectx)->getNotificationHandler();
+        ISession* const sess = AffinityStoresMgr::haveSession(cctxp);
+        return ( mainh && RC_OK == afy_waitNotifi( *mainh, *sess, notifparam, clientid, timeout, res ) ) ? 1 : 0;
     }
 
     /* Plumbing (may remove later). */
-    void mvs_free( mvs_connection_ctx_t* cctxp, void* ptr ) {
+    void afy_free( afy_connection_ctx_t* cctxp, void* ptr ) {
         ISession* sess = (ISession*)cctxp->session;
         if ( !sess ) { return; }
         sess->free( ptr );
     }
-    void mvs_freev( mvs_connection_ctx_t* cctxp, void* v ) {
+    void afy_freev( afy_connection_ctx_t* cctxp, void* v ) {
         ISession* sess = (ISession*)cctxp->session;
         if ( !sess ) { return; }
         sess->freeValue( *(Value*)v );
         sess->free( v );
     }
-    const char* mvs_val2str( void* pValue ) { return ((Value*)pValue)->str; }
-    uint32_t mvs_val2len( void* pValue ) { return ((Value*)pValue)->length; }
+    const char* afy_val2str( void* pValue ) { return ((Value*)pValue)->str; }
+    uint32_t afy_val2len( void* pValue ) { return ((Value*)pValue)->length; }
 };

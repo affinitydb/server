@@ -128,7 +128,7 @@ leave:
     return res;
 }
 #elif defined(Darwin)
-ssize_t mv_sendfile( int sock, int fd, off_t* offset, size_t count ) {
+ssize_t afy_sendfile( int sock, int fd, off_t* offset, size_t count ) {
 	off_t len = count;
 	return sendfile( fd, sock, offset ? *offset : 0, &len, NULL, 0 );
 }

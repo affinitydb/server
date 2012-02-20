@@ -4,15 +4,15 @@
 #include <stdlib.h>
 #include <string.h>
 #include "portability.h"
-#include "mvhttp.h"
-#include "mvdaemon.h"
+#include "afyhttp.h"
+#include "afydaemon.h"
 
-/* MVSTORED: an embedded server - simple, threading so allowing
+/* AFFINITYD: an embedded server - simple, threading so allowing
    blocking, CPU and IO intensive DB calls, also includes a static web
    server and basic mime support */
 
 int print_help( void ) {
-    fprintf( stderr, "usage: mvstored [options]\n"
+    fprintf( stderr, "usage: affinityd [options]\n"
              "-d\tdocroot directory\n"
              "-h\thelp\n"
              "-p\tport number to listen on\n"
@@ -25,7 +25,7 @@ int print_help( void ) {
 int main( int argc, char* argv[] ) {
     int opt;
     int verbose = 0, auto_create = 0, res;
-    int http_port = MVD_PORT;
+    int http_port = AFYD_PORT;
     char* www = NULL, *store = NULL;
 
     while ( (opt=getopt(argc, argv, "ad:hp:s:vV" )) > 0 ) {
@@ -37,7 +37,7 @@ int main( int argc, char* argv[] ) {
         case 's': store = optarg; break;
         case 'v': verbose++; break;
 	case 'V': 
-            fprintf( stderr, "Version: %1.2f\n", MVD_VERS ); 
+            fprintf( stderr, "Version: %1.2f\n", AFYD_VERS ); 
             exit( EXIT_FAILURE );
             break;
 	}
@@ -49,7 +49,7 @@ int main( int argc, char* argv[] ) {
     if ( !www && fisdir( "www" ) ) { www = "www"; }     /* debug helpers */
     if ( !store && fisdir( "store" ) ) { store = "store"; }
 
-    res = mvdaemon( NULL, www, store, http_port, verbose, auto_create );
+    res = afydaemon( NULL, www, store, http_port, verbose, auto_create );
 
     exit( res ? EXIT_SUCCESS : EXIT_FAILURE );
 }

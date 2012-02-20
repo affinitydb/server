@@ -17,7 +17,7 @@
     #define InterlockedIncrement(a) __sync_add_and_fetch(a,1)
     #define InterlockedDecrement(a) __sync_sub_and_fetch(a,1)
 #endif
-namespace MVStore { class ISession; };
+namespace AfyDB { class ISession; };
 
 /**
  * Mutex
@@ -140,8 +140,8 @@ public:
     void releaseGroupEvent( char const* clientid );
 };
 
-RC mvs_regNotifi( MainNotificationHandler& mainh, MVStore::ISession& sess, char const* type, char const* notifparam, char const* clientid, char** res, bool persistent=true );
-RC mvs_unregNotifi( MainNotificationHandler& mainh, MVStore::ISession& sess, char const* notifparam, char const* clientid, char**res );
-RC mvs_waitNotifi( MainNotificationHandler& mainh, MVStore::ISession& sess, char const* notifparam, char const* clientid, int timeout, char**res );
+RC afy_regNotifi( MainNotificationHandler& mainh, AfyDB::ISession& sess, char const* type, char const* notifparam, char const* clientid, char** res, bool persistent=true );
+RC afy_unregNotifi( MainNotificationHandler& mainh, AfyDB::ISession& sess, char const* notifparam, char const* clientid, char**res );
+RC afy_waitNotifi( MainNotificationHandler& mainh, AfyDB::ISession& sess, char const* notifparam, char const* clientid, int timeout, char**res );
 
 #endif

@@ -26,7 +26,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  */
 
- /* This is used by mvCommand under Win32 */
+ /* This is used by afyCommand under Win32 */
 
 #ifdef WIN32
 

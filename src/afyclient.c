@@ -3,13 +3,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include "mvclient.h"
+#include "afyclient.h"
 #include "portability.h"
 #include "http.h"
 #include "socket.h"
-#include "mvhttp.h"
+#include "afyhttp.h"
 
-int mvc_connect( mvc_t* db, const char* host, uint16_t port, 
+int afyc_connect( afyc_t* db, const char* host, uint16_t port, 
                  const char* identity, const char* store,
                  const char* user, const char* pass ) {
     db->host = host; db->port = port;
@@ -23,36 +23,36 @@ int mvc_connect( mvc_t* db, const char* host, uint16_t port,
     db->ka = 1;                 /* keep-alive on by default */
     db->url = 0;                /* url-encode off by default */
     db->sock = sock_connect( host, port );
-    if ( db->sock == -1 ) { return MVC_CONNECTION_FAIL; }
+    if ( db->sock == -1 ) { return AFYC_CONNECTION_FAIL; }
     return 1;
 }
 
-int mvc_reconnect( mvc_t* db ) {
+int afyc_reconnect( afyc_t* db ) {
     if ( db->sock >= 0 ) { return 0; }
     db->sock = sock_connect( db->host, db->port );
-    if ( db->sock == -1 ) { return MVC_CONNECTION_FAIL; }
+    if ( db->sock == -1 ) { return AFYC_CONNECTION_FAIL; }
     return 1;
 }
 
-ssize_t mvc_resp( mvc_t* db ) {
+ssize_t afyc_resp( afyc_t* db ) {
     char *headers = NULL, *code = NULL, *length = NULL, *chunk = NULL;
     char undo = '\0', *end = NULL;
     int blen, rd = 0;
     int ncode = -1;
-    /* read the response up to \r\n\r\n or MVC_BUF_SIZE */
+    /* read the response up to \r\n\r\n or AFYC_BUF_SIZE */
     /* reuse the buffer */
 
     for ( rd = 1, blen = 0, db->body = NULL, db->buf[0] = '\0';
-          rd > 0 && !db->body && blen < MVC_BUF_SIZE; blen += rd ) {
-        rd = recv( db->sock, db->buf+blen, MVC_BUF_SIZE-blen, 0 );
+          rd > 0 && !db->body && blen < AFYC_BUF_SIZE; blen += rd ) {
+        rd = recv( db->sock, db->buf+blen, AFYC_BUF_SIZE-blen, 0 );
         if ( rd > 0 ) {
             db->buf[blen+rd] = '\0'; /* null term as a string */
             db->body = strstr( db->buf, CRLF CRLF );
         }
     }
-    if ( rd <= 0 || blen >= MVC_BUF_SIZE || !db->body ) { 
-        mvc_disconnect( db );
-        return MVC_CONNECTION_FAIL; 
+    if ( rd <= 0 || blen >= AFYC_BUF_SIZE || !db->body ) { 
+        afyc_disconnect( db );
+        return AFYC_CONNECTION_FAIL; 
     }
 
     headers = db->buf;
@@ -91,7 +91,7 @@ ssize_t mvc_resp( mvc_t* db ) {
 
     /* return syntax error code */
 
-    if ( ncode >= 300 ) { return MVC_SQL_ERROR;; }
+    if ( ncode >= 300 ) { return AFYC_SQL_ERROR;; }
     return 1;
 }
 
@@ -106,27 +106,27 @@ ssize_t mvc_resp( mvc_t* db ) {
 	offset & limit: control the returned result count and begin position
  */
 
-int mvc_create( mvc_t* admin, const char* store ) {
+int afyc_create( afyc_t* admin, const char* store ) {
     int res;
     if ( admin->sock < 0 ) {
-        res = mvc_reconnect( admin );
-        if ( res == MVC_CONNECTION_FAIL ) { return res; }
+        res = afyc_reconnect( admin );
+        if ( res == AFYC_CONNECTION_FAIL ) { return res; }
     }
-    res = mvc_sql( admin, "create", GET, JSON, CREATE, 0, 0 );
+    res = afyc_sql( admin, "create", GET, JSON, CREATE, 0, 0 );
     return res;
 }
 
-int mvc_drop( mvc_t* admin, const char* store ) {
+int afyc_drop( afyc_t* admin, const char* store ) {
     int res;
     if ( admin->sock < 0 ) {
-        res = mvc_reconnect( admin );
-        if ( res == MVC_CONNECTION_FAIL ) { return res; }
+        res = afyc_reconnect( admin );
+        if ( res == AFYC_CONNECTION_FAIL ) { return res; }
     }
-    res = mvc_sql( admin, "drop", GET, JSON, DROP, 0, 0 );
+    res = afyc_sql( admin, "drop", GET, JSON, DROP, 0, 0 );
     return res;
 }
 
-int mvc_sql( mvc_t* db, const char* query, const char* method, 
+int afyc_sql( afyc_t* db, const char* query, const char* method, 
              oformat_t ofmt, query_t type, 
              size_t offset, size_t limit ) {
     int blen, qlen, rd, used, elen = 0;
@@ -155,19 +155,19 @@ int mvc_sql( mvc_t* db, const char* query, const char* method,
         }
     }
     if ( db->sock < 0 ) { 
-        return MVC_CONNECTION_FAIL;
+        return AFYC_CONNECTION_FAIL;
     }
     if ( meth == GET_CODE ) {
         if ( type == CREATE || type == DROP ) {
-            blen = snprintf( db->buf, MVC_BUF_SIZE, "GET %s", 
+            blen = snprintf( db->buf, AFYC_BUF_SIZE, "GET %s", 
                              type == CREATE ? 
-                             MVD_CREATE_ALIAS : MVD_DROP_ALIAS );
+                             AFYD_CREATE_ALIAS : AFYD_DROP_ALIAS );
         } else { 
-            blen = snprintf( db->buf, MVC_BUF_SIZE, "GET %s/q=", 
-                             MVD_QUERY_ALIAS );
-            blen += url_encode( query, db->buf+blen, MVC_BUF_SIZE-blen, NULL );
+            blen = snprintf( db->buf, AFYC_BUF_SIZE, "GET %s/q=", 
+                             AFYD_QUERY_ALIAS );
+            blen += url_encode( query, db->buf+blen, AFYC_BUF_SIZE-blen, NULL );
         }
-        blen += snprintf( db->buf+blen, MVC_BUF_SIZE-blen, 
+        blen += snprintf( db->buf+blen, AFYC_BUF_SIZE-blen, 
                           "%s%s%s%s HTTP/1.1\r\n"
                           "Host: %s:%d\r\n"
                           "User-Agent: %s/%1.2f\r\n" 
@@ -181,10 +181,10 @@ int mvc_sql( mvc_t* db, const char* query, const char* method,
                               ((type == CREATE || type == DROP) ? "" :
                                "&t=display"))))),
                           soffset, slimit, 
-                          db->host, db->port, "mvclient", MVD_VERS,
+                          db->host, db->port, "afyclient", AFYD_VERS,
                           !db->ka ? "Connection: close\r\n" : "" );
         rd = sock_write( db->sock, db->buf, blen );
-        if ( rd < blen ) { mvc_disconnect( db ); return MVC_CONNECTION_FAIL; }
+        if ( rd < blen ) { afyc_disconnect( db ); return AFYC_CONNECTION_FAIL; }
     } else if ( meth == POST_CODE ) {
         /* close or keep-alive with length or chunked logic */
         /* if -c is called db->ka should be disabled */
@@ -203,14 +203,14 @@ int mvc_sql( mvc_t* db, const char* query, const char* method,
         } else { /* Connection: close & no Content-Length */
             sprintf( clen_str, "Connection: close\r\n" );
         }
-        blen = snprintf( db->buf, MVC_BUF_SIZE, 
+        blen = snprintf( db->buf, AFYC_BUF_SIZE, 
                          "POST %s/%s%s%s%s HTTP/1.1\r\n"
                          "Host: %s:%d\r\n"
                          "User-Agent: %s/%1.2f\r\n"
                          TYPE MIME_URL CRLF
                          "%s"   /* Content-Len, chunked or Conn: close */
                          "\r\n",
-                         MVD_QUERY_ALIAS,
+                         AFYD_QUERY_ALIAS,
                          ((ofmt == PROTOBUF) ? "&o=proto":""),
                          ((type==QUERY)? "": 
                           ((type==EXPRESSION) ?" &t=expression" :
@@ -219,28 +219,28 @@ int mvc_sql( mvc_t* db, const char* query, const char* method,
                              ((type == CREATE || type == DROP) ? "" :
                               "&t=display"))))),
                          soffset, slimit, 
-                         db->host, db->port, "mvclient", MVD_VERS, clen_str );
+                         db->host, db->port, "afyclient", AFYD_VERS, clen_str );
         rd = sock_write( db->sock, db->buf, blen );
-        if ( rd < blen ) { mvc_disconnect( db ); return MVC_CONNECTION_FAIL; }
-        rd = mvc_write( db, POST_QUERY, strlen( POST_QUERY ) );
+        if ( rd < blen ) { afyc_disconnect( db ); return AFYC_CONNECTION_FAIL; }
+        rd = afyc_write( db, POST_QUERY, strlen( POST_QUERY ) );
         db->url = 1;
         if ( rd < (int)strlen( POST_QUERY ) ) {
-            mvc_disconnect( db ); return MVC_CONNECTION_FAIL; 
+            afyc_disconnect( db ); return AFYC_CONNECTION_FAIL; 
         }
-        if ( !query ) { return MVC_CONTINUE; }
+        if ( !query ) { return AFYC_CONTINUE; }
         /* auto url-encode because db->url is set */
         /* also auto chunk if db->chunked is set */
         qlen = strlen( query );
-        used = mvc_write( db, query, qlen );
+        used = afyc_write( db, query, qlen );
 
         if ( used < qlen ) {
-            mvc_disconnect( db ); return MVC_CONNECTION_FAIL;
+            afyc_disconnect( db ); return AFYC_CONNECTION_FAIL;
         }
     } else {
-        return MVC_ERROR;       /* internal error */
+        return AFYC_ERROR;       /* internal error */
     }
 
-    rd = mvc_resp( db );
+    rd = afyc_resp( db );
     if ( rd < 0 ) { return rd; }
 
     return 1;
@@ -248,7 +248,7 @@ int mvc_sql( mvc_t* db, const char* query, const char* method,
 
 /* this does not handle chunk length fields split between buf and socket */
 
-ssize_t mvc_read( mvc_t* db, void* in, size_t in_len ) {
+ssize_t afyc_read( afyc_t* db, void* in, size_t in_len ) {
     size_t use_len = 0;
     int res = 0;
     char* end = NULL, *chunk = NULL;
@@ -259,7 +259,7 @@ ssize_t mvc_read( mvc_t* db, void* in, size_t in_len ) {
     if ( db->chunked && db->chunk == 0 && db->body_len == 0 ) {
         res = recv( db->sock, db->body, 10, 0 );
         if ( res < 3 ) {
-            mvc_disconnect( db ); return MVC_CONNECTION_FAIL;
+            afyc_disconnect( db ); return AFYC_CONNECTION_FAIL;
         }
         db->body[res] = '\0';
         db->body_len = res;
@@ -271,7 +271,7 @@ ssize_t mvc_read( mvc_t* db, void* in, size_t in_len ) {
             chunk = strstr( db->body, CRLF );
             if ( chunk ) { db->chunk = (size_t)strtol( db->body, &end, 16 ); }
             if ( !chunk || end != chunk ) {
-                mvc_disconnect( db ); return MVC_CONNECTION_FAIL; 
+                afyc_disconnect( db ); return AFYC_CONNECTION_FAIL; 
             }
             if ( db->chunk == 0 ) { return 0; }
             use_len = (size_t)(end - db->body) + strlen(CRLF);
@@ -291,17 +291,17 @@ ssize_t mvc_read( mvc_t* db, void* in, size_t in_len ) {
     }
     if ( use_len == in_len ) { return use_len; }
 
-    if ( db->sock < 0 ) { return MVC_CONNECTION_FAIL; }
+    if ( db->sock < 0 ) { return AFYC_CONNECTION_FAIL; }
 
     /* pass through to avoid memcpy */
     res = recv( db->sock, (char*)in + use_len, in_len - use_len, 0 );
-    if ( res <= 0 ) { mvc_disconnect( db ); return MVC_CONNECTION_FAIL; }
+    if ( res <= 0 ) { afyc_disconnect( db ); return AFYC_CONNECTION_FAIL; }
     if ( db->clen > 0 ) { db->clen -= res; }
 
     return use_len + res;
 }
 
-ssize_t mvc_read_old( mvc_t* db, void* in, size_t in_len ) {
+ssize_t afyc_read_old( afyc_t* db, void* in, size_t in_len ) {
     int res = 0;
     if ( db->clen == 0 ) { return -1; } /* eof */
     if ( db->clen >= 0 ) { in_len = MIN( in_len, (size_t)db->clen ); }
@@ -313,24 +313,24 @@ ssize_t mvc_read_old( mvc_t* db, void* in, size_t in_len ) {
         if ( db->clen > 0 ) { db->clen -= in_len; }
         return in_len;
     }
-    if ( db->sock < 0 ) { return MVC_CONNECTION_FAIL; }
+    if ( db->sock < 0 ) { return AFYC_CONNECTION_FAIL; }
     /* pass through to avoid memcpy */
     
     if ( in_len == 0 ) { return 0; }
     res = recv( db->sock, in, in_len, 0 );
-    if ( res <= 0 ) { mvc_disconnect( db ); return MVC_CONNECTION_FAIL; }
+    if ( res <= 0 ) { afyc_disconnect( db ); return AFYC_CONNECTION_FAIL; }
     if ( db->clen > 0 ) { db->clen -= res; }
     return res;
 }
 
-ssize_t mvc_write( mvc_t* db, const void* out, size_t out_len ) {
+ssize_t afyc_write( afyc_t* db, const void* out, size_t out_len ) {
     size_t used = 0, chunk, rd, off, sent, elen;
     char exp[10+1];
     if ( db->url ) {
         /* note out_len is ignored by this for now, so must '\0' term out */
-        if ( strlen( out ) != out_len ) { return MVC_ERROR; }
+        if ( strlen( out ) != out_len ) { return AFYC_ERROR; }
         for ( rd = 1, sent = 0, off = 0; rd > 0; ) {
-            chunk = url_encode( (char*)out+off, db->buf, MVC_BUF_SIZE, &used );
+            chunk = url_encode( (char*)out+off, db->buf, AFYC_BUF_SIZE, &used );
             if ( db->chunked ) {
                 exp[0] = '\0';
                 elen = snprintf( exp, 10, "%x\r\n", chunk );
@@ -353,25 +353,25 @@ ssize_t mvc_write( mvc_t* db, const void* out, size_t out_len ) {
 
 #define CHUNK_END "0\r\n\r\n"
 
-int mvc_done( mvc_t* db ) {
+int afyc_done( afyc_t* db ) {
     size_t rd;
     if ( !db->ka ) {
         if ( !sock_halfshut( db->sock ) ) { /* half-close */
-            mvc_disconnect( db ); return MVC_CONNECTION_FAIL;
+            afyc_disconnect( db ); return AFYC_CONNECTION_FAIL;
         }
     } else if ( db->chunked ) {
         rd = sock_write( db->sock, CHUNK_END, strlen( CHUNK_END ) );
         if ( rd < strlen( CHUNK_END ) ) {
-            mvc_disconnect( db ); return MVC_CONNECTION_FAIL;
+            afyc_disconnect( db ); return AFYC_CONNECTION_FAIL;
         }
     }
     /* wait for response header */
     /* fyi the response could have a content-length, but the connect */
     /* remains non keep-alive as the request wasnt */
-    return mvc_resp( db );
+    return afyc_resp( db );
 }
 
-int mvc_disconnect( mvc_t* db ) {
+int afyc_disconnect( afyc_t* db ) {
     int res;
     if ( db->sock >= 0 ) { 
         res = shutdown( db->sock, SHUT_RDWR );

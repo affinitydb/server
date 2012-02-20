@@ -1,12 +1,12 @@
 /* -*- Mode: C; c-file-style: "stroustrup"; indent-tabs-mode:nil; -*- */
 
-#if !defined( _mvdaemon_h )
-#define _mvdaemon_h
+#if !defined( _afydaemon_h )
+#define _afydaemon_h
 
-/* The purpose of this file is integration with mvengine */
+/* The purpose of this file is integration with afyengine */
 
 /* nb this ifndef can be removec with next store version, but for now */
-/* kernel/include/mvstore.h conflicts with stdint.h */
+/* kernel/include/affinity.h conflicts with stdint.h */
 #ifndef UINT64_DEFINED
 #include <stdint.h>
 #endif
@@ -21,10 +21,10 @@
 extern "C" {
 #endif
 
-    export int mvdaemon( void *ctx, const char* wwwdir, const char* storedir,
+    export int afydaemon( void *ctx, const char* wwwdir, const char* storedir,
                          uint16_t port, int verbose, int auto_flag );
 
-    export int mvdaemon_stop( uint32_t usec );
+    export int afydaemon_stop( uint32_t usec );
 
 #if defined( __cplusplus )
 }
