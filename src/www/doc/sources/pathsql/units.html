@@ -205,11 +205,11 @@ SELECT (100 + 7) * UNIT_PRICE * 700 / 100, COMMODITY
 --- report error: can not convert
 EXECUTE EXPRESSION as 1.1m = 110kg;  
 EXECUTE EXPRESSION as 1.1m - 110kg;   
---- equal: test UnitDscr.shift in mvstore\kernel\src\units.cpp
+--- equal: test UnitDscr.shift
 EXECUTE EXPRESSION as 1.1m = 110cm;  
 EXECUTE EXPRESSION as 1.1m - 110cm; 
 
---- equal: test UnitDscr.shift in mvstore\kernel\src\units.cpp
+--- equal: test UnitDscr.shift
 EXECUTE EXPRESSION as 0dC = 273.15K;
 EXECUTE EXPRESSION as 0dC - 273.15K;
 EXECUTE EXPRESSION as (0dC - 273.15K)/273.15K;

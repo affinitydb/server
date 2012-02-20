@@ -19,7 +19,7 @@ select * from class4;
 CREATE CLASS class5 OPTIONS(SOFT_DELETE) AS select * where EXISTS(prop2);
 select * from class5;
 
-select * from * where mv:pinID IS A class1;
+select * from * where afy:pinID IS A class1;
 
 insert (prop1, prop2, prop3) values (12, 2, 34.0);
 insert (prop1, prop2, prop3) values (NULL, 2, 'test NULL');

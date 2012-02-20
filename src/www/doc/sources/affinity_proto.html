@@ -14,9 +14,9 @@
 <span class="c1">//</span>
 <span class="c1">//**************************************************************************************</span>
 
-<span class="kn">package</span> <span class="nn">MVStorePB</span><span class="p">;</span>
+<span class="kn">package</span> <span class="nn">AffinityPB</span><span class="p">;</span>
 
-<span class="k">option</span> <span class="na">java_package</span> <span class="o">=</span> <span class="s">&quot;com.mvstore&quot;</span><span class="p">;</span>
+<span class="k">option</span> <span class="na">java_package</span> <span class="o">=</span> <span class="s">&quot;com.affinity&quot;</span><span class="p">;</span>
 <span class="k">option</span> <span class="na">java_outer_classname</span> <span class="o">=</span> <span class="s">&quot;stream&quot;</span><span class="p">;</span>
 
 <span class="c1">// Errors are reported using the following codes.</span>
@@ -53,7 +53,7 @@
     <span class="na">RC_SYNTAX</span>           <span class="o">=</span> <span class="mi">30</span><span class="p">;</span> <span class="c1">// Syntactic error in query or expression.</span>
 <span class="p">}</span>
 
-<span class="c1">// mvStore defines a few &#39;special&#39; properties (usable as Value::property).</span>
+<span class="c1">// Affinity defines a few &#39;special&#39; properties (usable as Value::property).</span>
 <span class="c1">// Some of these properties appear automatically on PINs.</span>
 <span class="c1">// Some are only used in queries.</span>
 <span class="c1">// Others must be inserted explicitly by the client, in order to cause the advertized effect.</span>
@@ -124,16 +124,16 @@
 
 <span class="kd">enum</span> <span class="n">MetaProps</span> <span class="p">{</span>
     <span class="na">META_PART</span>           <span class="o">=</span> <span class="mi">128</span><span class="p">;</span>            <span class="c1">// Property is a reference to a PIN which is a part of this one.</span>
-    <span class="na">META_FIXEDVERSION</span>   <span class="o">=</span> <span class="mi">64</span><span class="p">;</span>         <span class="c1">// Property references a fixed version of a PIN (for ref properties).</span>
+    <span class="na">META_NOFTINDEX</span>      <span class="o">=</span> <span class="mi">128</span><span class="p">;</span>            <span class="c1">// This property is not to be FT indexed/searched.</span>
+    <span class="na">META_EVAL</span>           <span class="o">=</span> <span class="mi">128</span><span class="p">;</span>            <span class="c1">// Evaluate IExpr/IStmt in commitPINs/modifyPIN.</span>
     <span class="na">META_SSTORAGE</span>       <span class="o">=</span> <span class="mi">64</span><span class="p">;</span>         <span class="c1">// Store this property separately from the PIN body (for string, stream and collection property types).</span>
+    <span class="na">META_RACCESS</span>        <span class="o">=</span> <span class="mi">64</span><span class="p">;</span>         <span class="c1">// [Future.] A stream should be optimized for random access.</span>
     <span class="na">META_NONOTIFICATION</span> <span class="o">=</span> <span class="mi">32</span><span class="p">;</span>         <span class="c1">// This property doesn&#39;t generate notifications when modified.</span>
-    <span class="na">META_NOFTINDEX</span>      <span class="o">=</span> <span class="mi">16</span><span class="p">;</span>         <span class="c1">// This property is not to be FT indexed/searched.</span>
-    <span class="na">META_NONSERIALIZABLE</span> <span class="o">=</span> <span class="mi">8</span><span class="p">;</span>         <span class="c1">// Property is nonserializable (e.g. PROP_SPEC_CLASSID).</span>
+    <span class="na">META_INHERIT</span>        <span class="o">=</span> <span class="mi">16</span><span class="p">;</span>         <span class="c1">// Inherited property of a class (equiv. to a method if VT_EXPR or to a static member).</span>
     <span class="na">META_IFEXIST</span>        <span class="o">=</span> <span class="mi">8</span><span class="p">;</span>          <span class="c1">// In modify/transform - apply modification if property exists, otherwise - ignore.</span>
     <span class="na">META_IFNOTEXIST</span>     <span class="o">=</span> <span class="mi">4</span><span class="p">;</span>          <span class="c1">// In modify/transform - apply modification (OP_SET or OP_ADD) if property doesn&#39;t exist, otherwise - ignore.</span>
     <span class="na">META_DERIVED</span>        <span class="o">=</span> <span class="mi">4</span><span class="p">;</span>          <span class="c1">// This property was calculated from other properties in transform rather than stored with the pin.</span>
-    <span class="na">META_RACCESS</span>        <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>          <span class="c1">// [Future.] A stream should be optimized for random access.</span>
-    <span class="na">META_STOPWORDS</span>      <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>          <span class="c1">// Filter stop words in FT indexing.</span>
+    <span class="na">META_STOPWORDS</span>      <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>          <span class="c1">// Filter stop words in FT indexing.</span>
 <span class="p">}</span>
 
 <span class="kd">enum</span> <span class="n">ACLPermissions</span> <span class="p">{</span>
@@ -149,18 +149,18 @@
     <span class="na">CF_UNIQUE</span>       <span class="o">=</span> <span class="mi">16</span><span class="p">;</span>     <span class="c1">// Family with unique values.</span>
 <span class="p">}</span>
 
-<span class="c1">// pathSQL statements (query,insert,update,delete) and individual PIN modification operations can return information with various level of details.</span>
+<span class="c1">// PathSQL statements (query,insert,update,delete) and individual PIN modification operations can return information with various level of details.</span>
 <span class="kd">enum</span> <span class="n">ReturnType</span> <span class="p">{</span>
-    <span class="na">RT_PINS</span>         <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="c1">// Specifies that a query will return entire MVStream::PIN object(s) (see definition below).</span>
-    <span class="na">RT_COUNT</span>        <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// Specifies that a query will return a simple count.</span>
-    <span class="na">RT_PIDS</span>         <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// Specifies that a query will return MVStream::PIN object(s) containing only MVStream::PIN::id field.</span>
-    <span class="na">RT_SRCPINS</span>      <span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// Like RT_PINS, but VT_EXPR and VT_QUERY are converted to string form.</span>
-    <span class="na">RT_VALUES</span>       <span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// Specifies that a query will return Value object(s).</span>
+    <span class="na">RT_PINS</span>         <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// Specifies that a query will return entire AfyStream::PIN object(s) (see definition below).</span>
+    <span class="na">RT_COUNT</span>        <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// Specifies that a query will return a simple count.</span>
+    <span class="na">RT_PIDS</span>         <span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// Specifies that a query will return AfyStream::PIN object(s) containing only MVStream::PIN::id field.</span>
+    <span class="na">RT_SRCPINS</span>      <span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// Like RT_PINS, but VT_EXPR and VT_QUERY are converted to string form.</span>
+    <span class="na">RT_VALUES</span>       <span class="o">=</span> <span class="mi">5</span><span class="p">;</span> <span class="c1">// Specifies that a query will return Value object(s).</span>
 <span class="p">}</span>
 
 <span class="c1">// Every PIN holds a globally unique ID.</span>
 <span class="kd">message</span> <span class="nc">PID</span> <span class="p">{</span>
-    <span class="k">optional</span> <span class="kt">uint64</span>  <span class="na">id</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// The unique identifier of a MVStream::PIN, in the scope of PID::ident&#39;s store (and replicas).</span>
+    <span class="k">optional</span> <span class="kt">uint64</span>  <span class="na">id</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// The unique identifier of a AfyStream::PIN, in the scope of PID::ident&#39;s store (and replicas).</span>
     <span class="k">optional</span> <span class="kt">uint32</span>  <span class="na">ident</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// The numeric identity ID of the owner of that PIN. The combination of ident and id is globally unique.</span>
 <span class="p">}</span>
 
@@ -173,14 +173,14 @@
 <span class="p">}</span>
 
 <span class="c1">// The Value structure can describe the value of a PIN property, or one logical update, or even a whole collection.</span>
-<span class="c1">// Please refer to the documentation for context on mvStore&#39;s data model: PINs, properties, values, collections and elements.</span>
+<span class="c1">// Please refer to the documentation for context on Affinity&#39;s data model: PINs, properties, values, collections and elements.</span>
 <span class="kd">message</span> <span class="nc">Value</span> <span class="p">{</span>
     <span class="c1">// Every value has a type. Value::type is a required field.</span>
     <span class="c1">// Even though the &quot;union&quot; fields of Value (str, bstr, i, ui etc.) already</span>
     <span class="c1">// define a type implicitly via the protocol buffer&#39;s descriptor,</span>
     <span class="c1">// Value::type must always be set explicitly. This is partly</span>
     <span class="c1">// to disambiguate some overlapping types (e.g. VT_UINT vs VT_URIID).</span>
-    <span class="c1">// Please refer to the documentation for more information on mvStore&#39;s data types.</span>
+    <span class="c1">// Please refer to the documentation for more information on Affinity&#39;s data types.</span>
     <span class="kd">enum</span> <span class="n">ValueType</span> <span class="p">{</span>
         <span class="na">VT_ANY</span>          <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="c1">// To specify open-ended ranges</span>
 
@@ -188,7 +188,7 @@
         <span class="na">VT_UINT</span>         <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// A 32-bit unsigned integer.</span>
         <span class="na">VT_INT64</span>        <span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// A 64-bit signed integer.</span>
         <span class="na">VT_UINT64</span>       <span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// A 64-bit unsigned integer.</span>
-        <span class="na">VT_DECIMAL</span>      <span class="o">=</span> <span class="mi">5</span><span class="p">;</span> <span class="c1">// [Future.] A resolution-independent decimal number.</span>
+        <span class="na">VT_RESERVED2</span>    <span class="o">=</span> <span class="mi">5</span><span class="p">;</span> <span class="c1">// [Future.] A resolution-independent decimal number.</span>
         <span class="na">VT_FLOAT</span>        <span class="o">=</span> <span class="mi">6</span><span class="p">;</span> <span class="c1">// A single-precision IEEE 754 floating-point number.</span>
         <span class="na">VT_DOUBLE</span>       <span class="o">=</span> <span class="mi">7</span><span class="p">;</span> <span class="c1">// A double-precision IEEE 754 floating-point number.</span>
 
@@ -203,14 +203,14 @@
         <span class="na">VT_STRING</span>       <span class="o">=</span> <span class="mi">13</span><span class="p">;</span> <span class="c1">// A standard text string.</span>
         <span class="na">VT_BSTR</span>         <span class="o">=</span> <span class="mi">14</span><span class="p">;</span> <span class="c1">// A binary string.</span>
         <span class="na">VT_URL</span>          <span class="o">=</span> <span class="mi">15</span><span class="p">;</span> <span class="c1">// A text string representing a URL.</span>
-        <span class="na">VT_ENUM</span>         <span class="o">=</span> <span class="mi">16</span><span class="p">;</span> <span class="c1">// {Future.] A 32-bit unsigned enumeration value.</span>
+        <span class="na">VT_RESERVED1</span>    <span class="o">=</span> <span class="mi">16</span><span class="p">;</span> <span class="c1">// {Future.] A 32-bit unsigned enumeration value.</span>
 
         <span class="na">VT_REFID</span>        <span class="o">=</span> <span class="mi">18</span><span class="p">;</span> <span class="c1">// A reference (Ref) to a PIN.</span>
         <span class="na">VT_REFIDPROP</span>    <span class="o">=</span> <span class="mi">20</span><span class="p">;</span> <span class="c1">// A reference (Ref) to a property of a PIN.</span>
         <span class="na">VT_REFIDELT</span>     <span class="o">=</span> <span class="mi">22</span><span class="p">;</span> <span class="c1">// A reference (Ref) to a collection element of a property of a PIN.</span>
 
-        <span class="na">VT_EXPR</span>         <span class="o">=</span> <span class="mi">23</span><span class="p">;</span> <span class="c1">// A stored expression, expressed in pathSQL or BLOB.</span>
-        <span class="na">VT_QUERY</span>        <span class="o">=</span> <span class="mi">24</span><span class="p">;</span> <span class="c1">// A stored statement, expressed in pathSQL or BLOB.</span>
+        <span class="na">VT_EXPR</span>         <span class="o">=</span> <span class="mi">23</span><span class="p">;</span> <span class="c1">// A stored expression, expressed in PathSQL or BLOB.</span>
+        <span class="na">VT_QUERY</span>        <span class="o">=</span> <span class="mi">24</span><span class="p">;</span> <span class="c1">// A stored statement, expressed in PathSQL or BLOB.</span>
 
         <span class="na">VT_ARRAY</span>        <span class="o">=</span> <span class="mi">25</span><span class="p">;</span> <span class="c1">// A collection (array of values).</span>
         <span class="na">VT_STRUCT</span>       <span class="o">=</span> <span class="mi">27</span><span class="p">;</span> <span class="c1">// A composite value.</span>
@@ -264,14 +264,14 @@
         <span class="k">required</span> <span class="kt">uint32</span> <span class="na">length</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// Specifies how many characters/bytes should be deleted from the original string, before insertion. Can be 0.</span>
         <span class="k">optional</span> <span class="kt">uint64</span> <span class="na">offset</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// Specifies the offset at which StrEdit::length should be deleted, and StrEdit::str/StrEdit::bstr should be inserted.</span>
     <span class="p">}</span>
-    <span class="c1">// For ranges and collections.</span>
+    <span class="c1">// For structs, collections and ranges.</span>
     <span class="kd">message</span> <span class="nc">VArray</span> <span class="p">{</span>
         <span class="k">optional</span> <span class="kt">uint32</span>  <span class="na">l</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// Specifies the number of elements in the collection.</span>
         <span class="k">repeated</span> <span class="n">Value</span>    <span class="na">v</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// Each element is a Value.</span>
     <span class="p">}</span>
     
     <span class="k">optional</span> <span class="n">ValueType</span>    <span class="na">type</span>        <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// The type of the value.</span>
-    <span class="k">optional</span> <span class="kt">uint32</span>      <span class="na">property</span>    <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// The numeric ID of the property that this value belongs to, as defined by the relevant MVStream::StringMap.</span>
+    <span class="k">optional</span> <span class="kt">uint32</span>      <span class="na">property</span>    <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// The numeric ID of the property that this value belongs to, as defined by the relevant AfyStream::StringMap.</span>
 
     <span class="c1">// The following fields are meant to be used as a union, based on Value::type.</span>
     <span class="k">optional</span> <span class="kt">string</span>      <span class="na">str</span>         <span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// The VT_STRING or VT_URL value, or string form of VT_EXPR or VT_QUERY.</span>
@@ -299,15 +299,15 @@
     <span class="k">optional</span> <span class="kt">uint64</span>      <span class="na">cid</span>         <span class="o">=</span> <span class="mi">128</span><span class="p">;</span> <span class="c1">// Client-side ID. Allows identifying the statement generated this result.</span>
 <span class="p">}</span>
 
-<span class="c1">// MVStream encapsulates all the elements that can be inserted/retrieved in a</span>
-<span class="c1">// protobuf stream of mvStore objects. It can completely represent any output</span>
-<span class="c1">// response returned by mvStore. It can also be used to build a segment of any</span>
-<span class="c1">// input request sent to mvStore. mvstore.proto does not define</span>
+<span class="c1">// AfyStream encapsulates all the elements that can be inserted/retrieved in a</span>
+<span class="c1">// protobuf stream of Affinity objects. It can completely represent any output</span>
+<span class="c1">// response returned by Affinity. It can also be used to build a segment of any</span>
+<span class="c1">// input request sent to Affinity. affinity.proto does not define</span>
 <span class="c1">// an overall structure for input streams, nor does it specify illegal sequences.</span>
-<span class="c1">// Incorrect usage will simply be reported as errors by mvStore.</span>
-<span class="kd">message</span> <span class="nc">MVStream</span>
+<span class="c1">// Incorrect usage will simply be reported as errors by Affinity.</span>
+<span class="kd">message</span> <span class="nc">AfyStream</span>
 <span class="p">{</span>
-    <span class="c1">// In an input stream sent to mvStore, specifies how a PIN message</span>
+    <span class="c1">// In an input stream sent to Affinity, specifies how a PIN message</span>
     <span class="c1">// is meant to be interpreted by the store.</span>
     <span class="kd">enum</span> <span class="n">MODOP</span> <span class="p">{</span>
         <span class="na">OP_INSERT</span>   <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="c1">// A PIN insert.</span>
@@ -316,7 +316,7 @@
         <span class="na">OP_COPY</span>     <span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// A PIN copy.</span>
         <span class="na">OP_UNDELETE</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// A PIN undelete.</span>
     <span class="p">}</span>
-    <span class="c1">// Allows to define transaction boundaries (see the big comment for MVStream, above).</span>
+    <span class="c1">// Allows to define transaction boundaries (see the big comment for AfyStream, above).</span>
     <span class="kd">enum</span> <span class="n">TXOP</span> <span class="p">{</span>
         <span class="na">TX_START</span>            <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// Start a transaction, or if a transaction is already active, a nested sub-transaction.</span>
         <span class="na">TX_COMMIT</span>           <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// Commit the innermost nested transaction, for the current stream.</span>
@@ -327,26 +327,26 @@
         <span class="na">TX_START_CLASSMODIFY</span> <span class="o">=</span> <span class="mi">7</span><span class="p">;</span> <span class="c1">// Start a transaction, which can modify class pins.</span>
     <span class="p">}</span>
     <span class="c1">// Allows to specify name and identity mappings, to avoid repeating names.</span>
-    <span class="c1">// In an input stream sent to mvStore, the mapping is purely logical (the IDs are not persistent).</span>
-    <span class="c1">// In an output stream returned by mvStore, the mapping is the store&#39;s persistent mapping; it can be cached and reused by the client.</span>
+    <span class="c1">// In an input stream sent to Affinity, the mapping is purely logical (the IDs are not persistent).</span>
+    <span class="c1">// In an output stream returned by Affinity, the mapping is the store&#39;s persistent mapping; it can be cached and reused by the client.</span>
     <span class="kd">message</span> <span class="nc">StringMap</span> <span class="p">{</span>
         <span class="k">required</span> <span class="kt">string</span>  <span class="na">str</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// The name (URI or Identity).</span>
         <span class="k">required</span> <span class="kt">uint32</span> <span class="na">id</span>   <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// The corresponding ID.</span>
     <span class="p">}</span>
-    <span class="c1">// Query result meta-data, returned by mvStore in an output stream.</span>
+    <span class="c1">// Query result meta-data, returned by Affinity in an output stream.</span>
     <span class="kd">message</span> <span class="nc">Result</span> <span class="p">{</span>
         <span class="k">optional</span> <span class="kt">uint64</span>      <span class="na">cid</span>     <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// Client-side ID of corresponding PathSQL or PIN message.</span>
         <span class="k">optional</span> <span class="n">ErrorCode</span>    <span class="na">error</span>   <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// Error code. If success - this field is omitted.</span>
         <span class="k">optional</span> <span class="kt">uint64</span>      <span class="na">count</span>   <span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// Result count (only in case of success).</span>
         <span class="k">optional</span> <span class="n">MODOP</span>        <span class="na">op</span>      <span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// The operation performed.</span>
     <span class="p">}</span>
-    <span class="c1">// Specifies a pathSQL statement, in an input stream.</span>
+    <span class="c1">// Specifies a PathSQL statement, in an input stream.</span>
     <span class="kd">message</span> <span class="nc">PathSQL</span> <span class="p">{</span>
-        <span class="k">required</span> <span class="kt">string</span>      <span class="na">sq</span>      <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// Specifies the pathSQL statement as a string.</span>
+        <span class="k">required</span> <span class="kt">string</span>      <span class="na">sq</span>      <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// Specifies the PathSQL statement as a string.</span>
         <span class="k">optional</span> <span class="kt">uint64</span>      <span class="na">cid</span>     <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// Client-side ID. Allows identifying results that relate to this statement.</span>
         <span class="k">optional</span> <span class="n">ReturnType</span>   <span class="na">rtt</span>     <span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// Specifies what level of details is expected in the result.</span>
-        <span class="k">repeated</span> <span class="kt">uint32</span>      <span class="na">uids</span>    <span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// Specifies the property ids referred to by the pathSQL statement, if any.</span>
-        <span class="k">repeated</span> <span class="n">Value</span>        <span class="na">params</span>  <span class="o">=</span> <span class="mi">5</span><span class="p">;</span> <span class="c1">// Specifies the values of the parameters in the pathSQL statement, if any.</span>
+        <span class="k">repeated</span> <span class="kt">uint32</span>      <span class="na">uids</span>    <span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// Specifies the property ids referred to by the PathSQL statement, if any.</span>
+        <span class="k">repeated</span> <span class="n">Value</span>        <span class="na">params</span>  <span class="o">=</span> <span class="mi">5</span><span class="p">;</span> <span class="c1">// Specifies the values of the parameters in the PathSQL statement, if any.</span>
         <span class="k">optional</span> <span class="kt">uint32</span>      <span class="na">limit</span>   <span class="o">=</span> <span class="mi">6</span><span class="p">;</span> <span class="c1">// For pagination (standard).</span>
         <span class="k">optional</span> <span class="kt">uint32</span>      <span class="na">offset</span>  <span class="o">=</span> <span class="mi">7</span><span class="p">;</span> <span class="c1">// For pagination (standard).</span>
         <span class="k">optional</span> <span class="kt">uint32</span>      <span class="na">mode</span>    <span class="o">=</span> <span class="mi">8</span><span class="p">;</span> <span class="c1">// Special modifiers.</span>
@@ -358,7 +358,7 @@
         <span class="k">optional</span> <span class="n">MODOP</span>        <span class="na">op</span>      <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// Operation to perform on this PIN. If missing insert is implied.</span>
         <span class="k">optional</span> <span class="n">PID</span>      <span class="na">id</span>      <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// PIN ID (for existing PINs and update/delete/copy/undelete operations).</span>
         <span class="k">optional</span> <span class="kt">uint32</span>      <span class="na">mode</span>    <span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// Special modifiers.</span>
-        <span class="k">optional</span> <span class="kt">uint32</span>      <span class="na">stamp</span>   <span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// PIN stamp. Only relevant in output streams returned by mvStore.</span>
+        <span class="k">optional</span> <span class="kt">uint32</span>      <span class="na">stamp</span>   <span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// PIN stamp. Only relevant in output streams returned by Affinity.</span>
         <span class="k">optional</span> <span class="kt">uint32</span>      <span class="na">nValues</span> <span class="o">=</span> <span class="mi">5</span><span class="p">;</span> <span class="c1">// Optional specifier for the number of values of properties. Optimization.</span>
         <span class="k">repeated</span> <span class="n">Value</span>        <span class="na">values</span>  <span class="o">=</span> <span class="mi">6</span><span class="p">;</span> <span class="c1">// Values of properties of the PIN.</span>
         <span class="k">optional</span> <span class="kt">uint64</span>      <span class="na">cid</span>     <span class="o">=</span> <span class="mi">7</span><span class="p">;</span> <span class="c1">// Client-side ID. Used for references between uncommitted PINs and to relate results to the request.</span>
@@ -382,11 +382,11 @@
     <span class="k">optional</span> <span class="n">StringMap</span>    <span class="na">owner</span>       <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// Owner of the store returning results (output stream only).</span>
     <span class="k">optional</span> <span class="kt">uint32</span>      <span class="na">storeID</span>     <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// Store ID of the store returning results (output stream only).</span>
     <span class="k">repeated</span> <span class="n">PIN</span>      <span class="na">pins</span>        <span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// A set of PIN descriptions. In input streams, can be used to insert or update PINs. In output streams, describes the query result.</span>
-    <span class="k">repeated</span> <span class="n">StringMap</span>    <span class="na">properties</span>  <span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// A map of property IDs vs names (URIs). In input streams sent to mvStore, the mapping is purely logical (note: by convention property IDs start at 64). In output streams returned by mvStore, the mapping is mvStore&#39;s persistent internal mapping.</span>
-    <span class="k">repeated</span> <span class="n">StringMap</span>    <span class="na">identities</span>  <span class="o">=</span> <span class="mi">5</span><span class="p">;</span> <span class="c1">// A map of identity IDs vs names (URIs). In input streams sent to mvStore, the mapping is purely logical. In output streams, the mapping is mvStore&#39;s persistent internal mapping.</span>
-    <span class="k">repeated</span> <span class="n">PathSQL</span>  <span class="na">stmt</span>        <span class="o">=</span> <span class="mi">6</span><span class="p">;</span> <span class="c1">// Query to be executed. Only relevant in input streams sent to mvStore.</span>
+    <span class="k">repeated</span> <span class="n">StringMap</span>    <span class="na">properties</span>  <span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// A map of property IDs vs names (URIs). In input streams sent to Affinity, the mapping is purely logical (note: by convention property IDs start at 64). In output streams returned by mvStore, the mapping is mvStore&#39;s persistent internal mapping.</span>
+    <span class="k">repeated</span> <span class="n">StringMap</span>    <span class="na">identities</span>  <span class="o">=</span> <span class="mi">5</span><span class="p">;</span> <span class="c1">// A map of identity IDs vs names (URIs). In input streams sent to Affinity, the mapping is purely logical. In output streams, the mapping is mvStore&#39;s persistent internal mapping.</span>
+    <span class="k">repeated</span> <span class="n">PathSQL</span>  <span class="na">stmt</span>        <span class="o">=</span> <span class="mi">6</span><span class="p">;</span> <span class="c1">// Query to be executed. Only relevant in input streams sent to Affinity.</span>
     <span class="k">repeated</span> <span class="n">TXOP</span>     <span class="na">txop</span>        <span class="o">=</span> <span class="mi">7</span><span class="p">;</span> <span class="c1">// A transaction operation. In practice, this will only ever contain one element.</span>
-    <span class="k">repeated</span> <span class="n">Result</span>       <span class="na">result</span>      <span class="o">=</span> <span class="mi">8</span><span class="p">;</span> <span class="c1">// Query result meta-data. Only relevant in streams output by mvStore. Matches the specified ReturnType.</span>
+    <span class="k">repeated</span> <span class="n">Result</span>       <span class="na">result</span>      <span class="o">=</span> <span class="mi">8</span><span class="p">;</span> <span class="c1">// Query result meta-data. Only relevant in streams output by Affinity. Matches the specified ReturnType.</span>
     <span class="k">repeated</span> <span class="n">Compound</span> <span class="na">compound</span>    <span class="o">=</span> <span class="mi">9</span><span class="p">;</span> <span class="c1">// A few PINs returned as a set.</span>
     <span class="k">repeated</span> <span class="n">Status</span>       <span class="na">status</span>      <span class="o">=</span> <span class="mi">10</span><span class="p">;</span> <span class="c1">// [Not available yet.] To obtain status of a transaction running asynchronously in the server. Applies to &quot;server mode&quot; only.</span>
     <span class="k">repeated</span> <span class="kt">uint32</span>      <span class="na">flush</span>       <span class="o">=</span> <span class="mi">11</span><span class="p">;</span> <span class="c1">// To request immediate partial output at any known point in the stream (e.g. to obtain PIDs during a transaction).</span>

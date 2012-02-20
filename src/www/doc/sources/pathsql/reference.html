@@ -8,7 +8,7 @@
 <!-- begin highlighted code -->
 <pre>
 INSERT (prop1) VALUES ({'test for pin refer', 'test for property refer', 'test for property element refer'});
-update @0000000000050001 set mv:value='this is pin value which has prop1';
+update @0000000000050001 set afy:value='this is pin value which has prop1';
 EXECUTE EXPRESSION AS cast(@0000000000050001 AS STRING);
 EXECUTE EXPRESSION AS cast(*@0000000000050001 AS STRING);
 EXECUTE EXPRESSION AS @0000000000050001;  -- reference

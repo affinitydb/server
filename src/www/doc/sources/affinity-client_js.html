@@ -39,7 +39,7 @@
   <span class="p">}</span>
 <span class="p">}</span>
 
-<span class="c1">// Connection to a mvStore server.</span>
+<span class="c1">// Connection to an Affinity server.</span>
 <span class="c1">// Notes:</span>
 <span class="c1">//   . The connection is &#39;single-threaded&#39; in the sense that it can only handle</span>
 <span class="c1">//     one transaction (i.e. one long http request) at a time; &#39;multi-threading&#39;</span>
@@ -61,24 +61,24 @@
   <span class="nx">lUri</span><span class="p">.</span><span class="nx">__proto__</span> <span class="o">=</span> <span class="p">{</span> <span class="nx">host</span><span class="o">:</span><span class="s1">&#39;127.0.0.1:4560&#39;</span><span class="p">,</span> <span class="nx">port</span><span class="o">:</span><span class="mi">4560</span><span class="p">,</span> <span class="nx">hostname</span><span class="o">:</span><span class="s1">&#39;127.0.0.1&#39;</span><span class="p">,</span> <span class="nx">pathname</span><span class="o">:</span><span class="s2">&quot;/db/&quot;</span> <span class="p">};</span> <span class="c1">// Note: Assignment to __proto__ means that any member of lUri not explicitly defined will default to the members of this __proto__.</span>
 
   <span class="c1">// Protobuf config.</span>
-  <span class="kd">var</span> <span class="nx">lMvProtoSchema</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">lib_protobuf</span><span class="p">.</span><span class="nx">Schema</span><span class="p">(</span><span class="nx">lib_fs</span><span class="p">.</span><span class="nx">readFileSync</span><span class="p">(</span><span class="s1">&#39;mvstore.desc&#39;</span><span class="p">));</span>
-  <span class="kd">var</span> <span class="nx">lMvStream</span> <span class="o">=</span> <span class="nx">lMvProtoSchema</span><span class="p">[</span><span class="s1">&#39;MVStorePB.MVStream&#39;</span><span class="p">];</span>
+  <span class="kd">var</span> <span class="nx">lAfyProtoSchema</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">lib_protobuf</span><span class="p">.</span><span class="nx">Schema</span><span class="p">(</span><span class="nx">lib_fs</span><span class="p">.</span><span class="nx">readFileSync</span><span class="p">(</span><span class="s1">&#39;affinity.desc&#39;</span><span class="p">));</span>
+  <span class="kd">var</span> <span class="nx">lAfyStream</span> <span class="o">=</span> <span class="nx">lAfyProtoSchema</span><span class="p">[</span><span class="s1">&#39;AffinityPB.AfyStream&#39;</span><span class="p">];</span>
   <span class="kd">var</span> <span class="nx">lTxCtx</span> <span class="o">=</span> <span class="kc">null</span><span class="p">;</span> <span class="c1">// Represents the current txctx/long-http-request for this connection.</span>
   <span class="kd">var</span> <span class="nx">lNextCid</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// Next stmt id.</span>
   <span class="kd">var</span> <span class="nx">lKeepAlive</span> <span class="o">=</span> <span class="p">{</span><span class="nx">on</span><span class="o">:</span><span class="p">((</span><span class="s2">&quot;keepalive&quot;</span> <span class="k">in</span> <span class="nx">pOptions</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="nx">pOptions</span><span class="p">.</span><span class="nx">keepalive</span><span class="p">),</span> <span class="nx">client</span><span class="o">:</span><span class="kc">null</span><span class="p">}</span>
 
   <span class="c1">// Protobuf constants.</span>
   <span class="c1">// Note: The unofficial trick of using enums as constants is simply not available in this protobuf implementation.</span>
-  <span class="kd">var</span> <span class="nx">MV_FIRST_PROPID</span> <span class="o">=</span> <span class="mi">255</span><span class="cm">/*SP_MAX*/</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
-  <span class="kd">var</span> <span class="nx">MV_TIME_OFFSET</span> <span class="o">=</span> <span class="p">(</span><span class="k">new</span> <span class="nb">Date</span><span class="p">(</span><span class="mi">1970</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">).</span><span class="nx">valueOf</span><span class="p">()</span> <span class="o">-</span> <span class="k">new</span> <span class="nb">Date</span><span class="p">(</span><span class="mi">1601</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">).</span><span class="nx">valueOf</span><span class="p">())</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">;</span>
+  <span class="kd">var</span> <span class="nx">AFY_FIRST_PROPID</span> <span class="o">=</span> <span class="mi">255</span><span class="cm">/*SP_MAX*/</span> <span class="o">+</span> <span class="mi">1</span><span class="p">;</span>
+  <span class="kd">var</span> <span class="nx">AFY_TIME_OFFSET</span> <span class="o">=</span> <span class="p">(</span><span class="k">new</span> <span class="nb">Date</span><span class="p">(</span><span class="mi">1970</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">).</span><span class="nx">valueOf</span><span class="p">()</span> <span class="o">-</span> <span class="k">new</span> <span class="nb">Date</span><span class="p">(</span><span class="mi">1601</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mi">1</span><span class="p">).</span><span class="nx">valueOf</span><span class="p">())</span> <span class="o">*</span> <span class="mi">1000</span><span class="p">;</span>
   <span class="kd">var</span> <span class="nx">EID_COLLECTION</span> <span class="o">=</span> <span class="mi">4294967295</span><span class="p">;</span>
   <span class="kd">var</span> <span class="nx">EID_LAST_ELEMENT</span> <span class="o">=</span> <span class="mi">4294967294</span><span class="p">;</span>
   <span class="kd">var</span> <span class="nx">EID_FIRST_ELEMENT</span> <span class="o">=</span> <span class="mi">4294967293</span><span class="p">;</span>
-  <span class="kd">var</span> <span class="nx">RT_PIDS</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
-  <span class="kd">var</span> <span class="nx">RT_PINS</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+  <span class="kd">var</span> <span class="nx">RT_PIDS</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>
+  <span class="kd">var</span> <span class="nx">RT_PINS</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
   
   <span class="c1">// Other constants.</span>
-  <span class="kd">var</span> <span class="nx">PREFIX_JS_PROP</span> <span class="o">=</span> <span class="s2">&quot;http://localhost/mv/property/1.0/&quot;</span><span class="p">;</span>
+  <span class="kd">var</span> <span class="nx">PREFIX_JS_PROP</span> <span class="o">=</span> <span class="s2">&quot;http://localhost/afy/property/1.0/&quot;</span><span class="p">;</span>
   <span class="kd">var</span> <span class="nx">PROP_JS_PROTOTYPE</span> <span class="o">=</span> <span class="nx">PREFIX_JS_PROP</span> <span class="o">+</span> <span class="s2">&quot;js_prototype&quot;</span><span class="p">;</span> <span class="c1">// Reference to the object&#39;s prototype pin (Review: Use Mark&#39;s special prop).</span>
   <span class="kd">var</span> <span class="nx">PROP_JS_PROTOTYPE_HASH</span> <span class="o">=</span> <span class="nx">PROP_JS_PROTOTYPE</span> <span class="o">+</span> <span class="s2">&quot;/hash&quot;</span><span class="p">;</span> <span class="c1">// Prototype hash, used to identify distinct prototypes (in a global, deterministic way).</span>
   <span class="kd">var</span> <span class="nx">PROP_JS_CONSTRUCTOR</span> <span class="o">=</span> <span class="nx">PREFIX_JS_PROP</span> <span class="o">+</span> <span class="s2">&quot;js_constructor&quot;</span><span class="p">;</span> <span class="c1">// Reference to the object&#39;s constructor pin (including &#39;static&#39; methods).</span>
@@ -94,7 +94,7 @@
 <span class="cm">   * Private implementation helpers.</span>
 <span class="cm">   */</span>
 
-  <span class="c1">// Generic http GET/POST to the mvstore server (supports both the pure pathSQL path and the protobuf path).</span>
+  <span class="c1">// Generic http GET/POST to the Affinity server (supports both the pure pathSQL path and the protobuf path).</span>
   <span class="kd">function</span> <span class="nx">private_http</span><span class="p">(</span><span class="nx">_pPath</span><span class="p">,</span> <span class="nx">_pBody</span><span class="p">,</span> <span class="nx">_pCallback</span><span class="p">)</span>
   <span class="p">{</span>
     <span class="kd">var</span> <span class="nx">_lStream</span> <span class="o">=</span> <span class="nx">_pCallback</span> <span class="o">?</span> <span class="kc">null</span> <span class="o">:</span> <span class="k">new</span> <span class="nx">lib_events</span><span class="p">.</span><span class="nx">EventEmitter</span><span class="p">();</span>
@@ -114,7 +114,7 @@
               <span class="k">if</span> <span class="p">(</span><span class="nx">_pCallback</span><span class="p">)</span>
               <span class="p">{</span>
                 <span class="k">if</span> <span class="p">(</span><span class="nx">_lIsGoodStatus</span><span class="p">(</span><span class="nx">__pResponse</span><span class="p">))</span>
-                  <span class="p">{</span> <span class="nx">_pCallback</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="nx">__lResponse</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="o">?</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">__lResponse</span><span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/\s+/g</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">))</span> <span class="o">:</span> <span class="kc">null</span><span class="p">);</span> <span class="p">}</span>
+                  <span class="p">{</span> <span class="nx">_pCallback</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="p">(</span><span class="kc">undefined</span> <span class="o">!=</span> <span class="nx">__lResponse</span> <span class="o">&amp;&amp;</span> <span class="nx">__lResponse</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">?</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">__lResponse</span><span class="p">.</span><span class="nx">replace</span><span class="p">(</span><span class="sr">/\s+/g</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">))</span> <span class="o">:</span> <span class="kc">null</span><span class="p">);</span> <span class="p">}</span>
                 <span class="k">else</span>
                 <span class="p">{</span>
                   <span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="s2">&quot;ERROR &quot;</span> <span class="o">+</span> <span class="nx">__pResponse</span><span class="p">.</span><span class="nx">statusCode</span> <span class="o">+</span> <span class="s2">&quot; (private_http): &quot;</span> <span class="o">+</span> <span class="nx">__lResponse</span> <span class="o">+</span> <span class="s2">&quot;(on &quot;</span> <span class="o">+</span> <span class="nb">decodeURIComponent</span><span class="p">(</span><span class="nx">_pPath</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;)&quot;</span><span class="p">);</span>
@@ -205,7 +205,7 @@
     <span class="c1">//</span>
     <span class="c1">// Note:</span>
     <span class="c1">//   Ideally, for simplicity and consistency, I would not use private_longhttp at all, when running in keep-alive mode.</span>
-    <span class="c1">//   However, currently mvstore treats each protobuf message as a topmost transaction, and aborts it</span>
+    <span class="c1">//   However, currently Affinity treats each protobuf message as a topmost transaction, and aborts it</span>
     <span class="c1">//   if it doesn&#39;t commit by itself. For that reason, I&#39;m still forced to go via private_longhttp</span>
     <span class="c1">//   in keep-alive mode. That implies that plain (non-protobuf, non-pathsqlProto) pathSQL requests can&#39;t be used</span>
     <span class="c1">//   inside protobuf transactions.</span>
@@ -238,7 +238,7 @@
             <span class="nx">_lThis</span><span class="p">.</span><span class="nx">mResponse</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Buffer</span><span class="p">(</span><span class="nx">___lChunkLen</span><span class="p">);</span>
             <span class="nx">_lThis</span><span class="p">.</span><span class="nx">mResponse</span><span class="p">.</span><span class="nx">write</span><span class="p">(</span><span class="nx">___pChunk</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s2">&quot;binary&quot;</span><span class="p">);</span>
             <span class="c1">// dbg_savePBStr(_lThis.mResponse);</span>
-            <span class="c1">// console.log(&quot;private_longhttp._lOnResponse: received &quot; + JSON.stringify(lMvStream.parse(_lThis.mResponse)));</span>
+            <span class="c1">// console.log(&quot;private_longhttp._lOnResponse: received &quot; + JSON.stringify(lAfyStream.parse(_lThis.mResponse)));</span>
             <span class="k">if</span> <span class="p">(</span><span class="nx">_lThis</span><span class="p">.</span><span class="nx">mEnded</span><span class="p">)</span>
             <span class="p">{</span>
               <span class="c1">// console.log(&quot;private_longhttp._lOnResponse: ended the request&quot;);</span>
@@ -315,7 +315,7 @@
     <span class="p">}</span>
   <span class="p">}</span>
 
-  <span class="c1">// Helper for options supported by the mvserver on the url.</span>
+  <span class="c1">// Helper for options supported by the Affinity server on the url.</span>
   <span class="kd">function</span> <span class="nx">appendUrlOptions</span><span class="p">(</span><span class="nx">_pUrl</span><span class="p">,</span> <span class="nx">_pOptions</span><span class="p">)</span>
   <span class="p">{</span>
     <span class="kd">var</span> <span class="nx">_lUrl</span> <span class="o">=</span> <span class="nx">_pUrl</span><span class="p">;</span>
@@ -354,14 +354,14 @@
   <span class="p">{</span>
     <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="k">new</span> <span class="nb">Error</span><span class="p">().</span><span class="nx">stack</span><span class="p">);</span>
   <span class="p">}</span>
-  <span class="kd">function</span> <span class="nx">dbg_savePBStr</span><span class="p">(</span><span class="nx">_pMsgStr</span><span class="p">)</span> <span class="c1">// Similar to mvstore.py.</span>
+  <span class="kd">function</span> <span class="nx">dbg_savePBStr</span><span class="p">(</span><span class="nx">_pMsgStr</span><span class="p">)</span> <span class="c1">// Similar to affinity.py.</span>
   <span class="p">{</span>
     <span class="nx">_lF</span> <span class="o">=</span> <span class="nx">lib_fs</span><span class="p">.</span><span class="nx">openSync</span><span class="p">(</span><span class="s2">&quot;/tmp/myproto.bin&quot;</span><span class="p">,</span> <span class="s2">&quot;w+&quot;</span><span class="p">);</span>
     <span class="nx">lib_fs</span><span class="p">.</span><span class="nx">writeSync</span><span class="p">(</span><span class="nx">_lF</span><span class="p">,</span> <span class="nx">_pMsgStr</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nx">_pMsgStr</span><span class="p">.</span><span class="nx">length</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
     <span class="nx">lib_fs</span><span class="p">.</span><span class="nx">close</span><span class="p">(</span><span class="nx">_lF</span><span class="p">);</span>
   <span class="p">}</span>
 
-  <span class="c1">// Protobuf: transaction context (similar to mvstore.py).</span>
+  <span class="c1">// Protobuf: transaction context (similar to affinity.py).</span>
   <span class="kd">function</span> <span class="nx">private_TxCtx</span><span class="p">()</span>
   <span class="p">{</span>
     <span class="k">this</span><span class="p">.</span><span class="nx">mLabels</span> <span class="o">=</span> <span class="k">new</span> <span class="nb">Array</span><span class="p">();</span> <span class="c1">// Optional labels for this transaction stack (to help debugging etc.); also keeps track of nested transactions.</span>
@@ -398,7 +398,7 @@
     <span class="c1">//     1. the atomic operation itself (one step of a transaction),</span>
     <span class="c1">//     2. the notion of implicit transaction,</span>
     <span class="c1">//     3. the fact that operations may require an immediate</span>
-    <span class="c1">//        roundtrip to mvstore, to obtain store-generated ids,</span>
+    <span class="c1">//        roundtrip to Affinity, to obtain store-generated ids,</span>
     <span class="c1">//     4. the response parsing bound to an operation, if any, and</span>
     <span class="c1">//     5. the need to effect this parsing immediately,</span>
     <span class="c1">//        in the context of a longer transaction (the fate of future</span>
@@ -407,7 +407,7 @@
     <span class="c1">//   . pOptions.mustFlush is just a means of centralizing and controlling</span>
     <span class="c1">//     the use of this protobuf feature, in a way consistent with</span>
     <span class="c1">//     the ability to parse the results (with pResultHandler).</span>
-    <span class="c1">//   . pResultHandler is responsible to handle the results returned by mvstore</span>
+    <span class="c1">//   . pResultHandler is responsible to handle the results returned by Affinity</span>
     <span class="c1">//     for this operation (i.e. parse, extract new ids etc.).</span>
     <span class="c1">//   . When pOptions.mustFlush is true, a pResultHandler must be specified (even for operations that</span>
     <span class="c1">//     generate no interesting response), because this handler also serves</span>
@@ -500,25 +500,25 @@
     <span class="p">{</span>
       <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">_iO</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">_iO</span> <span class="o">&lt;</span> <span class="nx">pStreamObj</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span> <span class="nx">_iO</span><span class="o">++</span><span class="p">)</span>
       <span class="p">{</span>
-        <span class="kd">var</span> <span class="nx">_lMsgSer</span> <span class="o">=</span> <span class="nx">lMvStream</span><span class="p">.</span><span class="nx">serialize</span><span class="p">(</span><span class="nx">pStreamObj</span><span class="p">[</span><span class="nx">_iO</span><span class="p">]);</span>
+        <span class="kd">var</span> <span class="nx">_lMsgSer</span> <span class="o">=</span> <span class="nx">lAfyStream</span><span class="p">.</span><span class="nx">serialize</span><span class="p">(</span><span class="nx">pStreamObj</span><span class="p">[</span><span class="nx">_iO</span><span class="p">]);</span>
         <span class="k">this</span><span class="p">.</span><span class="nx">mSegments</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">_lMsgSer</span><span class="p">);</span>
       <span class="p">}</span>
     <span class="p">}</span>
     <span class="k">else</span>
     <span class="p">{</span>
-      <span class="kd">var</span> <span class="nx">_lMsgSer</span> <span class="o">=</span> <span class="nx">lMvStream</span><span class="p">.</span><span class="nx">serialize</span><span class="p">(</span><span class="nx">pStreamObj</span><span class="p">);</span>
+      <span class="kd">var</span> <span class="nx">_lMsgSer</span> <span class="o">=</span> <span class="nx">lAfyStream</span><span class="p">.</span><span class="nx">serialize</span><span class="p">(</span><span class="nx">pStreamObj</span><span class="p">);</span>
       <span class="k">this</span><span class="p">.</span><span class="nx">mSegments</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">_lMsgSer</span><span class="p">);</span>
     <span class="p">}</span>
     
     <span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">mMustFlushOp</span><span class="p">)</span>
-      <span class="p">{</span> <span class="k">this</span><span class="p">.</span><span class="nx">mSegments</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">lMvStream</span><span class="p">.</span><span class="nx">serialize</span><span class="p">({</span><span class="nx">flush</span><span class="o">:</span><span class="p">[</span><span class="mi">0</span><span class="p">]}));</span> <span class="p">}</span>
+      <span class="p">{</span> <span class="k">this</span><span class="p">.</span><span class="nx">mSegments</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">lAfyStream</span><span class="p">.</span><span class="nx">serialize</span><span class="p">({</span><span class="nx">flush</span><span class="o">:</span><span class="p">[</span><span class="mi">0</span><span class="p">]}));</span> <span class="p">}</span>
   <span class="p">}</span>
   <span class="nx">private_TxCtx</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">startTx</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">pTxLabel</span><span class="cm">/*optional*/</span><span class="p">)</span>
   <span class="p">{</span>
     <span class="c1">// Push a label for this transaction (for debugging and to track nested transactions).</span>
     <span class="k">this</span><span class="p">.</span><span class="nx">_pushTxLabel</span><span class="p">(</span><span class="nx">pTxLabel</span><span class="p">);</span>
     <span class="c1">// Serialize a TX_START protobuf segment.</span>
-    <span class="kd">var</span> <span class="nx">_lMsgSer</span> <span class="o">=</span> <span class="nx">lMvStream</span><span class="p">.</span><span class="nx">serialize</span><span class="p">({</span><span class="nx">txop</span><span class="o">:</span><span class="p">[</span><span class="s1">&#39;TX_START&#39;</span><span class="p">]});</span>
+    <span class="kd">var</span> <span class="nx">_lMsgSer</span> <span class="o">=</span> <span class="nx">lAfyStream</span><span class="p">.</span><span class="nx">serialize</span><span class="p">({</span><span class="nx">txop</span><span class="o">:</span><span class="p">[</span><span class="s1">&#39;TX_START&#39;</span><span class="p">]});</span>
     <span class="k">this</span><span class="p">.</span><span class="nx">mSegments</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">_lMsgSer</span><span class="p">);</span>
   <span class="p">}</span>
   <span class="nx">private_TxCtx</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">commitTx</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">pCallback</span><span class="p">)</span>
@@ -549,7 +549,7 @@
     <span class="c1">//   If none of the segments contains a flush request, _pushData can freeze, as there would be no response from the server.</span>
     <span class="c1">//   We could monitor this situation, or even force a flush here. From a debugging point of view, the flush is immediately</span>
     <span class="c1">//   visible with the trace produced a few lines below.</span>
-    <span class="c1">// this.mSegments.push(lMvStream.serialize({flush:[0]}));</span>
+    <span class="c1">// this.mSegments.push(lAfyStream.serialize({flush:[0]}));</span>
 
     <span class="c1">// Concatenate all segments into one final buffer.</span>
     <span class="kd">var</span> <span class="nx">_iS</span><span class="p">,</span> <span class="nx">_lLen</span> <span class="o">=</span> <span class="mi">0</span>
@@ -559,7 +559,7 @@
     <span class="kd">var</span> <span class="nx">_lPos</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
     <span class="k">for</span> <span class="p">(</span><span class="nx">_iS</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">_iS</span> <span class="o">&lt;</span> <span class="k">this</span><span class="p">.</span><span class="nx">mSegments</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span> <span class="nx">_lPos</span> <span class="o">+=</span> <span class="k">this</span><span class="p">.</span><span class="nx">mSegments</span><span class="p">[</span><span class="nx">_iS</span><span class="p">].</span><span class="nx">length</span><span class="p">,</span> <span class="nx">_iS</span><span class="o">++</span><span class="p">)</span>
     <span class="p">{</span>
-      <span class="c1">// console.log(&quot;private_TxCtx._pushData: sending &quot; + JSON.stringify(lMvStream.parse(this.mSegments[_iS])));</span>
+      <span class="c1">// console.log(&quot;private_TxCtx._pushData: sending &quot; + JSON.stringify(lAfyStream.parse(this.mSegments[_iS])));</span>
       <span class="k">this</span><span class="p">.</span><span class="nx">mSegments</span><span class="p">[</span><span class="nx">_iS</span><span class="p">].</span><span class="nx">copy</span><span class="p">(</span><span class="nx">_lSer</span><span class="p">,</span> <span class="nx">_lPos</span><span class="p">);</span>
     <span class="p">}</span>
 
@@ -598,7 +598,7 @@
     <span class="c1">// Serialize pTxop, if any (commit/rollback).</span>
     <span class="k">if</span> <span class="p">(</span><span class="kc">undefined</span> <span class="o">!=</span> <span class="nx">pTxop</span><span class="p">)</span>
     <span class="p">{</span>
-      <span class="kd">var</span> <span class="nx">_lMsgSer</span> <span class="o">=</span> <span class="nx">lMvStream</span><span class="p">.</span><span class="nx">serialize</span><span class="p">({</span><span class="nx">txop</span><span class="o">:</span><span class="p">[</span><span class="nx">pTxop</span><span class="p">],</span> <span class="nx">flush</span><span class="o">:</span><span class="p">[</span><span class="mi">0</span><span class="p">]});</span>
+      <span class="kd">var</span> <span class="nx">_lMsgSer</span> <span class="o">=</span> <span class="nx">lAfyStream</span><span class="p">.</span><span class="nx">serialize</span><span class="p">({</span><span class="nx">txop</span><span class="o">:</span><span class="p">[</span><span class="nx">pTxop</span><span class="p">],</span> <span class="nx">flush</span><span class="o">:</span><span class="p">[</span><span class="mi">0</span><span class="p">]});</span>
       <span class="k">this</span><span class="p">.</span><span class="nx">mMustFlushOp</span> <span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
       <span class="k">this</span><span class="p">.</span><span class="nx">mSegments</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">_lMsgSer</span><span class="p">);</span>
     <span class="p">}</span>
@@ -637,12 +637,12 @@
     <span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">mCallbacks</span><span class="p">.</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span>
     <span class="p">{</span>
       <span class="kd">var</span> <span class="nx">_lCallback</span> <span class="o">=</span> <span class="k">this</span><span class="p">.</span><span class="nx">mCallbacks</span><span class="p">.</span><span class="nx">pop</span><span class="p">();</span> <span class="c1">// Note: When we invoke the callback it may itself queue up more callbacks, so it&#39;s important to pop it right away.</span>
-      <span class="c1">// console.log(&quot;private_TxCtx._doCallback: received e=&quot; + JSON.stringify(pE) + &quot; r=&quot; + JSON.stringify(pR ? lMvStream.parse(pR) : null));</span>
+      <span class="c1">// console.log(&quot;private_TxCtx._doCallback: received e=&quot; + JSON.stringify(pE) + &quot; r=&quot; + JSON.stringify(pR ? lAfyStream.parse(pR) : null));</span>
       <span class="k">if</span> <span class="p">(</span><span class="nx">pE</span><span class="p">)</span> <span class="p">{</span> <span class="nx">console</span><span class="p">.</span><span class="nx">error</span><span class="p">(</span><span class="s2">&quot;ERROR (private_TxCtx._doCallback): &quot;</span> <span class="o">+</span> <span class="nx">pE</span><span class="p">);</span> <span class="nx">_lCallback</span><span class="p">(</span><span class="nx">pE</span><span class="p">,</span> <span class="kc">null</span><span class="p">,</span> <span class="k">this</span><span class="p">);</span> <span class="p">}</span>
       <span class="k">else</span> <span class="p">{</span> <span class="nx">_lCallback</span><span class="p">(</span><span class="nx">pE</span><span class="p">,</span> <span class="nx">pR</span><span class="p">,</span> <span class="k">this</span><span class="p">);</span> <span class="p">}</span>
       <span class="k">return</span><span class="p">;</span>
     <span class="p">}</span> 
-    <span class="nx">lib_assert</span><span class="p">.</span><span class="nx">fail</span><span class="p">(</span><span class="s2">&quot;private_TxCtx._doCallback: uninitialized user callback; received e=&quot;</span> <span class="o">+</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">pE</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; r=&quot;</span> <span class="o">+</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">pR</span> <span class="o">?</span> <span class="nx">lMvStream</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">pR</span><span class="p">)</span> <span class="o">:</span> <span class="kc">null</span><span class="p">));</span>
+    <span class="nx">lib_assert</span><span class="p">.</span><span class="nx">fail</span><span class="p">(</span><span class="s2">&quot;private_TxCtx._doCallback: uninitialized user callback; received e=&quot;</span> <span class="o">+</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">pE</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot; r=&quot;</span> <span class="o">+</span> <span class="nx">JSON</span><span class="p">.</span><span class="nx">stringify</span><span class="p">(</span><span class="nx">pR</span> <span class="o">?</span> <span class="nx">lAfyStream</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">pR</span><span class="p">)</span> <span class="o">:</span> <span class="kc">null</span><span class="p">));</span>
   <span class="p">}</span>
   <span class="nx">private_TxCtx</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">_getRelevantUpdates</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span>
   <span class="p">{</span>
@@ -654,7 +654,7 @@
   <span class="p">}</span>
 
   <span class="c1">// Protobuf: Collection accessor object, mimicking the Array interface, and representing collections conveniently.</span>
-  <span class="c1">// Note: Similar to mvstore.py&#39;s PIN.Collection, except that here it&#39;s a pure interface, instantiated in a transient fashion (upon PIN.get(&#39;prop&#39;))...</span>
+  <span class="c1">// Note: Similar to affinity.py&#39;s PIN.Collection, except that here it&#39;s a pure interface, instantiated in a transient fashion (upon PIN.get(&#39;prop&#39;))...</span>
   <span class="c1">// Note: _pPINAccessor is a function returning a {mPID:..., mPropVals:..., mExtras:...} object pointing to a in-memory PIN&#39;s internal details.</span>
   <span class="kd">function</span> <span class="nx">Collection</span><span class="p">(</span><span class="nx">_pPINAccessor</span><span class="p">,</span> <span class="nx">_pPropName</span><span class="p">)</span>
   <span class="p">{</span>
@@ -666,7 +666,7 @@
     <span class="k">this</span><span class="p">.</span><span class="nx">length</span> <span class="o">=</span> <span class="nx">_mUpdateLength</span><span class="p">();</span>
     <span class="k">this</span><span class="p">.</span><span class="nx">push</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">pNewValue</span><span class="p">,</span> <span class="nx">pCallbackObj</span><span class="cm">/*optional*/</span><span class="p">)</span>
     <span class="p">{</span>
-      <span class="c1">// Setup async handling of the pushData to mvstore (required to obtain resulting eid).</span>
+      <span class="c1">// Setup async handling of the pushData to Affinity (required to obtain resulting eid).</span>
       <span class="c1">// Note:</span>
       <span class="c1">//   Logically, we should always flush here, since a new eid will be produced.</span>
       <span class="c1">//   But for flexibility, we interpret the absence of pCallbackObj as a willingness to forfeit the eid update.</span>
@@ -691,7 +691,7 @@
     <span class="p">}</span>
     <span class="k">this</span><span class="p">.</span><span class="nx">pop</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">pCallbackObj</span><span class="cm">/*optional*/</span><span class="p">)</span>
     <span class="p">{</span>
-      <span class="c1">// Setup async handling of the pushData to mvstore (required in the case of an implicit transaction).</span>
+      <span class="c1">// Setup async handling of the pushData to Affinity (required in the case of an implicit transaction).</span>
       <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">private_TxCtx</span><span class="p">.</span><span class="nx">isTxCbObj</span><span class="p">(</span><span class="nx">pCallbackObj</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="nx">private_TxCtx</span><span class="p">.</span><span class="nx">inExplicitTx</span><span class="p">())</span> <span class="p">{</span> <span class="nx">lib_assert</span><span class="p">.</span><span class="nx">fail</span><span class="p">(</span><span class="s2">&quot;Collection.pop: invalid pCallbackObj&quot;</span><span class="p">);</span> <span class="k">return</span> <span class="kc">null</span><span class="p">;</span> <span class="p">}</span>
       <span class="kd">var</span> <span class="nx">_lOpEnd</span> <span class="o">=</span> <span class="nx">private_TxCtx</span><span class="p">.</span><span class="nx">beginOp</span><span class="p">(</span><span class="nx">private_TxCtx</span><span class="p">.</span><span class="nx">makeHandler_passthrough</span><span class="p">(</span><span class="nx">pCallbackObj</span><span class="p">),</span> <span class="p">{</span><span class="nx">mustFlush</span><span class="o">:</span><span class="kc">false</span><span class="p">});</span>
       <span class="k">if</span> <span class="p">(</span><span class="kc">undefined</span> <span class="o">==</span> <span class="nx">_lOpEnd</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="kc">null</span><span class="p">;</span> <span class="p">}</span>
@@ -711,7 +711,7 @@
     <span class="p">}</span>
     <span class="k">this</span><span class="p">.</span><span class="nx">shift</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">pCallbackObj</span><span class="cm">/*optional*/</span><span class="p">)</span>
     <span class="p">{</span>
-      <span class="c1">// Setup async handling of the pushData to mvstore (required in the case of an implicit transaction).</span>
+      <span class="c1">// Setup async handling of the pushData to Affinity (required in the case of an implicit transaction).</span>
       <span class="kd">var</span> <span class="nx">_lDefaultRet</span> <span class="o">=</span> <span class="nx">_mPINAccessor</span><span class="p">().</span><span class="nx">mPropVals</span><span class="p">[</span><span class="nx">_mPropName</span><span class="p">].</span><span class="nx">length</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="o">?</span> <span class="nx">_mPINAccessor</span><span class="p">().</span><span class="nx">mPropVals</span><span class="p">[</span><span class="nx">_mPropName</span><span class="p">].</span><span class="nx">length</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">:</span> <span class="kc">null</span><span class="p">;</span>
       <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">private_TxCtx</span><span class="p">.</span><span class="nx">isTxCbObj</span><span class="p">(</span><span class="nx">pCallbackObj</span><span class="p">)</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="nx">private_TxCtx</span><span class="p">.</span><span class="nx">inExplicitTx</span><span class="p">())</span> <span class="p">{</span> <span class="nx">lib_assert</span><span class="p">.</span><span class="nx">fail</span><span class="p">(</span><span class="s2">&quot;Collection.shift: invalid pCallbackObj&quot;</span><span class="p">);</span> <span class="k">return</span> <span class="nx">_lDefaultRet</span><span class="p">;</span> <span class="p">}</span>
       <span class="kd">var</span> <span class="nx">_lOpEnd</span> <span class="o">=</span> <span class="nx">private_TxCtx</span><span class="p">.</span><span class="nx">beginOp</span><span class="p">(</span><span class="nx">private_TxCtx</span><span class="p">.</span><span class="nx">makeHandler_passthrough</span><span class="p">(</span><span class="nx">pCallbackObj</span><span class="p">),</span> <span class="p">{</span><span class="nx">mustFlush</span><span class="o">:</span><span class="kc">false</span><span class="p">});</span>
@@ -737,7 +737,7 @@
       <span class="kd">var</span> <span class="nx">_lArgLen</span> <span class="o">=</span> <span class="nx">arguments</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span>
       <span class="kd">var</span> <span class="nx">_lLastArg</span> <span class="o">=</span> <span class="nx">arguments</span><span class="p">[</span><span class="nx">_lArgLen</span> <span class="o">-</span> <span class="mi">1</span><span class="p">];</span>
       <span class="k">if</span> <span class="p">(</span><span class="nx">private_TxCtx</span><span class="p">.</span><span class="nx">isTxCbObj</span><span class="p">(</span><span class="nx">_lLastArg</span><span class="p">))</span> <span class="p">{</span> <span class="nx">_lCallbackObj</span> <span class="o">=</span> <span class="nx">_lLastArg</span><span class="p">;</span> <span class="nx">_lArgLen</span> <span class="o">-=</span> <span class="mi">1</span><span class="p">;</span> <span class="p">}</span>
-      <span class="c1">// Setup async handling of the pushData to mvstore (required to obtain new resulting eids).</span>
+      <span class="c1">// Setup async handling of the pushData to Affinity (required to obtain new resulting eids).</span>
       <span class="c1">// Note: See the note in &#39;Collection.push&#39;.</span>
       <span class="kd">var</span> <span class="nx">_lMustFlush</span> <span class="o">=</span> <span class="p">(</span><span class="kc">undefined</span> <span class="o">!=</span> <span class="nx">_lCallbackObj</span><span class="p">);</span>
       <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">_lMustFlush</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="nx">private_TxCtx</span><span class="p">.</span><span class="nx">inExplicitTx</span><span class="p">())</span> <span class="p">{</span> <span class="nx">lib_assert</span><span class="p">.</span><span class="nx">fail</span><span class="p">(</span><span class="s2">&quot;Collection.unshift: invalid pCallbackObj&quot;</span><span class="p">);</span> <span class="k">return</span> <span class="nx">_lThis</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span> <span class="p">}</span>
@@ -838,7 +838,7 @@
       <span class="kd">var</span> <span class="nx">_lArgLen</span> <span class="o">=</span> <span class="nx">arguments</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span>
       <span class="kd">var</span> <span class="nx">_lLastArg</span> <span class="o">=</span> <span class="nx">arguments</span><span class="p">[</span><span class="nx">_lArgLen</span> <span class="o">-</span> <span class="mi">1</span><span class="p">];</span>
       <span class="k">if</span> <span class="p">(</span><span class="nx">private_TxCtx</span><span class="p">.</span><span class="nx">isTxCbObj</span><span class="p">(</span><span class="nx">_lLastArg</span><span class="p">))</span> <span class="p">{</span> <span class="nx">_lCallbackObj</span> <span class="o">=</span> <span class="nx">_lLastArg</span><span class="p">;</span> <span class="nx">_lArgLen</span> <span class="o">-=</span> <span class="mi">1</span><span class="p">;</span> <span class="p">}</span>
-      <span class="c1">// Setup async handling of the pushData to mvstore (required to obtain new resulting eids).</span>
+      <span class="c1">// Setup async handling of the pushData to Affinity (required to obtain new resulting eids).</span>
       <span class="c1">// Note: See the note in &#39;Collection.push&#39;.</span>
       <span class="c1">// Note: We could be more selective here (in cases where no new eid is actually expected).</span>
       <span class="kd">var</span> <span class="nx">_lMustFlush</span> <span class="o">=</span> <span class="p">(</span><span class="kc">undefined</span> <span class="o">!=</span> <span class="nx">_lCallbackObj</span><span class="p">);</span>
@@ -894,10 +894,10 @@
   <span class="c1">// Protobuf: PIN representation.</span>
   <span class="c1">// Provides &#39;set&#39; and &#39;get&#39; methods to the client (plus the Collection overrides), to enforce</span>
   <span class="c1">// the recording of PIN updates upon modification. Stores data privately, in an intermediate form</span>
-  <span class="c1">// (somewhere between the natural java representation and mvstore.proto&#39;s form). This is required</span>
-  <span class="c1">// in order to give normal access to named properties; the mvstore.proto format also contains many</span>
+  <span class="c1">// (somewhere between the natural java representation and affinity.proto&#39;s form). This is required</span>
+  <span class="c1">// in order to give normal access to named properties; the affinity.proto format also contains many</span>
   <span class="c1">// fields that are circumstantial and that don&#39;t deserve being cached (e.g. property, op, nValues, rtt, ...).</span>
-  <span class="c1">// The internal format is very close to mvstore.py&#39;s.</span>
+  <span class="c1">// The internal format is very close to affinity.py&#39;s.</span>
   <span class="c1">// Note: The constructor expects an array of 3 elements: [PID, propvals, extras].</span>
   <span class="kd">function</span> <span class="nx">PIN</span><span class="p">(</span><span class="nx">_pArgs</span><span class="p">)</span>
   <span class="p">{</span>
@@ -910,7 +910,7 @@
     <span class="k">this</span><span class="p">.</span><span class="nx">refresh</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">pCallback</span><span class="p">)</span> <span class="p">{</span> <span class="k">return</span> <span class="nx">private_receivePB</span><span class="p">.</span><span class="nx">refreshPIN</span><span class="p">(</span><span class="nx">_lAccessor</span><span class="p">,</span> <span class="nx">pCallback</span><span class="p">);</span> <span class="p">}</span>
     <span class="k">this</span><span class="p">.</span><span class="nx">set</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">pPropName</span><span class="p">,</span> <span class="nx">pPropValue</span><span class="p">,</span> <span class="nx">pCallbackObj</span><span class="p">)</span>
     <span class="p">{</span>
-      <span class="c1">// Setup async handling of the pushData to mvstore (required to obtain new resulting eids).</span>
+      <span class="c1">// Setup async handling of the pushData to Affinity (required to obtain new resulting eids).</span>
       <span class="c1">// Note: See the note in &#39;Collection.push&#39;.</span>
       <span class="kd">var</span> <span class="nx">_lMustFlush</span> <span class="o">=</span> <span class="p">(</span><span class="nx">pPropValue</span> <span class="k">instanceof</span> <span class="nb">Array</span><span class="p">)</span> <span class="o">||</span> <span class="nx">private_TxCtx</span><span class="p">.</span><span class="nx">isTxCbObj</span><span class="p">(</span><span class="nx">pCallbackObj</span><span class="p">);</span>
       <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="nx">_lMustFlush</span> <span class="o">&amp;&amp;</span> <span class="o">!</span><span class="nx">private_TxCtx</span><span class="p">.</span><span class="nx">inExplicitTx</span><span class="p">())</span> <span class="p">{</span> <span class="nx">lib_assert</span><span class="p">.</span><span class="nx">fail</span><span class="p">(</span><span class="s2">&quot;PIN.set: invalid pCallbackObj&quot;</span><span class="p">);</span> <span class="k">return</span><span class="p">;</span> <span class="p">}</span>
@@ -969,7 +969,7 @@
   <span class="c1">// Protobuf: PIN-update representation.</span>
   <span class="c1">// Note:</span>
   <span class="c1">//   Internal only (never handed out to the client); follows the PIN convention (propvals, extras), but also keeps</span>
-  <span class="c1">//   a privileged back-pointer accessor to the modified in-memory PIN, to be able to update it upon mvstore completion (e.g. eids etc.).</span>
+  <span class="c1">//   a privileged back-pointer accessor to the modified in-memory PIN, to be able to update it upon Affinity completion (e.g. eids etc.).</span>
   <span class="kd">function</span> <span class="nx">private_PINUpdate</span><span class="p">(</span><span class="nx">_pPINAccessor</span><span class="p">,</span> <span class="nx">_pUpdatesPropVal</span><span class="p">,</span> <span class="nx">_pUpdatesExtras</span><span class="p">,</span> <span class="nx">_pExpectNewIDs</span><span class="p">)</span>
   <span class="p">{</span>
     <span class="k">this</span><span class="p">.</span><span class="nx">mPINAccessor</span> <span class="o">=</span> <span class="nx">_pPINAccessor</span><span class="p">;</span>
@@ -980,13 +980,13 @@
   <span class="nx">private_PINUpdate</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">getPID</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span> <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">mPINAccessor</span><span class="p">().</span><span class="nx">mPID</span><span class="p">;</span> <span class="p">}</span>
   <span class="nx">private_PINUpdate</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">getPIN</span> <span class="o">=</span> <span class="kd">function</span><span class="p">()</span> <span class="p">{</span> <span class="k">return</span> <span class="k">this</span><span class="p">.</span><span class="nx">mPINAccessor</span><span class="p">().</span><span class="nx">mPIN</span><span class="p">;</span> <span class="p">}</span>
 
-  <span class="c1">// Protobuf: segment, i.e. js instance of a MVStorePB.MVStream segment (to be combined with PINUpdate-s).</span>
+  <span class="c1">// Protobuf: segment, i.e. js instance of a AffinityPB.AfyStream segment (to be combined with PINUpdate-s).</span>
   <span class="kd">function</span> <span class="nx">private_PBSegment</span><span class="p">()</span> <span class="p">{}</span>
 
   <span class="c1">// Protobuf: dictionary of {propname:propid}.</span>
   <span class="kd">function</span> <span class="nx">private_PropDict</span><span class="p">()</span>
   <span class="p">{</span>
-    <span class="k">this</span><span class="p">.</span><span class="nx">mNextID</span> <span class="o">=</span> <span class="nx">MV_FIRST_PROPID</span><span class="p">;</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">mNextID</span> <span class="o">=</span> <span class="nx">AFY_FIRST_PROPID</span><span class="p">;</span>
     <span class="k">this</span><span class="p">.</span><span class="nx">mID2Name</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">this</span><span class="p">.</span><span class="nx">mName2ID</span> <span class="o">=</span> <span class="p">{}</span>
   <span class="p">}</span>
@@ -1000,7 +1000,7 @@
 
   <span class="c1">// Protobuf save: convert either an array of descriptions of new PINs (js object literals), or an array of</span>
   <span class="c1">// private_PINUpdate-s, into their PB representation, serialize the result into a buffer ready to</span>
-  <span class="c1">// be sent to mvstore, send, and collect the resulting pids/eids, if any.</span>
+  <span class="c1">// be sent to Affinity, send, and collect the resulting pids/eids, if any.</span>
   <span class="kd">function</span> <span class="nx">private_sendPB</span><span class="p">(</span><span class="nx">_pPINs</span><span class="p">,</span> <span class="nx">_pCallback</span><span class="p">,</span> <span class="nx">_pDescr</span><span class="cm">/*optional*/</span><span class="p">)</span>
   <span class="p">{</span>
     <span class="kd">var</span> <span class="nx">_lPD</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">private_PropDict</span><span class="p">();</span>
@@ -1018,7 +1018,7 @@
     <span class="p">}</span>
     <span class="k">return</span> <span class="nx">private_http</span><span class="p">(</span><span class="nx">lUri</span><span class="p">.</span><span class="nx">pathname</span> <span class="o">+</span> <span class="s2">&quot;?i=proto&amp;o=proto&quot;</span><span class="p">,</span> <span class="nx">pMsgSer</span><span class="p">,</span> <span class="nx">_lOnPBResult</span><span class="p">);</span>
   <span class="p">}</span>
-  <span class="c1">// Static helper to serialize the descriptions/updates to a buffer in PB format, ready to be sent to mvstore.</span>
+  <span class="c1">// Static helper to serialize the descriptions/updates to a buffer in PB format, ready to be sent to Affinity.</span>
   <span class="nx">private_sendPB</span><span class="p">.</span><span class="nx">formatPB</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">pPINs</span><span class="p">,</span> <span class="nx">pPropDict</span><span class="p">)</span>
   <span class="p">{</span>
     <span class="k">if</span> <span class="p">(</span><span class="o">!</span><span class="p">(</span><span class="nx">pPINs</span> <span class="k">instanceof</span> <span class="nb">Array</span><span class="p">))</span> <span class="k">throw</span> <span class="s2">&quot;private_sendPB.formatPB: pPINs must be an Array.&quot;</span><span class="p">;</span>
@@ -1058,7 +1058,7 @@
     <span class="p">}</span>
     <span class="k">return</span> <span class="nx">_lPins</span><span class="p">;</span>
   <span class="p">}</span>
-  <span class="c1">// Static helper to serialize the descriptions/updates to a buffer in PB format, ready to be sent to mvstore.</span>
+  <span class="c1">// Static helper to serialize the descriptions/updates to a buffer in PB format, ready to be sent to Affinity.</span>
   <span class="nx">private_sendPB</span><span class="p">.</span><span class="nx">serialize</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">pPINs</span><span class="p">,</span> <span class="nx">pPropDict</span><span class="p">,</span> <span class="nx">pFlush</span><span class="p">)</span>
   <span class="p">{</span>
     <span class="c1">// REVIEW: Anything better than this gymnastic to control order?</span>
@@ -1067,26 +1067,26 @@
     <span class="kd">var</span> <span class="nx">_lMsg3</span> <span class="o">=</span> <span class="p">{};</span>
     <span class="k">if</span> <span class="p">(</span><span class="nx">pFlush</span><span class="p">)</span>
       <span class="nx">_lMsg3</span><span class="p">.</span><span class="nx">flush</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">];</span>
-    <span class="kd">var</span> <span class="nx">_lSer1</span> <span class="o">=</span> <span class="nx">lMvStream</span><span class="p">.</span><span class="nx">serialize</span><span class="p">(</span><span class="nx">_lMsg1</span><span class="p">);</span>
-    <span class="kd">var</span> <span class="nx">_lSer2</span> <span class="o">=</span> <span class="nx">lMvStream</span><span class="p">.</span><span class="nx">serialize</span><span class="p">(</span><span class="nx">_lMsg2</span><span class="p">);</span>
-    <span class="kd">var</span> <span class="nx">_lSer3</span> <span class="o">=</span> <span class="nx">lMvStream</span><span class="p">.</span><span class="nx">serialize</span><span class="p">(</span><span class="nx">_lMsg3</span><span class="p">);</span>
+    <span class="kd">var</span> <span class="nx">_lSer1</span> <span class="o">=</span> <span class="nx">lAfyStream</span><span class="p">.</span><span class="nx">serialize</span><span class="p">(</span><span class="nx">_lMsg1</span><span class="p">);</span>
+    <span class="kd">var</span> <span class="nx">_lSer2</span> <span class="o">=</span> <span class="nx">lAfyStream</span><span class="p">.</span><span class="nx">serialize</span><span class="p">(</span><span class="nx">_lMsg2</span><span class="p">);</span>
+    <span class="kd">var</span> <span class="nx">_lSer3</span> <span class="o">=</span> <span class="nx">lAfyStream</span><span class="p">.</span><span class="nx">serialize</span><span class="p">(</span><span class="nx">_lMsg3</span><span class="p">);</span>
     <span class="kd">var</span> <span class="nx">_lSer</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Buffer</span><span class="p">(</span><span class="nx">_lSer1</span><span class="p">.</span><span class="nx">length</span> <span class="o">+</span> <span class="nx">_lSer2</span><span class="p">.</span><span class="nx">length</span> <span class="o">+</span> <span class="nx">_lSer3</span><span class="p">.</span><span class="nx">length</span><span class="p">);</span>
     <span class="nx">_lSer1</span><span class="p">.</span><span class="nx">copy</span><span class="p">(</span><span class="nx">_lSer</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
     <span class="nx">_lSer2</span><span class="p">.</span><span class="nx">copy</span><span class="p">(</span><span class="nx">_lSer</span><span class="p">,</span> <span class="nx">_lSer1</span><span class="p">.</span><span class="nx">length</span><span class="p">);</span>
     <span class="nx">_lSer3</span><span class="p">.</span><span class="nx">copy</span><span class="p">(</span><span class="nx">_lSer</span><span class="p">,</span> <span class="nx">_lSer1</span><span class="p">.</span><span class="nx">length</span> <span class="o">+</span> <span class="nx">_lSer2</span><span class="p">.</span><span class="nx">length</span><span class="p">);</span>
     <span class="c1">// Note:</span>
-    <span class="c1">//   _lSer is a binary protobuf message ready to be sent to mvstore; it may look like this:</span>
+    <span class="c1">//   _lSer is a binary protobuf message ready to be sent to Affinity; it may look like this:</span>
     <span class="c1">//   {</span>
     <span class="c1">//     &quot;pins&quot;:[{&quot;op&quot;:&quot;OP_INSERT&quot;,&quot;nValues&quot;:4,&quot;values&quot;:[{&quot;type&quot;:&quot;VT_STRING&quot;,&quot;property&quot;:256,&quot;str&quot;:&quot;whatever&quot;,&quot;op&quot;:&quot;OP_SET&quot;,&quot;eid&quot;:4294967295},{&quot;type&quot;:&quot;VT_DOUBLE&quot;,&quot;property&quot;:257,&quot;d&quot;:123,&quot;op&quot;:&quot;OP_SET&quot;,&quot;eid&quot;:4294967295},{&quot;type&quot;:&quot;VT_DATETIME&quot;,&quot;property&quot;:258,&quot;datetime&quot;:12956768270237000,&quot;op&quot;:&quot;OP_SET&quot;,&quot;eid&quot;:4294967295},{&quot;type&quot;:&quot;VT_ARRAY&quot;,&quot;property&quot;:259,&quot;varray&quot;:{&quot;l&quot;:4,&quot;v&quot;:[{&quot;type&quot;:&quot;VT_DOUBLE&quot;,&quot;property&quot;:259,&quot;d&quot;:1,&quot;op&quot;:&quot;OP_ADD&quot;,&quot;eid&quot;:4294967294},{&quot;type&quot;:&quot;VT_DOUBLE&quot;,&quot;property&quot;:259,&quot;d&quot;:2,&quot;op&quot;:&quot;OP_ADD&quot;,&quot;eid&quot;:4294967294},{&quot;type&quot;:&quot;VT_DOUBLE&quot;,&quot;property&quot;:259,&quot;d&quot;:3,&quot;op&quot;:&quot;OP_ADD&quot;,&quot;eid&quot;:4294967294},{&quot;type&quot;:&quot;VT_DOUBLE&quot;,&quot;property&quot;:259,&quot;d&quot;:4,&quot;op&quot;:&quot;OP_ADD&quot;,&quot;eid&quot;:4294967294}]},&quot;op&quot;:&quot;OP_SET&quot;,&quot;eid&quot;:4294967295}],&quot;rtt&quot;:&quot;RT_PIDS&quot;}],</span>
     <span class="c1">//     &quot;properties&quot;:[{&quot;str&quot;:&quot;toto&quot;,&quot;id&quot;:256},{&quot;str&quot;:&quot;tata&quot;,&quot;id&quot;:257},{&quot;str&quot;:&quot;titi&quot;,&quot;id&quot;:258},{&quot;str&quot;:&quot;tutu&quot;,&quot;id&quot;:259}],</span>
     <span class="c1">//     &quot;flush&quot;:[0]</span>
     <span class="c1">//   }</span>
-    <span class="c1">// console.log(&quot;private_sendPB.serialize: returning &quot; + JSON.stringify(lMvStream.parse(_lSer)));</span>
+    <span class="c1">// console.log(&quot;private_sendPB.serialize: returning &quot; + JSON.stringify(lAfyStream.parse(_lSer)));</span>
     <span class="k">return</span> <span class="nx">_lSer</span><span class="p">;</span>
   <span class="p">}</span>
   <span class="c1">// Static helper to determine whether we need RT_PINS or only RT_PIDS.</span>
-  <span class="c1">// Note: Same logic as in mvstore.py.</span>
-  <span class="c1">// REVIEW: I don&#39;t think mvstore offers a better option at the moment, but this might be prohibitively expensive in some cases.</span>
+  <span class="c1">// Note: Same logic as in affinity.py.</span>
+  <span class="c1">// REVIEW: I don&#39;t think Affinity offers a better option at the moment, but this might be prohibitively expensive in some cases.</span>
   <span class="nx">private_sendPB</span><span class="p">.</span><span class="nx">isInsertingCollectionElements</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">pPBValues</span><span class="p">)</span>
   <span class="p">{</span>
     <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">_iV</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">_iV</span> <span class="o">&lt;</span> <span class="nx">pPBValues</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span> <span class="nx">_iV</span><span class="o">++</span><span class="p">)</span>
@@ -1110,10 +1110,10 @@
   <span class="p">{</span>
     <span class="k">return</span> <span class="p">(</span><span class="s1">&#39;VT_INT&#39;</span> <span class="o">==</span> <span class="nx">pType</span> <span class="o">||</span> <span class="s1">&#39;VT_UINT&#39;</span> <span class="o">==</span> <span class="nx">pType</span> <span class="o">||</span> <span class="s1">&#39;VT_INT64&#39;</span> <span class="o">==</span> <span class="nx">pType</span> <span class="o">||</span> <span class="s1">&#39;VT_UINT64&#39;</span> <span class="o">==</span> <span class="nx">pType</span> <span class="o">||</span> <span class="s1">&#39;VT_FLOAT&#39;</span> <span class="o">==</span> <span class="nx">pType</span> <span class="o">||</span> <span class="s1">&#39;VT_DOUBLE&#39;</span> <span class="o">==</span> <span class="nx">pType</span> <span class="o">||</span> <span class="s1">&#39;VT_DECIMAL&#39;</span> <span class="o">==</span> <span class="nx">pType</span><span class="p">);</span>
   <span class="p">}</span>
-  <span class="c1">// Static helper to convert a single propval into its corresponding PB value (MVStorePB.Value).</span>
+  <span class="c1">// Static helper to convert a single propval into its corresponding PB value (AffinityPB.Value).</span>
   <span class="nx">private_sendPB</span><span class="p">.</span><span class="nx">createPBValue</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">pPropDict</span><span class="p">,</span> <span class="nx">pKey</span><span class="p">,</span> <span class="nx">pValue</span><span class="p">,</span> <span class="nx">pExtra</span><span class="p">)</span>
   <span class="p">{</span>
-    <span class="c1">// TODO: Go over python/mvstore.py::_valuePY2PB and make sure everything is coverered...</span>
+    <span class="c1">// TODO: Go over python/affinity.py::_valuePY2PB and make sure everything is coverered...</span>
     <span class="c1">// Note: The caller may override some of the resulting fields (e.g. type, eid), based on its knowledge of &#39;extras&#39;.</span>
     <span class="kd">var</span> <span class="nx">_lPropID</span> <span class="o">=</span> <span class="nx">pPropDict</span><span class="p">.</span><span class="nx">getID</span><span class="p">(</span><span class="nx">pKey</span><span class="p">);</span>
     <span class="c1">// If the value is a collection, proceed.</span>
@@ -1189,7 +1189,7 @@
       <span class="k">case</span> <span class="s1">&#39;VT_DECIMAL&#39;</span><span class="o">:</span> <span class="nx">_lResult</span><span class="p">.</span><span class="nx">d</span> <span class="o">=</span> <span class="nx">pValue</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span> <span class="c1">// ?</span>
       <span class="k">case</span> <span class="s1">&#39;VT_URL&#39;</span><span class="o">:</span> <span class="k">case</span> <span class="s1">&#39;VT_STRING&#39;</span><span class="o">:</span> <span class="nx">_lResult</span><span class="p">.</span><span class="nx">str</span> <span class="o">=</span> <span class="nx">pValue</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
       <span class="k">case</span> <span class="s1">&#39;VT_BSTR&#39;</span><span class="o">:</span> <span class="nx">_lResult</span><span class="p">.</span><span class="nx">bstr</span> <span class="o">=</span> <span class="nx">pValue</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
-      <span class="k">case</span> <span class="s1">&#39;VT_DATETIME&#39;</span><span class="o">:</span> <span class="nx">_lResult</span><span class="p">.</span><span class="nx">datetime</span> <span class="o">=</span> <span class="nx">pValue</span><span class="p">.</span><span class="nx">valueOf</span><span class="p">()</span> <span class="o">*</span> <span class="mi">1000</span> <span class="o">+</span> <span class="nx">MV_TIME_OFFSET</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
+      <span class="k">case</span> <span class="s1">&#39;VT_DATETIME&#39;</span><span class="o">:</span> <span class="nx">_lResult</span><span class="p">.</span><span class="nx">datetime</span> <span class="o">=</span> <span class="nx">pValue</span><span class="p">.</span><span class="nx">valueOf</span><span class="p">()</span> <span class="o">*</span> <span class="mi">1000</span> <span class="o">+</span> <span class="nx">AFY_TIME_OFFSET</span><span class="p">;</span> <span class="k">break</span><span class="p">;</span>
       <span class="k">case</span> <span class="s1">&#39;VT_REFID&#39;</span><span class="o">:</span> <span class="p">{</span><span class="kd">var</span> <span class="nx">_lV</span> <span class="o">=</span> <span class="nx">pValue</span><span class="p">.</span><span class="nx">get</span><span class="p">();</span> <span class="nx">_lResult</span><span class="p">.</span><span class="nx">id</span> <span class="o">=</span> <span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="nx">_lV</span><span class="p">.</span><span class="nx">id</span><span class="p">,</span> <span class="nx">ident</span><span class="o">:</span><span class="nx">_lV</span><span class="p">.</span><span class="nx">ident</span><span class="p">};</span> <span class="k">break</span><span class="p">;}</span>
       <span class="k">case</span> <span class="s1">&#39;VT_REFIDPROP&#39;</span><span class="o">:</span> <span class="p">{</span><span class="kd">var</span> <span class="nx">_lV</span> <span class="o">=</span> <span class="nx">pValue</span><span class="p">.</span><span class="nx">get</span><span class="p">();</span> <span class="nx">_lResult</span><span class="p">.</span><span class="nx">ref</span> <span class="o">=</span> <span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="nx">_lV</span><span class="p">.</span><span class="nx">id</span><span class="p">,</span> <span class="nx">ident</span><span class="o">:</span><span class="nx">_lV</span><span class="p">.</span><span class="nx">ident</span><span class="p">},</span> <span class="nx">property</span><span class="o">:</span><span class="nx">pPropDict</span><span class="p">.</span><span class="nx">newPropName</span><span class="p">(</span><span class="nx">_lV</span><span class="p">.</span><span class="nx">property</span><span class="p">)};</span> <span class="k">break</span><span class="p">;}</span>
       <span class="k">case</span> <span class="s1">&#39;VT_REFIDELT&#39;</span><span class="o">:</span> <span class="p">{</span><span class="kd">var</span> <span class="nx">_lV</span> <span class="o">=</span> <span class="nx">pValue</span><span class="p">.</span><span class="nx">get</span><span class="p">();</span> <span class="nx">_lResult</span><span class="p">.</span><span class="nx">ref</span> <span class="o">=</span> <span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="p">{</span><span class="nx">id</span><span class="o">:</span><span class="nx">_lV</span><span class="p">.</span><span class="nx">id</span><span class="p">,</span> <span class="nx">ident</span><span class="o">:</span><span class="nx">_lV</span><span class="p">.</span><span class="nx">ident</span><span class="p">},</span> <span class="nx">property</span><span class="o">:</span><span class="nx">pPropDict</span><span class="p">.</span><span class="nx">newPropName</span><span class="p">(</span><span class="nx">_lV</span><span class="p">.</span><span class="nx">property</span><span class="p">),</span> <span class="nx">eid</span><span class="o">:</span><span class="nx">_lV</span><span class="p">.</span><span class="nx">eid</span><span class="p">};</span> <span class="k">break</span><span class="p">;}</span>
@@ -1198,13 +1198,13 @@
     <span class="k">return</span> <span class="nx">_lResult</span><span class="p">;</span>
   <span class="p">}</span>
 
-  <span class="c1">// Protobuf save completion: parse mvstore&#39;s response after inserting/updating PINs, and update the in-memory PINs accordingly.</span>
+  <span class="c1">// Protobuf save completion: parse Affinity&#39;s response after inserting/updating PINs, and update the in-memory PINs accordingly.</span>
   <span class="kd">function</span> <span class="nx">private_PBResponseParser</span><span class="p">(</span><span class="nx">_pPBResponse</span><span class="p">)</span>
   <span class="p">{</span>
-    <span class="k">this</span><span class="p">.</span><span class="nx">mParsed</span> <span class="o">=</span> <span class="nx">lMvStream</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">_pPBResponse</span><span class="p">);</span>
+    <span class="k">this</span><span class="p">.</span><span class="nx">mParsed</span> <span class="o">=</span> <span class="nx">lAfyStream</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">_pPBResponse</span><span class="p">);</span>
     <span class="c1">// Note:</span>
     <span class="c1">//   this.mParsed is a javascript object resulting from protobuf_for_node&#39;s parsing of the raw protobuf buffer</span>
-    <span class="c1">//   returned by mvstore following an insert/update on existing PINs; it may represent only the updated parts of a PIN,</span>
+    <span class="c1">//   returned by Affinity following an insert/update on existing PINs; it may represent only the updated parts of a PIN,</span>
     <span class="c1">//   and could look like this:</span>
     <span class="c1">//   {</span>
     <span class="c1">//     &quot;pins&quot;:[{&quot;id&quot;:{&quot;id&quot;:327681},&quot;mode&quot;:2147483648,&quot;nValues&quot;:1,&quot;values&quot;:[{&quot;type&quot;:&quot;VT_DOUBLE&quot;,&quot;property&quot;:259,&quot;d&quot;:5}]}],</span>
@@ -1218,7 +1218,7 @@
   <span class="nx">private_PBResponseParser</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">finalizeCreates</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">pPINDescriptions</span><span class="p">)</span>
   <span class="p">{</span>
     <span class="k">if</span> <span class="p">(</span><span class="k">this</span><span class="p">.</span><span class="nx">mParsed</span><span class="p">.</span><span class="nx">pins</span><span class="p">.</span><span class="nx">length</span> <span class="o">!=</span> <span class="nx">pPINDescriptions</span><span class="p">.</span><span class="nx">length</span><span class="p">)</span>
-      <span class="nx">console</span><span class="p">.</span><span class="nx">warn</span><span class="p">(</span><span class="s2">&quot;WARNING (private_PBResponseParser.finalizeCreates): &quot;</span> <span class="o">+</span> <span class="nx">pPINDescriptions</span><span class="p">.</span><span class="nx">length</span> <span class="o">+</span> <span class="s2">&quot; PINs were created, but mvstore&#39;s response contained &quot;</span> <span class="o">+</span> <span class="k">this</span><span class="p">.</span><span class="nx">mParsed</span><span class="p">.</span><span class="nx">pins</span><span class="p">.</span><span class="nx">length</span> <span class="o">+</span> <span class="s2">&quot; PINs.&quot;</span><span class="p">);</span>
+      <span class="nx">console</span><span class="p">.</span><span class="nx">warn</span><span class="p">(</span><span class="s2">&quot;WARNING (private_PBResponseParser.finalizeCreates): &quot;</span> <span class="o">+</span> <span class="nx">pPINDescriptions</span><span class="p">.</span><span class="nx">length</span> <span class="o">+</span> <span class="s2">&quot; PINs were created, but Affinity&#39;s response contained &quot;</span> <span class="o">+</span> <span class="k">this</span><span class="p">.</span><span class="nx">mParsed</span><span class="p">.</span><span class="nx">pins</span><span class="p">.</span><span class="nx">length</span> <span class="o">+</span> <span class="s2">&quot; PINs.&quot;</span><span class="p">);</span>
     <span class="kd">var</span> <span class="nx">_lPIDs</span> <span class="o">=</span> <span class="p">[];</span>
     <span class="kd">var</span> <span class="nx">_lExtras</span> <span class="o">=</span> <span class="p">[];</span>
     <span class="k">this</span><span class="p">.</span><span class="nx">_walk</span><span class="p">(</span>
@@ -1304,7 +1304,7 @@
     <span class="p">}</span>
   <span class="p">}</span>
 
-  <span class="c1">// Protobuf load: deserialize new PIN objects from their protobuf representation (obtained from mvstore, e.g. via pathsqlProto).</span>
+  <span class="c1">// Protobuf load: deserialize new PIN objects from their protobuf representation (obtained from Affinity, e.g. via pathsqlProto).</span>
   <span class="kd">function</span> <span class="nx">private_receivePB</span><span class="p">()</span> <span class="p">{}</span>
   <span class="nx">private_receivePB</span><span class="p">.</span><span class="nx">queryPINs</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">pPathSql</span><span class="p">,</span> <span class="nx">pCallback</span><span class="p">,</span> <span class="nx">pOptions</span><span class="p">)</span>
   <span class="p">{</span>
@@ -1333,10 +1333,10 @@
   <span class="nx">private_receivePB</span><span class="p">.</span><span class="nx">_createPINs</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">pPB</span><span class="p">,</span> <span class="nx">pPropDict</span><span class="p">)</span>
   <span class="p">{</span>
     <span class="kd">var</span> <span class="nx">_lPINs</span> <span class="o">=</span> <span class="k">new</span> <span class="nb">Array</span><span class="p">();</span>
-    <span class="kd">var</span> <span class="nx">_lParsed</span> <span class="o">=</span> <span class="nx">lMvStream</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">pPB</span><span class="p">);</span>
+    <span class="kd">var</span> <span class="nx">_lParsed</span> <span class="o">=</span> <span class="nx">lAfyStream</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">pPB</span><span class="p">);</span>
     <span class="c1">// Note:</span>
     <span class="c1">//   _lParsed is a javascript object resulting from protobuf_for_node&#39;s parsing of the raw protobuf buffer</span>
-    <span class="c1">//   returned by mvstore; it should represent a whole PIN (i.e. all of its properties), and should look like this:</span>
+    <span class="c1">//   returned by Affinity; it should represent a whole PIN (i.e. all of its properties), and should look like this:</span>
     <span class="c1">//   { </span>
     <span class="c1">//     &quot;owner&quot;:{&quot;str&quot;:&quot;&quot;,&quot;id&quot;:0},</span>
     <span class="c1">//     &quot;pins&quot;:[{&quot;id&quot;:{&quot;id&quot;:327681},&quot;nValues&quot;:4,&quot;values&quot;:[{&quot;type&quot;:&quot;VT_STRING&quot;,&quot;property&quot;:256,&quot;str&quot;:&quot;whatever&quot;},{&quot;type&quot;:&quot;VT_DOUBLE&quot;,&quot;property&quot;:257,&quot;d&quot;:123},{&quot;type&quot;:&quot;VT_DATETIME&quot;,&quot;property&quot;:258,&quot;datetime&quot;:12956767059615000},{&quot;type&quot;:&quot;VT_ARRAY&quot;,&quot;property&quot;:259,&quot;varray&quot;:{&quot;l&quot;:4,&quot;v&quot;:[{&quot;type&quot;:&quot;VT_DOUBLE&quot;,&quot;d&quot;:1,&quot;eid&quot;:0},{&quot;type&quot;:&quot;VT_DOUBLE&quot;,&quot;d&quot;:2,&quot;eid&quot;:1},{&quot;type&quot;:&quot;VT_DOUBLE&quot;,&quot;d&quot;:3,&quot;eid&quot;:2},{&quot;type&quot;:&quot;VT_DOUBLE&quot;,&quot;d&quot;:4,&quot;eid&quot;:3}]}}]}],</span>
@@ -1355,12 +1355,12 @@
   <span class="p">}</span>
   <span class="nx">private_receivePB</span><span class="p">.</span><span class="nx">_refreshPINs</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">pPB</span><span class="p">,</span> <span class="nx">pPropDict</span><span class="p">,</span> <span class="nx">pPINAccessors</span><span class="p">)</span>
   <span class="p">{</span>
-    <span class="kd">var</span> <span class="nx">_lParsed</span> <span class="o">=</span> <span class="nx">lMvStream</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">pPB</span><span class="p">);</span>
+    <span class="kd">var</span> <span class="nx">_lParsed</span> <span class="o">=</span> <span class="nx">lAfyStream</span><span class="p">.</span><span class="nx">parse</span><span class="p">(</span><span class="nx">pPB</span><span class="p">);</span>
     <span class="c1">// Note: See the note on _lParsed in private_receivePB._createPINs.</span>
     <span class="c1">// console.log(&quot;private_receivePB._refreshPINs: _lParsed=&quot; + JSON.stringify(_lParsed));</span>
     <span class="nx">pPropDict</span><span class="p">.</span><span class="nx">registerProps</span><span class="p">(</span><span class="nx">_lParsed</span><span class="p">.</span><span class="nx">properties</span><span class="p">);</span>
     <span class="k">if</span> <span class="p">(</span><span class="nx">_lParsed</span><span class="p">.</span><span class="nx">pins</span><span class="p">.</span><span class="nx">length</span> <span class="o">!=</span> <span class="nx">pPINAccessors</span><span class="p">.</span><span class="nx">length</span><span class="p">)</span>
-      <span class="nx">console</span><span class="p">.</span><span class="nx">warn</span><span class="p">(</span><span class="s2">&quot;WARNING (private_receivePB._refreshPINs): &quot;</span> <span class="o">+</span> <span class="nx">pPINAccessors</span><span class="p">.</span><span class="nx">length</span> <span class="o">+</span> <span class="s2">&quot; PINs were refreshed, but mvstore&#39;s response contained &quot;</span> <span class="o">+</span> <span class="nx">_lParsed</span><span class="p">.</span><span class="nx">pins</span><span class="p">.</span><span class="nx">length</span> <span class="o">+</span> <span class="s2">&quot; PINs.&quot;</span><span class="p">);</span>
+      <span class="nx">console</span><span class="p">.</span><span class="nx">warn</span><span class="p">(</span><span class="s2">&quot;WARNING (private_receivePB._refreshPINs): &quot;</span> <span class="o">+</span> <span class="nx">pPINAccessors</span><span class="p">.</span><span class="nx">length</span> <span class="o">+</span> <span class="s2">&quot; PINs were refreshed, but Affinity&#39;s response contained &quot;</span> <span class="o">+</span> <span class="nx">_lParsed</span><span class="p">.</span><span class="nx">pins</span><span class="p">.</span><span class="nx">length</span> <span class="o">+</span> <span class="s2">&quot; PINs.&quot;</span><span class="p">);</span>
     <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">_iO</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">_iO</span> <span class="o">&lt;</span> <span class="nx">_lParsed</span><span class="p">.</span><span class="nx">pins</span><span class="p">.</span><span class="nx">length</span><span class="p">;</span> <span class="nx">_iO</span><span class="o">++</span><span class="p">)</span>
     <span class="p">{</span>
       <span class="kd">var</span> <span class="nx">_lPinAttrs</span> <span class="o">=</span> <span class="nx">private_receivePB</span><span class="p">.</span><span class="nx">_extractPIN</span><span class="p">(</span><span class="nx">_lParsed</span><span class="p">.</span><span class="nx">pins</span><span class="p">[</span><span class="nx">_iO</span><span class="p">],</span> <span class="nx">pPropDict</span><span class="p">);</span>
@@ -1401,7 +1401,7 @@
   <span class="p">}</span>
   <span class="nx">private_receivePB</span><span class="p">.</span><span class="nx">_extractValue</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">pPBValue</span><span class="p">,</span> <span class="nx">pPropDict</span><span class="p">)</span>
   <span class="p">{</span>
-    <span class="c1">// TODO: Go over python/mvstore.py::_valuePB2PY and make sure everything is coverered...</span>
+    <span class="c1">// TODO: Go over python/affinity.py::_valuePB2PY and make sure everything is coverered...</span>
     <span class="k">switch</span> <span class="p">(</span><span class="nx">pPBValue</span><span class="p">.</span><span class="nx">type</span><span class="p">)</span>
     <span class="p">{</span>
       <span class="k">case</span> <span class="s1">&#39;VT_BOOL&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="nx">pPBValue</span><span class="p">.</span><span class="nx">b</span><span class="p">;</span>
@@ -1421,13 +1421,29 @@
         <span class="nx">pPBValue</span><span class="p">.</span><span class="nx">varray</span><span class="p">.</span><span class="nx">v</span><span class="p">.</span><span class="nx">forEach</span><span class="p">(</span><span class="kd">function</span><span class="p">(</span><span class="nx">_pEl</span><span class="p">)</span> <span class="p">{</span> <span class="nb">Array</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">push</span><span class="p">.</span><span class="nx">call</span><span class="p">(</span><span class="nx">_lValues</span><span class="p">,</span> <span class="nx">private_receivePB</span><span class="p">.</span><span class="nx">_extractValue</span><span class="p">(</span><span class="nx">_pEl</span><span class="p">));</span> <span class="p">});</span>
         <span class="k">return</span> <span class="nx">_lValues</span><span class="p">;</span>
       <span class="p">}</span>
-      <span class="k">case</span> <span class="s1">&#39;VT_DATETIME&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="k">new</span> <span class="nb">Date</span><span class="p">((</span><span class="nx">pPBValue</span><span class="p">.</span><span class="nx">datetime</span> <span class="o">-</span> <span class="nx">MV_TIME_OFFSET</span><span class="p">)</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">);</span>
+      <span class="k">case</span> <span class="s1">&#39;VT_DATETIME&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="k">new</span> <span class="nb">Date</span><span class="p">((</span><span class="nx">pPBValue</span><span class="p">.</span><span class="nx">datetime</span> <span class="o">-</span> <span class="nx">AFY_TIME_OFFSET</span><span class="p">)</span> <span class="o">/</span> <span class="mi">1000</span><span class="p">);</span>
       <span class="k">case</span> <span class="s1">&#39;VT_REFID&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="k">new</span> <span class="nx">Ref</span><span class="p">(</span><span class="nx">pPBValue</span><span class="p">.</span><span class="nx">id</span><span class="p">.</span><span class="nx">id</span><span class="p">,</span> <span class="nx">pPBValue</span><span class="p">.</span><span class="nx">id</span><span class="p">.</span><span class="nx">ident</span><span class="p">);</span>
       <span class="k">case</span> <span class="s1">&#39;VT_REFIDPROP&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="k">new</span> <span class="nx">Ref</span><span class="p">(</span><span class="nx">pPBValue</span><span class="p">.</span><span class="nx">ref</span><span class="p">.</span><span class="nx">id</span><span class="p">.</span><span class="nx">id</span><span class="p">,</span> <span class="nx">pPBValue</span><span class="p">.</span><span class="nx">ref</span><span class="p">.</span><span class="nx">id</span><span class="p">.</span><span class="nx">ident</span><span class="p">,</span> <span class="nx">pPropDict</span><span class="p">.</span><span class="nx">getPropName</span><span class="p">(</span><span class="nx">pPBValue</span><span class="p">.</span><span class="nx">ref</span><span class="p">.</span><span class="nx">property</span><span class="p">));</span>
       <span class="k">case</span> <span class="s1">&#39;VT_REFIDELT&#39;</span><span class="o">:</span> <span class="k">return</span> <span class="k">new</span> <span class="nx">Ref</span><span class="p">(</span><span class="nx">pPBValue</span><span class="p">.</span><span class="nx">ref</span><span class="p">.</span><span class="nx">id</span><span class="p">.</span><span class="nx">id</span><span class="p">,</span> <span class="nx">pPBValue</span><span class="p">.</span><span class="nx">ref</span><span class="p">.</span><span class="nx">id</span><span class="p">.</span><span class="nx">ident</span><span class="p">,</span> <span class="nx">pPropDict</span><span class="p">.</span><span class="nx">getPropName</span><span class="p">(</span><span class="nx">pPBValue</span><span class="p">.</span><span class="nx">ref</span><span class="p">.</span><span class="nx">property</span><span class="p">),</span> <span class="nx">pPBValue</span><span class="p">.</span><span class="nx">ref</span><span class="p">.</span><span class="nx">eid</span><span class="p">);</span>
       <span class="k">default</span><span class="o">:</span> <span class="k">break</span><span class="p">;</span>
     <span class="p">}</span>
     <span class="k">return</span> <span class="kc">null</span><span class="p">;</span>
+  <span class="p">}</span>
+
+  <span class="kd">function</span> <span class="nx">private_sanitizeSemicolon</span><span class="p">(</span><span class="nx">pQ</span><span class="p">)</span>
+  <span class="p">{</span>
+    <span class="c1">// Remove the last semicolon, if any, to make sure the store recognizes single-instructions as such (relevant for pathSQL-&gt;JSON only).</span>
+    <span class="k">if</span> <span class="p">(</span><span class="kc">undefined</span> <span class="o">==</span> <span class="nx">pQ</span> <span class="o">||</span> <span class="mi">0</span> <span class="o">==</span> <span class="nx">pQ</span><span class="p">.</span><span class="nx">length</span><span class="p">)</span> <span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="p">;</span>
+    <span class="k">for</span> <span class="p">(</span><span class="kd">var</span> <span class="nx">_i</span> <span class="o">=</span> <span class="nx">pQ</span><span class="p">.</span><span class="nx">length</span> <span class="o">-</span> <span class="mi">1</span><span class="p">;</span> <span class="nx">_i</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">;</span> <span class="nx">_i</span><span class="o">--</span><span class="p">)</span>
+    <span class="p">{</span>
+      <span class="k">switch</span> <span class="p">(</span><span class="nx">pQ</span><span class="p">.</span><span class="nx">charAt</span><span class="p">(</span><span class="nx">_i</span><span class="p">))</span>
+      <span class="p">{</span>
+        <span class="k">case</span> <span class="s2">&quot;;&quot;</span><span class="o">:</span> <span class="k">return</span> <span class="nx">pQ</span><span class="p">.</span><span class="nx">substr</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nx">_i</span><span class="p">);</span>
+        <span class="k">case</span> <span class="s2">&quot; &quot;</span><span class="o">:</span> <span class="k">case</span> <span class="s2">&quot;\n&quot;</span><span class="o">:</span> <span class="k">continue</span><span class="p">;</span>
+        <span class="k">default</span><span class="o">:</span> <span class="k">return</span> <span class="nx">pQ</span><span class="p">;</span>
+      <span class="p">}</span>
+    <span class="p">}</span>
+    <span class="k">return</span> <span class="s2">&quot;&quot;</span><span class="p">;</span>
   <span class="p">}</span>
 
   <span class="cm">/**</span>
@@ -1440,13 +1456,13 @@
   <span class="p">{</span>
     <span class="k">if</span> <span class="p">(</span><span class="nx">private_TxCtx</span><span class="p">.</span><span class="nx">inExplicitTx</span><span class="p">())</span>
       <span class="nx">console</span><span class="p">.</span><span class="nx">warn</span><span class="p">(</span><span class="s2">&quot;WARNING (pathsql): pathsql calls can&#39;t participate to protobuf transactions at the moment; use pathsqlProto instead.&quot;</span><span class="p">);</span>
-    <span class="k">return</span> <span class="nx">private_http</span><span class="p">(</span><span class="nx">appendUrlOptions</span><span class="p">(</span><span class="nx">lUri</span><span class="p">.</span><span class="nx">pathname</span> <span class="o">+</span> <span class="s2">&quot;?q=&quot;</span> <span class="o">+</span> <span class="nb">encodeURIComponent</span><span class="p">(</span><span class="nx">_pPathSql</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;&amp;i=pathsql&amp;o=json&quot;</span><span class="p">,</span> <span class="nx">_pOptions</span><span class="p">),</span> <span class="kc">null</span><span class="p">,</span> <span class="nx">_pCallback</span><span class="p">);</span> 
+    <span class="k">return</span> <span class="nx">private_http</span><span class="p">(</span><span class="nx">appendUrlOptions</span><span class="p">(</span><span class="nx">lUri</span><span class="p">.</span><span class="nx">pathname</span> <span class="o">+</span> <span class="s2">&quot;?q=&quot;</span> <span class="o">+</span> <span class="nb">encodeURIComponent</span><span class="p">(</span><span class="nx">private_sanitizeSemicolon</span><span class="p">(</span><span class="nx">_pPathSql</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;&amp;i=pathsql&amp;o=json&quot;</span><span class="p">,</span> <span class="nx">_pOptions</span><span class="p">),</span> <span class="kc">null</span><span class="p">,</span> <span class="nx">_pCallback</span><span class="p">);</span> 
   <span class="p">}</span>
   <span class="kd">function</span> <span class="nx">pathsqlCount</span><span class="p">(</span><span class="nx">_pPathSql</span><span class="p">,</span> <span class="nx">_pCallback</span><span class="p">)</span>
   <span class="p">{</span>
     <span class="k">if</span> <span class="p">(</span><span class="nx">private_TxCtx</span><span class="p">.</span><span class="nx">inExplicitTx</span><span class="p">())</span>
       <span class="nx">console</span><span class="p">.</span><span class="nx">warn</span><span class="p">(</span><span class="s2">&quot;WARNING (pathsqlCount): pathsqlCount calls can&#39;t participate to protobuf transactions at the moment; use pathsqlProto instead.&quot;</span><span class="p">);</span>
-    <span class="k">return</span> <span class="nx">private_http</span><span class="p">(</span><span class="nx">lUri</span><span class="p">.</span><span class="nx">pathname</span> <span class="o">+</span> <span class="s2">&quot;?q=&quot;</span> <span class="o">+</span> <span class="nb">encodeURIComponent</span><span class="p">(</span><span class="nx">_pPathSql</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;&amp;i=pathsql&amp;o=json&amp;type=count&quot;</span><span class="p">,</span> <span class="kc">null</span><span class="p">,</span> <span class="nx">_pCallback</span><span class="p">);</span> 
+    <span class="k">return</span> <span class="nx">private_http</span><span class="p">(</span><span class="nx">lUri</span><span class="p">.</span><span class="nx">pathname</span> <span class="o">+</span> <span class="s2">&quot;?q=&quot;</span> <span class="o">+</span> <span class="nb">encodeURIComponent</span><span class="p">(</span><span class="nx">private_sanitizeSemicolon</span><span class="p">(</span><span class="nx">_pPathSql</span><span class="p">))</span> <span class="o">+</span> <span class="s2">&quot;&amp;i=pathsql&amp;o=json&amp;type=count&quot;</span><span class="p">,</span> <span class="kc">null</span><span class="p">,</span> <span class="nx">_pCallback</span><span class="p">);</span> 
   <span class="p">}</span>
 
   <span class="c1">// Auxiliary protobuf enhancers.</span>
@@ -1601,7 +1617,7 @@
           <span class="p">}</span>
           <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="k">typeof</span><span class="p">(</span><span class="nx">__lV</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;object&quot;</span><span class="p">)</span>
           <span class="p">{</span>
-            <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;pid&#39;</span> <span class="k">in</span> <span class="nx">__lV</span><span class="p">)</span> <span class="c1">// Persist references as mvstore references.</span>
+            <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;pid&#39;</span> <span class="k">in</span> <span class="nx">__lV</span><span class="p">)</span> <span class="c1">// Persist references as Affinity references.</span>
               <span class="p">{</span> <span class="nx">__lV</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">Ref</span><span class="p">(</span><span class="nx">__lV</span><span class="p">.</span><span class="nx">pid</span><span class="p">);</span> <span class="p">}</span>
             <span class="k">else</span> <span class="k">if</span> <span class="p">(</span><span class="nx">__lV</span> <span class="k">instanceof</span> <span class="nb">Array</span><span class="p">)</span> <span class="c1">// TODO: Nicer recursion. // TODO: Deal with empty arrays.</span>
             <span class="p">{</span>
@@ -1715,7 +1731,7 @@
       <span class="c1">// REVIEW: probably use pathsqlProto instead, to be all proto (tx etc.)...</span>
       <span class="kd">var</span> <span class="nx">lKeysToSaveStr</span> <span class="o">=</span> <span class="nx">lKeysToSave</span><span class="p">.</span><span class="nx">join</span><span class="p">(</span><span class="s2">&quot;,&quot;</span><span class="p">);</span>
       <span class="nx">pathsql</span><span class="p">(</span>
-        <span class="s2">&quot;SELECT mv:pinID, \&quot;&quot;</span> <span class="o">+</span> <span class="nx">lPropHash</span> <span class="o">+</span> <span class="s2">&quot;\&quot; FROM * WHERE \&quot;&quot;</span> <span class="o">+</span> <span class="nx">lPropHash</span> <span class="o">+</span> <span class="s2">&quot;\&quot; IN (&quot;</span> <span class="o">+</span> <span class="nx">lKeysToSaveStr</span> <span class="o">+</span> <span class="s2">&quot;);&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;SELECT afy:pinID, \&quot;&quot;</span> <span class="o">+</span> <span class="nx">lPropHash</span> <span class="o">+</span> <span class="s2">&quot;\&quot; FROM * WHERE \&quot;&quot;</span> <span class="o">+</span> <span class="nx">lPropHash</span> <span class="o">+</span> <span class="s2">&quot;\&quot; IN (&quot;</span> <span class="o">+</span> <span class="nx">lKeysToSaveStr</span> <span class="o">+</span> <span class="s2">&quot;);&quot;</span><span class="p">,</span>
         <span class="kd">function</span><span class="p">(</span><span class="nx">___pE</span><span class="p">,</span> <span class="nx">___pR</span><span class="p">)</span>
         <span class="p">{</span>
           <span class="c1">// For all prototypes found, update our in-memory instance with the pid, and remove from lToSave.</span>
@@ -1782,7 +1798,7 @@
         <span class="nx">lPBPins</span><span class="p">.</span><span class="nx">push</span><span class="p">(</span><span class="nx">lPBPin</span><span class="p">);</span>
       <span class="p">}</span>
       <span class="kd">var</span> <span class="nx">lMsgSer</span> <span class="o">=</span> <span class="nx">private_sendPB</span><span class="p">.</span><span class="nx">serialize</span><span class="p">(</span><span class="nx">lPBPins</span><span class="p">,</span> <span class="nx">_lPropDict</span><span class="p">,</span> <span class="kc">true</span><span class="p">);</span>
-      <span class="c1">// console.log(&quot;saveUpdates: sending &quot; + JSON.stringify(lMvStream.parse(lMsgSer)));</span>
+      <span class="c1">// console.log(&quot;saveUpdates: sending &quot; + JSON.stringify(lAfyStream.parse(lMsgSer)));</span>
       <span class="nx">private_http</span><span class="p">(</span><span class="nx">lUri</span><span class="p">.</span><span class="nx">pathname</span> <span class="o">+</span> <span class="s2">&quot;?i=proto&amp;o=proto&quot;</span><span class="p">,</span> <span class="nx">lMsgSer</span><span class="p">,</span>
         <span class="kd">function</span><span class="p">(</span><span class="nx">___pE</span><span class="p">,</span> <span class="nx">___pR</span><span class="p">)</span> <span class="p">{</span> <span class="k">if</span> <span class="p">(</span><span class="nx">___pE</span><span class="p">)</span> <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="s2">&quot;error: &quot;</span> <span class="o">+</span> <span class="nx">___pE</span><span class="p">);</span> <span class="cm">/*else console.log(&quot;received:\n&quot; + JSON.stringify(___pE));*/</span> <span class="nx">__pCallback</span><span class="p">();</span> <span class="p">});</span>
     <span class="p">}</span>
