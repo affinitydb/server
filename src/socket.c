@@ -98,7 +98,6 @@ ssize_t sock_read( int sock, void* bufp, size_t size ) {
     for ( tot = 0, rd = 1; rd > 0 && tot < size; tot += rd ) {
         rd = recv( sock, buf+tot, size-tot, 0 );
         if ( rd < 0 ) { return rd; }
-        tot += rd;
     }
     return (ssize_t)tot;
 }

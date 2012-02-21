@@ -337,6 +337,7 @@ function QResultTable(pContainer, pClassName)
   this.mQrtVScrollerContent = $("<div id='qrt_vscroller_content_" + this.mQrtIndex + "' class='qrt_vscroller_content' />").appendTo(this.mQrtVScroller);
   this.mQrtVSNominalRowHeight = lEvalVScrollerRowHeight() + 4; // Hack: To this date, I have failed to identify why this +4 is needed; it reflects the scroll increment actually calculated by the browser, for this scroller's font.
   this.mCurTable = 0; // Next table to update, in the double-buffered mechanism.
+  this.mCurRow = null; // Workaround: somehow, sometimes, our current pagination model seems to confuse the table's selected row mechanism; with this we take control...
   this.mRowCache = {}; // Cache of {rownum:rowdata}.
   this.mRowLRU = []; // Array of rownum, from least recently used to most recently used.
   this.mScrollPos = 0; // Last (raw) scroll position.
@@ -531,8 +532,10 @@ QResultTable.prototype._fillTableUI = function(pWhich, pPos)
   var lWt = lCt.parent().width();
 
   // Remove and recreate the offscreen-table's body.
+  // Review: Is it this content replacement technique that somehow confuses the table's selected row?
   lCt.children("tbody").each(function(_pI, _pE) { $(_pE).remove(); });
   $("<tbody />").appendTo(lCt);
+  this.mCurRow = null;
 
   // Add the required rows.
   // Note: We don't sum up the height of individual rows, because the layout engine can make them change as new rows are inserted.
@@ -600,12 +603,13 @@ QResultTable.prototype._fillTableUI = function(pWhich, pPos)
 QResultTable.prototype._addRowUI = function(pWhich, pPin)
 {
   // Create a new row and bind mouse interactions.
+  var lThis = this;
   var lBody = this.mTables[pWhich].children("tbody");
   var lShortPid = trimPID('id' in pPin ? pPin['id'] : ('afy:pinID' in pPin ? pPin['afy:pinID'] : null));
   var lRow = $("<tr id=\"" + lShortPid + "\"/>").appendTo(lBody);
   lRow.mouseover(function(){$(this).addClass("highlighted");});
   lRow.mouseout(function(){$(this).removeClass("highlighted");});
-  lRow.click(function(){on_pin_click($(this).attr("id")); return false;});
+  lRow.click(function(){if (undefined != lThis.mCurRow) {lThis.mCurRow.removeClass("selected"); lThis.mCurRow = null;} on_pin_click($(this).attr("id")); $(this).addClass("selected"); lThis.mCurRow = $(this);});
   var lRefs = new Object();
 
   // Create the first column.
@@ -614,11 +618,11 @@ QResultTable.prototype._addRowUI = function(pWhich, pPin)
 
   // Create the class-related columns, if any.
   for (var iProp in this.mClassProps)
-    { lRow.append($("<td>" + this._createValueUI(pPin[iProp], lRefs, lShortPid + "rqt") + "</td>")); }
+    { lRow.append($("<td>" + this._createValueUI(pPin[iProp], lRefs, lShortPid + "rqt" + pWhich) + "</td>")); }
 
   // Create the common props columns, if any.
   for (var iProp in this.mCommonProps)
-    { lRow.append($("<td>" + (iProp in pPin ? this._createValueUI(pPin[iProp], lRefs, lShortPid + "rqt") : "") + "</td>")); }
+    { lRow.append($("<td>" + (iProp in pPin ? this._createValueUI(pPin[iProp], lRefs, lShortPid + "rqt" + pWhich) : "") + "</td>")); }
 
   // Create the last column (all remaining properties).
   lOtherProps = $("<p />");
@@ -628,7 +632,7 @@ QResultTable.prototype._addRowUI = function(pWhich, pPin)
     if (iProp in this.mClassProps) continue;
     if (iProp in this.mCommonProps) continue;
     lOtherProps.append($("<span class='afypropname'>" + iProp + "</span>"));
-    lOtherProps.append($("<span>:" + this._createValueUI(pPin[iProp], lRefs, lShortPid + "rqt") + "  </span>"));
+    lOtherProps.append($("<span>:" + this._createValueUI(pPin[iProp], lRefs, lShortPid + "rqt" + pWhich) + "  </span>"));
   }
   var lOPD = $("<td />");
   lOPD.append(lOtherProps);
