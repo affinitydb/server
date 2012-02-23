@@ -21,9 +21,9 @@
         function wH(pWidget) { return function() { var lWid = pWidget.attr("id"); $("#" + lWid + "_button_img").addClass("button_highlighted"); $("#" + lWid + "_button_text").addClass("button_highlighted_text"); $("#" + lWid + "_text").addClass("button_highlighted_text"); }; }
         function wL(pWidget) { return function() { var lWid = pWidget.attr("id"); $("#" + lWid + "_button_img").removeClass("button_highlighted"); $("#" + lWid + "_button_text").removeClass("button_highlighted_text"); $("#" + lWid + "_text").removeClass("button_highlighted_text"); }; }
         function reloc(pWhere) { return function() { window.location.href = 'http://' + location.hostname + ":" + location.port + "/" + pWhere; } }
-        var lDocB = $("#doc"), lConsoleB = $("#console");
-        lDocB.hover(wH(lDocB), wL(lDocB)); lConsoleB.hover(wH(lConsoleB), wL(lConsoleB));
-        lDocB.click(reloc("doc/features.html")); lConsoleB.click(reloc("console.html"));
+        var lDocB = $("#doc"), lConsoleB = $("#console"), lContactB = $("#contact");
+        lDocB.hover(wH(lDocB), wL(lDocB)); lConsoleB.hover(wH(lConsoleB), wL(lConsoleB)); lContactB.hover(wH(lContactB), wL(lContactB));
+        lDocB.click(reloc("doc/features.html")); lConsoleB.click(reloc("console.html")); lContactB.click(function(){window.location.href = 'http://affinitydb.ipbhost.com'});
       });
   </script>
   <title>Affinity</title>
@@ -51,14 +51,21 @@
         <img src='images/affinitydoc.png' id='doc_button_img'></img>
         <div id='doc_button_text'>Read The Doc</div>
       </div>
-      <div id='doc_text'>Affinity is a new database engine that copes better with complex data such as social graphs. Its tiny C++ kernel is ready to run on any device. Explore new possibilites with pathSQL!</div>
+      <div id='doc_text'>Affinity is a new database engine that copes better with complex data (such as social graphs). Its tiny C++ kernel is ready to run on any device and in the cloud. Explore new possibilites with pathSQL!</div>
     </div>
     <div id='console'>
       <div id='console_button'>
         <img src='images/affinityconsole.png' id='console_button_img'></img>
         <div id='console_button_text'>Try It!</div>
       </div>
-      <div id='console_text'>Don't wait any longer and take a quick test drive, right here and right now in your browser!</div>
+      <div id='console_text'>Don't wait any longer and take a quick test drive, right here and right now in your browser! We will immediately host a sandbox just for you (a temporary database instance).</div>
+    </div>
+    <div id='contact'>
+      <div id='contact_button'>
+        <img src='images/affinitycontact.png' id='contact_button_img'></img>
+        <div id='contact_button_text'>Share Ideas</div>
+      </div>
+      <div id='contact_text'>Share your ideas and stay informed about what others are thinking. Learn faster by joining a dynamic community of users.</div>
     </div>
   </div>
 

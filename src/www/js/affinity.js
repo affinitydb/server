@@ -1119,18 +1119,17 @@ function PanZoom(pArea, pZoom)
 /**
  * GraphMap.
  * Manages the graph/map display.
- * A clique is a group of pins related by something, such as:
+ * The acception of "clique" used here is broad, i.e. a group of pins related by something, such as:
  * . pins that refer to each other via any property
  * . pins that refer to each other via a specific set of properties
  * . pins that belong to the same classes
- * In order for pagination to be meaningful, a pin that doesn't gain new refs should remain where it was.
- * For the moment, we only display homogeneous cliques (i.e. a pin belongs to only 1 clique).
- * TODO: actual algo from Mark... plus generate 'real' cliques in sample material
+ * . pins that relate to one another to form a complete graph
+ * Our definition assumes that a pin can only belong to 1 clique.
+ * In order for pagination to be meaningful, and to preserve a cartography that remains meaningful to the viewer,
+ * a pin that doesn't gain new refs should remain where it was.
+ * TODO: implement the option of partitioning by complete graphs ("maximal clique enumeration")
  * TODO: manage layout info in a tmp db (instead of memory)
- * TODO: traverse only specified relationships (e.g. friends, not parents)
- * TODO: clique threshold: if only connected by <x, not in
- * TODO: allow to specify classes/props as additional criteria for 'closeness'?
- * TODO: color by classes?
+ * TODO: color by classes
  */
 function gm_has(pArray, pO) { if (undefined == pArray) return; for (var i = 0; i < pArray.length; i++) if (pArray[i] == pO) return true; return false; }
 function gm_removeFrom(pArray, pO) { if (undefined == pArray) return; for (var i = 0; i < pArray.length; i++) if (pArray[i] == pO) { pArray.splice(i, 1); return; } }

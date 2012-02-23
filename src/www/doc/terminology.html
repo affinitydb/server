@@ -35,7 +35,7 @@
     >ACL</a
     >, <a href="#blob"
     >BLOB</a
-    >, <a href="#c-interface"
+    >, <a href="#c-kernel-interface"
     >C++ interface</a
     >, <a href="#class"
     >class</a
@@ -57,12 +57,8 @@
     >identity</a
     >, <a href="#index"
     >index</a
-    >, <a href="#server"
-    >server</a
-    >, <a href="#pathsql"
-    >pathSQL</a
-    >, <a href="#affinity"
-    >Affinity</a
+    >, <a href="#kernel"
+    >kernel</a
     >, <a href="#namespace"
     >namespace</a
     >, <a href="#notification"
@@ -71,6 +67,8 @@
     >page</a
     >, <a href="#parameter"
     >parameter</a
+    >, <a href="#pathsql"
+    >pathSQL</a
     >, <a href="#pin"
     >PIN</a
     >, <a href="#pin-id-pid"
@@ -85,6 +83,8 @@
     >reference</a
     >, <a href="#replication"
     >replication</a
+    >, <a href="#server"
+    >server</a
     >, <a href="#snapshot-isolation"
     >snapshot isolation</a
     >, <a href="#soft-deletion-vs-purge"
@@ -518,9 +518,9 @@
 ><h1
   >Interfaces</h1
   ><p
-  >The <a href="#affinity"
-    >Affinity</a
-    > kernel library is written in C++, and provides a <a href="#c-interface"
+  >The <a href="#kernel"
+    >Affinity kernel library</a
+    > is written in C++, and provides a <a href="#c-kernel-interface"
     >C++ interface</a
     > directly talking to the kernel. In addition, it also proposes <a href="#pathsql"
     >pathSQL</a
@@ -531,9 +531,9 @@
     >). <a href="#client-side-libraries"
     >Client-side libraries</a
     > are also available.</p
-  ><div id="c-interface"
+  ><div id="c-kernel-interface"
   ><h3
-    >C++ interface</h3
+    >C++ Kernel Interface</h3
     ><p
     ><a href="./sources/affinity_h.html"
       >affinity.h</a
@@ -596,18 +596,18 @@
 ><h1
   >Software Components</h1
   ><p
-  >The Affinity package contains the following components: the <a href="#affinity"
-    >Affinity</a
-    > kernel library, the <a href="#server"
-    >database server</a
+  >The Affinity package contains the following components: the Affinity <a href="#kernel"
+    >kernel</a
+    > library, the database <a href="#server"
+    >server</a
     > with its online console and documentation, and some <a href="#client-side-libraries"
     >client-side libraries</a
     >.</p
-  ><div id="affinity"
+  ><div id="kernel"
   ><h3
-    >Affinity</h3
+    >Kernel</h3
     ><p
-    >The Affinity library is the core component of the Affinity package. It provides a comprehensive database engine that proposes a new, powerful, object-friendly <a href="#essential-concepts-data-model"
+    >The Affinity kernel library is the core component of the Affinity package. It provides a comprehensive database engine that proposes a new, powerful, object-friendly <a href="#essential-concepts-data-model"
       >data model</a
       >, while preserving many of the precious properties of relational database systems, such as a <a href="#pathsql"
       >SQL interface (pathSQL)</a
@@ -621,10 +621,10 @@
     ></div
   ><div id="server"
   ><h3
-    >server</h3
+    >Server</h3
     ><p
-    >This process is a database server that embeds <a href="#affinity"
-      >Affinity</a
+    >This process is a database server that embeds the Affinity <a href="#kernel"
+      >kernel</a
       >. It understands the HTTP protocol, and accepts messages in <a href="#pathsql"
       >pathSQL</a
       > as well as <a href="#protocol-buffer"

@@ -21,11 +21,15 @@ body { font-family:Helvetic; margin:0; font-size:0.8em; background-color:#e4e4e4
 
 #doc { position:relative; left:0; top:0; width:310px; height:100%; }
 #doc_button_text { position:absolute; left:0; top:30px; width:100%; height:100%; text-align:center; font-size:1.7em; }
-#doc_text { margin-left:5px; }
+#doc_text { margin-left:5px; text-align:justify; }
 
-#console { position:absolute; right:0; top:0; width:310px; height:100%; }
+#console { position:absolute; left:325px; top:0; width:310px; height:100%; }
 #console_button_text { position:absolute; left:0; top:30px; width:100%; height:100%; text-align:center; font-size:1.7em; }
-#console_text { margin-left:5px; }
+#console_text { margin-left:5px; text-align:justify; }
+
+#contact { position:absolute; right:0; top:0; width:310px; height:100%; }
+#contact_button_text { position:absolute; left:0; top:30px; width:100%; height:100%; text-align:center; font-size:1.7em; }
+#contact_text { margin-left:5px; text-align:justify; }
 
 #footer_img { width:100%; border:none; }
 #footer_text { position:absolute; left:0; top:14px; width:100%; font-size:0.8em; }
