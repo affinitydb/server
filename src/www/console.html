@@ -33,7 +33,7 @@
       <li><a href="#tab-config"><img src='images/config.png'></a></li>
     </ul>
   </div>
-  <div id='gh_links'><a href="doc/intro.html">Doc</a> &middot; <a href="doc/FAQ.html">About</a></div>
+  <div id='gh_links'><a href="doc/intro.html">Doc</a> &middot; <a href="doc/FAQ.html">About</a> &middot; <a href="doc/demo_privacy.html">Privacy</a></div>
 </div>
 
 <div id='content'>
@@ -191,7 +191,7 @@
 </div>
 
 <div id='generic_footer'>
-  <img src='images/affinityfooter.png' id='footer_img' class='horizontally_centered'></img>
+  <!-- <img src='images/affinityfooter.png' id='footer_img' class='horizontally_centered'></img> -->
   <div id='footer_text'>&copy; 2012 VMware, Inc. All rights reserved.</div>
 </div>
 
@@ -388,7 +388,8 @@
       <div>Good old JOINs are also available.</div>
       <div>They can be useful to connect relational schema with graphs.</div>
       <div>&nbsp;</div>
-      <div class='tutorial_step'>q("SELECT c.car_make, c.color, c.year, w.name FROM cars AS c JOIN workers(['d', 'n']) AS w ON (c.afy:pinID = w.cars) WHERE (c.year IN [1980, 2000]);");</div>
+      <div class='tutorial_step'>q("SELECT * FROM cars AS c JOIN workers(['d', 'n']) AS w ON (c.afy:pinID = w.cars) WHERE (c.year IN [1980, 2000]);");</div>
+      <!-- <div class='tutorial_step'>q("SELECT c.car_make, c.color, c.year, w.name FROM cars AS c JOIN workers(['d', 'n']) AS w ON (c.afy:pinID = w.cars) WHERE (c.year IN [1980, 2000]);");</div> -->
     </div>
     <!-- <div id='step12'>
       <div>Step 12</div>

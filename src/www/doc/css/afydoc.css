@@ -1,10 +1,10 @@
-body { font-family:Helvetic; font-size:0.85em; background-color:#e4e4e4; }
+body { font-family:Helvetica; font-size:0.85em; background-color:#e4e4e4; }
 a { text-decoration:none; color:#0645ad; }
 a:hover { text-decoration:underline; }
 p { margin:0.4em 0 0 0; padding:0; }
 ol { margin:0.4em 0 0.5em 0; padding-left:2.5em; }
 ul li { margin:0.4em 0 0.5em 0; padding:0; list-style:none; padding-left:10px; background:url("images/square.png") no-repeat 0 0.6em; }
-h1, h2 { font-weight:normal; padding:0.1em 0 0.17em 0; background:url("images/affinityheader.png") no-repeat -5px -5px; }
+h1, h2 { font-weight:normal; padding:0.1em 0 0.17em 0.2em; background:url("images/affinityheader.png") no-repeat -5px -5px; color:#e4e4e4; }
 h3,h4,h5 { margin:1em 0 0 0; }
 h3 { font-size:1.15em; }
 h4 { font-size:1em; }
@@ -15,12 +15,12 @@ table { border-collapse:collapse; margin:0.6em 0; font-size:1.05em; }
 td,th { border:1px solid #aaa; padding:4px; }
 th { background:#f2f2f2; }
 .horizontally_centered { display:block; margin-left:auto; margin-right:auto; }
-.pathsql_snippet { color:purple; }
-.pathsql_snippet_highlighted { color:blue; text-decoration:underline; }
+.pathsql_snippet { color:#084066; }
+.pathsql_snippet_highlighted { color:#0f80cc; text-decoration:underline; }
 .pathsql_inert { color:black; }
 .pathsql_container {}
-.pathsql_button_fake { position:relative; font-size:.6em; line-height:1.4em; border:solid 1px #000; background-color:#eae; width:15px; text-align:center; }
-.pathsql_button_runinplace { float:left; margin:0.6em 0 0 30px; padding:0; font-size:.6em; line-height:1.4em; border:solid 1px #000; background-color:#eae; width:15px; text-align:center; cursor:pointer; }
+.pathsql_button_fake { position:relative; font-size:.6em; line-height:1.4em; border:solid 1px #000; background-color:#0f80cc; color:#fff; width:15px; text-align:center; }
+.pathsql_button_runinplace { float:left; margin:0.6em 0 0 30px; padding:0; font-size:.6em; line-height:1.4em; border:solid 1px #000; background-color:#0f80cc; color:#fff; width:15px; text-align:center; cursor:pointer; }
 .pathsql_inplace_result { font-size:1.05em; margin:0.6em 0 0 50px; padding:0.4em 1em; color:#555; }
 .center { margin:2em 1em; text-align:center; }
 .logo-highlighted { cursor:pointer; }

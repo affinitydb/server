@@ -1569,7 +1569,7 @@ function gm_PinDetails(p2dCtx, pBackground)
       p2dCtx.setTransform(1, 0, 0, 1, 0, 0);
       p2dCtx.scale(_pPanZoom.zoom, _pPanZoom.zoom);
       p2dCtx.translate(_pPanZoom.pan.x, _pPanZoom.pan.y);
-      p2dCtx.strokeStyle = "#fcc";
+      p2dCtx.strokeStyle = "#ccf";
       p2dCtx.fillStyle = "#866";
       p2dCtx.lineWidth = 3;
       var _lCX = _lInfo.getCliqueIndex() * 2 * gm_LayoutCtx.CLIQUE_RADIUS;
@@ -1692,7 +1692,7 @@ function GraphMap()
       }
 
       // Set some general attributes.
-      l2dCtx.strokeStyle = "#d0caed";
+      l2dCtx.strokeStyle = "#20a0ee";
       l2dCtx.fillStyle = "#444";
       l2dCtx.lineWidth = 3;
 
@@ -1746,7 +1746,7 @@ function GraphMap()
       {
         for (var _iC = 0; _iC < AFY_CONTEXT.mClasses.length; _iC++)
         {
-          l2dCtx.fillStyle = (AFY_CONTEXT.mClasses[_iC]["afy:classID"] in lLayoutCtx.hideClasses) ? "#d0caed" : "#8f8";
+          l2dCtx.fillStyle = (AFY_CONTEXT.mClasses[_iC]["afy:classID"] in lLayoutCtx.hideClasses) ? "#20a0ee" : "#8f8";
           l2dCtx.fillRect(50 + _iC * 15, lVPHeight - 15 - 22, 15, 15);
           l2dCtx.strokeRect(50 + _iC * 15, lVPHeight - 15 - 22, 15, 15);
         }
@@ -1754,7 +1754,7 @@ function GraphMap()
       var _iPi = 0;
       for (var _iP in lLayoutCtx.refprops)
       {
-        l2dCtx.fillStyle = (_iP in lLayoutCtx.hideRefprops) ? "#d0caed" : "#8f8";
+        l2dCtx.fillStyle = (_iP in lLayoutCtx.hideRefprops) ? "#20a0ee" : "#8f8";
         l2dCtx.fillRect(50 + _iPi * 15, lVPHeight - 15 - 2, 15, 15);
         l2dCtx.strokeRect(50 + _iPi * 15, lVPHeight - 15 - 2, 15, 15);
         _iPi++;
@@ -1864,12 +1864,12 @@ function GraphMap()
         var _lClassIndex, _lPropIndex;
         if (undefined != (_lClassIndex = lClassIndexFromPoint()))
         {
-          lDoCheckBox(lClassIndex_modified = _lClassIndex, lVPHeight - 37, (AFY_CONTEXT.mClasses[_lClassIndex]["afy:classID"] in lHideClasses) ? "#8f8" : "#d0caed");
+          lDoCheckBox(lClassIndex_modified = _lClassIndex, lVPHeight - 37, (AFY_CONTEXT.mClasses[_lClassIndex]["afy:classID"] in lHideClasses) ? "#8f8" : "#20a0ee");
           _lDone = true;
         }
         else if (undefined != (_lPropIndex = lPropIndexFromPoint()))
         {
-          lDoCheckBox(lPropIndex_modified = _lPropIndex, lVPHeight - 17, (nthProperty(lLayoutCtx.refprops, _lPropIndex) in lHideRefprops) ? "#8f8" : "#d0caed");
+          lDoCheckBox(lPropIndex_modified = _lPropIndex, lVPHeight - 17, (nthProperty(lLayoutCtx.refprops, _lPropIndex) in lHideRefprops) ? "#8f8" : "#20a0ee");
           _lDone = true;
         }
       }
@@ -2024,7 +2024,7 @@ function Histogram()
         {
           var _lVal = parseInt(lLayoutCtx.result[_iE]["afy:value"]);
           var _lHeight = _lHUnit * _lVal;
-          l2dCtx.fillStyle = "#d0caed";
+          l2dCtx.fillStyle = "#20a0ee";
           l2dCtx.fillRect(_lX, lVPHeight - 2 - _lHeight, 20, _lHeight);
           l2dCtx.fillStyle = "#444";
           l2dCtx.rotate(-0.5 * Math.PI);

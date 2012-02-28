@@ -12,9 +12,10 @@
   <select id='afytoclist'>
     <option value='intro'>intro</option>
     <option value='Affinity server'>Affinity server</option>
-    <option value='EULA_demo'>EULA_demo</option>
     <option value='FAQ'>FAQ</option>
     <option value='cplusplus'>cplusplus</option>
+    <option value='demo_EULA'>demo_EULA</option>
+    <option value='demo_privacy'>demo_privacy</option>
     <option value='features'>features</option>
     <option value='getting started' SELECTED>getting started</option>
     <option value='javascript'>javascript</option>
@@ -34,33 +35,20 @@
   ><h2
     >Setup</h2
     ><p
-    >Affinity is hosted on github, from where it will be released as a series of open-source projects. Github requires these preliminary steps:</p
-    ><ol style="list-style-type: decimal;"
-    ><li
-      >create a personal (free) user account in github (visit https://github.com/)</li
-      ><li
-      >setup a ssh keypair (uploading the public key to that github account)</li
-      ></ol
+    >The Affinity source code is hosted on github, from where it is released as a series of open-source projects. With a properly configured personal github account, just do:</p
+    ><pre
+    ><code
+      >  curl -s -k -B https://raw.github.com/affinitydb/setup/master/linux/setup.sh &gt; affinity_setup.sh
+  bash affinity_setup.sh
+</code
+      ></pre
     ><p
-    >Affinity is not yet open to the public. For now, it resides in private projects. Until Affinity becomes open-source, the procedure to install from github will involve the following steps (on linux):</p
-    ><ol start="3" style="list-style-type: decimal;"
-    ><li
-      >send your account's user name to maxw@vmware.com, to become a private collaborator</li
-      ><li
-      >git clone git@github.com:affinitydb/setup.git</li
-      ><li
-      >bash ./setup/linux/setup.sh</li
-      ></ol
+    >This will install and build the kernel, server, doc, client libraries etc., all from source files.</p
     ><p
-    >This will install the kernel, server, nodejs, doc and other components of the release, and start the database server.</p
-    ><p style="color:red"><em
-    >Note: When Affinity becomes open-source, the procedure will be further simplified: steps 3-5 will be replaced with a single step involving a publicly accessible setup script.</em
-    ><br
-     /><em
-    >Note: A similar setup procedure for Windows is planned but not yet available.</em
-    ><br
-     /></p>
-</div
+    >This procedure should work on linux and OSX. A few confirmations will be requested during installation.</p
+    ><p
+    >Presently, no automatic setup is provided for Windows or ARM-based devices. These will be provided in a later release. In the meantime, it's possible to clone, build and run all projects manually.</p
+    ></div
   ><div id="simple-access"
   ><h2
     >Simple Access</h2
@@ -81,9 +69,9 @@
     ><p
     >The server exposes a javascript online console at the root (e.g. <code
       >http://localhost:4560/</code
-      >), which allows to navigate the contents of the store and modify data (same as what you find <a href="http://Affinity.cloudfoundry.com"
+      >), which allows to navigate the contents of the store and modify data (same as what you find <a href="http://affinity.cloudfoundry.com"
       >online</a
-      >). Just open that URL in a browser. The console can also facilitate learning pathSQL.</p
+      >). Just open that URL in a browser. The console can also help learning pathSQL.</p
     ></div
   ><div id="quick-pathsql-guide"
   ><h2
@@ -142,22 +130,10 @@
 	  ></tr
 	><tr class="odd"
 	><td align="left"
-	  >afycommand[.exe]</td
+	  >affinity.py</td
 	  ><td align="left"
-	  >(optional) A command-line app to interact with the db</td
-	  ></tr
-	><tr class="even"
-	><td align="left"
-	  >afyclient.dll / libafyclient.so</td
-	  ><td align="left"
-	  >(optional) The http client library that afycommand uses to talk to the db</td
-	  ></tr
-	><tr class="odd"
-	><td align="left"
-	  >msvcp100.dll (windows only)</td
-	  ><td align="left"
-	  >If not already present on your machine, it can be obtained <a href="#links-to-msvcp100-dll"
-	    >here</a
+	  >The client library for <a href="./sources/affinity_py.html"
+	    >python</a
 	    ></td
 	  ></tr
 	></tbody
@@ -185,7 +161,7 @@
     ></div
   ><div id="links-to-msvcp100-dll-windows"
   ><h2
-    >Links to MSVCP100 DLL (windows)</h2
+    >Links to MSVCP100 DLL (Windows)</h2
     ><p
     >Microsoft redistributable libraries can be retrieved here. Make sure that the version you obtain is compatible with Affinity binaries.<br
        /><a href="http://www.microsoft.com/downloads/en/confirmation.aspx?FamilyID=bd512d9e-43c8-4655-81bf-9350143d5867"

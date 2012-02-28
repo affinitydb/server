@@ -1,5 +1,5 @@
 /* general */
-body { font-family:Helvetic; margin:0; font-size:0.85em; background-color:#e4e4e4; }
+body { font-family:Helvetica; margin:0; font-size:0.85em; background-color:#e4e4e4; }
 a { text-decoration:none; color:#0645ad; }
 img { width:20px; }
 a:hover { text-decoration:underline; }
@@ -14,13 +14,13 @@ tr.selected { background-color:#a2a2a2; }
 .ctxmenuitem { width:100%; border:solid 1px #777; padding:0.2em; background-color:#eee; cursor:pointer; }
 .ctxmenu-highlighted-item { background-color:#f6f6f6; }
 .afypropname { color:#555; }
-.tutorial_help { color:green; }
+.tutorial_help { color:#084066; }
 .tutorial_stmt { color:black; }
 .tutorial_result { color:#555; }
-.tutorial_instructions { color:purple; }
-.tutorial_button_run { font-size:.6em; line-height:1.4em; padding:0; margin:0; border:solid 1px #000; background-color:#eae; width:125px; text-align:center; cursor:pointer; }
+.tutorial_instructions { color:#0f80cc; }
+.tutorial_button_run { font-size:.6em; line-height:1.4em; padding:0; margin:0; border:solid 1px #000; background-color:#0f80cc; color:#fff; width:125px; text-align:center; cursor:pointer; }
 .tab-highlighted { opacity:0.4; }
-.tab-selected { background-color:#d0caed; }
+.tab-selected { background-color:#0f80cc; }
 .logo-highlighted { cursor:pointer; }
 .qrt_cnt { overflow:hidden; position:absolute; top:0; left:0; right:20px; bottom:20px; border:none; }
 .qrt_table { border:none; width:100%; border-collapse:collapse; font-size:0.85em; position:absolute; }
@@ -47,11 +47,11 @@ tr.selected { background-color:#a2a2a2; }
 /* content: divided into a left and a right section */
 #content_left { position:absolute; top:50px; width:65%; bottom:0; margin:0; white-space:normal; border:none; padding:0 0 0 0.9em; }
 #content_right { float:right; width:30%; height:80%; margin:0; white-space:normal; border:none; overflow:auto; }
-#content_title { width:100%; height:41px; }
+#content_title { width:100%; height:41px; color:#e4e4e4; }
 #title_img { width:100%; height:100%; }
 #title_text { position:absolute; left:10px; top:10px; width:100%; font-size:1.75em; }
 #content h1, #content h2 { font-weight:normal; padding:0.1em 0 0.17em 0; }
-#content h3,h4 { margin:1em 0 0 0; font-weight:normal;  }
+#content h3,h4 { margin:1em 0 0 0; font-weight:normal; }
 #content h3 { font-size:1.1em; }
 #content h4 { font-size:1em; }
 #content h5 { font-size:0.9em; margin:0; padding:0; }
@@ -62,7 +62,7 @@ tr.selected { background-color:#a2a2a2; }
 
 /* content_left (basic tab) */
 #query_spec { overflow:none; position:absolute; top:2px; width:100%; height:20px; border:none; padding-right:210px; }
-#query { float:left; width:100%; background-color:#444; color:#d0caed; font-size:1em; border:solid 2px #d0caed; outline:none; }
+#query { float:left; width:100%; background-color:#f8f8f8; color:#0f80cc; font-size:1em; border:solid 2px #0f80cc; outline:none; }
 #querytype { float:right; margin-left:5px; margin-right:-112px; width:100px; }
 #querygo { float:right; margin-left:5px; margin-right:-220px; width:100px; }
 #result_frame { overflow:none; position:absolute; top:30px; width:100%; bottom:10px; border:none; }
@@ -86,7 +86,7 @@ tr.selected { background-color:#a2a2a2; }
 /* content_left (map/graph tab) */
 #map_left { position:absolute; top:50px; width:100%; bottom:0; margin:0; white-space:normal; border:none; padding:0; }
 #map_query_spec { overflow:none; position:absolute; top:2px; width:100%; height:20px; border:none; }
-#map_query { position:absolute; width:70%; left:12px; right:135px; background-color:#444; color:#d0caed; font-size:1em; border:solid 2px #d0caed; outline:none; }
+#map_query { position:absolute; width:70%; left:12px; right:135px; background-color:#f8f8f8; color:#0f80cc; font-size:1em; border:solid 2px #0f80cc; outline:none; }
 #map_query_withrefs { position:absolute; right:160px; width:20px; }
 #map_query_withrefs_txt { position:absolute; right:55px; width:100px; font-size:0.7em; }
 #map_querygo { position:absolute; right:0; width:50px; }
@@ -97,8 +97,8 @@ tr.selected { background-color:#a2a2a2; }
 /* content_left (histogram tab) */
 #histo_left { position:absolute; top:50px; width:100%; bottom:0; margin:0; white-space:normal; border:none; padding:0; }
 #histo_spec { overflow:none; position:absolute; top:2px; width:100%; height:20px; border:none; padding-left:0.9em; }
-#histo_class { width:150px; background-color:#444; color:#d0caed; font-size:1em; }
-#histo_property { width:150px; background-color:#444; color:#d0caed; font-size:1em; }
+#histo_class { width:150px; background-color:#f8f8f8; color:#0f80cc; font-size:1em; }
+#histo_property { width:150px; background-color:#f8f8f8; color:#0f80cc; font-size:1em; }
 #histo_go { position:absolute; right:0; width:50px; }
 #histo_query { position:absolute; top:22px; font-size:0.8em; }
 #histo_area_c { overflow:none; position:absolute; left:0; top:65px; bottom:10px; width:100%; border:none; }
