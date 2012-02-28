@@ -6,11 +6,21 @@
 <h1>affinity-client.js</h1>
 
 <!-- begin highlighted code -->
-<div class="highlight"><pre><span class="cm">/**************************************************************************************</span>
+<div class="highlight"><pre><span class="cm">/*</span>
+<span class="cm">Copyright (c) 2004-2012 VMware, Inc. All Rights Reserved.</span>
 
-<span class="cm">Copyright © 2004-2011 VMware, Inc. All rights reserved.</span>
+<span class="cm">   Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="cm">   you may not use this file except in compliance with the License.</span>
+<span class="cm">   You may obtain a copy of the License at</span>
 
-<span class="cm">**************************************************************************************/</span>
+<span class="cm">       http://www.apache.org/licenses/LICENSE-2.0</span>
+
+<span class="cm">Unless required by applicable law or agreed to in writing, software</span>
+<span class="cm">distributed under the License is distributed on an &quot;AS IS&quot; BASIS,  WITHOUT</span>
+<span class="cm">WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the</span>
+<span class="cm">License for the specific language governing permissions and limitations</span>
+<span class="cm">under the License.</span>
+<span class="cm">*/</span>
 
 <span class="kd">var</span> <span class="nx">lib_fs</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;fs&#39;</span><span class="p">);</span>
 <span class="kd">var</span> <span class="nx">lib_http</span> <span class="o">=</span> <span class="nx">require</span><span class="p">(</span><span class="s1">&#39;http&#39;</span><span class="p">);</span>
@@ -1927,9 +1937,6 @@
   <span class="p">};</span>
   <span class="k">return</span> <span class="nx">lConnection</span><span class="p">;</span>
 <span class="p">}</span>
-
-<span class="c1">// TODO: add a guard to the public interface, to warn against attempting to do concurrent things in a connection</span>
-<span class="c1">// TODO: in keepalive mode, should better integrate pure pathSQL transactions with startTx-commitTx (Ming&#39;s argument).</span>
 </pre></div>
 <!-- end highlighted code -->
 

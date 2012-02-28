@@ -1,3 +1,19 @@
+/*
+Copyright (c) 2004-2012 VMware, Inc. All Rights Reserved.
+
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
+
+       http://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,  WITHOUT
+WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+License for the specific language governing permissions and limitations
+under the License.
+*/
+
 function base64_decode(pIn)
 {
   var lOut = "";
@@ -30,7 +46,7 @@ $(document).ready(
     // Home/logo button.
     $("#gh_logo_img").hover(function() { $(this).addClass("logo-highlighted"); }, function() { $(this).removeClass("logo-highlighted"); });
     $("#gh_logo_img").click(function() { window.location.href = 'http://' + location.hostname + ":" + location.port; });
-    
+
     // TOC.
     var lTocBar = $("#afytocbar");
     $("#afytoclist").change(
@@ -43,7 +59,7 @@ $(document).ready(
     // TODO: think about an implementation for search (possibly using a store).
     // var lSearch = $("<input id='afytocsearch'>");
     // lTocBar.append(lSearch);
-    
+
     // Activation + stylization of snippets.
     $(".pathsql_snippet").each(
       function(_pI, _pE)
@@ -83,7 +99,7 @@ $(document).ready(
         var lPre = lCode.wrap('<pre>').parent();
         $(_pE).replaceWith(lPre);
       });
-      
+
     // Easter Egg.
     $("#special_ee01").hover(function() { $(this).addClass("dimmed"); }, function() { $(this).removeClass("dimmed"); });
     $("#special_ee01").click(

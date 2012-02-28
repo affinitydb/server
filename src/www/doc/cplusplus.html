@@ -94,7 +94,7 @@
     > and <code
     >createStore</code
     > produce an opaque <code
-    >AffinityCtx</code
+    >AfyDBCtx</code
     > token, used to initiate <a href="#isession"
     >sessions</a
     >.</p
@@ -178,9 +178,9 @@
       > is related with all the STARTUP_* constants defined in startup.h.</li
     ></ol
   ><p
-  >The kernel shares a single page buffer across all open database instances and sessions. The maximum value of all <code
+  >The kernel shares a single page buffer system across all open database instances and sessions. The maximum value of all <code
     >StartupParameters::nBuffers</code
-    > open so far is used as the amount of buffers. In a multi-store environment all stores must have exactly the same page size (<code
+    > open so far is used as the amount of pages in the buffer. In a multi-store environment, all stores must have exactly the same page size (<code
     >StoreCreationParameters::pageSize</code
     >).</p
   ></div
@@ -358,10 +358,10 @@
       ><pre>
   IExprTree * lExpr1 = NULL, * lExpr2 = NULL;
   Value lV[2];
-  lV[0].setVarRef(0, 1, &mProps[0]);
+  lV[0].setVarRef(0, mProps[0]);
   lV[1].setParam(0);
   lExpr1 = mSession->expr(OP_LT, 2, lV);  
-  lV[0].setVarRef(0, 1, &mProps[1]);
+  lV[0].setVarRef(0, mProps[1]);
   lV[1].setParam(1);
   lExpr2 = mSession->expr(OP_GT, 2, lV);
 
@@ -444,7 +444,7 @@
     >IPIN</code
     > is used to represent pure in-memory objects (<a href="./terminology.html#uncommitted-pin"
     >uncommitted PINs</a
-    >) and objects in the database. The main difference is that instances of the former don't have a <a href="./terminology.html#pin-id-pid"
+    >) as well as objects in the database. The main difference is that instances of the former don't have a <a href="./terminology.html#pin-id-pid"
     >PID</a
     >.</p
   ><p
@@ -499,7 +499,7 @@
     ><p
     >The <code
       >op</code
-      > field defines how the value is intended to be used. For a relatively thorough description of possibilities, please refer to line 198 in <a href="./sources/affinity_proto.html"
+      > field defines how the value is intended to be used. For a relatively thorough description of possibilities, please refer to line 215 in <a href="./sources/affinity_proto.html"
       >affinity.proto</a
       >.</p
     ><p
@@ -547,7 +547,7 @@
       >meta</code
       > are unused in this case. Also, <code
       >length</code
-      > can be uninteresting when large objects are returned (<a href="#inav"
+      > can be irrelevant when large objects are returned (<a href="#inav"
       >INav</a
       > or <a href="#istream"
       >IStream</a
@@ -587,10 +587,10 @@
   CmvautoPtr<IStmt> lQ(mSession->createStmt());  
   unsigned const char lVar = lQ->addVariable();  
   Value lV[2];  
-  lV[0].setVarRef(0, 1, &mFilePathPropID);  
+  lV[0].setVarRef(0, mFilePathPropID);  
   lV[1].setParam(0);  
   IExprTree *lET1 = mSession->expr(OP_EQ, 2, lV);  
-  lV[0].setVarRef(0, 1, &mPIFSAttrPropID);  
+  lV[0].setVarRef(0, mPIFSAttrPropID);  
   IExprTree *lET2 = mSession->expr(OP_EXISTS, 1, lV);  
   lV[0].set(lET1);  
   lV[1].set(lET2);  
@@ -655,8 +655,12 @@
 <p
   >To do a join:</p
   ><pre>
-  // same thing as merge, except replace setOp with:
-  lQ->join(lVars[0], lVars[1], NULL, QRY_JOIN);
+  // same thing as merge, except replace setOp with something like:
+  Value lV[2];
+  lV[0].setVarRef(lVars[0], propid1);
+  lV[1].setVarRef(lVars[1], propid2);
+  IExprTree * lExprJ = mSession->expr(OP_EQ, 2, lV);
+  lQ->join(lVars[0], lVars[1], lExprJ, QRY_SEMIJOIN);
 </pre>
 <p
   >To use a family instead:</p
@@ -676,11 +680,7 @@
   OrderSeg const lOrder = {NULL, mProps[0], ORD_NCASE};
   TVERIFYRC(lQ->setOrder(&lOrder, 1));
 </pre>
-<p
-  ><em
-    >Note: In the present release, output transformations are not yet considered ready.</em
-    ></p
-  ></div
+</div
 ><div id="icursor"
 ><h1
   >ICursor</h1
@@ -692,11 +692,17 @@
     > methods, and allows to walk a query result, in one of three possible ways:</p
   ><ol style="list-style-type: decimal;"
   ><li
-    >by IPIN*: every next pin is loaded and returned</li
+    >by <code
+      >Value&amp;</code
+      >: this is the most flexible form, capable of representing transformed outputs, join results etc.</li
     ><li
-    >by PID: only the PID of every next PIN is returned</li
+    >by <code
+      >PID&amp;</code
+      >: only the PID of every next PIN is returned</li
     ><li
-    >by IPIN**: for joins, to obtain all pins involved in the join (one result at a time, same as 1 and 2)</li
+    >by <code
+      >IPIN*</code
+      > [deprecated]: every next pin is loaded and returned</li
     ></ol
   ><p
   >By default, <code
@@ -727,7 +733,7 @@
   ><p
   >Because the point at which a small collection becomes large (and vice versa) is not controlled explicitly by the client, it is recommended to always use code that handles both cases, such as the <code
     >CollectionIterator</code
-    > defined at line 249 in serialization.h.</p
+    > defined at line 247 in serialization.h (in tests_kernel/src).</p
   ></div
 ><div id="istream"
 ><h1

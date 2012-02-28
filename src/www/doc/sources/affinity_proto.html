@@ -8,9 +8,21 @@
 <!-- begin highlighted code -->
 <div class="highlight"><pre><span class="c1">//**************************************************************************************</span>
 <span class="c1">//</span>
-<span class="c1">// Copyright © 2010 VMware, Inc. All rights reserved.</span>
+<span class="c1">// Copyright (c) 2010-2012 VMware, Inc. All rights reserved.</span>
 <span class="c1">//</span>
-<span class="c1">// Written by Mark Venguerov 2010</span>
+<span class="c1">// Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
+<span class="c1">// you may not use this file except in compliance with the License.</span>
+<span class="c1">// You may obtain a copy of the License at</span>
+<span class="c1">//</span>
+<span class="c1">//     http://www.apache.org/licenses/LICENSE-2.0</span>
+<span class="c1">//</span>
+<span class="c1">// Unless required by applicable law or agreed to in writing, software</span>
+<span class="c1">// distributed under the License is distributed on an &quot;AS IS&quot; BASIS,  WITHOUT</span>
+<span class="c1">// WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the</span>
+<span class="c1">// License for the specific language governing permissions and limitations</span>
+<span class="c1">// under the License.</span>
+<span class="c1">//</span>
+<span class="c1">// Written by Mark Venguerov 2010-2012</span>
 <span class="c1">//</span>
 <span class="c1">//**************************************************************************************</span>
 
@@ -153,7 +165,7 @@
 <span class="kd">enum</span> <span class="n">ReturnType</span> <span class="p">{</span>
     <span class="na">RT_PINS</span>         <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// Specifies that a query will return entire AfyStream::PIN object(s) (see definition below).</span>
     <span class="na">RT_COUNT</span>        <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// Specifies that a query will return a simple count.</span>
-    <span class="na">RT_PIDS</span>         <span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// Specifies that a query will return AfyStream::PIN object(s) containing only MVStream::PIN::id field.</span>
+    <span class="na">RT_PIDS</span>         <span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// Specifies that a query will return AfyStream::PIN object(s) containing only AfyStream::PIN::id field.</span>
     <span class="na">RT_SRCPINS</span>      <span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// Like RT_PINS, but VT_EXPR and VT_QUERY are converted to string form.</span>
     <span class="na">RT_VALUES</span>       <span class="o">=</span> <span class="mi">5</span><span class="p">;</span> <span class="c1">// Specifies that a query will return Value object(s).</span>
 <span class="p">}</span>
