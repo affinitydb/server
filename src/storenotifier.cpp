@@ -585,16 +585,16 @@ RC afy_waitNotifi( MainNotificationHandler& mainh, ISession& sess, char const* n
             MvClientNotifHandler::produceWaitResponse( sess, lReasons, res );
             wegroup->release();
             return RC_OK;
-        // If a clientid was specified, but nothing happened, keep waiting.
-        } else if ( !clientid ) {
-            char const* response = "{}";
-            size_t const lResLen = strlen( response );
-            char* lres = ( char* )sess.alloc( 1 + lResLen );
-            memcpy( lres, response, lResLen );
-            lres[ lResLen ] = 0;
-            *res = lres;
-            return RC_OK;
         }
+        // In any other circumstance, produce a timeout.
+        // Note: This could happen if, for example, a clientid request was received during client termination.
+        char const* response = "{\"timeout\":\"true\"}";
+        size_t const lResLen = strlen( response );
+        char* lres = ( char* )sess.alloc( 1 + lResLen );
+        memcpy( lres, response, lResLen );
+        lres[ lResLen ] = 0;
+        *res = lres;
+        return RC_OK;
     }
     return RC_OTHER;
 }

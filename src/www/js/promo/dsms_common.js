@@ -16,6 +16,7 @@ under the License.
 
 function defaultOption(pOptName) { var lE = $("#" + pOptName); return lE.length != 0 ? lE.text() : pOptName; }
 var DSMS_CONTEXT = new Object();
+DSMS_CONTEXT.mFetchForViewing = false; // An online demo is not ideal for speed... at least, don't do useless work (for viewing, take advantage of the fact that the samples are emitted on the client in the first place; the logic continues to happen on the server).
 DSMS_CONTEXT.mRadical = "dsmsdemo";
 DSMS_CONTEXT.mNs = "http://" + DSMS_CONTEXT.mRadical;
 DSMS_CONTEXT.mQPrefix = "PREFIX dsms: '" + DSMS_CONTEXT.mNs + "' ";
@@ -73,8 +74,8 @@ DSMS_CONTEXT.createClass = function(pClassDef, pCompletion)
 {
   // Review: Why did I need to use 'CONTAINS' here? Why did '=' not work? Can afy:ClassOfClasses be used as a family, or not?
   var lClassName = DSMS_CONTEXT.extractFullClassName(pClassDef);
-  var lDoCreateClass = function() { myLog("Creating class " + lClassName); DSMS_CONTEXT.query(pClassDef, new QResultHandler(pCompletion, null, null)); }
-  var lOnClassCount = function(_pJson) { if (undefined == _pJson || parseInt(_pJson) == 0) { lDoCreateClass(); } else { myLog("Class " + lClassName + " already exists"); pCompletion(); } }
+  var lDoCreateClass = function() { /*myLog("Creating class " + lClassName);*/ DSMS_CONTEXT.query(pClassDef, new QResultHandler(pCompletion, null, null)); }
+  var lOnClassCount = function(_pJson) { if (undefined == _pJson || parseInt(_pJson) == 0) { lDoCreateClass(); } else { /*myLog("Class " + lClassName + " already exists");*/ pCompletion(); } }
   DSMS_CONTEXT.query("SELECT * FROM afy:ClassOfClasses WHERE CONTAINS(afy:classID, '" + lClassName + "');", new QResultHandler(lOnClassCount, null, null), {countonly:true});
 }
 DSMS_CONTEXT.createClasses = function(pCompletion)

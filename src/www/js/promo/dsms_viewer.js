@@ -89,8 +89,8 @@ function defaultMachineSetup(pCompletion)
  */
 function startSimulation(pMachineName, pRenderStep)
 {
-  var lStepInMs = 200;
-  var lRunCtx = {timer:null, run_id:Math.random(), emitter:new Emitter(pMachineName), time_step:0};
+  var lStepInMs = (undefined == location.hostname.match(/(localhost|127\.0\.0\.1)/i)) ? 500 : 100;
+  var lRunCtx = {timer:null, run_id:Math.random(), emitter:new Emitter(pMachineName), time_step:0, samples:{}};
   var lOnTimer =
     function()
     {
@@ -109,7 +109,7 @@ function startSimulation(pMachineName, pRenderStep)
 /**
  * DsmsSensorView
  */
-function DsmsSensorView(pSensorRT, pSensorId)
+function DsmsSensorView(pSensorRT, pSensorId, pSamples)
 {
   var lThis = this;
   var lSamples = [];
@@ -131,23 +131,32 @@ function DsmsSensorView(pSensorRT, pSensorId)
         // e.g. faster update rate, but on older data (smooth impression, always catching up with now)
       // TODO: gather details from sensors (e.g. scale, titles, axes, units etc.)
 
-      // Trim stale samples.
-      // Review: Why do I need 30 instead of 20?
-      if (lSamples.length > 30)
-        lSamples = lSamples.slice(lSamples.length - 30);
+      if (DSMS_CONTEXT.mFetchForViewing)
+      {
+        // Trim stale samples.
+        // Review: Why do I need 30 instead of 20?
+        if (lSamples.length > 30)
+          lSamples = lSamples.slice(lSamples.length - 30);
 
-      // Get new samples periodically (every 2 ticks).
-      if (0 == lSamples.length || pRunCtx.time_step > lSamples[lSamples.length - 1].x + 2)
-        DSMS_CONTEXT.query(
-          "SELECT * FROM dsms:samples(@" + trimPID(pSensorRT.id) + ", [" + (pRunCtx.time_step - 20) + "," + (pRunCtx.time_step + 20) + "]);",
-          new QResultHandler(
-            function(_pJson)
-            {
-              if (undefined == _pJson) { return; }
-              var _lNewSamples = _pJson.map(function(__pJ) { return {x:parseInt(__pJ[DSMS_CONTEXT.mNs + '/time_step']), y:1.5 * parseFloat(__pJ[DSMS_CONTEXT.mNs + '/sample/X'])}; });
-              var _lLastX = lSamples.length > 0 ? lSamples[lSamples.length - 1].x : 0;
-              _lNewSamples.forEach(function(__pS) { if (__pS.x > _lLastX) lSamples.push(__pS); });
-            }));
+        // Get new samples periodically (every 2 ticks).
+        if (0 == lSamples.length || pRunCtx.time_step > lSamples[lSamples.length - 1].x + 2)
+          DSMS_CONTEXT.query(
+            "SELECT * FROM dsms:samples(@" + trimPID(pSensorRT.id) + ", [" + (pRunCtx.time_step - 20) + "," + (pRunCtx.time_step + 20) + "]);",
+            new QResultHandler(
+              function(_pJson)
+              {
+                if (undefined == _pJson) { return; }
+                var _lNewSamples = _pJson.map(function(__pJ) { return {x:parseInt(__pJ[DSMS_CONTEXT.mNs + '/time_step']), y:1.5 * parseFloat(__pJ[DSMS_CONTEXT.mNs + '/sample/X'])}; });
+                var _lLastX = lSamples.length > 0 ? lSamples[lSamples.length - 1].x : 0;
+                _lNewSamples.forEach(function(__pS) { if (__pS.x > _lLastX) lSamples.push(__pS); });
+              }));
+      }
+      else
+      {
+        if (pSamples.length > 30)
+          pSamples.splice(0, pSamples.length - 30);
+        lSamples = pSamples;
+      }
       if (0 == lSamples.length)
         return;
       // Clear the background.
@@ -189,10 +198,12 @@ function DsmsViewer(pCreateDefaultSetup)
     function(_pSensorId, _pCompletion)
     {
       var _lSensor = null;
+      var _lRetry = function() { setTimeout(function() { lDoAddView(_pSensorId, _pCompletion), 1000 }); }
+      if (undefined == lSensors) { _lRetry(); return; }
       for (var _iS = 0; _iS < lSensors.length && undefined == _lSensor; _iS++)
         _lSensor = (lSensors[_iS][DSMS_CONTEXT.mNs + '/sensor_id'] == _pSensorId) ? lSensors[_iS] : null;
-      var _lOnSensorRT = function(_pJson) { if (undefined != _pJson && 0 != _pJson.length) { lViews.push(new DsmsSensorView(_pJson[0], _pSensorId)); } if (undefined != _pCompletion) { _pCompletion(); } }
-      DSMS_CONTEXT.query("SELECT * FROM dsms:sensors_rt(@" + trimPID(_lSensor.id) + ", '" + lRunCtx.run_id + "');", new QResultHandler(_lOnSensorRT, null, null));
+      var _lOnSensorRT = function(_pJson) { if (undefined != _pJson && 0 != _pJson.length) { lViews.push(new DsmsSensorView(_pJson[0], _pSensorId, lRunCtx.samples[_pSensorId])); if (undefined != _pCompletion) { _pCompletion(); } } else { _lRetry(); } }
+      DSMS_CONTEXT.query("SELECT * FROM dsms:sensors_rt(@" + trimPID(_lSensor.id) + ", '" + lRunCtx.run_id + "');", new QResultHandler(_lOnSensorRT, _lRetry, null));
     }
   var lOnViewAdd = function() { lDoAddView($("#sensors_list option:selected").val()); }
   $("#view_add").click(lOnViewAdd);
@@ -220,7 +231,7 @@ function DsmsViewer(pCreateDefaultSetup)
 
   // Class definitions.
   var lOnReady = function() { DSMS_CONTEXT.updateMachinesList($("#machines_list"), lOnMachineChange); }
-  var lDefaultSetup = function() { setTimeout(function() { lDoAddView("coffee_level", function() { lDoAddView("coins_amount", function() { lDoAddView("water_alcalinity"); }); }); }, 1500); defaultMachineSetup(lOnReady); }
+  var lDefaultSetup = function() { setTimeout(function() { lDoAddView("coffee_level", function() { lDoAddView("coins_amount", function() { lDoAddView("water_alcalinity"); }); }); }, 1000); defaultMachineSetup(lOnReady); }
   DSMS_CONTEXT.createClasses(pCreateDefaultSetup ? lDefaultSetup : lOnReady);
 }
 

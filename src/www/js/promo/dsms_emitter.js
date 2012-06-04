@@ -91,7 +91,7 @@ function Emitter(pMachineName)
               }
               catch (e) { myLog("Caught error while handling callback (data: " + data + "): " + e); _lWaitNotifs(); }
             },
-            error: function() { alert("error while waiting for notifs! " + arguments); },
+            error: function() { alert("error while waiting for notifs! " + myStringify(arguments)); },
             beforeSend : function(req) { if (AFY_CONTEXT.mStoreIdent.length > 0) { req.setRequestHeader('Authorization', "Basic " + base64_encode(AFY_CONTEXT.mStoreIdent + ":" + AFY_CONTEXT.mStorePw)); } }
           });
         }
@@ -106,7 +106,7 @@ function Emitter(pMachineName)
             url: DB_ROOT + "?i=regnotif&notifparam=" + __lCn + "&type=class&clientid=" + lClientId,
             dataType: "text", async: true, timeout: null, cache: false, global: false,
             success: function(data) { /*alert(data);*/ /* what to do */ _lRegisterNotifs(_pClasses); },
-            error: function() { alert("error while registering for notifs! " + arguments); },
+            error: function() { alert("error while registering for notifs! " + myStringify(arguments)); },
             beforeSend : function(req) { if (AFY_CONTEXT.mStoreIdent.length > 0) { req.setRequestHeader('Authorization', "Basic " + base64_encode(AFY_CONTEXT.mStoreIdent + ":" + AFY_CONTEXT.mStorePw)); } }
           });
         }
@@ -156,7 +156,10 @@ function Emitter(pMachineName)
           lMachineSensors = (undefined != _pJson ? _pJson : []);
           var __lCommands = [];
           for (var __iS = 0; __iS < lMachineSensors.length; __iS++)
+          {
+            pRunCtx.samples[lMachineSensors[__iS][DSMS_CONTEXT.mNs + '/sensor_id']] = [];
             __lCommands.push(DSMS_CONTEXT.mQPrefix + "INSERT dsms:sensor=@" + trimPID(lMachineSensors[__iS].id) + ", dsms:run_id='" + pRunCtx.run_id + "', dsms:start_at=CURRENT_TIMESTAMP");
+          }
           afy_batch_query(__lCommands, new QResultHandler(_lOnNewSensorsRT, null, null), {longnames:true});
         }
       var _lOnMachine = function(_pJson) { lMachine = (undefined != _pJson && _pJson.length > 0) ? _pJson[0] : null; DSMS_CONTEXT.getSensors(lMachine, _lCreateSensorsRT); }
@@ -229,6 +232,7 @@ function Emitter(pMachineName)
         }
         if (_lDoJitter || _lDoShift)
           _lValue = Math.max(_lMin, Math.min(_lMax, _lValue));
+        pRunCtx.samples[_lSn].push({x:pRunCtx.time_step, y:1.5 * _lValue});
         _lActions.push(
           DSMS_CONTEXT.mQPrefix +
           "INSERT dsms:sensor_rt=@" + trimPID(lMachineSensors[_iS].runtime.id) +

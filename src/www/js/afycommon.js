@@ -38,7 +38,7 @@ AFY_CONTEXT.mStorePw = ""; // The current store password specified by the user.
 function trimPID(pPID) { return undefined != pPID ? pPID.replace(/^0+/, "") : undefined; }
 function countProperties(pO) { var lR = 0; for(var iP in pO) { if (pO.hasOwnProperty(iP)) lR++; } return lR; }
 function nthProperty(pO, pN) { var i = 0; var lPn = null; for (var iP in pO) { if (i == pN) { lPn = iP; break; } i++; } return lPn; }
-function myLog(pMsg) { if ("msie" in $.browser && $.browser["msie"]) return; console.log(pMsg); }
+function myLog(pMsg) { if (("msie" in $.browser && $.browser["msie"]) || undefined == typeof(console)) { return; } console.log(pMsg); }
 function alertStack() { try { throw new Exception(); } catch (e) { alert(e.stack); } }
 function myStringify(pWhat, pOptions/*{quoteStrings:true/false, lineBreaks:true/false}*/)
 {
