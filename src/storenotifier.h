@@ -25,6 +25,7 @@ under the License.
 #ifdef WIN32
     #include <winsock2.h>
     #include <Windows.h>
+    #include <time.h>
 #else
     #include <sys/time.h>
     #include <sys/ipc.h>
@@ -89,17 +90,19 @@ public:
 protected:
     long volatile mUseCount; // Refcount controlling the lifetime of this WaitableEvent.
     long mRegCount; // Registration count, to help MvStoreMgr::MainNotificationHandler track logical registrations.
+    uint64_t mLastWaitTermination; // Last time 'wait' exited (with WR_SIGNALED, WR_TIMEOUT etc.); used to recognize dead clients (not renewing their timed out connection); 0 means active (waiting).
     Mutex mLockReasons; // Mutex for mReasons.
     TReasonsByOrg mReasons; // Reasons why the event was signaled.
 #ifdef WIN32
 protected:
     HANDLE mEvent;
 public:
-    WaitableEvent() : mUseCount(1), mRegCount(0), mEvent( CreateEvent( NULL, FALSE, FALSE, NULL ) ) {}
+    WaitableEvent() : mUseCount(1), mRegCount(0), mLastWaitTermination(0), mEvent( CreateEvent( NULL, FALSE, FALSE, NULL ) ) {}
     ~WaitableEvent() { CloseHandle( mEvent ); }
 protected:
     WaitResult _wait( int msTimeout ) { return WAIT_OBJECT_0 == WaitForSingleObject( mEvent, msTimeout ) ? WR_SIGNALED : WR_TIMEOUT; }
     void _signal() { SetEvent( mEvent ); }
+    static inline uint64_t getTimeInMs() { return ( 1000 / CLOCKS_PER_SEC ) * ::clock() ; }
 #elif defined (Darwin)
 protected:
     int mSem;
@@ -124,6 +127,7 @@ public:
     long decRegCount() { mRegCount--; return mRegCount; }
     WaitResult wait( int msTimeout, TReasonsByOrg* pReasons=NULL );
     void signal( void* pOrg, TReasons const* pReasons );
+    bool isStale();
 };
 
 /**
@@ -149,6 +153,7 @@ public:
     void registerClient( IStoreNotification* pClient );
     void unregisterClient( IStoreNotification* pClient );
     bool checkClient( IStoreNotification* pClient );
+    void gcClients();
 public:
     WaitableEvent* getGroupEvent( char const* clientid );
     WaitableEvent* allocGroupEvent( char const* clientid );

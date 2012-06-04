@@ -45,7 +45,7 @@ using namespace AfyDB;
  */
 #ifndef WIN32
 WaitableEvent::WaitableEvent()
-    : mUseCount(1), mRegCount(0), mSem(semget(IPC_PRIVATE, 1, IPC_CREAT | 0666)) { 
+    : mUseCount(1), mRegCount(0), mLastWaitTermination(0), mSem(semget(IPC_PRIVATE, 1, IPC_CREAT | 0666)) { 
     if ( -1 == mSem ) {
         fprintf( stderr, "%s:%d: couldn't allocate semaphore.", __FILE__, __LINE__ );
     }
@@ -91,6 +91,7 @@ void WaitableEvent::_signal() {
 
 WaitableEvent::WaitResult WaitableEvent::wait( int msTimeout, TReasonsByOrg* pReasons ) {
     // Wait, and obtain the "reasons", i.e. what happened to trigger resolution of the wait.
+    { MutexP const lLock( &mLockReasons ); mLastWaitTermination = 0; }
     WaitResult const wr = _wait( msTimeout );
     if ( pReasons ) {
         pReasons->clear();
@@ -103,6 +104,7 @@ WaitableEvent::WaitResult WaitableEvent::wait( int msTimeout, TReasonsByOrg* pRe
         MutexP const lLock( &mLockReasons );
         mReasons.clear();
     }
+    { MutexP const lLock( &mLockReasons ); mLastWaitTermination = getTimeInMs(); }
     return wr;
 }
 
@@ -120,6 +122,11 @@ void WaitableEvent::signal( void* pOrg, TReasons const* pReasons ) {
             ( *iO ).second.insert( *i );
         }
     }
+}
+
+bool WaitableEvent::isStale() {
+    MutexP const lLock( &mLockReasons );
+    return ( 0 != mLastWaitTermination && getTimeInMs() > mLastWaitTermination + 20000 );
 }
 
 /**
@@ -217,11 +224,12 @@ void MainNotificationHandler::releaseGroupEvent( char const* clientid ) {
  * . provide a signaling mechanism to wake-up the comet handler
  *   upon notification
  * . handle "persistent notifications", i.e. a stored log model
- *   allowing clients to "catch-up" via queries
+ *   allowing clients to "catch-up" via queries (to be completed)
  */
 class MvClientNotifHandler : public IStoreNotification {
 protected:
     std::string mCriterionClassName; // If this is a class notification handler, the class name.
+    std::string mClientid; // If this handler was associated with a group event, remember the id.
     ClassID mCriterionCLSID; // If this is a class notification handler, the class id.
     PID mCriterionPID; // If this is a pin notification handler, the pin id.
     long volatile mUseCount; // A refcount, to manage the lifetime of this object with respect to unregistrations and async callbacks.
@@ -236,8 +244,9 @@ protected:
     TPIDs mReasons; // What caused the notifications; always expressed in terms of PIDs. Note: Currently in case of nested rollbacks, this will be inaccurate, but not in a dangerous way, and I don't want to invest too much effort on this considering Mark's upcoming changes.
     Mutex mLock;
 public:
-    MvClientNotifHandler( ISession& sess, WaitableEvent* synchrogroup, char const* className, PID const* pid, bool persistent )
+    MvClientNotifHandler( ISession& sess, WaitableEvent* synchrogroup, char const* className, PID const* pid, bool persistent, char const* pClientid = NULL )
         : mUseCount(1), mTerminated(0), mSynchroGroup(synchrogroup) {
+        if ( pClientid ) { mClientid = pClientid; }
         // Store the notification criterion.
         mCriterionPID.ident = STORE_OWNER;
         mCriterionPID.pid = STORE_INVALID_PID;
@@ -254,6 +263,7 @@ public:
         // TODO: create persistent registration record, if not already there (will require session)
     }
     ~MvClientNotifHandler() { if ( mSynchroGroup ) { mSynchroGroup->release(); mSynchroGroup = NULL; } }
+public:
     virtual void notify( NotificationEvent *events,unsigned nEvents,uint64_t txid ) {
         if ( mTerminated ) {
             return;
@@ -377,6 +387,22 @@ public:
 public:
     void addRef() { InterlockedIncrement( &mUseCount ); }
     void release() { if ( 0 == InterlockedDecrement( &mUseCount ) ) { delete this; } }
+    bool gcTest( MainNotificationHandler& pMainh )
+    {
+        // Note: Depends on pMainh's lock...
+        // Note: Answering true here automatically has the effect of invoking the equivalent of unregisterClient...
+        return ( !mTerminated && ( ( mSynchroGroup && mSynchroGroup->isStale() ) || mSynchroIndividual.isStale() ) );
+    }
+    void gc( MainNotificationHandler& pMainh )
+    {
+        if ( mTerminated ) {
+            return;
+        }
+        terminate(); // Unblock any possible waiting request.
+        pMainh.releaseGroupEvent( mClientid.c_str() ); // Decrement our refcount on the groupevent, if any specified.
+        release(); // Release this client (n.b. may only be destroyed when all waiting requests are unblocked).
+        // Note: It's in 'delete this' that the semaphores associated with mSynchroIndividual will be released.
+    }
 protected:
     void signalAll() {
         WaitableEvent::TReasons lReasons;
@@ -394,9 +420,11 @@ protected:
         MutexP const lockStacks( &mLock );
         TPIDs::iterator i;
         for ( i = mReasons.begin(); mReasons.end() != i; i++ ) {
-            char lReason[ 64 ];
-            snprintf( lReason, sizeof( lReason ), _LX_FM, (*i).pid );
-            pReasons.insert( lReason );
+            char lReasonStr[ 1024 ], lReasonC[ 1024 ];
+            lReasonC[ 0 ] = 0;
+            if ( STORE_INVALID_CLASSID != mCriterionCLSID ) { snprintf( lReasonC, sizeof( lReasonC ), ", \"class_name\":\"%s\"", mCriterionClassName.c_str() ); }
+            snprintf( lReasonStr, sizeof( lReasonStr ), "\"pid\":\""_LX_FM"\"%s", (*i).pid, lReasonC );
+            pReasons.insert( lReasonStr );
         }
         mReasons.clear();
     }
@@ -413,7 +441,7 @@ public:
                 WaitableEvent::TReasons::iterator iR;
                 WaitableEvent::TReasons const& lReasons = ( *iO ).second;
                 for ( iR = lReasons.begin(); lReasons.end() != iR; ) {
-                    os << "\"" << ( *iR ) << "\"";
+                    os << "{" << ( *iR ) << "}";
                     iR++;
                     if ( lReasons.end() != iR ) {
                         os << ",";
@@ -436,17 +464,35 @@ public:
     }
 };
 
+void MainNotificationHandler::gcClients() {
+    TClients lGCable;
+    TClients::iterator iC;
+    {
+        MutexP const lLock(&mLock);
+        for ( iC = mClients.begin(); mClients.end() != iC; iC++ ) {
+            if ( ( (MvClientNotifHandler *)(*iC) )->gcTest( *this ) ) {
+                lGCable.insert( *iC );
+                mClients.erase( *iC ); // Auto-unregister clients selected for gc, to get them out of the way (lock-wise).
+            }
+        }
+    }
+    for ( iC = lGCable.begin(); lGCable.end() != iC; iC++ ) {
+        ( (MvClientNotifHandler *)(*iC) )->gc( *this );
+    }
+}
+
 RC afy_regNotifi( MainNotificationHandler& mainh, ISession& sess, char const* type, char const* notifparam, char const* clientid, char** res, bool persistent ) {
     if ( res ) {
         *res = NULL;
     }
+    mainh.gcClients(); // Get rid of any old stale client (i.e. that hasn't renewed its wait connection for more than x seconds).
     MvClientNotifHandler* handler = NULL;
     PID persistentReg;
     char lOutput[1024];
     lOutput[0] = 0;
     if ( 0 == strcmp( type, "class" ) ) {
         WaitableEvent* wegroup = mainh.allocGroupEvent( clientid );
-        handler = new MvClientNotifHandler( sess, wegroup, notifparam, NULL, persistent );
+        handler = new MvClientNotifHandler( sess, wegroup, notifparam, NULL, persistent, clientid );
         handler->getPersistentRegPIN( persistentReg );
         snprintf( lOutput, sizeof( lOutput ), "{\"%x\":\""_LX_FM"\"}", ( size_t )handler, persistentReg.pid );
     } else if ( 0 == strcmp( type, "pin" ) ) {
@@ -462,7 +508,7 @@ RC afy_regNotifi( MainNotificationHandler& mainh, ISession& sess, char const* ty
                 lPIN->destroy();
             }
             WaitableEvent* wegroup = mainh.allocGroupEvent( clientid );
-            handler = new MvClientNotifHandler( sess, wegroup, NULL, &lPID, persistent );
+            handler = new MvClientNotifHandler( sess, wegroup, NULL, &lPID, persistent, clientid );
             handler->getPersistentRegPIN( persistentReg );
             snprintf( lOutput, sizeof( lOutput ), "{\"%x\":\""_LX_FM"\"}", ( size_t )handler, persistentReg.pid );
         }
@@ -512,6 +558,7 @@ RC afy_waitNotifi( MainNotificationHandler& mainh, ISession& sess, char const* n
     if ( res ) {
         *res = NULL;
     }
+    mainh.gcClients(); // Get rid of any old stale client (i.e. that hasn't renewed its wait connection for more than x seconds).
     void* handler;
     WaitableEvent* wegroup = NULL;
     for (;;) {

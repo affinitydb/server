@@ -1,0 +1,31 @@
+body { font-family:Helvetica; margin:0; font-size:0.85em; background-color:#e4e4e4; }
+a { text-decoration:none; color:#0645ad; }
+a:hover { text-decoration:underline; }
+p { margin:0.4em 0 0 0; padding:0; }
+ul { margin:0.4em 0 0.5em 0; padding:0; }
+ol { margin:0.4em 0 0.5em 0; padding-left:2.5em; }
+ul li { list-style:none; padding-left:12px; }
+tr { border:solid 1px #777; background-color:#c3c3c3; }
+tr.highlighted { background-color:#b6b6b6; }
+tr.selected { background-color:#a2a2a2; }
+.ctxmenu { border:none; padding:0; }
+.ctxmenuitem { width:100%; border:solid 1px #777; padding:0.2em; background-color:#eee; cursor:pointer; }
+.ctxmenu-highlighted-item { background-color:#f6f6f6; }
+.afypropname { color:#555; }
+
+#content { width:100%; height:100%; }
+
+#map_query_spec { overflow:none; position:absolute; top:2px; width:100%; height:20px; border:none; }
+#map_query { position:absolute; width:70%; left:12px; right:135px; background-color:#f8f8f8; color:#0f80cc; font-size:1em; border:solid 2px #0f80cc; outline:none; }
+#map_query_cgraphs { position:absolute; top:0px; right:160px; width:10px; margin:0; padding:0; }
+#map_query_cgraphs_txt { position:absolute; top:0px; right:55px; width:100px; font-size:0.6em; }
+#map_query_withrefs { position:absolute; top:14px; right:160px; width:10px; margin:0; padding:0; }
+#map_query_withrefs_txt { position:absolute; top:14px; right:55px; width:100px; font-size:0.6em; }
+#map_querygo { position:absolute; right:0; width:50px; }
+#map_area_c { overflow:none; position:absolute; left:0; top:30px; bottom:10px; width:100%; border:none; }
+#map_area { width:100%; height:100%; }
+#map_status { position:absolute; bottom:0; width:100%; height:10px; border:none; }
+
+#thetooltip { position:absolute; z-index:2; width:auto; padding:5px; background-color:#eee; border:solid 1px #000; border-radius:5px; display:none; }
+#thetooltiptable { display:none; }
+#themenutable { display:none; }

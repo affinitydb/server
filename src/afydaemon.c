@@ -1249,6 +1249,23 @@ int afydaemon_stop( uint32_t usec ) {
     return 1;
 }
 
+#ifndef WIN32
+void afySigPipeHandler(int sig, siginfo_t *info, void *uap) {}
+#endif
+void setSigPipeHandler()
+{
+#ifndef WIN32
+    // Note (maxw):
+    //   As far as I understand, SIGPIPE signals are probable, unavoidable, and undesirable in a multi-threaded server.
+    struct sigaction lSA; memset(&lSA, 0, sizeof(lSA));
+    lSA.sa_flags = SA_SIGINFO | SA_RESTART;
+    sigemptyset(&lSA.sa_mask);
+    lSA.sa_sigaction = afySigPipeHandler;
+    if (0 != sigaction(SIGPIPE, &lSA, NULL))
+        { fprintf(stderr, "Couldn't register signal for SIGPIPE!\n"); }
+#endif
+}
+
 int afydaemon( void *ctx, const char* www, const char* store, 
               uint16_t port, int verbose, int auto_create ) {
     int list;
@@ -1364,6 +1381,8 @@ int afydaemon( void *ctx, const char* www, const char* store,
     }
     
     LOG_LINE( kLogReport, "started with storedir \"%s\"", storedir );
+
+    setSigPipeHandler();
 
     sock_init();
     list = sock_listener( port );

@@ -1,0 +1,25 @@
+body { font-family:Helvetica; margin:0; font-size:0.85em; background-color:#e4e4e4; }
+a { text-decoration:none; color:#0645ad; }
+a:hover { text-decoration:underline; }
+p { margin:0.4em 0 0 0; padding:0; }
+ul { margin:0.4em 0 0.5em 0; padding:0; }
+ol { margin:0.4em 0 0.5em 0; padding-left:2.5em; }
+ul li { list-style:none; padding-left:12px; }
+tr { border:solid 1px #777; background-color:#c3c3c3; }
+tr.highlighted { background-color:#b6b6b6; }
+tr.selected { background-color:#a2a2a2; }
+
+#content { position:relative; margin-left:20px; margin-right:20px; }
+#content h2 { font-weight:normal; padding:0.1em 0 0 0; margin:0.1em 0 0 0; }
+#logo { float:right; margin-top:10px; }
+#machines { position:relative; top:10px; }
+#sensors { position:relative; top:30px; }
+#rules { position:relative; top:280px; }
+#left_sensors { position:absolute; left:0; width:240px; }
+#right_sensors { position:absolute; left:300px; top:-50px; visibility:hidden; }
+#left_rules { position:absolute; left:0; width:250px; }
+#right_rules { position:absolute; left:300px; top:10px; visibility:hidden; }
+#sensors_list { width:100%; }
+#rules_list { width:100%; }
+
+#sensor_delete { visibility:hidden; }

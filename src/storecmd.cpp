@@ -61,7 +61,7 @@ public:
             std::string lStoreDir;
             params.directory = getStoreDir( pUserName, lStoreDir );
             ensuredir( params.directory );
-            params.password = pUserPw;
+            params.password = ( pUserPw && strlen( pUserPw ) > 0 ) ? pUserPw : NULL;
             notificationHandler = new MainNotificationHandler();
             params.notification = notificationHandler;
             params.nBuffers = 32768; // Note: Don't take chances with default...

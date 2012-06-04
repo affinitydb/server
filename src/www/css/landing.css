@@ -7,7 +7,7 @@ body { font-family:Helvetica; margin:0; font-size:0.8em; background-color:#e4e4e
 
 #generic_header { position:relative; top:3px; left:0; width:100%; height:20px; margin:0; }
 #title { position:relative; top:10px; left:0; width:100%; }
-#topics { position:relative; top:30px; left:0; width:100%; height:180px; left:0; color:#335; }
+#topics { position:relative; top:25px; left:0; width:100%; height:180px; left:0; color:#335; }
 #generic_footer { position:relative; top:10px; left:0; width:100%; margin:0; text-align:center; }
 
 #gh_logo { float:left; margin-left:5px; }

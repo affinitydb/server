@@ -85,14 +85,7 @@ tr.selected { background-color:#a2a2a2; }
 
 /* content_left (map/graph tab) */
 #map_left { position:absolute; top:50px; width:100%; bottom:0; margin:0; white-space:normal; border:none; padding:0; }
-#map_query_spec { overflow:none; position:absolute; top:2px; width:100%; height:20px; border:none; }
-#map_query { position:absolute; width:70%; left:12px; right:135px; background-color:#f8f8f8; color:#0f80cc; font-size:1em; border:solid 2px #0f80cc; outline:none; }
-#map_query_withrefs { position:absolute; right:160px; width:20px; }
-#map_query_withrefs_txt { position:absolute; right:55px; width:100px; font-size:0.7em; }
-#map_querygo { position:absolute; right:0; width:50px; }
-#map_area_c { overflow:none; position:absolute; left:0; top:30px; bottom:10px; width:100%; border:none; }
-#map_area { width:100%; height:100%; }
-#map_status { position:absolute; bottom:0; width:100%; height:10px; border:none; }
+#map_iframe { width:100%; height:100%; border:none; }
 
 /* content_left (histogram tab) */
 #histo_left { position:absolute; top:50px; width:100%; bottom:0; margin:0; white-space:normal; border:none; padding:0; }

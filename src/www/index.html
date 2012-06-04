@@ -23,7 +23,7 @@
         function reloc(pWhere) { return function() { window.location.href = 'http://' + location.hostname + ":" + location.port + "/" + pWhere; } }
         var lDocB = $("#doc"), lConsoleB = $("#console"), lContactB = $("#contact");
         lDocB.hover(wH(lDocB), wL(lDocB)); lConsoleB.hover(wH(lConsoleB), wL(lConsoleB)); lContactB.hover(wH(lContactB), wL(lContactB));
-        lDocB.click(reloc("doc/features.html")); lConsoleB.click(reloc("console.html")); lContactB.click(function(){window.location.href = 'http://affinitydb.ipbhost.com'});
+        lDocB.click(reloc("doc/intro.html")); lConsoleB.click(reloc("console.html")); lContactB.click(function(){window.location.href = 'http://affinitydb.ipbhost.com'});
       });
   </script>
   <title>Affinity</title>
@@ -58,7 +58,7 @@
         <img src='images/affinityconsole.png' id='console_button_img'></img>
         <div id='console_button_text' style='display:none'>Try It!</div>
       </div>
-      <div id='console_text'>Don't wait any longer and take a quick test drive, right here and right now in your browser! We will immediately host a sandbox just for you (a temporary database instance).</div>
+      <div id='console_text'>Don't wait any longer and take a quick test drive, right here and right now in your browser! We will immediately host a sandbox just for you (a temporary db instance). Really can't wait? <a href="/doc/getting%20started.html#setup">Install affinity</a> from github!</div>
     </div>
     <div id='contact'>
       <div id='contact_button'>

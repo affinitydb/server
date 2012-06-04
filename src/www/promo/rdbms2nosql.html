@@ -1,0 +1,692 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+  <link href='../css/promo/promo.css' rel='stylesheet' type='text/css' />
+  <script src='../js/jquery.js' type='text/javascript'></script>
+  <script src='../js/persist-min.js' type='text/javascript'></script>
+  <script src='../js/afycommon.js' type='text/javascript'></script>
+  <script src='../js/promo/promo.js' type='text/javascript'></script>
+  <title>Promo</title>
+</head>
+<body>
+
+<!--
+  This is the content of a custom slide-show for Affinity.
+  The emphasis is on the RDBMS -> NoSQL transition, and the role Affinity can play there, particularly with PathSQL.
+  The point of view adopted is that RDBMSs are the most logical target for us, initially.
+  The intent is to integrate just enough code fragments and empirical data to produce a convincing message.
+  This is also viewed as a marketing/propaganda tool, hence the continued efforts invested in wording and presentation.
+  I try to have 1 key message per slide.
+  Note: The presentation is starting to take shape, but the content is still very incomplete / rough / early stage...
+-->
+
+<div id='thecanvas_c'>
+  <canvas id='thecanvas'></canvas>
+</div>
+
+<!-- key message: Affinity=RDBMS->NoSQL (iow let's target RDBMS users) -->
+<div class='slide'>
+<h1>Intro</h1>
+  <ul>
+    <li class="step_0 mode_all">
+      <p>Ever dreamed of a RDBMS with NoSQL horizons?</p>
+      <ul>
+        <li class="bullet_none">(RDBMS: Relational Database Management System)</li>
+      </ul>
+    </li>
+    <li class="step_0 mode_all vspacer">10</li>
+
+    <li class="step_1 mode_all">
+      <p>AffinityDB will gently take you from RDBMS to NoSQL</p>
+      <ul>
+        <li>Affinity's schema-less data model is compatible with relational modeling</li>
+        <li>Its query language is an extension of SQL</li>
+        <li>The concurrency model is ACID across the board</li>
+        <li>No compromise on size and speed compared with RDBMSs</li>
+        <li>You can easily add social graph modeling and analysis to your relational data</li>
+        <li>Affinity is <b>free</b> and <b>open-source!</b></li>
+      </ul>
+    </li>
+    <li class="step_1 mode_all vspacer">10</li>
+    <li class="step_2 mode_all">
+      <p>This presentation covers aspects of:</p>
+      <ul>
+        <li>Schema</li>
+        <li>Internal data representation</li>
+        <li>PathSQL &amp; graphs</li>
+        <li>Logging &amp; recovery</li>
+        <li>Scalability</li>
+      </ul>
+    </li>
+  </ul>
+</div>
+
+<!-- key message: NoSQL (here schema flexibility) is useful from RDBMS perspective (beyond just scalability), and Affinity is great at it (better than other NoSQL solutions) -->
+<div class='slide'>
+<h1>Schema</h1>
+  <ul>
+    <li class="step_0 mode_all">
+      <p>Data &amp; schemas evolve</p>
+      <ul>
+        <li>Share the pain?</li>
+      </ul>
+    </li>
+    <li class="step_0 mode_all jsmodel">
+      (
+        function()
+        {
+          var lInitialSchema = {first_name:1, last_name:1, occupation:1, car_make:1, license:1};
+          var lPerson1 = {gender:"Male", last_name:"Brown", occupation:"Dentist", country:"Mexico", friend:null};
+          var lPerson2 = {gender:"Female", last_name:"White", first_name:"Ann", occupation:"Teacher", country:"USA", friend:lPerson1, car:null};
+          var lCar1 = {car_make:"Honda", year:1999, color:"blue", license:"PYU 123"};
+          lPerson1.friend = lPerson2;
+          lPerson2.car = lCar1;
+          return [lInitialSchema, lPerson1, lPerson2, lCar1];
+        }
+      )();
+    </li>
+
+    <li class="step_1 mode_all">
+      <p>Most DBMSs can only deal with 1 version of a schema or datum at a time</p>
+      <ul>
+        <li>Fixed schemas simplify the implementation <i>of DBMSs</i> - <b>not</b> of applications</li>
+        <li>The ubiquitous <b>interoperability</b> challenge is left out</li>
+      </ul>
+    </li>
+
+    <li class="step_2 mode_sql">
+      <p>Relational DBMSs require a schema a priori</p>
+      <ul>
+        <li>Before any data can be inserted, tables must be created</li>
+        <li>All rows of a table must have the same structure</li>
+        <li>Changing the schema easily renders older versions of the code unusable</li>
+        <li>A row cannot be moved across tables</li>
+        <li>Views provide elements of solution but are implementation-dependent</li>
+      </ul>
+    </li>
+
+    <li class="step_2 mode_affinity">
+      <p class="vs_all">With Affinity, no schema declaration is required</p>
+      <ul>
+        <li class="vs_sql">Each data item carries its own structure, and can evolve independently</li>
+        <li class="vs_all">Data items can belong to any number of categories</li>
+        <li class="vs_docdb">Data items are not forced into any container</li>
+        <li class="vs_sql vs_docdb">References let you create complex structures from simple, reusable elements</li>
+        <li class="vs_docdb vs_graphdb">Extensive data transformation capabilities further facilitate interop</li>
+      </ul>
+    </li>
+
+    <li class="step_2 mode_docdb">
+      <p>Document databases are schema-less...</p>
+      <ul>
+        <li>But in some systems collections must be created to contain documents</li>
+        <li>Documents cannot be moved across collections</li>
+        <li>Documents tend to become structurally complex (workaround ACID limitations)</li>
+        <li>Inter-document combinations are very limited (no join, crippled references)</li>
+        <li>Size constraints further complicate data modeling</li>
+      </ul>
+    </li>
+
+    <li class="step_2 mode_graphdb">
+      <p>Graph databases are similar to Affinity</p>
+      <ul>
+        <li>But categorization is usually not as powerful</li>
+        <li>Data transformations are either absent or much weaker</li>
+        <!-- something about RDF triples vs relational model? -->
+      </ul>
+    </li>
+  </ul>
+</div>
+
+<!-- key message: we understand the costs of schema-lessness, and we compare favorably -->
+<div class='slide'>
+<h1>Internal Data Representation</h1>
+  <ul>
+    <li class="step_0 mode_all">
+      <p>Disk I/O is the main bottleneck of most DBMSs</p>
+      <ul>
+        <li>DBMSs usually store data &amp; indexes on fixed-sized pages</li>
+        <li>DBMSs strive to load and save pages the least often possible</li>
+        <li>Compact data = more data per page = more data in memory = less I/O</li>
+        <li>For write operations, log records must also be saved</li>
+        <li>Related strategies: B-trees, prefix indexes, sophisticated data type compression, smart cache management etc.</li>
+      </ul>
+    </li>
+    <li class="step_0 mode_all vspacer">10</li>
+
+    <li class="step_1 mode_all container_horizontal">
+      <ul>
+        <li class="mathgraph">
+          (function() { return {
+            title:"Database Size",
+            subtitle:"Scenario 1: Simple Model",
+            layout:[0, 10, 500, 210],
+            x:{name:"Thousands of Facts", decimals:1},
+            y:{name:"Data Size (Mb)", decimals:1},
+            tooltips:
+            [
+              "&lt;b&gt;schema:&lt;/b&gt;",
+              "CREATE TABLE person (orgid INT PRIMARY KEY, firstname VARCHAR(255), middlename VARCHAR(255), lastname VARCHAR(255), occupation VARCHAR(255), country VARCHAR(255), postalcode VARCHAR(255));",
+              "",
+              "&lt;b&gt;data sample:&lt;/b&gt;",
+              "{orgid:1, firstname:'Aline', middlename:'June', lastname:'Walls', occupation:'accountant-controller', country:'Italy', postalcode:'B1S 2N2'}",
+            ],
+            series:
+            [
+              {name:"DocDB", color:"#ff0000", data:[[3,0.2], [30,1.6], [60,3.1], [120,6.2]]},
+              {name:"GraphDB", color:"#660000", data:[[3,0.3], [30,1.7], [60,3.0], [120,5.9]]},
+              {name:"Affinity", color:"#2087c6", data:[[3,0.5], [30,1.3], [60,2.2], [120,3.9]]},
+              {name:"RDBMS", color:"#ff8c00", data:[[3,0.1], [30,0.4], [60,0.7], [120,1.5]]},
+            ]
+          };})();
+        </li>
+        <li class="mathgraph">
+          (function() { return {
+            title:"Database Size",
+            subtitle:"Scenario 2: Complex Model Involving Indexes",
+            layout:[0, 10, 500, 210],
+            x:{name:"Millions of Facts", decimals:1},
+            y:{name:"Data Size (Mb)", decimals:0},
+            tooltips:
+            [
+              "&lt;b&gt;schema:&lt;/b&gt;",
+              "CREATE TABLE person (orgid INT PRIMARY KEY, firstname VARCHAR(255), middlename VARCHAR(255), lastname VARCHAR(255), occupation VARCHAR(255), country VARCHAR(255), postalcode VARCHAR(255), rootproject INT);",
+              "CREATE TABLE friend (orgid1 INT, orgid2 INT);",
+              "CREATE TABLE project (fid INT PRIMARY KEY, fname VARCHAR(255), parent_fid INT, access_orgid INT);",
+              "CREATE TABLE photo (fid INT PRIMARY KEY, photo_name VARCHAR(255), parent_fid INT);",
+              "CREATE INDEX oid1 ON friend (orgid1);",
+              "CREATE INDEX project_parent_fid ON project (parent_fid);",
+              "CREATE INDEX photo_parent_fid ON photo (parent_fid);",
+            ],
+            series:
+            [
+              {name:"DocDB", color:"#ff0000", data:[[2.33,715], [22.7,5530], [45.11,9011], [90.6,16384]]},
+              {name:"GraphDB", color:"#660000", data:[[2.33,200], [22.7,2048], [45.11,3993], [90.6,7987]]},
+              {name:"Affinity", color:"#2087c6", data:[[2.33,101], [22.7,982], [45.11,2048], [90.6,3994]]},
+              {name:"RDBMS", color:"#ff8c00", data:[[2.33,54], [22.7,542], [45.11,1126], [90.6,2355]]},
+            ]
+          };})();
+        </li>
+      </ul>
+    <li class="step_1 mode_all vspacer">10</li>
+
+    <li class="step_2 mode_sql">
+      <p>RDBMSs excell at compacting data</p>
+      <ul>
+        <li>There's no overhead per row, for the structure itself</li>
+        <li>40 years of R&amp;D... optimal data type compaction across the board</li>
+      </ul>
+    </li>
+
+    <li class="step_2 mode_affinity">
+      <p class="vs_all">Affinity is zealous with data compaction</p>
+      <ul>
+        <li class="vs_all">The additional burden of storing each object's structure is minimized</li>
+        <li class="vs_all">Tried&amp;tested RDBMS technology is used throughout the code</li>
+      </ul>
+    </li>
+
+    <li class="step_2 mode_docdb">
+      <p>Document DBMSs achieve less impressive compaction</p>
+      <ul>
+        <li>Some systems repeat full field names and paths (in each document)</li>
+      </ul>
+    </li>
+
+    <!-- Could talk about some RDF stores vs internal RDBMS etc. -->
+
+  </ul>
+</div>
+
+<!-- N.b. we could have a separate slide on data model, but trying to keep it short by merging with 'Insert' section -->
+
+<!-- key message: convenient _and_ fast (cool features, no compromise) -->
+<div class='slide'>
+<h1>PathSQL: Inserting Data</h1>
+  <ul>
+    <li class="step_0 mode_all">
+      <p>Speed-wise, RDBMSs set the bar high...</p>
+      <ul>
+        <li class="bullet_none">... but Affinity rises to the challenge</li>
+      </ul>
+    </li>
+    <li class="step_0 mode_all container_horizontal">
+      <ul>
+        <li class="mathgraph">
+          (function() { return {
+            title:"Insert Speed",
+            subtitle:"Scenario 1: Simple Atomic Inserts",
+            layout:[0, 10, 500, 210],
+            x:{name:"Thousands of Facts", decimals:0},
+            y:{name:"Millions of Facts / S", decimals:1},
+            tooltips:
+            [
+              "&lt;b&gt;schema:&lt;/b&gt;",
+              "CREATE TABLE person (orgid INT PRIMARY KEY, firstname VARCHAR(255), middlename VARCHAR(255), lastname VARCHAR(255), occupation VARCHAR(255), country VARCHAR(255), postalcode VARCHAR(255));",
+              "",
+              "&lt;b&gt;data sample:&lt;/b&gt;",
+              "{orgid:1, firstname:'Aline', middlename:'June', lastname:'Walls', occupation:'accountant-controller', country:'Italy', postalcode:'B1S 2N2'}",
+             ],
+            series:
+            [
+              {name:"Affinity", color:"#2087c6", data:[[3,3000/24], [30,30000/208], [60,60000/408], [120,120000/808]]},
+              {name:"RDBMS", color:"#ff8c00", data:[[3,3000/35], [30,30000/308], [60,60000/532], [120,120000/1060]]}, /* MySQL only */
+              {name:"DocDB", color:"#ff0000", data:[[3,3000/57], [30,30000/636], [60,60000/1254], [120,120000/2617]]},
+              {name:"GraphDB", color:"#660000", data:[[3,3000/631], [30,30000/2337], [60,60000/3650], [120,120000/4505]]},
+            ]
+          };})();
+        </li>
+        <!-- TODO: Rerun these measurements and understand the negative slope (buffers?) -->
+        <li class="mathgraph">
+          (function() { return {
+            title:"Insert Speed",
+            subtitle:"Scenario 2: Complex Model Involving Indexes and Lookups",
+            layout:[0, 10, 500, 210],
+            x:{name:"Millions of Facts", decimals:1},
+            y:{name:"Millions of Facts / S", decimals:0},
+            tooltips:
+            [
+              "&lt;b&gt;schema:&lt;/b&gt;",
+              "CREATE TABLE person (orgid INT PRIMARY KEY, firstname VARCHAR(255), middlename VARCHAR(255), lastname VARCHAR(255), occupation VARCHAR(255), country VARCHAR(255), postalcode VARCHAR(255), rootproject INT);",
+              "CREATE TABLE friend (orgid1 INT, orgid2 INT);",
+              "CREATE TABLE project (fid INT PRIMARY KEY, fname VARCHAR(255), parent_fid INT, access_orgid INT);",
+              "CREATE TABLE photo (fid INT PRIMARY KEY, photo_name VARCHAR(255), parent_fid INT);",
+              "CREATE INDEX oid1 ON friend (orgid1);",
+              "CREATE INDEX project_parent_fid ON project (parent_fid);",
+              "CREATE INDEX photo_parent_fid ON photo (parent_fid);",
+            ],
+            series:
+            [
+              {name:"Affinity", color:"#2087c6", data:[[2.3,2300/79], [22.7,22700/802], [45.1,45100/1642], [90.6,90600/3640]]},
+              {name:"RDBMS", color:"#ff8c00", data:[[2.3,2300/98], [22.7,22700/966], [45.1,45100/1923], [90.6,90600/3850]]}, /* Average of MySQL and sqlite */
+              {name:"GraphDB", color:"#660000", data:[[2.3,2300/519], [22.7,22700/4793], [45.1,45100/9784], [90.6,90600/20070]]},
+              {name:"DocDB", color:"#ff0000", data:[[2.3,2300/1523], [22.7,22700/15488], [45.1,45100/31121], [90.6,90600/64618]]},
+            ]
+          };})();
+        </li>
+      </ul>
+    </li>
+  </ul>
+  <li class="step_0 mode_all vspacer">5</li>
+
+  <li class="step_1 mode_sql">
+    <p>RDBMSs set the standard; they model <i>&#126;anything</i> but...</p>
+    <ul>
+      <li class="bullet_none">INSERT INTO people (name, profession, age) VALUES ('Fred, 'doctor', 23)</li>
+      <li>A row can only be inserted <i>into</i> <b>one</b> table</li>
+      <li>Relations require a lot of hand-holding: primary keys, extra tables etc.</li>
+      <li>To fit in lists, trees &amp; graphs often feels like programming in assembler</li>
+      <li>Impossible to insert whole graphs in one statement</li>
+    </ul>
+  </li>
+
+  <li class="step_1 mode_affinity">
+    <p class="vs_all">Affinity extends SQL - without compromise</p>
+    <ul>
+      <li class="vs_sql vs_docdb">No need to insert <i>into</i> anything</li>
+      <li class="vs_all">INSERT (name, profession, age) VALUES ('Fred', 'doctor', 23)</li>
+      <li class="vs_all">INSERT name='Fred', profession='doctor', age=23</li>
+      <li class="vs_all">INSERT friends={@50001, @50002}, ...</li>
+      <li class="vs_all">INSERT friends={(INSERT name='Jack', ...), (INSERT name='John')}, ...</li>
+      <li class="vs_all">INSERT things={'string', 3.40282f, true, TIMESTAMP '2010-12-31', ...}, ...</li>
+      <li class="vs_all">INSERT dimensions={123cm, 22in, 3.2ft}, ...</li>
+    </ul>
+  </li>
+
+  <li class="step_1 mode_docdb">
+    <p>Document DBMSs are informal with query languages</p>
+    <ul>
+      <li>A JSON-like representation is often used to pass in data</li>
+      <li>There's no universal representation for relations (embedded, by key etc.)</li> 
+      <li>Some systems insert documents <i>into</i> collections</li>
+      <li>Data elements embedded inside documents can't be shared across</li>
+      <li>Size &amp; ACID constraints also affect the decision to embed data in documents</li>
+    </ul>
+  </li>
+
+  <li class="step_1 mode_graphdb">
+    <p>Most graph databases ignore SQL...</p>
+    <ul>
+      <li>... in favor of proprietary APIs or new query languages (e.g. SPARQL, gremlin)</li>
+      <li>It's usually not possible to insert more than 1 relationship per statement</li>
+      <li>The resulting insertion code is quite verbose (e.g. repeated <i>subject</i>)</li>
+    </ul>
+  </li>
+</div>
+
+<!-- key message: SQL, convenient _and_ fast (cool features, no compromise) -->
+<div class='slide'>
+<h1>PathSQL: Retrieving &amp; Indexing Data</h1>
+  <ul>
+    <li class="step_0 mode_all">
+      <p>If SQL can do the job...</p>
+      <ul>
+        <li class="bullet_none">Why settle for a lesser query language? (or worse: no language)...</li>
+        <li class="bullet_none">What better language than SQL did the NoSQL wave bring?</li>
+      </ul>
+    </li>
+    <li class="step_0 mode_all vspacer">5</li>
+
+    <li class="step_1 mode_all">
+      <p>It's not SQL that constrains flexibility or scalability</p>
+      <ul>
+        <li>However, the lack of a universal query language <i>is</i> a <b>big</b> usability issue for NoSQL DBMSs</li>
+        <li>From a RDBMS perspective, NoSQL implies <b>full app rewrite</b></li>
+      </ul>
+    </li>
+    <!-- TODO: design a more typical RDBMS-like scenario for this, and rerun all series -->
+    <li class="step_1 mode_all mathgraph">
+      (function() { return {
+        title:"Complex Queries",
+        layout:[0, 10, 500, 175],
+        x:{name:"Millions of Facts in the DB", decimals:1},
+        y:{name:"Time (ms)", decimals:0},
+        tooltips:
+        [
+          "&lt;b&gt;Note:&lt;/b&gt;",
+          "These results were extracted from a graph-oriented scenario. In a near future this chart will be updated with results from general-purpose queries.",
+        ],
+        series:
+        [
+          {name:"GraphDB", color:"#660000", data:[[2.33,1366], [22.7,3904], [45.11,3859]]},
+          {name:"DocDB", color:"#ff0000", data:[[2.33,1136], [22.7,1743], [45.11,1447]]},
+          {name:"RDBMS", color:"#ff8c00", data:[[2.33,928], [22.7,1569], [45.11,1467]]},
+          {name:"Affinity", color:"#2087c6", data:[[2.33,511], [22.7,720], [45.11,746]]},
+        ]
+      };})();
+    </li>
+    <li class="step_1 mode_all vspacer">5</li>
+
+    <li class="step_2 mode_sql">
+      <p>SQL queries are "trapped" inside RDBMS schema</p>
+      <ul>
+        <li>SQL is a powerful language, capable of expressing practically any query</li>
+        <li>But the binding between columns and tables (or views) limits expressiveness</li>
+        <li>Queries and joins are constrained to pre-declared columns, keys, tables &amp; views</li>
+        <li>RDBMSs block SQL from discovering (or introducing) new relationships</li>
+        <li>Recursive traversals cannot be expressed in one query</li>
+      </ul>
+    </li>
+
+    <li class="step_2 mode_affinity">
+      <p class="vs_all">Affinity opens up SQL to unbounded, schemaless data</p>
+      <ul>
+        <li class="vs_all">Full-scan queries can reach and combine <b>all</b> data</li>
+        <li class="vs_all">Those same predicates can be used to define categories and indexes</li>
+        <li class="vs_all">The WHERE clause is unbounded, e.g. SELECT WHERE EXISTS(myProperty)</li>
+        <li class="vs_all">New relationships between data items can be discovered by query</li>
+        <li class="vs_all">Recursive traversals can be expressed in a single query</li>
+      </ul>
+    </li>
+
+    <li class="step_2 mode_docdb">
+      <p>Document DBMSs don't have common conventions</p>
+      <ul>
+        <li>Every system defines its own query language and methodology</li>
+        <li>JSON is often used as output format, and in some cases as input</li>
+        <li>Inter-document queries are not quite first-class citizens</li>
+        <li>Some intra-document queries on complex documents require full download/upload</li>
+        <!-- TODO: go over all my code and extract more juice -->
+      </ul>
+    </li>
+
+    <li class="step_2 mode_graphdb">
+      <p>Graph databases prefer SPARQL...</p>
+      <ul>
+        <li class="bullet_none">... or proprietary languages</li>
+        <li>SPARQL1 cannot express recursive queries in one statement</li>
+        <li>Indexing is not always automatic or easy to customize</li>
+        <!-- TODO: more juice -->
+      </ul>
+    </li>
+  </ul>
+  <!-- limitations in terms of aggregation etc. (simple queries become complicated) -->
+</div>
+
+<!-- key message: beyond the competition... great addition to RDBMS... and in SQL -->
+<div class='slide'>
+<h1>PathSQL: Graphs</h1>
+  <ul>
+    <li class="step_0 mode_all container_horizontal">
+      <ul>
+        <li class="container_vertical">
+          <ul>
+            <li>
+              <p>Graphs are everywhere</p>
+              <ul>
+                <li>Models, simulations, organizations, molecules, plans, file systems etc.</li>
+                <li>All kinds of networks: roads, machines, humans</li>
+                <li class="bullet_none">Why do RDBMSs handle graphs so painfully as to make even XML look good?</li>
+              </ul>
+            </li>
+            <li class="vspacer">5</li>
+            <li>
+              <p>RDBMSs <i>can</i> deal with graphs efficiently</p>
+              <ul>
+                <li>But usability is very poor (intricate modeling &amp; querying)</li>
+                <li>A great deal of caution &amp; expertise is required to achieve best results</li>
+              </ul>
+            </li>
+            <li class="vspacer">5</li>
+            <li>
+              <p>Graph databases are much easier to use</p>
+              <ul>
+                <li>But disconnected from RDBMSs...</li>
+              </ul>
+            </li>
+          </ul>
+        </li>
+
+        <!-- Once bugs 313-314 are solved, reevaluate the last sample (20K people) -->
+        <li class="mathgraph">
+          (function() { return {
+            title:"Speed of Recursive BFS Queries",
+            layout:[0, 10, 500, 250],
+            x:{name:"Millions of Facts in the DB", decimals:1},
+            y:{name:"Speed (Q/S)", decimals:1},
+            tooltips:
+            [
+              "&lt;b&gt;PathSQL query:&lt;/b&gt;",
+              "SELECT COUNT(*) FROM orgid(10).friendof.rootproject.children{*}[access=:1]. children[exists(pname)]",
+              "",
+              "&lt;b&gt;Equivalent RDBMS SQL:&lt;/b&gt;",
+              "r1 := \"SELECT p.rootproject FROM person p JOIN friend f ON (f.orgid2=p.orgid) WHERE (f.orgid1=%s);\" % 10",
+              "&lt;i&gt;..... then as long as r1 is not empty, extract a subset r1_batch .....&lt;/i&gt;",
+              "",
+              "r2 := \"SELECT fid FROM project WHERE (parent_fid IN (%s));\" % r1_batch",
+              "&lt;i&gt;..... add r2 to r1; then do .....&lt;/i&gt;",
+              "",
+              "\"SELECT COUNT(DISTINCT(photo.fid)) from photo JOIN project ON (photo.parent_fid = project.fid) WHERE (project.fid IN (%s) AND project.access_orgid=%s);\" % (r1_batch, 10)",
+              "&lt;i&gt;..... and accumulate the total count&lt;/i&gt;",
+             ],
+            series:
+            [
+              {name:"Affinity", color:"#2087c6", data:[[2.33,1000/511], [22.7,1000/720], [45.11,1000/746]]}, /* [90.6,1000/2083] */
+              {name:"RDBMS", color:"#ff8c00", data:[[2.33,1000/928], [22.7,1000/1569], [45.11,1000/1467]]}, /* [90.6,1000/1124] */
+              {name:"DocDB", color:"#ff0000", data:[[2.33,1000/1136], [22.7,1000/1743], [45.11,1000/1447]]}, /* [90.6,1000/2214] */
+              {name:"GraphDB", color:"#660000", data:[[2.33,1000/1366], [22.7,1000/3904], [45.11,1000/3859]]}, /* [90.6,1000/4514] */
+            ]
+          };})();
+        </li>
+      </ul>
+    </li>
+    <li class="step_1 mode_all vspacer">10</li>
+
+    <li class="step_2 mode_affinity">
+      <p class="vs_all">Affinity extends SQL for easy graph integration</p>
+      <ul>
+        <li class="vs_all">Graphs can be attached to and involve any object (including relational)</li>
+        <li class="vs_all"><i>References</i> provide a uniform mechanism to connect objects</li>
+        <li class="vs_all">Queries and traversals leverage fast random access</li>
+        <li class="vs_all">Indexes easily participate to graph queries</li>
+        <li class="vs_all">The syntax can express sophisticated recursive queries</li>
+        <li class="vs_all">SELECT * FROM workers('dentist').friends{+}[age&lt;50].cars[year IN [1970, 1980]]</li>
+        <li class="vs_all bullet_none">(select vintage cars owned by young friends [direct and indirect] of a class of workers)</li>
+      </ul>
+    </li>
+
+    <li class="step_2 mode_docdb">
+      <p>Document DBMSs are not designed for graphs</p>
+      <ul>
+        <li>Inter-document modeling is crippled (consistency etc.)</li>
+        <li>Intra-document modeling (embedded) hits important limitations</li>
+        <li>Updates on arbitrarily deep structures are tricky or limited</li>
+        <li>Size constraints on documents impose maximum boundaries for graphs</li>
+      </ul>
+    </li>
+
+    <li class="step_2 mode_graphdb">
+      <p>Graph databases do the job but also have limitations</p>
+      <ul>
+        <li>Lack of support for single-statement recursive queries</li>
+        <li>Performance limitations with respect to usage of some indexes</li>
+      </ul>
+    </li>
+  </ul>
+</div>
+
+<!-- key message: beyond the competition... great addition to RDBMS... and in SQL -->
+<div class='slide'>
+<h1>PathSQL: Streaming</h1>
+  <ul>
+    <li class="step_0 mode_all">
+      <p>Affinity uses dynamic classification to organize all data</p>
+      <ul>
+        <li>Every data update is checked against all registered classes' predicates</li>
+        <li>When an object starts or stops to comply with a predicate, an event is triggered</li>
+      </ul>
+    </li>
+    <li class="step_0 mode_all vspacer">10</li>
+    <li class="step_1 mode_all">
+      <p>It's easy to implement state-machines for data streaming, expressed entirely in PathSQL</p>
+      <ul>
+        <li>PathSQL's full expressiveness can be leveraged (e.g. free-text search, range queries, joins etc.)</li>
+      </ul>
+    </li>
+    <li class="step_1 mode_all vspacer">10</li>
+    <li class="step_2 mode_all">
+      <p><i>The current version is not yet optimal</i></p>
+      <ul>
+        <li><i>Stale data windowing must be done manually</i></li>
+        <li><i>Triggers must be registered via client libraries (and implemented on the client side)</i></li>
+      </ul>
+    </li>
+</div>
+
+<!-- TODO: produce this slide -->
+<!-- key message: RDBMS-friendly ACID commitment
+<div class='slide'>
+<h1>PathSQL: Updating Data &amp; Concurrency</h1>
+  <ul>
+    <li class="step_0 mode_all bullet_none">[TODO]</li>
+  </ul> -->
+  <!-- emphasize proximity with RDBMS -->
+  <!-- show docdb/graphdb syntactic and functional (ACID) divergence -->
+  <!-- couch: must update whole doc and specify prev revid -->
+  <!-- limitations of upsert etc. vs us; e.g. arbitrarily deep structres -->
+  <!-- reuse of components with refs -->
+<!-- </div> -->
+
+<!-- key message: same sturdy DB foundation as RDBMS -->
+<div class='slide'>
+<h1>Logging &amp; Recovery</h1>
+  <ul>
+    <li class="step_0 mode_all">
+      <p>Why care about transaction logging?</p>
+      <ul>
+        <li>It plays a key role in ACID properties, transaction rollbacks &amp; recovery</li>
+        <li>It accounts for a significant proportion of disk I/O, in writing scenarios</li>
+        <li>Write-Ahead Logging (WAL) enables other advantages (e.g. more compact <i>"physiological"</i> log records)</li>
+      </ul>
+    </li>
+    <li class="step_1 mode_all">
+      <p>Why care about recovery?</p>
+      <ul>
+        <li>Recovery protects data integrity in case of unexpected server interruptions (crashes etc.)</li>
+        <li>Speed of recovery impacts a node's availability</li>
+        <li>Recovery is hard to implement and very hard to test</li>
+        <li>In a context of eventual consistency, recovery failures may go unnoticed</li>
+        <li><b>Critical data</b> is not safely stored in a DBMS with uncertain recovery</li>
+      </ul>
+    </li>
+    <li class="step_1 mode_all vspacer">10</li>
+    <!-- TODO: performance - comparison of recovery for a well-defined case, vs other DBMS -->
+    <!-- TODO: stability - run our own recovery tests on other DBMS? -->
+    <li class="step_2 mode_affinity">
+      <p>Affinity takes recovery seriously</p>
+      <ul>
+        <li>It uses the algorithm demonstrated by Weikum &amp; Vossen in <i>"Transactional Information Systems"</i></li>
+        <li>Extensive <b>tests</b> are published in the <b>open-source</b> distribution of tests for the kernel</li>
+        <li>Recovery was polished over a period of five years</li>
+      </ul>
+    </li>
+  </ul>
+</div>
+
+<!-- key message: very flexible (no vm) -->
+<div class='slide'>
+<h1>Portability</h1>
+  <ul>
+    <li class="step_0 mode_all">
+      <p>Affinity's kernel is a tiny C++ library (&#126;1 Mb)</p>
+      <ul>
+        <li>Built for the major platforms: OSX, Linux, Windows, ARM</li>
+        <li>Ready for 32-bit and 64-bit architectures</li>
+        <li>No dependency on any virtual machine (e.g. java, erlang, v8 etc.)</li>
+        <li>Easy memory configuration</li>
+      </ul>
+    </li>
+    <li class="step_0 mode_all">Suitable for mobile devices all the way to cloud servers</li>
+    <!-- TODO: comparison (size of big rdbms; vms in graph; vms in some doc; size of doc) -->
+  </ul>
+</div>
+
+<!-- key message: get used to Affinity, it will be awesome when it closes the NoSQL loop -->
+<div class='slide'>
+<h1>Scalability</h1>
+  <ul>
+    <li class="step_0 mode_all">
+      <p>Affinity is not yet available in a multi-node, highly scalable flavor</p>
+      <ul>
+        <li>The current open-source release provides a solid single-node solution</li>
+        <li>It's also an opportunity to try our model &amp; PathSQL</li>
+      </ul>
+    </li>
+    <li class="step_0 mode_all vspacer">10</li>
+    <li class="step_1 mode_all">
+      <p>Our first goal is to provide scale in the cloud for critical data (e.g. financial accounts)</p>
+      <ul>
+        <li class="bullet_none">Based on a sturdy, traditional, distributed database architecture</li>
+        <li><b>No app rewrite</b></li>
+        <li>No compromise on ACID or joins</li>
+        <li>Provide headroom to scale in the cloud from 1 up to a few servers <i>(&#126;10-15)</i></li>
+      </ul>
+    </li>
+    <li class="step_1 mode_all vspacer">10</li>
+    <li class="step_2 mode_all">
+      <p>Our second goal is to offer high scalability for massive, non-critical data (e.g. blog comments, history)</p>
+      <ul>
+        <li>Using PathSQL and the same data model, but with relaxed ACID guaranties (eventual consistency)</li>
+        <li>Leveraging classification for automatic partitioning</li>
+      </ul>
+    </li>
+    <li class="step_2 mode_all vspacer">10</li>
+    <li class="step_3 mode_all">
+      <p>And combine the two: critical and non-critical data in one unified cloud environment</p>
+      <ul>
+        <li>Facilitate business logic that integrates critical &amp; non-critical information</li>
+        <li class="bullet_none">e.g. AffinityDB as a RDBMS + super-flexible persistent cache for Big Data</li>
+      </ul>
+    </li>
+  </ul>
+</div>
+
+<div id='special'>
+  <div id='bullet'>&middot;&nbsp;</div>
+  <div id='logo_src'>../images/logo_small.png</div>
+  <div id='promo_url'>http://affinitydb.org</div>
+  <div id='copyright'>&copy; 2012 VMware, Inc. All rights reserved.</div>
+</div>
+
+</body>
+</html>

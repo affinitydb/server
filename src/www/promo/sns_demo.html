@@ -1,0 +1,44 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+  <link href='../css/promo/sns.css' rel='stylesheet' type='text/css' />
+  <script src='../js/jquery.js' type='text/javascript'></script>
+  <script src='../js/persist-min.js' type='text/javascript'></script>
+  <script src='../js/afycommon.js' type='text/javascript'></script>
+  <script src='../js/promo/sns.js' type='text/javascript'></script>
+  <title>Social Network Sample</title>
+</head>
+<body>
+
+<!-- 
+users combo with selection + new
+disciples list
+masters list + add
+posts list with 3 colors: mine; my followees; indirect
+-->
+
+<div id='content'>
+  <div id='users'>
+    <select name="userslist" id='userslist'>
+    </select>
+    <button id='usernew'>New User...</button>
+  </div>
+  <div id='current_user'>
+    <div id='masters'>
+      <div id='mymasters'></div>
+      <div id='mastersctrl'>
+        <select name="masterslist" id='masterslist'></select>
+        <button id='masternew'>Follow New Master...</button>
+    </div>
+    <div id='mydisciples'></div>
+    <div id='posts'>
+      <div id='sending'>
+      </div>
+      <div id='sent_received'>
+      </div>
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
