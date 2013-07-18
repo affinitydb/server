@@ -1,4 +1,5 @@
 /* general */
+@font-face { font-family:blueprint; src:local('Helvetica'); /*commenting out for now: weird/slow behavior on the mac especially*//*src:url('FFF_Tusj.ttf');*/ }
 body { font-family:Helvetica; margin:0; font-size:0.85em; background-color:#e4e4e4; }
 a { text-decoration:none; color:#0645ad; }
 img { width:20px; }
@@ -83,9 +84,17 @@ tr.selected { background-color:#a2a2a2; }
 #tutorial_input_line { width:100%; }
 #tutorial_input { border:none; outline:none; font-size:105%; right:0; width:95%; background-color:#c3c3c3; }
 
+/* content_left (fsm tab) */
+#fsm_left { position:absolute; top:50px; width:100%; bottom:0; margin:0; white-space:normal; border:none; padding:0; }
+#fsm_iframe { width:100%; height:100%; border:none; overflow:hidden; }
+
 /* content_left (map/graph tab) */
 #map_left { position:absolute; top:50px; width:100%; bottom:0; margin:0; white-space:normal; border:none; padding:0; }
-#map_iframe { width:100%; height:100%; border:none; }
+#map_iframe { width:100%; height:100%; border:none; overflow:hidden; }
+
+/* content_left (rule assistant) */
+#ra_left { position:absolute; top:50px; width:100%; bottom:0; margin:0; white-space:normal; border:none; padding:0; }
+#ra_iframe { width:100%; height:100%; border:none; overflow:hidden; }
 
 /* content_left (histogram tab) */
 #histo_left { position:absolute; top:50px; width:100%; bottom:0; margin:0; white-space:normal; border:none; padding:0; }

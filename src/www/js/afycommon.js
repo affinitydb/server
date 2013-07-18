@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2004-2012 VMware, Inc. All Rights Reserved.
+Copyright (c) 2004-2013 GoPivotal, Inc. All Rights Reserved.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -18,15 +18,16 @@ under the License.
  * Globals/Constants.
  */
 var DB_ROOT = "/db/";
-var AFY_CONTEXT = new Object(); // Global app context.
+var AFY_CONTEXT = {}; // Global app context.
 AFY_CONTEXT.mNavTabs = null; // Main tab/page-navigation system.
 AFY_CONTEXT.mQueryHistory = null; // Query history view.
-AFY_CONTEXT.mClasses = null; // The current result of 'SELECT FROM afy:ClassOfClasses'.
+AFY_CONTEXT.mClasses = null; // The current result of 'SELECT FROM afy:Classes'.
 AFY_CONTEXT.mFullIntrospection = false; // Whether or not additional introspection hints are present (such as produced by modeling.py).
 AFY_CONTEXT.mLastQResult = null; // The last query result table (for 'abort' - might be deprecated).
 AFY_CONTEXT.mSelectedPID = null; // In the 'Basic Console', the currently selected pin.
-AFY_CONTEXT.mDef2QnPrefix = new Object(); // Dictionary of 'http://bla/bla' to 'qn123'.
-AFY_CONTEXT.mQnPrefix2Def = new Object(); // Dictionary of 'qn123' to 'http://bla/bla'.
+AFY_CONTEXT.mDef2QnPrefix = {}; // Dictionary of 'http://bla/bla' to 'qn123'.
+AFY_CONTEXT.mQnPrefix2Def = {}; // Dictionary of 'qn123' to {value:'http://bla/bla', scope:'http://bla' [or null]}, where scoped elements are usually explicitly defined, and treated in priority compared to automatic prefixes.
+AFY_CONTEXT.mQnScopes = {}; // Dictionary of unique scopes (see mQnPrefix2Def just above for more details).
 AFY_CONTEXT.mQNamesDirty = false; // For lazy update of qname prefixes, based on new query results.
 AFY_CONTEXT.mTooltipTimer = null; // For tooltips.
 AFY_CONTEXT.mStoreIdent = ""; // The current store identity specified by the user.
@@ -95,276 +96,6 @@ function base64_encode(data)
 }
 
 /**
- * Tabs.
- */
-function isTabSelected(pName, pParentFrame)
-{
-  var lTabs = (true == pParentFrame) ? window.parent.$("#nav li") : $("#nav li");
-  var lResult = false;
-  lTabs.each(
-    function(_pI, _pE)
-    {
-      var _lAnchor = $("a", _pE)[0];
-      if (undefined != _lAnchor && $(_lAnchor).attr('href') == pName && $($("img", _lAnchor)[0]).hasClass("tab-selected"))
-        lResult = true;
-    });
-  return lResult;
-}
-function disableTab(pName, pParentFrame)
-{
-  var lTabs = (true == pParentFrame) ? window.parent.$("#nav li") : $("#nav li");
-  lTabs.each(
-    function(_pI, _pE)
-    {
-      var _lAnchor = $("a", _pE)[0];
-      if (undefined != _lAnchor && undefined != _lAnchor.toString().match(new RegExp(pName + "$")))
-        $(_pE).css("display", "none");
-    });
-}
-
-/**
- * Tooltips.
- * Simple mechanism to bind #thetooltip to any
- * div section on the page.
- */
-function bindTooltip(pDiv, pMessage, pPos, pOptions/*{start:_, stop:_, once:_, offy:_}*/)
-{
-  var lGetOption = function(_pWhat, _pDefault) { return (undefined != pOptions && _pWhat in pOptions) ? pOptions[_pWhat] : _pDefault; }
-  var lClearTimeout =
-    function()
-    {
-      if (undefined == AFY_CONTEXT.mTooltipTimer)
-        return;
-      clearTimeout(AFY_CONTEXT.mTooltipTimer.timer);
-      AFY_CONTEXT.mTooltipTimer = null;
-    }
-  var lDeactivate =
-    function()
-    {
-      // Simply hide the tooltip.
-      $("#thetooltip").css("display", "none");
-      lClearTimeout();
-    }
-  var lActivate =
-    function()
-    {
-      // Set the tooltip's text.
-      $("#thetooltip").text(pMessage);
-      // Set the tooltip's position and make it visible.
-      var _lPos;
-      if (undefined == pPos)
-      {
-        _lPos = pDiv.offset();
-        var _lTooltipW = $("#thetooltip").outerWidth(true);
-        if (_lTooltipW + 5 < _lPos.left)
-          _lPos.left -= (_lTooltipW + 5);
-        else
-          _lPos.left += pDiv.outerWidth(true) + 5;
-        _lPos.top += lGetOption('offy', 0);
-      }
-      else
-        _lPos = pPos;
-      $("#thetooltip").css("left", _lPos.left + "px").css("top", _lPos.top + "px").css("display", "block");
-      // Deactivate automatically after a few seconds.
-      if (undefined == AFY_CONTEXT.mTooltipTimer || (AFY_CONTEXT.mTooltipTimer.task == "activate" && AFY_CONTEXT.mTooltipTimer.message == pMessage))
-        AFY_CONTEXT.mTooltipTimer = {timer:setTimeout(lDeactivate, lGetOption('stop', 1500)), task:"deactivate", message:pMessage};
-    }
-  var lDelayedActivate =
-    function()
-    {
-      // Cancel any pending automatic tooltip activation/deactivation.
-      lClearTimeout();
-      // Schedule tooltip activation after a small delay (don't show tooltips right away).
-      AFY_CONTEXT.mTooltipTimer = {timer:setTimeout(lActivate, lGetOption('start', 500)), task:"activate", message:pMessage};
-    }
-
-  if (lGetOption('once', false))
-  {
-    if (0 != lGetOption('start', 500))
-      lDelayedActivate();
-    else
-      { lClearTimeout(); lActivate(); }
-  }
-  else
-    pDiv.hover(lDelayedActivate, lDeactivate);
-}
-function bindAutomaticTooltips()
-{
-  $("#thetooltiptable #automatic div").each(
-    function(_pI, _pE)
-    {
-      var _lId = _pE.id.substr("tooltip_".length);
-      var _lDiv = $("#" + _lId);
-      if (_lDiv.length > 0) { bindTooltip(_lDiv, $(_pE).text()); }
-    });
-}
-
-/**
- * CtxMenu
- */
-function CtxMenu()
-{
-  this.mMenu = $("<div />").css("position", "absolute").addClass("ctxmenu").appendTo($("body"));
-  this.mMenu.css("display", "none");
-  var lThis = this;
-  this.clicks = function(_pEvent) { var _lO = lThis.mMenu.offset(), _lW = lThis.mMenu.outerWidth(true), _lH = lThis.mMenu.outerHeight(true); if (_pEvent.pageX < _lO.left || _pEvent.pageX > (_lO.left + _lW) || _pEvent.pageY < _lO.top || _pEvent.pageY > (_lO.top + _lH)) lThis.hide(); return true; }
-  this.keys = function(_pEvent) { if (_pEvent.keyCode == 27) { lThis.hide(); return false; } return true; }
-  this.hide = function() { lThis.mMenu.css("display", "none"); $(document).unbind("keypress", lThis.keys); $(document).unbind("mousedown", lThis.clicks); }
-}
-CtxMenu.prototype.addItem = function(pText, pCallback, pUserData, pBold)
-{
-  var lThis = this;
-  var lMenuItem = $("<div />").addClass("ctxmenuitem").appendTo(this.mMenu);
-  if (undefined != pText && pText.length > 0)
-  {
-    lMenuItem.append(pBold ? $("<b>" + pText + "</b>") : pText);
-    lMenuItem.click(function(_pEvent) { lThis.hide(); if (pCallback) { pCallback(_pEvent, pUserData); } else { myLog("CtxMenu.addItem: unhandled item: " + pText); } });
-    lMenuItem.hover(
-      function() { $(this).addClass("ctxmenu-highlighted-item"); },
-      function() { $(this).removeClass("ctxmenu-highlighted-item"); });
-  }
-  else
-    lMenuItem.css("height", "0").css("margin", "0").css("padding", "0 0.2em 0 0.2em"); // Separator.
-  lMenuItem.appendTo(this.mMenu);
-}
-CtxMenu.prototype.start = function(pX, pY)
-{
-  var lThis = this;
-  $(document).mousedown(this.clicks);
-  $(document).keypress(this.keys);
-  this.mMenu.css("left", pX + "px").css("top", pY + "px");
-  this.mMenu.css("display", "block");
-}
-function bindStaticCtxMenus()
-{
-  // TODO:
-  //   Add more suggestions... should try to cover enough basics to help somebody be up&running quickly...
-  //   (e.g. graph insert dml, path expressions, collections, more joins etc.)
-  // REVIEW: Ideally we should have menu enablers also...
-
-  var lQuerySuggestions =
-    function()
-    {
-      var _lThis = this;
-      var _lMenu = null, _lTarget = null, _lSomePID = "50001", _lSomeClass = "myclass";
-      var _lBegin =
-        function(e)
-        {
-          _lMenu = new CtxMenu(); _lTarget = $(e.target);
-          _lSomePID = (undefined != AFY_CONTEXT.mSelectedPID ? AFY_CONTEXT.mSelectedPID : "50001");
-          _lSomeClass = (undefined != AFY_CONTEXT.mClasses && AFY_CONTEXT.mClasses.length > 0 ? AFY_CONTEXT.mClasses[0]["afy:classID"] : "myclass");
-        }
-      var _lAddSelect =
-        function()
-        {
-          _lMenu.addItem($("#menuitem_query_pin").text(), function() { _lTarget.val("SELECT * FROM @" + _lSomePID + ";"); });
-          _lMenu.addItem($("#menuitem_query_class").text(), function() { _lTarget.val("SELECT * FROM " + _lSomeClass + ";"); });
-          _lMenu.addItem($("#menuitem_query_all").text(), function() { _lTarget.val("SELECT *;"); });
-          _lMenu.addItem($("#menuitem_query_classft").text(), function() { _lTarget.val("SELECT * FROM " + _lSomeClass + " MATCH AGAINST ('hello');"); });
-          _lMenu.addItem($("#menuitem_query_classjoin").text(), function() { _lTarget.val("SELECT * FROM myclass1 AS c1 JOIN myclass2 AS c2 ON (c1.myprop1 = c2.myprop2);"); });
-        }
-      var _lAddUpdate =
-        function()
-        {
-          _lMenu.addItem($("#menuitem_query_insertpin").text(), function() { _lTarget.val("INSERT (\"myprop\", \"myotherprop\") VALUES (1, {2, 'hello', TIMESTAMP'1976-05-02 10:10:10'});"); });
-          _lMenu.addItem($("#menuitem_query_insertclass").text(), function() { _lTarget.val("CREATE CLASS \"myclass\" AS SELECT * WHERE EXISTS(\"myprop\");"); });
-          _lMenu.addItem($("#menuitem_query_updatepin").text(), function() { _lTarget.val("UPDATE @" + _lSomePID + " SET \"mythirdprop\"=123;"); });
-          _lMenu.addItem($("#menuitem_query_deletepin").text(), function() { _lTarget.val("DELETE FROM @" + _lSomePID + ";"); });
-          _lMenu.addItem($("#menuitem_query_dropclass").text(), function() { _lTarget.val("DROP CLASS " + _lSomeClass + ";"); }); 
-        }
-      this.handlerAll = function(e) { _lBegin(e); _lAddSelect(); _lMenu.addItem("", null); _lAddUpdate(); _lMenu.start(e.pageX, e.pageY); return false; }
-      this.handlerSelect = function(e) { _lBegin(e); _lAddSelect(); _lMenu.start(e.pageX, e.pageY); return false; }
-    }
-  $("#query").bind("contextmenu", null, function(e) { return new lQuerySuggestions().handlerAll(e); });
-  $("#map_query").bind("contextmenu", null, function(e) { return new lQuerySuggestions().handlerSelect(e); });
-
-  $("#result_pin").bind(
-    "contextmenu", null,
-    function(_pEvent)
-    { 
-      var _lMenu = new CtxMenu();
-      _lMenu.addItem($("#menuitem_rp_querypin").text(), function() { if (undefined != AFY_CONTEXT.mSelectedPID) { $("#query").val("SELECT * FROM @" + AFY_CONTEXT.mSelectedPID + ";"); } });
-      _lMenu.addItem($("#menuitem_rp_deletepin").text(), function() { if (undefined != AFY_CONTEXT.mSelectedPID) { $("#query").val("DELETE FROM @" + AFY_CONTEXT.mSelectedPID + ";"); } });
-      _lMenu.start(_pEvent.pageX, _pEvent.pageY);
-      return false;
-    });
-
-  $("#classes").bind(
-    "contextmenu", null,
-    function(_pEvent)
-    {
-      // If there's no class, don't display any ctx menu.
-      if (0 == $("#classes option").size())
-        return;
-      // If there's no selected class, select the first one (+/- simulates click on right-click).
-      if (undefined == $("#classes option:selected").val())
-        $("#classes option:eq(0)").attr("selected", "selected");
-      
-      var _lMenu = new CtxMenu();
-      _lMenu.addItem($("#menuitem_classes_q").text(), function() { on_class_dblclick(); }, null, true);
-      _lMenu.addItem($("#menuitem_classes_q_ft").text(), function() { on_class_dblclick(); var _lQ = $("#query").val(); $("#query").val(_lQ.substr(0, _lQ.length - 1) + " MATCH AGAINST ('hello');"); });
-      _lMenu.addItem($("#menuitem_classes_q_drop").text(), function() { $("#query").val("DROP CLASS \"" + $("#classes option:selected").val() + "\";"); }); 
-      _lMenu.start(_pEvent.pageX, _pEvent.pageY);
-      return false;
-    });
-}
-
-/**
- * PanZoom.
- * Common functionality for canvas-based views.
- */
-function PanZoom(pArea, pZoom)
-{
-  var lThis = this;
-  var lButtonDown = false, lZoomKeyDown = false;
-  var lAnchorPoint = {x:0, y:0}, lDynAnchorPoint = {x:0, y:0}, lLastPoint = {x:0, y:0};
-  var lStableZoom =
-    function(_pFactor)
-    {
-      var _lOffset = lThis.area.offset();
-      var _lAP = {x:lAnchorPoint.x - _lOffset.left, y:lAnchorPoint.y - _lOffset.top};
-      var _lLog = {x:_lAP.x / lThis.zoom - lThis.pan.x, y:_lAP.y / lThis.zoom - lThis.pan.y};
-      lThis.zoom = lThis.zoom + lThis.zoom * _pFactor; 
-      lThis.pan.x = (_lAP.x / lThis.zoom) - _lLog.x; // ecr = (log + pan) * zoom -> pan = ecr/zoom - log
-      lThis.pan.y = (_lAP.y / lThis.zoom) - _lLog.y;
-    }
-  this.area = pArea;
-  this.pan = {x:0, y:0};
-  this.zoom = (undefined != pZoom) ? pZoom : 1.0;
-  this.curX = function() { return lLastPoint.x; }
-  this.curY = function() { return lLastPoint.y; }
-  this.isButtonDown = function() { return lButtonDown; }
-  this.onMouseDown =
-    function()
-    {
-      lButtonDown = true;
-      lDynAnchorPoint.x = lAnchorPoint.x = lLastPoint.x;
-      lDynAnchorPoint.y = lAnchorPoint.y = lLastPoint.y;
-    }
-  this.onMouseMove =
-    function(e)
-    {
-      lLastPoint.x = e.pageX; lLastPoint.y = e.pageY;
-      if (lButtonDown)
-      {
-        if (lZoomKeyDown) 
-          lStableZoom(0.2 * (((lLastPoint.x - lLastPoint.y) - (lDynAnchorPoint.x - lDynAnchorPoint.y) > 0) ? 1 : -1));
-        else
-        {
-          lThis.pan.x += (lLastPoint.x - lDynAnchorPoint.x) / lThis.zoom;
-          lThis.pan.y += (lLastPoint.y - lDynAnchorPoint.y) / lThis.zoom;
-        }
-        lDynAnchorPoint.x = lLastPoint.x;
-        lDynAnchorPoint.y = lLastPoint.y;
-      }
-    }
-  this.onMouseUp = function() { lButtonDown = false; lZoomKeyDown = false; }
-  this.onKeyDown = function(e) { if (e.which == 90) lZoomKeyDown = true; }
-  this.onKeyUp = function(e) { if (e.which == 90) lZoomKeyDown = false; }
-  this.onWheel = function(e) { e = (undefined != e) ? e : window.event; lAnchorPoint.x = lLastPoint.x; lAnchorPoint.y = lLastPoint.y; var _lV = ('wheelDelta' in e ? -e.wheelDelta : e.detail); lStableZoom(0.2 * (_lV > 0 ? -1 : 1)); }
-}
-
-/**
  * Affinity query helpers.
  */
 function update_qnames_ui()
@@ -379,16 +110,77 @@ function update_qnames_ui()
     { lQNames.append("<option>" + AFY_CONTEXT.mDef2QnPrefix[iP] + "=" + iP + "</option>"); }
   AFY_CONTEXT.mQNamesDirty = false;
 }
+function afy_add_qnprefix(pScope, pName, pValue)
+{
+  AFY_CONTEXT.mDef2QnPrefix[pValue] = pName;
+  AFY_CONTEXT.mQnPrefix2Def[pName] = {value:pValue, scope:pScope};
+  if (undefined != pScope)
+  {
+    if (!(pScope in AFY_CONTEXT.mQnScopes))
+      { AFY_CONTEXT.mQnScopes[pScope] = [pValue]; }
+    else
+    {
+      var lFound = false;
+      for (var iS = 0; iS < AFY_CONTEXT.mQnScopes[pScope].length && !lFound; iS++)
+        lFound = AFY_CONTEXT.mQnScopes[pScope][iS] == pValue;
+      if (!lFound)
+        { AFY_CONTEXT.mQnScopes[pScope].push(pValue); AFY_CONTEXT.mQnScopes[pScope].sort(); }
+    }
+  }
+  if (!AFY_CONTEXT.mQNamesDirty)
+  {
+    AFY_CONTEXT.mQNamesDirty = true;
+    setTimeout(update_qnames_ui, 2000);
+  }
+}
+function afy_strip_quotes(pFullName)
+{
+  return (pFullName.match(/^".*"$/) ? pFullName.substr(1, pFullName.length - 2) : pFullName);
+}
+var afy_keyword_regex = /^((prefix)|(base)|(insert)|(create)|(update)|(delete)|(undelete)|(drop)|(purge)|(select)|(join)|(set)|(add)|(move)|(where)|(from)|(group)|(order)|(having)|(using)|(timer)|(class)|(unique)|(distinct)|(values)|(by)|(as)|(is)|(in)|(to)|(on)|(against)|(and)|(or)|(not)|(case)|(when)|(then)|(else)|(end)|(similar)|(match)|(fractional)|(second)|(minute)|(hour)|(day)|(wday)|(month)|(year)|(between)|(left)|(right)|(inner)|(outer)|(full)|(union)|(intersect)|(except)|(all)|(any)|(some)|(cross)|(nulls)|(asc)|(desc)|(current_timestamp)|(current_user)|(current_store)|(options)|(with)|(into)|(min)|(max)|(abs)|(ln)|(exp)|(power)|(sqrt)|(sin)|(cos)|(tan)|(asin)|(acos)|(atan)|(floor)|(ceil)|(concat)|(lower)|(upper)|(tonum)|(toinum)|(count)|(length)|(sum)|(avg)|(position)|(substr)|(replace)|(pad)|(begins)|(ends)|(exists)|(contains)|(coalesce)|(histogram)|(membership)|(extract)|(cast)|(trim))$/i;
 function afy_with_qname(pRawName)
 {
+  // Quick test; already a qname?
+  if (undefined == pRawName) { return null; }
+  var lColon = pRawName.indexOf(":");
+  if (pRawName.substr(0, lColon) in AFY_CONTEXT.mQnPrefix2Def)
+    return pRawName;
+
   var lNewProp = null;
-  var lLastSlash = (undefined != pRawName) ? pRawName.lastIndexOf("/") : -1;
-  if (lLastSlash < 0)
-    { return pRawName; }
-  var lPrefix = pRawName.substr(0, lLastSlash);
+  pRawName = afy_strip_quotes(pRawName);
+  var lLastSlash = -1;
+  var lPrefix = null;
+  for (var iScope in AFY_CONTEXT.mQnScopes)
+  {
+    if (0 != pRawName.indexOf(iScope))
+      continue;
+    // Review: binary search...
+    // Note: searching in reverse order to favor longer (i.e. more specific) prefixes...
+    for (var iS = AFY_CONTEXT.mQnScopes[iScope].length - 1; iS >= 0 && undefined == lPrefix; iS--)
+      if (0 == pRawName.indexOf(AFY_CONTEXT.mQnScopes[iScope][iS]))
+        lPrefix = AFY_CONTEXT.mQnScopes[iScope][iS];
+    if (undefined != lPrefix)
+      { lLastSlash = lPrefix.length; break; }
+  }
+
+  if (undefined == lPrefix)
+  {
+    lLastSlash = (undefined != pRawName) ? pRawName.lastIndexOf("/") : -1;
+    if (lLastSlash < 0)
+      { return pRawName; }
+    lPrefix = pRawName.substr(0, lLastSlash);
+  }
+
+  // Note:
+  //   At the time of writing this, suffixes that happen to be pathSQL keywords
+  //   (e.g. min, max, etc.) are not tolerated, if unquoted.  For the moment I patch here,
+  //   even though I don't like to introduce this afy_keyword_regex here... because
+  //   I'd rather have uniform rendering everywhere; I might change this later, depending
+  //   on Mark's decision regarding this topic.
   var lSuffix = pRawName.substr(lLastSlash + 1);
-  if (lSuffix.indexOf(":") > 0)
-    lSuffix = "\"" + lSuffix + "\"";
+  if (undefined == lSuffix.match(/^[^0-9]\w+$/) || undefined != lSuffix.match(afy_keyword_regex))
+    lSuffix = '"' + lSuffix + '"';
+    
   if (lPrefix in AFY_CONTEXT.mDef2QnPrefix)
     { return AFY_CONTEXT.mDef2QnPrefix[lPrefix] + ":" + lSuffix; }
   else
@@ -397,7 +189,7 @@ function afy_with_qname(pRawName)
     for (iQN in AFY_CONTEXT.mDef2QnPrefix) { if (AFY_CONTEXT.mDef2QnPrefix.hasOwnProperty(iQN)) lNumQNames++; }
     var lNewQName = "qn" + lNumQNames;
     AFY_CONTEXT.mDef2QnPrefix[lPrefix] = lNewQName;
-    AFY_CONTEXT.mQnPrefix2Def[lNewQName] = lPrefix;
+    AFY_CONTEXT.mQnPrefix2Def[lNewQName] = {value:lPrefix, scope:null};
     AFY_CONTEXT.mQNamesDirty = true;
     setTimeout(update_qnames_ui, 2000);
     return lNewQName + ":" + lSuffix;
@@ -405,15 +197,18 @@ function afy_with_qname(pRawName)
 }
 function afy_without_qname(pRawName)
 {
-  if (null == pRawName || undefined == pRawName)
-    { return null; }
+  // Quick test; already a full name? (TODO: improve)
+  if (undefined == pRawName) { return null; }
   var lColon = pRawName.indexOf(":");
   if (lColon < 0)
     { return pRawName; }
+
   var lQName = pRawName.substr(0, lColon);
-  var lSuffix = pRawName.substr(lColon + 1);
   if (lQName in AFY_CONTEXT.mQnPrefix2Def)
-    { return AFY_CONTEXT.mQnPrefix2Def[lQName] + "/" + lSuffix; }
+  {
+    var lSuffix = afy_strip_quotes(pRawName.substr(lColon + 1));
+    return AFY_CONTEXT.mQnPrefix2Def[lQName].value + "/" + lSuffix;
+  }
   return pRawName;
 }
 function afy_with_qname_prefixes(pQueryStr)
@@ -437,15 +232,68 @@ function afy_with_qname_prefixes(pQueryStr)
       if (!isNaN(Number(lPrefix)))
         continue;
       if (lPrefix in AFY_CONTEXT.mQnPrefix2Def)
-        lToDefine[lPrefix] = AFY_CONTEXT.mQnPrefix2Def[lPrefix];
+        lToDefine[lPrefix] = AFY_CONTEXT.mQnPrefix2Def[lPrefix].value;
       else
         myLog("Unknown prefix: " + lPrefix); // Note: Could happen if for example a URI contains a colon - no big deal.
     }
   }
   var lProlog = "";
   for (var iP in lToDefine)
-    { lProlog = lProlog + "PREFIX " + iP + ": '" + lToDefine[iP] + "' "; }
+    { lProlog = lProlog + "SET PREFIX " + iP + ": '" + lToDefine[iP] + "'; "; }
   return lProlog + pQueryStr;
+}
+function afy_without_comments(pSqlStr, pStartInComment)
+{
+  var lResult = "";
+  var lInString = false;
+  var lInSymbol = false;
+  var lInComment = pStartInComment;
+  for (var iC = 0; iC < pSqlStr.length; iC++)
+  {
+    var lSkipToEol = function() { while (pSqlStr.charAt(iC) != '\n' && iC < pSqlStr.length) iC++; }
+    var lC = pSqlStr.charAt(iC);
+    if (lInString)
+    {
+      lResult += lC;
+      if (lC == "'")
+        lInString = false;
+    }
+    else if (lInSymbol)
+    {
+      lResult += lC;
+      if (lC == '"')
+        lInSymbol = false;
+    }
+    else if (lInComment)
+    {
+      if ((lC == '*') && ((iC + 1) < pSqlStr.length) && (pSqlStr.charAt(iC + 1) == '/'))
+        { iC++; lInComment = false; }
+    }
+    else switch(lC)
+    {
+      default: lResult += lC; break;
+      case '\n':
+        lResult += lC;
+        if (lInSymbol || lInString)
+          myLog('unexpected (afy_without_comments): non-terminated string');
+        break;
+      case '"': lInSymbol = true; lResult += lC; break;
+      case "'": lInString = true; lResult += lC; break;
+      case '-':
+        if (((iC + 1) < pSqlStr.length) && (pSqlStr.charAt(iC + 1) == '-'))
+          { lResult += '\n'; lSkipToEol(); }
+        else
+          lResult += lC;
+        break;
+      case '/':
+        if (((iC + 1) < pSqlStr.length) && (pSqlStr.charAt(iC + 1) == '*'))
+          { iC++; lInComment = true; }
+        else
+          lResult += lC;
+         break;
+    }
+  }
+  return {text:lResult, incomment:lInComment};
 }
 function afy_sanitize_json_result(pResultStr, pLongNames)
 {
@@ -465,7 +313,7 @@ function afy_sanitize_json_result(pResultStr, pLongNames)
       }
       if (true == pLongNames)
         return _pJsonRaw;
-      var _lNewObj = new Object();
+      var _lNewObj = {};
       for (var _iProp in _pJsonRaw)
       {
         var _lNewProp = afy_with_qname(_iProp);
@@ -477,7 +325,8 @@ function afy_sanitize_json_result(pResultStr, pLongNames)
     };
   try
   {
-    var lJsonRaw = $.parseJSON(pResultStr.replace(/\s+/g, " ")); // Note: for some reason chrome is more sensitive to those extra characters than other browsers.
+    // Note: The replacement below is due to the fact that for some unknown reason chrome is more sensitive to those extra characters than other browsers.
+    var lJsonRaw = $.parseJSON(pResultStr.replace(/\s+/g, " "));
     if (null == lJsonRaw) { return null; }
     return lTransform(lJsonRaw);
   } catch(e) { myLog("afy_sanitize_json_result: " + e); }
@@ -542,20 +391,13 @@ function afy_query(pSqlStr, pResultHandler, pOptions)
     }
   });
 }
-function afy_batch_query(pSqlStrArray, pResultHandler, pOptions)
+function afy_post_query(pSqlStr, pResultHandler, pOptions)
 {
-  if (null == pSqlStrArray || 0 == pSqlStrArray.length)
-    { myLog("afy_batch_query: invalid sql batch"); pResultHandler.onerror(null, pSqlStrArray); return; }
-  var lBody = "";
-  for (var iStmt = 0; iStmt < pSqlStrArray.length; iStmt++)
-  {
-    lBody = lBody + afy_with_qname_prefixes(pSqlStrArray[iStmt]);
-    var lChkSemicolon = pSqlStrArray[iStmt].match(/(.*)(;)(\s*)$/);
-    if (iStmt < pSqlStrArray.length - 1 && (undefined == lChkSemicolon || undefined == lChkSemicolon[2]))
-      lBody = lBody + ";";
-  }
+  if (null == pSqlStr || 0 == pSqlStr.length)
+    { myLog("afy_query: invalid sql " + pSqlStr); pResultHandler.onerror(null, pSqlStr); return; }
+  var lSqlStr = afy_with_qname_prefixes(pSqlStr);
   var lHasOption = function(_pOption) { return (undefined != pOptions && _pOption in pOptions); }
-  lBody = "q=" + afy_escape_with_plus(lBody) + (lHasOption('countonly') ? "&type=count" : "") + (lHasOption('limit') ? ("&limit=" + pOptions.limit) : "") + (lHasOption('offset') ? ("&offset=" + pOptions.offset) : "");
+  lBody = "q=" + afy_escape_with_plus(lSqlStr) + (lHasOption('countonly') ? "&type=count" : "") + (lHasOption('limit') ? ("&limit=" + pOptions.limit) : "") + (lHasOption('offset') ? ("&offset=" + pOptions.offset) : "");
   $.ajax({
     type: "POST",
     data: lBody,
@@ -565,13 +407,37 @@ function afy_batch_query(pSqlStrArray, pResultHandler, pOptions)
     timeout: (lHasOption('sync') && pOptions.sync) ? 10000 : null,
     cache: false,
     global: false,
-    success: function(data) { /*alert(data);*/ pResultHandler.onsuccess(afy_sanitize_json_result(data, lHasOption('longnames')), pSqlStrArray); },
-    error: function() { pResultHandler.onerror(arguments, pSqlStrArray); },
+    success: function(data) { /*alert(data);*/ pResultHandler.onsuccess(afy_sanitize_json_result(data, lHasOption('longnames')), pSqlStr); },
+    error: function() { pResultHandler.onerror(arguments, pSqlStr); },
     beforeSend : function(req) {
       if (!lHasOption('keepalive') || pOptions.keepalive) { req.setRequestHeader('Connection', 'Keep-Alive'); } // Note: This doesn't seem to guaranty that a whole multi-statement transaction (e.g. batching console) will run in a single connection; in firefox, it works if I configure network.http.max-persistent-connections-per-server=1 (via the about:config page).
       if (AFY_CONTEXT.mStoreIdent.length > 0) { req.setRequestHeader('Authorization', "Basic " + base64_encode(AFY_CONTEXT.mStoreIdent + ":" + AFY_CONTEXT.mStorePw)); }
     }
   });
+}
+function afy_batch_to_str(pSqlStrArray)
+{
+  if (null == pSqlStrArray || 0 == pSqlStrArray.length)
+    return null;
+  var lBody = "";
+  var lInComment = false;
+  for (var iStmt = 0; iStmt < pSqlStrArray.length; iStmt++)
+  {
+    var lLine = afy_without_comments(afy_with_qname_prefixes(pSqlStrArray[iStmt]), lInComment);
+    lInComment = lLine.incomment;
+    lBody = lBody + lLine.text;
+    var lChkSemicolon = lLine.text.match(/(.*)(;\s*)$/);
+    if (iStmt < lLine.text.length - 1 && (undefined == lChkSemicolon || undefined == lChkSemicolon[2]))
+      lBody = lBody + ";";
+  }
+  return lBody;
+}
+function afy_batch_query(pSqlStrArray, pResultHandler, pOptions)
+{
+  if (null == pSqlStrArray || 0 == pSqlStrArray.length)
+    { myLog("afy_batch_query: invalid sql batch"); pResultHandler.onerror(null, pSqlStrArray); return; }
+  var lBody = afy_batch_to_str(pSqlStrArray);
+  afy_post_query(lBody, pResultHandler, pOptions);
 }
 function get_classes(pOnDone)
 {
@@ -584,13 +450,13 @@ function get_classes(pOnDone)
       var lToDelete = [];
       for (var iC = 0; null != AFY_CONTEXT.mClasses && iC < AFY_CONTEXT.mClasses.length; iC++)
       {
-        if (undefined == AFY_CONTEXT.mClasses[iC]["afy:classID"])
+        if (undefined == AFY_CONTEXT.mClasses[iC]["afy:objectID"])
           { lToDelete.push(iC); continue; }
-        AFY_CONTEXT.mClasses[iC]["afy:classID"] = afy_with_qname(lTruncateLeadingDot(AFY_CONTEXT.mClasses[iC]["afy:classID"])); // Remove the leading dot (if any) and transform into qname (prefix:name).
-        if ("http://localhost/afy/class/1.0/ClassDescription" == AFY_CONTEXT.mClasses[iC]["afy:classID"])
+        AFY_CONTEXT.mClasses[iC]["afy:objectID"] = afy_with_qname(lTruncateLeadingDot(AFY_CONTEXT.mClasses[iC]["afy:objectID"])); // Remove the leading dot (if any) and transform into qname (prefix:name).
+        if ("http://localhost/afy/class/1.0/ClassDescription" == AFY_CONTEXT.mClasses[iC]["afy:objectID"])
           { AFY_CONTEXT.mFullIntrospection = true; }
         var lCProps = AFY_CONTEXT.mClasses[iC]["afy:properties"];
-        var lNewProps = new Object();
+        var lNewProps = {};
         for (iP in lCProps)
         {
           var lNewName = afy_with_qname(lTruncateLeadingDot(lCProps[iP]));
@@ -605,7 +471,7 @@ function get_classes(pOnDone)
     };
   AFY_CONTEXT.mQNamesDirty = true;
   var lOnClasses = new QResultHandler(lOnSuccess, null, null);
-  afy_query("SELECT * FROM afy:ClassOfClasses;", lOnClasses, {keepalive:false});
+  afy_query("SELECT * FROM afy:Classes;", lOnClasses, {keepalive:false});
 }
 function get_pin_info(pPID, pCallback)
 {
@@ -614,12 +480,13 @@ function get_pin_info(pPID, pCallback)
     function()
     {
       var _lOnData = function(__pJson) { lInfo.data = (undefined != __pJson && __pJson.length > 0) ? __pJson[0] : null; pCallback(lInfo); }
-      afy_query("SELECT * FROM @" + pPID + ";", new QResultHandler(_lOnData, null, null), {keepalive:false});
+      afy_query("SELECT RAW * FROM @" + pPID + ";", new QResultHandler(_lOnData, null, null), {keepalive:false});
     }
   var lGetClasses =
     function()
     {
       // REVIEW: Would be even nicer if could combine SELECT *, MEMBERSHIP(@) FROM ... in a single request...
+      // REVIEW: now possible with #364...
       var _lOnSuccess = function(__pJson) { if (undefined != __pJson && __pJson.length > 0) { for (var __c in __pJson[0]['afy:value']) lInfo.classes.push(afy_with_qname(__pJson[0]['afy:value'][__c])); } lGetData(); }
       afy_query("SELECT MEMBERSHIP(@" + pPID + ");", new QResultHandler(_lOnSuccess, null, null), {keepalive:false});
     }

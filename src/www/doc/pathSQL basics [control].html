@@ -1,0 +1,229 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<head>
+  <meta name='viewport' content='width=device-width' />
+  <script src='js/jquery.js' type='text/javascript'></script>
+  <script src='js/snippets_to_console.js' type='text/javascript'></script>
+  <link href='css/afydoc.css' rel='stylesheet' type='text/css' media='screen and (min-device-width: 600px)' />
+  <link href='../m/doc/css/afydoc.css' rel='stylesheet' type='text/css' media='screen and (max-device-width: 599px)' />
+  <meta http-equiv='content-type' content='text/html; charset=utf-8'></meta>
+</head>
+<div id='width_constraint' class='horizontally_centered'>
+<div id='generic_header'>
+<img src='images/logo_small.png' id='gh_logo_img'></img>
+<div id='afytocbar'>
+  <select id='afytoclist'>
+    <option value='intro'>intro</option>
+    <option value='FAQ'>FAQ</option>
+    <option value='features'>features</option>
+    <option value='getting started'>getting started</option>
+    <option value='interface [cplusplus]'>interface [cplusplus]</option>
+    <option value='interface [javascript]'>interface [javascript]</option>
+    <option value='interface [protobuf]'>interface [protobuf]</option>
+    <option value='pathSQL basics [control]' SELECTED>pathSQL basics [control]</option>
+    <option value='pathSQL basics [data]'>pathSQL basics [data]</option>
+    <option value='pathSQL reference [definition]'>pathSQL reference [definition]</option>
+    <option value='pathSQL reference [manipulation]'>pathSQL reference [manipulation]</option>
+    <option value='pathSQL reference'>pathSQL reference</option>
+    <option value='release notes'>release notes</option>
+    <option value='server'>server</option>
+    <option value='strengths'>strengths</option>
+    <option value='terminology'>terminology</option>
+    <option value='demo_EULA'>demo_EULA</option>
+    <option value='demo_privacy'>demo_privacy</option>
+  </select>
+</div>
+</div>
+<div id="pathsql-basics:-control"
+><h1
+  >pathSQL Basics: Control</h1
+  ><!-- TODO: review to make sure conventional terminology is used for each section (event handling, rules, CEP, FSM etc.) -->
+<!-- TODO: review examples with singletons, when possible -->
+<!-- TODO: augment with more examples, more services etc.; reduce to the most expressive examples -->
+<!-- TODO: make sure to start with simple examples (ease in to the topic) -->
+<p
+  ><em
+    >pathSQL</em
+    > is the name of a dialect of SQL defined for Affinity: <em
+    >path</em
+    > refers to the ease with which chains of relationships can be built, traversed, queried, modified etc. The result is a language that preserves the declarative (non-procedural) qualities of SQL, with its well known syntax, but also integrates a very natural, flexible addressing model.</p
+  ><p
+  >This flexible addressing model is one of the foundations of the new control layer in AffinityNG. It facilitates the configuration of complex communication stacks, network topologies etc. And it helps writing event handlers with enough flexibility to express complex logic - as fluidly and easily as in a standard programming language (no relationship tables, unique keys, joins, temporary tables etc.).</p
+  ><p
+  >The examples below demonstrate how within a few declarations (&quot;lines of code&quot;), one can configure communication channels with sensors, actuators or web services; or manage state machines, express rules taking other inputs into consideration, handle complex events, etc. The resulting code and configurations can be inspected and grouped by query, modified dynamically, attached by reference or by value to log entries (e.g. for critical problem reporting and tracking), disseminated to other nodes etc.</p
+  ><p
+  >These running examples can also be used as a starting point to write your own applications.</p
+  ><p
+  >For a review of the database basics, please visit the <a href="./pathSQL%20basics%20[data].html"
+    >pathSQL basics: data</a
+    > page.</p
+  ><p
+  >For a more systematic survey of pathSQL and its commands, please visit the <a href="./pathSQL%20reference.html"
+    >reference</a
+    >.</p
+  >To execute an example on this page, either click on it (this will redirect you to the online console), or click on the blue button in front of it (this will produce results in-place on this page).<div class="pathsql_button_fake">v</div>  
+<p
+  >To setup your own runtime environment, please visit this <a href="./getting%20started.html"
+    >link</a
+    >.</p
+  ><div id="global-events"
+  ><h2
+    >Global Events</h2
+    ><p
+    >The following small program gives a quick overview of the possibilities opened up by AffinityNG's class event handlers. It creates a class for all objects containing the <code
+      >example:signal</code
+      > property. It annotates them with the time at which they occurred, and also inserts a trace object containing additional information (such as a pointer to the event that occurred just before, in <code
+      >example:&quot;signal/previous&quot;</code
+      >).</p
+    ><p
+    ><code class='pathsql_snippet'> SET PREFIX example: 'http://example';<br> CREATE CLASS example:reaction AS SELECT * WHERE EXISTS(example:signal)<br>  SET afy:onEnter={<br>   ${UPDATE @self ADD example:&quot;occurred/at&quot;=CURRENT_TIMESTAMP},<br>   ${INSERT example:&quot;occurred/at&quot;=@self.example:&quot;occurred/at&quot;, example:what=@self, example:previous=@class.example:&quot;signal/previous&quot;},<br>   ${UPDATE @class SET example:&quot;signal/previous&quot;=@self}},<br>  example:&quot;signal/previous&quot;=0;<br> INSERT example:signal=1;<br> INSERT example:signal=2;<br> INSERT example:signal=3;<br> SELECT * WHERE EXISTS(example:&quot;occurred/at&quot;); </code></p
+    ><p
+    >A more substantial code example can be studied via the <a href="../promo/demos/pacman/pacman.html"
+      >pacman</a
+      > demo.</p
+    ></div
+  ><div id="finite-state-machines-fsms"
+  ><h2
+    >Finite-State Machines (FSMs)</h2
+    ><p
+    >Finite-state machines will provide a more specific context for event detection and handling, and provide an easy way to connect together a set of decisions and processes. We will soon update this section with examples.</p
+    ><!-- TODO: fill with a few examples when FSM data model is finalized -->
+<!-- TODO: provide a link to the graphical editor, to show those examples in that form as well -->
+</div
+  ><div id="complex-event-processing-cep"
+  ><h2
+    >Complex Event Processing (CEP)</h2
+    ><p
+    >Built on top of basic events and <a href="#finite-state-machines-fsms"
+      >FSMs</a
+      >, CEP enriches the set of events available for the expression of rules and higher-order FSMs. CEP is not available yet in the alpha release of AffinityNG.</p
+    ></div
+  ><div id="rules"
+  ><h2
+    >Rules</h2
+    ><p
+    >In a very near future, AffinityNG will provide a new interface to create rules from a library of conditions and actions. This will provide a higher-level layer in the programming model, akin to business rules engines. The intent is to make it easy for non-programmer professionals to adjust and customize their system.</p
+    ><p
+    ><code class='pathsql_inert'> SET PREFIX model: 'http://example/model/x102';<br> RULE model:HeatAlarm :<br>  model:OutsideTmpChk(25dC) AND model:InsideTmpChk(20dC) -&gt;<br>  model:Pause(INTERVAL'00:15:00'), model:Report('HeatAlarm'); </code></p
+    ><!-- TODO: expand when ready, plus cover the namespace aspects -->
+<!-- TODO: show code and provide a live link to visual editor -->
+</div
+  ><div id="timers"
+  ><h2
+    >Timers</h2
+    ><p
+    >Timers constitute entry points of pure-pathSQL programs (analogous to the thread entry points of traditional C or java programs).</p
+    ><p
+    ><code class='pathsql_snippet'>CREATE TIMER _mytimer INTERVAL '00:00:20' AS INSERT _at=CURRENT_TIMESTAMP</code></p
+    ><p
+    ><code class='pathsql_snippet'> SET PREFIX control: 'http://example/control';<br> SET PREFIX simulation: 'http://example/simulation';<br> /* Declare a base class of signalable entities, triggered by a single timer, below */<br> CREATE CLASS control:&quot;rt/signalable&quot; AS SELECT * WHERE EXISTS(control:&quot;rt/time/signal&quot;);<br> /* Declare a sub-class with a specific event handler */<br> CREATE CLASS control:&quot;step/handler/on.off.572ef13c&quot; AS SELECT * FROM control:&quot;rt/signalable&quot;<br>  WHERE control:&quot;sensor/model&quot;=.simulation:&quot;sensor/on.off.572ef13c&quot;<br>  SET afy:onUpdate={<br>   ${UPDATE @self SET simulation:tmp1=(SELECT control:&quot;rt/time/signal&quot; FROM @self)},<br>   ${INSERT<br>    simulation:&quot;rt/value&quot;=(SELECT simulation:&quot;offset/value&quot; FROM @self) + SIN(@self.simulation:tmp1),<br>    control:&quot;sensor/model&quot;=(SELECT control:&quot;sensor/model&quot; FROM @self),<br>    control:handler=(SELECT afy:objectID FROM @class),<br>    control:at=CURRENT_TIMESTAMP}};<br> /* Declare a few signalable entities */<br> INSERT control:&quot;rt/time/signal&quot;=0, control:&quot;sensor/name&quot;='sensor A',<br>  control:&quot;sensor/model&quot;=.simulation:&quot;sensor/on.off.572ef13c&quot;, simulation:&quot;offset/value&quot;=100;<br> INSERT control:&quot;rt/time/signal&quot;=0, control:&quot;sensor/name&quot;='sensor B',<br>  control:&quot;sensor/model&quot;=.simulation:&quot;sensor/on.off.572ef13c&quot;, simulation:&quot;offset/value&quot;=1000;<br> /* Trigger all signalable entities */<br> CREATE TIMER control:&quot;rt/source/timer&quot; INTERVAL '00:00:01' AS UPDATE control:&quot;rt/signalable&quot; SET<br>  control:&quot;rt/time/signal&quot;=EXTRACT(SECOND FROM CURRENT_TIMESTAMP), control:&quot;rt/time&quot;=CURRENT_TIMESTAMP;<br> </code></p
+    ></div
+  ><div id="external-services"
+  ><h2
+    >External Services</h2
+    ><!-- Note: here, emphasize specific purpose of services, and configurability; leave service stack and global purpose to 'communication' below -->
+<!-- TODO: pre-seed the joyent server with just enough services and demo files for this to actually work online :) -->
+<!-- TODO: use PIN URI when fully available -->
+<!-- TODO: more examples; either cover all existing services here as a mini-ref, or add a real ref for services... need to cover things like mDNS, HTTP, NFC etc. at least to a usable state; need to document what's not working or unfinished also -->
+<p
+    ><code class='pathsql_snippet'> INSERT afy:objectID=.srv:XML, afy:load='xmlservice';<br> INSERT afy:service={.srv:IO, .srv:XML}, srv:&quot;XML/config/roots&quot;={'item'}, afy:address(READ_PERM)='rss_sports_01.xml', toto=1;<br> INSERT SELECT * WHERE(toto=1);<br> UPDATE * SET afy:position=0u WHERE(toto=1);<br> </code></p
+    ><p
+    ><code class='pathsql_snippet'> INSERT afy:objectID=.srv:XML, afy:load='xmlservice';<br> INSERT afy:service={.srv:XML, .srv:IO}, srv:&quot;XML/config/output/qname/prefixes&quot;={'http://purl.org/dc/terms'-&gt;'dcterms'}, afy:address=2, toto=2;<br> UPDATE * SET afy:content=(SELECT *) WHERE(toto=2);<br> </code></p
+    ><p
+    ><code class='pathsql_snippet'> INSERT afy:objectID=.srv:http, afy:load='http';<br> INSERT afy:objectID=.srv:webapp, afy:load='webapp';<br> INSERT afy:objectID=.mywebapp, afy:address='127.0.0.1:4040', afy:listen={.srv:sockets, .srv:HTTPRequest, .srv:webapp, .srv:HTTPResponse, .srv:sockets}, srv:&quot;webapp/config/paths&quot;={'/media/truecrypt1/src/server/src/www/'}, srv:&quot;webapp/config/modes&quot;=WEBAPPMODES#FILE;<br> </code></p
+    ></div
+  ><div id="communication"
+  ><h2
+    >Communication</h2
+    ><p
+    ><a href="./pathSQL%20reference%20[definition].html#communication-pins"
+      >Communication PINs</a
+      > are primarily defined by their &quot;service stack&quot;, i.e. a permutation of <a href="./terminology.html#service"
+      >services</a
+      > with their configuration. Services are either endpoints (e.g. sockets, file IO, serial, zigbee), servers (e.g. REST, p2p) or transformations. Higher-level communication patterns can be built on top of the four basic types of service stacks:</p
+    ><ol style="list-style-type: decimal;"
+    ><li
+      ><p
+	>write stack, e.g.</p
+	><p
+	><code class='pathsql_snippet'> /* Load the XML external service. */<br> INSERT afy:objectID=.srv:XML, afy:load='xmlservice';<br> /* Service stack converting to protobuf and sending to file /tmp/output.proto. */<br> INSERT afy:service={.srv:protobuf, .srv:IO}, afy:address(CREATE_PERM,WRITE_PERM,READ_PERM)='/tmp/output.proto', docsample_key=1000;<br> /* Service stack converting to xml and sending to file /tmp/output.xml. */<br> INSERT afy:service={.srv:XML, .srv:IO}, afy:address(CREATE_PERM,WRITE_PERM,READ_PERM)='/tmp/output.xml', docsample_key=1001;<br> /* Some example data. */<br> INSERT x=10, y=20, somename='Fred';<br> INSERT x=11, y=21, somename='Tony';<br> /* Send data to the two communication PINs defined in this example. */<br> UPDATE * SET afy:content=(SELECT * WHERE EXISTS(somename)) WHERE docsample_key={1000, 1001};<br> </code></p
+	></li
+      ><li
+      ><p
+	>read stack, e.g</p
+	><p
+	><code class='pathsql_snippet'> /* Service stack reading protobuf from file /tmp/output.proto. */<br> INSERT afy:service={.srv:IO, .srv:protobuf}, afy:address(READ_PERM)='/tmp/output.proto', docsample_key=1010;<br> /* Service stack reading xml from file /tmp/output.xml. */<br> INSERT afy:service={.srv:IO, .srv:XML}, afy:address(READ_PERM)='/tmp/output.xml', docsample_key=1011;<br> /* Just in case, reset seek pointer at the beginning. */<br> UPDATE * SET afy:position=0u WHERE docsample_key={1010, 1011};<br> /* Read from both communication PINs (protobuf and xml). */<br> SELECT * WHERE docsample_key={1010, 1011};<br> </code></p
+	></li
+      ><li
+      ><p
+	>server stack, e.g.</p
+	><p
+	><code class='pathsql_snippet'> /* Service stack for a server/listener interpreting a pathSQL request and returning the result as protobuf. */<br> INSERT x=12, y=22, somename='Jack';<br> INSERT x=13, y=23, somename='Ann';<br> CREATE LISTENER docsample_listener_protobuf ON '127.0.0.1:8090'<br>  AS {.srv:sockets, .srv:pathSQL, .srv:affinity, .srv:protobuf, .srv:sockets};<br> </code></p
+	><p
+	><code class='pathsql_snippet'> /* Service stack for a server/listener interpreting a pathSQL request and returning the result as xml. */<br> INSERT afy:objectID=.srv:XML, afy:load='xmlservice';<br> CREATE LISTENER docsample_listener_xml ON '127.0.0.1:8091'<br>  AS {.srv:sockets, .srv:pathSQL, .srv:affinity, .srv:XML, .srv:sockets};<br> </code></p
+	><p
+	><code class='pathsql_snippet'> INSERT afy:objectID=.srv:webapp, afy:load='webapp';<br> INSERT afy:objectID=.srv:http, afy:load='http';<br> INSERT afy:objectID=.docsample_webapp, afy:address='127.0.0.1:8092',<br>  afy:listen={.srv:sockets, .srv:HTTPRequest, .srv:webapp, .srv:HTTPResponse, .srv:sockets},<br>  srv:&quot;webapp/config/paths&quot;={'/tmp/www'}, srv:&quot;webapp/config/modes&quot;=WEBAPPMODES#FILE;<br> </code></p
+	></li
+      ><li
+      ><p
+	>request stack, e.g.</p
+	><p
+	><code class='pathsql_snippet'> /* Service stack for a client request in pathSQL returning the server's result as protobuf. */<br> INSERT afy:service={.srv:pathSQL, .srv:sockets, .srv:protobuf}, afy:address='127.0.0.1:8090',<br>  afy:request=${SELECT * WHERE EXISTS(somename)}, docsample_key=1020;<br> </code></p
+	><p
+	><code class='pathsql_snippet'> INSERT afy:objectID=.srv:XML, afy:load='xmlservice';<br> /* Service stack for a client request in pathSQL returning the server's result as xml. */<br> INSERT afy:service={.srv:pathSQL, .srv:sockets, .srv:XML}, afy:address='127.0.0.1:8091',<br>  afy:request=${SELECT * WHERE EXISTS(somename)}, docsample_key=1021;<br> </code></p
+	><p
+	><code class='pathsql_snippet'> /* Read the server via our client request. */<br> SELECT * WHERE docsample_key={1020 /*,1021*/ };<br> </code></p
+	></li
+      ></ol
+    ><!-- TODO: more complex/varied stacks (refs/structs, more config, more services, server without response etc.) -->
+<!-- TODO: more detail / more specific references to complete doc -->
+<!-- TODO: FSM integration (e.g. security nego) -->
+<!-- TODO: review all existing material (test4mvsql, tests, ...) - make sure all is coverered -->
+
+<!--
+Synergy
+-------
+
+The very open nature of [PINs](./terminology.html#pin), combined with the way all active components
+are configured, allows to merge together mutliple functionalities into a single PIN naturally,
+with automatic handling in the kernel of implied aspects. 
+In a next revision of the doc, we will provide concrete examples.
+<!-- TODO agree on exact definition, scenarios, convincing examples --
+-->
+</div
+  ><div id="code-querying"
+  ><h2
+    >Code Querying</h2
+    ><!-- TODO: review (more meat) with FSMs -->
+<!-- TODO: an example with FT search (MATCH AGAINST + an indexed prop; take that opportunity to review all usage of the modeling.py data model [indexing meta]) -->
+<p
+    ><code class='pathsql_snippet'> /* Get all existing classes.*/<br> SELECT * FROM afy:Classes;<br> /* Get all existing classes of a package.*/<br> SELECT * FROM afy:Classes WHERE BEGINS(afy:objectID, 'http://pacman1/');</br> </code></p
+    ><p
+    ><code class='pathsql_snippet'> /* Get all FSM states.*/<br> SELECT * WHERE EXISTS(afy:transition);<br> </code></p
+    ><p
+    ><code class='pathsql_snippet'> /* Find all classes inspecting a property name containing 'square'. */<br> SELECT * FROM afy:Classes WHERE CONTAINS(afy:predicate, 'square');</br> /* Find all timers inspecting a property name containing 'signal'. */<br> SELECT * FROM afy:Timers WHERE CONTAINS(afy:action, 'signal');</br> </code></p
+    ><p
+    >The <a href="../console.html#tab-fsm"
+      >FSM</a
+      > and <a href="../console.html#tab-ruleassistant"
+      >Rule Assistant</a
+      > tabs of the web console make use of these capabilites to help the user narrow down and pinpoint relevant code visualizations, for a given circumstance (e.g. show all code using a certain <a href="./terminology.html#property"
+      >property</a
+      > or <a href="./terminology.html#class"
+      >class</a
+      >).</p
+    ></div
+  ><div id="logging"
+  ><h2
+    >Logging</h2
+    ><p
+    >The example provided <a href="#global-events"
+      >above</a
+      > gives a hint of how current time, current topology, current state, current code etc. can be attached to a log entry, by reference or by value. In the near future, we will provide a more significant example.</p
+    ><!-- TODO: show how current time, current topology, current state, current code etc.
+can be attached to a log entry, by ref or by value; easiest would be to attach to the timer above,
+if bug #357 is fixed in time; otherwise, build a complete mini-example here (relatively trivial to do) -->
+
+</div
+  ></div
+>
+</div>

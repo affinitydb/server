@@ -1,10 +1,12 @@
+@font-face { font-family:blueprint; src:local('Helvetica'); /*commenting out for now: weird/slow behavior on the mac especially*//*src:url('../../css/FFF_Tusj.ttf');*/ }
 body { font-family:Helvetica; font-size:0.85em; background-color:#e4e4e4; }
 a { text-decoration:none; color:#0645ad; }
 a:hover { text-decoration:underline; }
 p { margin:0.4em 0 0 0; padding:0; }
 ol { margin:0.4em 0 0.5em 0; padding-left:2.5em; }
 ul li { margin:0.4em 0 0.5em 0; padding:0; list-style:none; padding-left:10px; background:url("images/square.png") no-repeat 0 0.6em; }
-h1, h2 { font-weight:normal; padding:0.1em 0 0.17em 0.2em; background:url("images/affinityheader.png") no-repeat -5px -5px; color:#e4e4e4; }
+h1 { font-weight:normal; padding:0.1em 0 0.17em 0.2em; background:url("images/affinityheader.png") no-repeat -5px -5px; color:#e4e4e4;/*#000;*/ font-family:blueprint; letter-spacing:1px; }
+h2 { font-weight:normal; padding:0.1em 0 0.17em 0.2em; background:url("images/affinityheader.png") no-repeat -5px -5px; color:#e4e4e4;/*#000;*/ }
 h3,h4,h5 { margin:1em 0 0 0; }
 h3 { font-size:1.15em; }
 h4 { font-size:1em; }
@@ -15,8 +17,10 @@ table { border-collapse:collapse; margin:0.6em 0; font-size:1.05em; }
 td,th { border:1px solid #aaa; padding:4px; }
 th { background:#f2f2f2; }
 .horizontally_centered { display:block; margin-left:auto; margin-right:auto; }
+.pathsql_new { color:green; background-color:#dddddd; }
 .pathsql_snippet { color:#084066; }
 .pathsql_snippet_highlighted { color:#0f80cc; text-decoration:underline; }
+.pathsql_snippet_comment { color:#a50; }
 .pathsql_inert { color:black; }
 .pathsql_container {}
 .pathsql_button_fake { position:relative; font-size:.6em; line-height:1.4em; border:solid 1px #000; background-color:#0f80cc; color:#fff; width:15px; text-align:center; }

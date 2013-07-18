@@ -1,0 +1,295 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<head>
+  <meta name='viewport' content='width=device-width' />
+  <script src='js/jquery.js' type='text/javascript'></script>
+  <script src='js/snippets_to_console.js' type='text/javascript'></script>
+  <link href='css/afydoc.css' rel='stylesheet' type='text/css' media='screen and (min-device-width: 600px)' />
+  <link href='../m/doc/css/afydoc.css' rel='stylesheet' type='text/css' media='screen and (max-device-width: 599px)' />
+  <meta http-equiv='content-type' content='text/html; charset=utf-8'></meta>
+</head>
+<div id='width_constraint' class='horizontally_centered'>
+<div id='generic_header'>
+<img src='images/logo_small.png' id='gh_logo_img'></img>
+<div id='afytocbar'>
+  <select id='afytoclist'>
+    <option value='intro'>intro</option>
+    <option value='FAQ'>FAQ</option>
+    <option value='features'>features</option>
+    <option value='getting started'>getting started</option>
+    <option value='interface [cplusplus]'>interface [cplusplus]</option>
+    <option value='interface [javascript]'>interface [javascript]</option>
+    <option value='interface [protobuf]'>interface [protobuf]</option>
+    <option value='pathSQL basics [control]'>pathSQL basics [control]</option>
+    <option value='pathSQL basics [data]' SELECTED>pathSQL basics [data]</option>
+    <option value='pathSQL reference [definition]'>pathSQL reference [definition]</option>
+    <option value='pathSQL reference [manipulation]'>pathSQL reference [manipulation]</option>
+    <option value='pathSQL reference'>pathSQL reference</option>
+    <option value='release notes'>release notes</option>
+    <option value='server'>server</option>
+    <option value='strengths'>strengths</option>
+    <option value='terminology'>terminology</option>
+    <option value='demo_EULA'>demo_EULA</option>
+    <option value='demo_privacy'>demo_privacy</option>
+  </select>
+</div>
+</div>
+<div id="pathsql-basics:-data"
+><h1
+  >pathSQL Basics: Data</h1
+  ><p
+  >Although the <a href="./terminology.html#essential-concepts-data-model"
+    >Affinity data model</a
+    > is different from relational databases, pathSQL is designed to be as close to SQL as possible. This document shows <strong
+    >how to</strong
+    > insert, update, query and index data (<a href="./terminology.html#pin"
+    >PINs</a
+    >).</p
+  ><p
+  >For a more systematic survey of pathSQL and its commands, please visit the <a href="./pathSQL%20reference.html"
+    >reference</a
+    >.<br
+     />For an overview of the communication and control extensions in pathSQL, please see the <a href="./pathSQL%20basics%20[control].html"
+    >pathSQL basics: control</a
+    > page.</p
+  >To execute an example on this page, either click on it (this will redirect you to the online console), or click on the blue button in front of it (this will produce results in-place on this page).<div class="pathsql_button_fake">v</div>  
+<p
+  >To setup your own runtime environment, please visit this <a href="./getting%20started.html"
+    >link</a
+    >.</p
+  ><div id="how-to-insert-data"
+  ><h2
+    >How to insert data</h2
+    ><p
+    >There is no concept of table in Affinity: all data are inserted in global scope. Two styles can be used to perform <a href="./terminology.html#pin"
+      >PIN</a
+      > inserts:</p
+    ><ol style="list-style-type: decimal;"
+    ><li
+      >Affinity-specific syntax:</li
+      ></ol
+    ><p
+    ><code class='pathsql_snippet'>INSERT property1 ='value1', property2 ='value2';</code> <code class='pathsql_snippet'>INSERT @{property1 ='value1a', property2 ='value2a'}, @{property1='value1b', property2='value2b'};</code> <code class='pathsql_snippet'>INSERT children={(INSERT property1 ='value1a', property2 ='value2a'), (INSERT property1='value1b', property2='value2b')};</code></p
+    ><ol start="2" style="list-style-type: decimal;"
+    ><li
+      >SQL-like syntax:</li
+      ></ol
+    ><p
+    ><code class='pathsql_snippet'>INSERT (property1, property2) VALUES ('value1','value2');</code> <code class='pathsql_snippet'>INSERT (property1, property2) VALUES ('value1a','value2a'), ('value1b','value2b');</code></p
+    ><p
+    ><span class='pathsql_new'>NEW</span> PINs may contain sub-structures, e.g.</p
+    ><p
+    ><code class='pathsql_snippet'>INSERT<br>  @{position3d={x=10.0m, y=12.2m, z=14.2m}},<br>  @{position3d={x=50.3m, y=22.5m, z=4.7m}},<br>  @{position3d={x=0.3m, y=22.5m, z=0.7m}}; </code></p
+    ><p
+    >Different <a href="./pathSQL%20reference.html#data-types"
+      >data types</a
+      > have different input formats, e.g.</p
+    ><p
+    ><code class='pathsql_snippet'>INSERT<br> prop_string='string', prop_url=U'http://test/',<br> prop_binary_string=X'DEF5',<br> prop_int=128, prop_float=3.40282f, prop_double=3.40282, prop_bool=true,<br> prop_datatime=TIMESTAMP '2010-12-31 23:59:59', prop_internal=INTERVAL '-12:00:00',<br> prop_lambda=$(:0 &gt; 50),<br> prop_collection={1,2,4},<br> prop_structure={radius=10, material='metal', weight=120lb},<br> prop_map={200 -&gt; 'superior grade', 150 -&gt; 'commercial grade', 100 -&gt; 'consumer grade'};</code></p
+    ><p
+    >Collections may contain heterogeneous data, e.g.</p
+    ><p
+    ><code class='pathsql_snippet'>INSERT prop_collection=<br> {'string', X'DEF5', U'http://test/', 128, 3.40282f, 3.40282, true, TIMESTAMP '2010-12-31 23:59:59', INTERVAL '-12:00:00'};</code></p
+    ><p
+    ><span class='pathsql_new'>NEW</span> Sub-structures and associative arrays may also have heterogeneous data, e.g.</p
+    ><p
+    ><code class='pathsql_snippet'>INSERT prop_structure=<br> {p1='string', p2=X'DEF5', p3=U'http://test/', p4=128, p5=3.40282f, p6=3.40282, p7=true, p8=TIMESTAMP '2010-12-31 23:59:59', p9=INTERVAL '-12:00:00'};</code> <code class='pathsql_snippet'>INSERT prop_map=<br> {'string' -&gt; X'DEF5', U'http://test/' -&gt; 128, 3.40282f -&gt; 3.40282, true -&gt; TIMESTAMP '2010-12-31 23:59:59'};</code></p
+    ><p
+    ><span class='pathsql_new'>NEW</span> Whole graphs with cycles may be inserted in one statement, using references and the <code
+      >@:n</code
+      > syntax, e.g.</p
+    ><p
+    ><code class='pathsql_snippet'>INSERT @:1 name='Fred', children={<br>  (INSERT @:2 name='Joe', parent=@:1, siblings={@:3, @:4}),<br>  (INSERT @:3 name='Christine', parent=@:1, siblings={@:2, @:4}),<br>  (INSERT @:4 name='Sam', parent=@:1, siblings={@:2, @:3})} </code></p
+    ><p
+    ><code class='pathsql_snippet'>INSERT @:1<br> name='Fred', bornin='France', email='fred@acme.org', livesin='Chicago', age=27,<br> friends=<br>  {(INSERT @:2 name='Tony', bornin='Hungary', email='tony@acme.org', livesin='Calgary', age=76, friends={@:1, @:3}, photos=<br>    {(INSERT photo_name='blue.jpg'), (INSERT photo_name='red.jpg'), (INSERT photo_name='green.jpg')}),<br>   (INSERT @:3 name='Peter', bornin='Mexico', email='peter@acme.org', livesin='Mexico', age=45, friends={@:1, @:2}, photos=<br>    {(INSERT photo_name='rose.jpg'), (INSERT photo_name='petunia.jpg'), (INSERT photo_name='orchid.jpg')})},<br> photos=<br>  {(INSERT photo_name='Greece.jpg'), (INSERT photo_name='Germany.jpg'), (INSERT photo_name='USA.jpg'),<br>   (INSERT photo_name='France.jpg'), (INSERT photo_name='Egypt.jpg')}; </code></p
+    ><p
+    ><code class='pathsql_snippet'> SET PREFIX simul: 'http://example/simul';<br> SET PREFIX control: 'http://example/control';<br> SET PREFIX world: 'http://example/world';<br> SET PREFIX meta: 'http://example/meta';<br> SET PREFIX inst: 'http://example/inst';<br> CREATE CLASS control:&quot;rt/signalable&quot; AS SELECT * WHERE EXISTS(control:&quot;rt/time/signal&quot;);<br> CREATE CLASS control:&quot;rt/physical/samples&quot; AS SELECT * WHERE EXISTS(control:&quot;rt/time/step&quot;) AND EXISTS(control:&quot;rt/sensor&quot;);<br> CREATE TIMER control:&quot;rt/source/timer&quot; INTERVAl '00:00:20' AS UPDATE control:&quot;rt/signalable&quot;<br>  SET control:&quot;rt/time/signal&quot;=EXTRACT(SECOND FROM CURRENT_TIMESTAMP), control:&quot;rt/time&quot;=CURRENT_TIMESTAMP;<br> INSERT @:1<br>  meta:description='On/Off Simulated Sensor Template (572ef13c)',<br>  afy:objectID=.simul:&quot;template/sensor/on.off.572ef13c&quot;,<br>  afy:predicate=${SELECT * WHERE EXISTS(simul:&quot;new/sensor/572ef13c&quot;)},<br>  control:&quot;template/sensor/step/handler&quot;=<br>   (CREATE CLASS control:&quot;template/sensor/step/handler/on.off.572ef13c&quot; AS SELECT * FROM control:&quot;rt/signalable&quot;<br>    WHERE control:&quot;sensor/model&quot;=.simul:&quot;template/sensor/on.off.572ef13c&quot; SET<br>    control:&quot;template/sensor&quot;=@:1,<br>    afy:onUpdate=${INSERT <br>     simul:&quot;rt/gen/spread&quot;=(SELECT simul:&quot;template/gen/spread&quot; FROM @class.control:&quot;template/sensor&quot;),<br>     simul:&quot;rt/gen/min&quot;=(SELECT simul:&quot;template/gen/min&quot; FROM @class.control:&quot;template/sensor&quot;),<br>     simul:&quot;rt/gen/max&quot;=(SELECT simul:&quot;template/gen/max&quot; FROM @class.control:&quot;template/sensor&quot;),<br>     simul:&quot;rt/gen/jitter&quot;=(SELECT simul:&quot;template/gen/jitter&quot; FROM @class.control:&quot;template/sensor&quot;) *<br>      EXTRACT(SECOND FROM CURRENT_TIMESTAMP),<br>     simul:&quot;rt/value/gen/id&quot;=.simul:&quot;value/gen/sinus&quot;,<br>     control:&quot;rt/sensor&quot;=(SELECT control:sensor FROM @self),<br>     control:&quot;rt/sensor/model&quot;=(SELECT control:&quot;sensor/model&quot; FROM @self.control:sensor),<br>     control:&quot;rt/time/step&quot;=(SELECT control:&quot;rt/time/signal&quot; FROM @self), control:&quot;rt/time&quot;=CURRENT_TIMESTAMP}),<br>  control:&quot;template/sensor/conditions&quot;={<br>   (INSERT <br>    meta:description='Condition: turned off a 572ef13c sensor',<br>    afy:objectID=.control:&quot;template/condition/572ef13c/off&quot;,<br>    afy:predicate=${SELECT * WHERE (@ IS A control:&quot;rt/physical/samples&quot; AND<br>     control:&quot;rt/sensor/model&quot;=@:1.afy:objectID AND control:&quot;rt/value&quot; &lt; 0.5)}),<br>   (INSERT <br>    meta:description='Condition: turned on a 572ef13c sensor',<br>    afy:objectID=.control:&quot;template/condition/572ef13c/on&quot;,<br>    afy:predicate=${SELECT * WHERE (@ IS A control:&quot;rt/physical/samples&quot; AND<br>     control:&quot;rt/sensor/model&quot;=@:1.afy:objectID AND control:&quot;rt/value&quot; &gt;= 0.5)}),<br>   (INSERT <br>    meta:description='Condition (optional): confirmed that a 572ef13c sensor was off',<br>    afy:objectID=.control:&quot;template/condition/572ef13c/off.confirmed&quot;,<br>    afy:predicate=${SELECT * WHERE (@ IS A world:appliances AND NOT EXISTS(control:&quot;rt/emergency/time&quot;) AND (control:&quot;rt/warning/time&quot;[:LAST] - control:&quot;rt/warning/time&quot;[:FIRST] &gt;= INTERVAL '00:00:05'))})},<br>  simul:&quot;template/sensor/generator&quot;=(SELECT afy:pinID FROM afy:Classes WHERE afy:objectID=.simul:&quot;value/gen/sinus&quot;),<br>  simul:&quot;template/gen/type&quot;='boolean', simul:&quot;template/gen/jitter&quot;=0,<br>  simul:&quot;template/gen/min&quot;=0, simul:&quot;template/gen/max&quot;=100,<br>  simul:&quot;template/gen/spread&quot;=1.5,<br>  afy:onEnter=<br>   ${INSERT @:20<br>    meta:description='On/Off Simulated Sensor Instance (572ef13c)',<br>    control:&quot;sensor/model&quot;=(SELECT afy:objectID FROM @class),<br>    control:&quot;sensor/name&quot;=(SELECT inst:name FROM @self),<br>    control:appliance=(SELECT inst:appliance FROM @self),<br>    simul:&quot;sensor/signalable&quot;=<br>     (INSERT @:30<br>      meta:description='To generate samples for sensor',<br>      control:&quot;rt/time/signal&quot;=0,<br>      control:&quot;sensor/model&quot;=(SELECT afy:objectID FROM @class),<br>      control:sensor=@:20)};<br> </code></p
+    ><p
+    >Values can also be lambda expressions, e.g.</p
+    ><p
+    ><code class='pathsql_snippet'>INSERT<br>  trigo_sin=<br>   $(:0 - POWER(:0,3)/6 + POWER(:0,5)/120 - POWER(:0,7)/5040 + POWER(:0,9)/362880),<br>  trigo_deg2rad=$(3.141592654 * (:0 % 360) / 180);<br> INSERT val_sin30=(SELECT trigo_sin(trigo_deg2rad(30)) WHERE EXISTS(trigo_sin)); </code></p
+    ><p
+    >A few more simple examples:</p
+    ><p
+    ><code class='pathsql_snippet'>INSERT name='Jurgen', bornin='South Africa', email='jsmith@acme.org', livesin(FT_INDEX)='Boston', age=22;</code></p
+    ><p
+    ><code class='pathsql_snippet'>INSERT (name, bornin, email, livesin(FT_INDEX), age) VALUES ('Sonny', 'USA', 'sbrown@acme.org', 'Boston', 45);</code></p
+    ><p
+    ><code class='pathsql_snippet'>INSERT &quot;http://acme.org/properties/length&quot;=123,<br> &quot;http://acme.org/properties/width&quot;=456,<br> &quot;http://acme.org/properties/name&quot;='wonderful instrument';</code></p
+    ><p
+    ><code class='pathsql_snippet'>SET PREFIX acmep: 'http://acme.org/properties/';<br> INSERT acmep:&quot;length&quot;=123.1, acmep:width=456.1, acmep:name='great instrument';</code></p
+    ></div
+  ><div id="how-to-classify-data"
+  ><h2
+    >How to classify data</h2
+    ><p
+    >All data are inserted in global scope, but applications can freely define specialized access paths for their data (before or after the data is inserted), by creating <a href="./terminology.html#class"
+      >classes</a
+      >. Here's an example:</p
+    ><p
+    ><code class='pathsql_snippet'>CREATE CLASS class1 AS SELECT * WHERE bornin IS NOT NULL;</code></p
+    ><p
+    ><code class='pathsql_snippet'>CREATE CLASS class2 AS SELECT * WHERE name IN :0;</code></p
+    ></div
+  ><div id="how-to-update-or-delete-data"
+  ><h2
+    >How to update or delete data</h2
+    ><p
+    ><code class='pathsql_snippet'>UPDATE * ADD livesin='Cambridge' WHERE name='Sonny';</code></p
+    ><p
+    ><code class='pathsql_snippet'>UPDATE * SET livesin[1]='USA' WHERE name='Sonny';</code></p
+    ><p
+    ><code class='pathsql_snippet'>UPDATE * SET age=(SELECT AVG(age) FROM *) WHERE name='Sonny';</code></p
+    ><p
+    ><code class='pathsql_snippet'>UPDATE class1 ADD school='MIT' WHERE age &gt; 25;</code></p
+    ><p
+    ><code class='pathsql_inert'>UPDATE @50012 ADD school='MIT';</code></p
+    ><p
+    ><code class='pathsql_inert'>DELETE @50012;</code></p
+    ></div
+  ><div id="how-to-query"
+  ><h2
+    >How to query</h2
+    ><p
+    >Most of the querying syntax in Affinity is compatible with standard SQL: expressions, function calls, WHERE, ORDER BY, UNION, INTERSECT, EXCEPT etc. Here's an example:</p
+    ><p
+    ><code class='pathsql_snippet'>SELECT * FROM class1 WHERE LENGTH(bornin) &gt; 5 ORDER BY livesin DESC NULLS FIRST;</code></p
+    ><p
+    >Other examples:</p
+    ><p
+    ><code class='pathsql_snippet'>SELECT name, email WHERE EXISTS(livesin);</code></p
+    ><p
+    ><code class='pathsql_snippet'>SELECT WHERE livesin='Boston' ORDER BY name ASC;</code></p
+    ><p
+    ><code class='pathsql_snippet'>SELECT * MATCH AGAINST('Boston');</code></p
+    ><p
+    ><span class='pathsql_new'>NEW</span> Regular expressions in text manipulations:</p
+    ><p
+    ><code class='pathsql_snippet'> INSERT _retest='Hello';<br> INSERT _retest='Hello Mike';<br> INSERT _retest='How are you Mike';<br> INSERT _retest='Earth to Mike do you receive?';<br> SELECT _retest AS result1 WHERE _retest SIMILAR TO /.*Mike$/;<br> SELECT _retest AS result2 WHERE _retest SIMILAR TO /.*Mike/; </code></p
+    ><p
+    >and soon... <span style='color:red;'>TODO: probably convert this into an example using the regex service, once bug #405 is fixed</span></p
+    ><p
+    ><code class='pathsql_inert'>INSERT CASE WHEN (SELECT ...) SIMILAR TO /^value=([0-9]+), distance=([0-9]+), clock=([0-9]+)/<br> THEN {sensor=@50005, movement=/1, distance=CAST(/2 AS m), time=CURRENT_TIMESTAMP, sclock=/3}<br> ELSE NULL END; </code></p
+    ></div
+  ><div id="how-to-use-joins"
+  ><h2
+    >How to use joins</h2
+    ><p
+    >Affinity returns immutable PIN collections as query results. Here's an example:</p
+    ><p
+    ><code class='pathsql_snippet'>SELECT * FROM class1 AS c1 JOIN class2('Jurgen') AS c2 ON (c1.name = c2.name);</code></p
+    ><p
+    >Affinity supports every kind of JOIN (LEFT/RIGHT/FULL/CROSS JOIN), except the Natural JOIN.</p
+    ></div
+  ><div id="how-to-use-references"
+  ><h2
+    >How to use <a href="./terminology.html#pin-reference"
+      >references</a
+      ></h2
+    ><p
+    >Relational databases use foreign keys to establish relationships between tables. Affinity offers a powerful alternative with <a href="./terminology.html#pin-reference"
+      >references</a
+      > (similar to object-oriented databases):</p
+    ><p
+    ><code class='pathsql_snippet'>UPDATE * ADD friends=(SELECT afy:pinID WHERE name='Fred') WHERE name='Jurgen';</code></p
+    ><p
+    ><code class='pathsql_snippet'>UPDATE * ADD friends=(SELECT friends[:FIRST] WHERE name='Jurgen') WHERE name='Sonny';</code></p
+    ><p
+    ><code class='pathsql_inert'>INSERT mypinref=@50012;</code></p
+    ><p
+    ><code class='pathsql_inert'>INSERT mypropref=@50012.friends;</code></p
+    ><p
+    >To leverage this information while querying, pathSQL offers the following syntax (path expression):</p
+    ><p
+    ><code class='pathsql_snippet'>SELECT name, email, bornin FROM class1.friends[BEGINS(livesin, 'C')].friends;</code></p
+    ><p
+    ><code class='pathsql_snippet'>SELECT bornin FROM class2('Jurgen').friends{*}[BEGINS(livesin, 'C')];</code></p
+    ><p
+    ><code class='pathsql_snippet'>SELECT age FROM class2('Jurgen').friends{+}[age &gt; 30];</code></p
+    ><p
+    ><code class='pathsql_snippet'>SELECT DISTINCT FROM class1.friends{*}.photos;</code></p
+    ><p
+    >Note that in the current release, path expressions are only available in the FROM clause.</p
+    ></div
+  ><div id="how-to-use-collections"
+  ><h2
+    >How to use <a href="./terminology.html#collection"
+      >collections</a
+      ></h2
+    ><div id="add-elements-to-a-collection"
+    ><h3
+      >1. Add elements to a <a href="./terminology.html#collection"
+	>collection</a
+	></h3
+      ><div id="insert-a-pin-with-a-collection-property:"
+      ><h4
+	>1.1 Insert a PIN with a collection property:</h4
+	><p
+	><code class='pathsql_snippet'>INSERT (prop1, prop2) VALUES ({1, 'inserted', '3'}, 2);</code></p
+	></div
+      ><div id="update-a-property-in-a-collection"
+      ><h4
+	>1.2 Update a property in a collection</h4
+	><p
+	>Using &quot;UPDATE ... SET ...&quot;, we can replace a property with a whole collection directly:</p
+	><p
+	><code class='pathsql_inert'>UPDATE @50001 SET prop3={3, 'update set'};</code></p
+	><p
+	>Using &quot;UPDATE ... ADD ...&quot;, we can convert a property from a scalar value to a collection:</p
+	><p
+	><code class='pathsql_inert'>UPDATE @50001 ADD prop2='update add';</code></p
+	></div
+      ></div
+    ><div id="delete-an-element-from-a-collection"
+    ><h3
+      >2. Delete an element from a collection</h3
+      ><p
+      ><code class='pathsql_inert'>UPDATE @50001 DELETE prop1[2];</code></p
+      ></div
+    ><div id="query-on-collections"
+    ><h3
+      >3. Query on collections</h3
+      ><p
+      >Here are a few examples of queries that can be run against the PIN created in section 1.1:</p
+      ><blockquote
+      ><ol style="list-style-type: decimal;"
+	><li
+	  >SELECT * WHERE 1 IN prop1;<br
+	     /></li
+	  ><li
+	  >SELECT * WHERE {1,2} IN prop1;<br
+	     /></li
+	  ><li
+	  >SELECT * WHERE 1 = prop1; -- equivalent to example 1.</li
+	  ><li
+	  >SELECT * WHERE {1,2} = prop1; -- equivalent to example 2.</li
+	  ></ol
+	></blockquote
+      ></div
+    ></div
+  ><div id="how-to-index-properties"
+  ><h2
+    >How to index properties</h2
+    ><p
+    >Instead of simply allowing to create indexes (&quot;CREATE INDEX&quot; statement of relational databases), Affinity emphasizes the declaration of categories, which may or may not imply the creation of underlying secondary indexes. Here's an example:</p
+    ><p
+    ><code class='pathsql_snippet'>CREATE CLASS clsfml AS SELECT * WHERE age IN :0(int, desc, nulls first) AND name IN :1;</code></p
+    ><p
+    >This class <a href="./terminology.html#family"
+      >family</a
+      > will create an <a href="./terminology.html#index"
+      >index</a
+      > on prop1 and prop2. The prop1 will be sorted in descending order, and will order nulls first. When parameters are passed, the class family behaves like a CLASS. For example:</p
+    ><p
+    ><code class='pathsql_snippet'>SELECT * FROM clsfml(27, 'Fred');</code></p
+    ><p
+    ><code class='pathsql_snippet'>SELECT * FROM clsfml([50, 10], ['A', 'H']);</code></p
+    ><p
+    ><code class='pathsql_snippet'>SELECT * FROM clsfml;</code></p
+    ><p
+    ><code class='pathsql_inert'>SELECT * FROM clsfml(*, 'Fred');</code></p
+    ><p
+    ><code class='pathsql_inert'>SELECT * FROM clsfml(27, *);</code></p
+    ></div
+  ></div
+>
+</div>

@@ -1,8 +1,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <head>
+  <meta name='viewport' content='width=device-width' />
   <script src='js/jquery.js' type='text/javascript'></script>
   <script src='js/snippets_to_console.js' type='text/javascript'></script>
-  <link href='css/afydoc.css' rel='stylesheet' type='text/css' />
+  <link href='css/afydoc.css' rel='stylesheet' type='text/css' media='screen and (min-device-width: 600px)' />
+  <link href='../m/doc/css/afydoc.css' rel='stylesheet' type='text/css' media='screen and (max-device-width: 599px)' />
   <meta http-equiv='content-type' content='text/html; charset=utf-8'></meta>
 </head>
 <div id='width_constraint' class='horizontally_centered'>
@@ -11,20 +13,23 @@
 <div id='afytocbar'>
   <select id='afytoclist'>
     <option value='intro'>intro</option>
-    <option value='Affinity server'>Affinity server</option>
     <option value='FAQ'>FAQ</option>
-    <option value='cplusplus'>cplusplus</option>
-    <option value='demo_EULA'>demo_EULA</option>
-    <option value='demo_privacy'>demo_privacy</option>
     <option value='features' SELECTED>features</option>
     <option value='getting started'>getting started</option>
-    <option value='javascript'>javascript</option>
-    <option value='pathSQL primer'>pathSQL primer</option>
+    <option value='interface [cplusplus]'>interface [cplusplus]</option>
+    <option value='interface [javascript]'>interface [javascript]</option>
+    <option value='interface [protobuf]'>interface [protobuf]</option>
+    <option value='pathSQL basics [control]'>pathSQL basics [control]</option>
+    <option value='pathSQL basics [data]'>pathSQL basics [data]</option>
+    <option value='pathSQL reference [definition]'>pathSQL reference [definition]</option>
+    <option value='pathSQL reference [manipulation]'>pathSQL reference [manipulation]</option>
     <option value='pathSQL reference'>pathSQL reference</option>
-    <option value='protobuf'>protobuf</option>
     <option value='release notes'>release notes</option>
+    <option value='server'>server</option>
     <option value='strengths'>strengths</option>
     <option value='terminology'>terminology</option>
+    <option value='demo_EULA'>demo_EULA</option>
+    <option value='demo_privacy'>demo_privacy</option>
   </select>
 </div>
 </div>
@@ -32,7 +37,7 @@
 ><h1
   >Features</h1
   ><p
-  >Affinity is a new database kernel with features that borrow aspects from RDBMS, OODBMS, document databases, graph databases, and RDF and XML stores. More context is available on the <a href="./FAQ.html"
+  >AffinityNG is a universal embedded information-processing, control and communication platform, with a graph database at its heart. More context is available on the <a href="./FAQ.html"
     >philosophy</a
     >, <a href="./terminology.html#software-components"
     >software components</a
@@ -40,125 +45,139 @@
     >interfaces</a
     > and <a href="./terminology.html#essential-concepts-data-model"
     >data model</a
-    >. Here is a list of Affinity's features:</p
+    >. Here is a list of AffinityNG's main features:</p
   ><ul
   ><li
-    >small, embeddable, cross-platform C++ kernel (no dependency on any virtual machine)</li
-    ><li
-    ><a href="./terminology.html#pathsql"
-      >pathSQL</a
-      > query language, plus streaming interface using <a href="./terminology.html#protocol-buffer"
-      >protocol-buffers</a
+    >one semantically rich representation for all transient and persistent data: the <a href="./terminology.html#pin"
+      >PIN</a
       ></li
     ><li
-    >path expressions for advanced, recursive, yet compact graph queries</li
+    >event-driven programming model combining <a href="./terminology.html#rule"
+      >rules</a
+      >, <a href="./terminology.html#fsm"
+      >finite-state machines</a
+      > and <a href="./terminology.html#cep"
+      >CEP</a
+      > - <span class='pathsql_new'>NEW</span></li
     ><li
-    >ability to mix SQL and graph queries</li
+    ><a href="./terminology.html#communication-pin"
+      >communication PINs</a
+      > to read from and write to the real world (i.e. sensors, actuators, web services, other instances of AffinityNG, etc.) - <span class='pathsql_new'>NEW</span></li
     ><li
-    >nested DML for single-statement graph inserts and updates</li
+    ><a href="./terminology.html#timer"
+      >timer PINs</a
+      > to trigger events on a time basis - <span class='pathsql_new'>NEW</span></li
     ><li
-    >ACID transactions (with support for JOIN spanning multiple objects)</li
+    >declarative, configurable and queryable definitions (as <a href="./terminology.html#pin"
+      >PINs</a
+      >) of all <a href="./terminology.html#active-components-of-the-data-model"
+      >active components</a
+      > - <span class='pathsql_new'>NEW</span></li
     ><li
-    ><a href="./terminology.html#snapshot-isolation"
-      >snapshot isolation</a
-      > for read-only transactions</li
+    >loadable external <a href="./terminology.html#service"
+      >services</a
+      > - <span class='pathsql_new'>NEW</span></li
     ><li
-    >nested transactions</li
+    >small, embeddable, cross-platform C++ kernel (with no dependency on any virtual machine)</li
+    ><li
+    >ACID transactions</li
     ><li
     >logging &amp; recovery</li
     ><li
-    >compact storage, suited for structured data as well as semi-structured, dynamic objects (aka <a href="./terminology.html#pin"
-      >PINs</a
-      >)</li
+    ><a href="./terminology.html#pathsql"
+      >pathSQL</a
+      > query language</li
     ><li
-    >universal naming convention for <a href="./terminology.html#property"
-      >properties</a
-      > and <a href="./terminology.html#class"
-      >classes</a
-      >, using URIs</li
-    ><li
-    >globally-unique object IDs with random-access physical addressing (<a href="./terminology.html#pin-id-pid"
-      >PIDs</a
-      >)</li
-    ><li
-    >self-describing objects (objects can represent themselves as dictionaries)</li
-    ><li
-    >highly optimized B-link tree indexing engine, used for all indexes</li
-    ><li
-    >transactional, dynamic, automatic and continuous multi-classification of objects, stored in indexes</li
-    ><li
-    >multi-segment indexing</li
-    ><li
-    >asynchronous query processing option, for highly concurrent servers</li
-    ><li
-    >transactional full-text indexing</li
-    ><li
-    >ability to use full-text search in combination with regular structured queries</li
-    ><li
-    >extensive support for data transformations in query results</li
-    ><li
-    ><a href="./terminology.html#notifications"
-      >notifications</a
-      > for object-level changes as well as for classification changes</li
-    ><li
-    >authenticated sessions</li
-    ><li
-    >page-level AES <a href="./terminology.html#encryption"
-      >encryption</a
-      > and log encryption</li
-    ><li
-    >extensive multi-user support (e.g. hundreds of distinct database instances can be managed by a single process)</li
-    ><li
-    ><a href="./terminology.html#acl"
-      >ACL</a
-      > at object granularity</li
-    ><li
-    >rich set of <a href="./pathSQL%20reference.html#data-types"
-      >data types</a
-      >, including <a href="./terminology.html#collection"
-      >collections</a
-      >, <a href="./terminology.html#pin-reference"
-      >references</a
-      > and <a href="./terminology.html#blob"
-      >BLOBs</a
-      ></li
-    ><li
-    ><a href="./terminology.html#unit-of-measurement"
-      >units of measurement</a
-      > and dimensionality control in calculations</li
-    ><li
-    >data type and unit conversions</li
-    ><li
-    >document model allowing document objects to own constitutive parts</li
-    ><li
-    ><a href="./terminology.html#soft-deletion-vs-purge"
-      >soft deletion</a
-      > of objects</li
-    ><li
-    >page-level storage control at the granularity of properties of objects</li
-    ><li
-    >external sort (implicit) for very large result sets</li
-    ><li
-    >basic replication framework</li
+    >graph queries seemlessly integrated into SQL</li
     ></ul
-  ><div id="the-following-features-are-planned-for-the-future:"
-  ><h3
-    >The following features are planned for the future:</h3
+  ><div id="more-details"
+  ><h2
+    >More Details</h2
     ><ul
     ><li
-      >fine-grained sub-structure inside objects (similar to what's available in document databases), for efficiency and expressiveness</li
+      >path expressions for advanced, recursive, yet compact graph queries</li
       ><li
-      >DSNS (Data Stream Management System) with data windowing and triggers, for ESP (Event Stream Processing) and EDA (Event Driven Architectures)</li
+      >nested DML for single-statement graph inserts and updates</li
       ><li
-      >object and schema versioning, with support for concurrent schema versions at run-time</li
+      >nested transactions</li
       ><li
-      >multi-node scalability with full ACID on few nodes and relaxed ACID on infinite nodes</li
+      >ability to mix transient and persistent PINs</li
       ><li
-      >path indexing (for improved efficiency of path expression evaluation)</li
+      >compact storage, suited for structured data as well as semi-structured, dynamic objects (aka <a href="./terminology.html#pin"
+	>PINs</a
+	>)</li
       ><li
-      >probabilistic graph modeling, data mining</li
+      >streaming interface using <a href="./terminology.html#protocol-buffer"
+	>protocol-buffers</a
+	></li
       ><li
-      >XQuery and other interfaces</li
+      >universal naming convention for <a href="./terminology.html#property"
+	>properties</a
+	> and <a href="./terminology.html#class"
+	>classes</a
+	>, using URIs</li
+      ><li
+      >globally-unique object IDs with random-access physical addressing (<a href="./terminology.html#pin-id-pid"
+	>PIDs</a
+	>)</li
+      ><li
+      >self-describing objects (objects can represent themselves as dictionaries)</li
+      ><li
+      >highly optimized B-link tree indexing engine, used for all indexes</li
+      ><li
+      >transactional, dynamic, automatic and continuous multi-classification of objects, stored in indexes</li
+      ><li
+      >multi-segment indexing</li
+      ><li
+      >asynchronous query processing option, for highly concurrent servers</li
+      ><li
+      >transactional full-text indexing</li
+      ><li
+      >ability to use full-text search in combination with regular structured queries</li
+      ><li
+      >extensive support for data transformations in query results</li
+      ><li
+      ><a href="./terminology.html#notifications"
+	>notifications</a
+	> for object-level changes as well as for classification changes</li
+      ><li
+      >authenticated sessions</li
+      ><li
+      >page-level AES <a href="./terminology.html#encryption"
+	>encryption</a
+	> and log encryption</li
+      ><li
+      >extensive multi-user support (e.g. hundreds of distinct store instances can be managed by a single process)</li
+      ><li
+      ><a href="./terminology.html#acl"
+	>ACL</a
+	> at object granularity</li
+      ><li
+      >rich set of <a href="./pathSQL%20reference.html#data-types"
+	>data types</a
+	>, including <a href="./terminology.html#collection"
+	>collections</a
+	>, <a href="./terminology.html#structure"
+	>structures</a
+	> (<span class='pathsql_new'>NEW</span>), <a href="./terminology.html#map"
+	>maps</a
+	> (<span class='pathsql_new'>NEW</span>), <a href="./terminology.html#pin-reference"
+	>references</a
+	> and <a href="./terminology.html#blob"
+	>BLOBs</a
+	></li
+      ><li
+      ><a href="./terminology.html#unit-of-measurement"
+	>units of measurement</a
+	> and dimensionality control in calculations</li
+      ><li
+      >data type and unit conversions</li
+      ><li
+      >document model allowing document objects to own constitutive parts</li
+      ><li
+      >page-level storage control at the granularity of properties of objects</li
+      ><li
+      >external sort (implicit) for very large result sets</li
       ></ul
     ></div
   ></div

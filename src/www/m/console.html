@@ -1,0 +1,418 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width" />
+  <link href='css/affinity.css' rel='stylesheet' type='text/css' />
+  <script src='../js/jquery.js' type='text/javascript'></script>
+  <script src='../js/persist-min.js' type='text/javascript'></script>
+  <script src='../js/afycommon.js' type='text/javascript'></script>
+  <script src='../js/afywidgets.js' type='text/javascript'></script>
+  <script src='../js/affinity.js' type='text/javascript'></script>
+  <script type="text/javascript">
+    // google analytics
+    var _gaq = _gaq || [];
+    _gaq.push(['_setAccount', 'UA-28518586-1']);
+    _gaq.push(['_trackPageview']);
+    (function() {
+      var ga = document.createElement('script'); ga.type = 'text/javascript'; ga.async = true;
+      ga.src = ('https:' == document.location.protocol ? 'https://ssl' : 'http://www') + '.google-analytics.com/ga.js';
+      var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(ga, s);
+    })();
+  </script>
+  <title>Affinity</title>
+</head>
+<body>
+
+<div id='generic_header'>
+  <div id='gh_logo'><img src='../images/logo_small.png' id='gh_logo_img'></img></div>
+  <div id='nav'>
+    <ul>
+      <li><a href="#tab-tutorial"><img src='../images/tutorial.png'></a></li>
+      <li><a href="#tab-basic"><img src='../images/basic.png'></a></li>
+      <li><a href="#tab-batching"><img src='../images/batch.png'></a></li>
+      <li><a href="#tab-map"><img src='../images/map.png'></a></li>
+      <li><a href="#tab-histogram"><img src='../images/histo.png'></a></li>
+      <li><a href="#tab-ruleassistant"><img src='../images/ruleassistant.png'></a></li>
+      <li><a href="#tab-queryhistory"><img src='../images/history.png'></a></li>
+      <li><a href="#tab-config"><img src='../images/config.png'></a></li>
+    </ul>
+  </div>
+</div>
+
+<div id="mobile_constraints_1"></div> <!-- temporary visual check/guideline -->
+<!-- <div id="mobile_constraints_2"></div> -- temporary visual check/guideline -->
+
+<div id='content'>
+  <!-- Basic Console -->
+  <div id="tab-basic">
+    <div id='content_title'>
+      <img src='../images/affinityheader.png' id='title_img'></img>
+      <div id='title_text'>Basic Console</div>
+    </div>
+    <div id='content_left'>
+      <div id='query_spec'>
+        <form id='form' method="get" action="/db">
+          <input id='query' name='query' />
+          <button id='querygo'> go </button>
+          <select name="type" id='querytype'>
+            <option value="query">query</option>
+            <!-- <option value="expression">expression</option> -->
+            <option value="count">count</option>
+            <option value="plan">plan</option>
+            <option value="display">display</option>
+          </select>
+        </form>
+        <br/>
+      </div>
+      <div id='result_frame'>
+        <div id='result_table'></div>
+        <div id='result_pin'>Execute a query and select a row to see PIN details.</div>
+      </div>
+    </div>
+    <div id='content_right'>
+      <div id='content_right_inner'>
+        <h3>Classes</h3>
+        <select name="classes" id="classes" size="5"></select>
+        <br/>
+        <p id='class_doc'></p>
+        <h3>Properties</h3>
+        <select name="class_properties" id="class_properties" size="5"></select>
+        <br/>
+        <p id='property_doc'></p>
+        <h3>QName Prefixes</h3>
+        <select name="qnames" id="qnames" size="5"></select>
+      </div>
+    </div>
+  </div>
+  <!-- Batching Console -->
+  <div id="tab-batching">
+    <div id='content_title'>
+      <img src='../images/affinityheader.png' id='title_img'></img>
+      <div id='title_text'>Batching Console</div>
+    </div>
+    <div id='batching_left'>
+      <div id='query_area'>
+        <textarea id='query_area_q' cols=10></textarea>
+        <button id='query_area_go'>go</button>
+      </div>
+      <div id='result_area'>
+        <select name='results' id='result_area_selector'>
+          <option value="none">none</option>
+        </select>
+        <div id='result_area_page'></div>
+      </div>
+    </div>
+  </div>
+  <!-- Tutorial Console -->
+  <div id="tab-tutorial">
+    <div id='content_title'>
+      <img src='../images/affinityheader.png' id='title_img'></img>
+      <div id='title_text'>Interactive Tutorial</div>
+    </div>
+    <div id='tutorial_left'>
+      <div id='tutorial_area'>
+        <div id='tutorial_history'>
+          <p>Welcome to Affinity's interactive tutorial console!</p>
+          <br>
+          <p>h: print the help</p>
+          <p>t: start the interactive tutorial</p>
+          <p>... and don't hesitate to visit the <a href='../doc/intro.html'>documentation</a>, check out this short <a href='../promo/ddos.html'>presentation</a>, or <a href='../doc/getting%20started.html#setup'>install</a>!</p> 
+          <br>
+        </div>
+        <div id='tutorial_input_line'>&gt;<input id='tutorial_input' /></div>
+      </div>
+    </div>
+  </div>
+  <!-- Map/Graph -->
+  <div id="tab-map">
+    <div id='content_title'>
+      <img src='../images/affinityheader.png' id='title_img'></img>
+      <div id='title_text'>2D-Map</div>
+    </div>
+    <div id='map_left'>
+      <iframe id='map_iframe' src='../2dmap.html'></iframe>
+    </div>
+  </div>
+  <!-- Histogram -->
+  <div id="tab-histogram">
+    <div id='content_title'>
+      <img src='../images/affinityheader.png' id='title_img'></img>
+      <div id='title_text'>Histogram</div>
+    </div>
+    <div id='histo_left'>
+      <div id='histo_spec'>
+        <span>Domain:</span>
+        <select name="histo_class" id="histo_class"></select>
+        <span>Property:</span>
+        <select name="histo_property" id="histo_property"></select>
+        <button id='histo_go' style='display:none'> go </button>
+        <div id="histo_query">Please select a class and a property...</div>
+      </div>
+      <div id='histo_area_c'>
+        <canvas id='histo_area'>
+        </canvas>
+      </div>
+      <div id='histo_status'>
+      </div>
+    </div>
+  </div>
+  <!-- Rule Programming Assistant -->
+  <div id="tab-ruleassistant">
+    <div id='content_title'>
+      <img src='../images/affinityheader.png' id='title_img'></img>
+      <div id='title_text'>Programming Assistant</div>
+    </div>
+    <div id='ra_left'>
+      <iframe id='ra_iframe' src='../ruleassistant.html'></iframe>
+    </div>
+  </div>
+  <!-- Query History -->
+  <div id="tab-queryhistory">
+    <div id='content_title'>
+      <img src='../images/affinityheader.png' id='title_img'></img>
+      <div id='title_text'>Query History</div>
+    </div>
+    <div id='content_left'>
+      <div id='query_history'></div>
+    </div>
+    <div id='content_right'>
+      <button id='query_history_clear'>Clear History</button>
+    </div>
+  </div>
+  <!-- Configuration & Administration -->
+  <div id="tab-config">
+    <div id='content_title'>
+      <img src='../images/affinityheader.png' id='title_img'></img>
+      <div id='title_text'>Configuration &amp; Administration</div>
+    </div>
+    <div id='content_left'>
+      <div id='config_options'>
+        <h3>Current Store Name</h3>
+        <input id='storeident' name='storeident' size='25' />
+        <h3>Current Store Password</h3>
+        <input id='storepw' name='storepw' size='25' />
+      </div>
+    </div>
+  </div>
+</div>
+
+<div id='generic_footer'>
+  <!-- <img src='../images/affinityfooter.jpg' id='footer_img' class='horizontally_centered'></img> -->
+  <div id='gh_links'><a href="../doc/getting%20started.html#setup">Download</a> &middot; <a href="../doc/intro.html">Doc</a> &middot; <a href="../doc/FAQ.html">About</a> &middot; <a href="../doc/demo_privacy.html">Privacy</a></div>
+  <div id='footer_text'>&copy; 2013 GoPivotal, Inc. All rights reserved.</div>
+</div>
+
+<!--
+  #thetooltip is recycled throughout the whole UI, to display a tooltip wherever we want;
+  #thetooltiptable and #themenutable are used as string tables; does there exist a more orthodox solution?
+-->
+<div id='thetooltip'>tooltip</div>
+<div id='thetooltiptable'>
+  <div id='manual'> <!-- These are bound manually by the js code. -->
+    <div id='tooltip_tab-basic'>Basic Console</div>
+    <div id='tooltip_tab-batching'>Batching Console</div>
+    <div id='tooltip_tab-tutorial'>Interactive Tutorial</div>
+    <div id='tooltip_tab-map'>2D-Map</div>
+    <div id='tooltip_tab-histogram'>Histogram</div>
+    <div id='tooltip_tab-ruleassistant'>Rule Programming Assistant</div>
+    <div id='tooltip_tab-queryhistory'>Query History</div>
+    <div id='tooltip_tab-config'>Configuration &amp; Administration</div>
+  </div>
+  <div id='automatic'> <!-- These are bound automatically to components of the same name in the page. -->
+    <div id='tooltip_classes'>Stored Classes (Right-Click)</div>
+    <div id='tooltip_class_properties'>Properties of Selected Class (Right-Click)</div>
+    <div id='tooltip_qnames'>QName Prefixes</div>
+    <div id='tooltip_query'>Next Query (Press 'go' or Right-Click)</div>
+    <div id='tooltip_map_query'>Domain Query (Press 'go' or Right-Click)</div>
+    <div id='tooltip_result_pin'>Last Selected PIN</div>
+    <div id='tooltip_query_history'>Click or Right-Click on Row</div>
+    <div id='tooltip_query_area_q'>Next Batch of Queries (Press 'go')</div>
+    <div id='tooltip_result_area_selector'>Select Query Result</div>
+    <div id='tooltip_storeident'>Store Name (aka Identity)</div>
+    <div id='tooltip_storepw'>Store Password (may be empty)</div>
+  </div>
+</div>
+<div id='themenutable'>
+  <div id='menu_query'>
+    <div id='menuitem_query_pin'>Query PIN (SELECT FROM @...)</div>
+    <div id='menuitem_query_class'>Query Class (SELECT FROM ...)</div>
+    <div id='menuitem_query_all'>Query All PINs (SELECT *)</div>
+    <div id='menuitem_query_classft'>Query Class With Full-Text</div>
+    <div id='menuitem_query_classjoin'>Query Class Join</div>
+    <div id='menuitem_query_insertpin'>Insert PIN</div>
+    <div id='menuitem_query_insertclass'>Insert Class</div>
+    <div id='menuitem_query_updatepin'>Update PIN</div>
+    <div id='menuitem_query_deletepin'>Delete PIN</div>
+    <div id='menuitem_query_dropclass'>Drop Class</div>
+  </div>
+  <div id='menu_classes'>
+    <div id='menuitem_classes_q'>Query Class</div>
+    <div id='menuitem_classes_q_ft'>Query Class With Full-Text</div>
+    <div id='menuitem_classes_q_drop'>Drop Class</div>
+  <div id='menu_result_pin'>
+    <div id='menuitem_rp_querypin'>Query PIN</div>
+    <div id='menuitem_rp_deletepin'>Delete PIN</div>
+  </div>
+  <div id='menu_query_history'>
+    <div id='menuitem_qh_remove'>Remove</div>
+    <div id='menuitem_qh_setquery'>Set As Next Query</div>
+  </div>
+</div>
+<div id='thetutorial'>
+  <div id='help'>
+    <div>HELP</div>
+    <div>This shell provides a programming environment in javascript,</div>
+    <div>a simplified interface for Affinity (for introductory purpose), and</div>
+    <div>a tutorial demonstrating some of Affinity's strengths.</div>
+    <div>The tutorial produces sample data that you can then query &amp; navigate</div>
+    <div>in the 'Basic Console', 'Histogram' and '2D-Map'.</div>
+    <div>&nbsp;</div>
+    <div>h: print this help</div>
+    <div>t: start the tutorial</div>
+    <div>n: go to the next step of the tutorial</div>
+    <div>step(number): jump to step 'number' of the tutorial</div>
+    <div>&nbsp;</div>
+    <div>q(sqlstr) <i>or pathsql(sqlstr)</i>: execute 'sqlstr' and return json</div>
+    <div>save(json): create or update objects in the db</div>
+    <div>print(v): print the value of 'v'</div>
+  </div>
+  <div id='steps'>
+    <div id='step0'>
+      <div>This is a quick, simple tutorial about Affinity.</div>
+      <div>To execute a step, click on its blue button, or</div>
+      <div>copy&amp;paste its instructions, or type them from scratch.</div>
+      <div>&nbsp;</div>
+      <div>n: move forward</div>
+      <div>step(number): jump to step 'number'</div>
+    </div>
+    <div id='step1'>
+      <div>Step 1</div>
+      <div>This shell provides a programming environment in javascript.</div>
+      <div>It emulates what you'll experience in the language of your choice, using one of Affinity's client libraries.</div>
+      <div>Try this simple object manipulation for example (we'll save this object later on):</div>
+      <div>&nbsp;</div>
+      <div class='tutorial_step'>object = {name:'Jack', profession:'doctor'};</div>
+      <div class='tutorial_step'>for (i in object) { print(i + ":" + object[i]); }</div>
+    </div>
+    <div id='step2'>
+      <div>Step 2</div>
+      <div>The pathsql() function <i>(aka q())</i> opens up the whole sql-based side of the interaction.</div>
+      <div>Try this for example:</div>
+      <div>&nbsp;</div>
+      <div class='tutorial_step'>pins = pathsql("INSERT name='Steve', profession='engineer';");</div>
+      <div class='tutorial_step'>print("resulting pin id:" + pins[0].id);</div>
+      <div class='tutorial_step'>q("SELECT * FROM @" + pins[0].id + ";"); print("&lt;br&gt;");</div>
+      <div class='tutorial_step'>q("SELECT * WHERE EXISTS(name) MATCH AGAINST('Ste');");</div>
+    </div>
+    <div id='step3'>
+      <div>Step 3</div>
+      <div>The pathSQL <a href='../doc/pathSQL%20reference.html#dml'>DML</a> can be very compact and powerful.</div>
+      <div>Try this for example:</div>
+      <div>&nbsp;</div>
+      <div class='tutorial_step'>q("INSERT name='John', profession='lawyer', age=37, friends={(INSERT name='Fred', profession='musician', age=17), (INSERT name='Stephanie', profession='surgeon', age=45), (INSERT name='Claire', profession='teacher', age=67)};"); print("&lt;br&gt;");</div>
+      <div class='tutorial_step'>q("SELECT * WHERE EXISTS(name);");</div>
+    </div>
+    <div id='step4'>
+      <div>Step 4</div>
+      <div>Remember the plain javascript object we had created at step 1? Let's save it...</div>
+      <div>Notice the new 'id' attribute after the save.</div>
+      <div>Note: With our client interfaces this is achieved transparently via protocol buffers. Here the implementation is an emulation using pathSQL.</div>
+      <div>&nbsp;</div>
+      <div class='tutorial_step'>if (object != undefined)</div>
+      <div class='tutorial_step'>&nbsp;&nbsp;{ print(object); save(object); print(object); }</div>
+    </div>
+    <div id='step5'>
+      <div>Step 5</div>
+      <div>Now that our object has an id, we can modify it.</div>
+      <div>&nbsp;</div>
+      <div class='tutorial_step'>if (object != undefined)</div>
+      <div class='tutorial_step'>&nbsp;&nbsp;{ object.mystring = 'hello world'; object.mycollection = [1, 2, 3, 4, 5]; object.mydate = new Date(); save(object); }</div>
+      <div class='tutorial_step'>q("SELECT * WHERE EXISTS(mystring);");</div>
+    </div>
+    <div id='step6'>
+      <div>Step 6</div>
+      <div>Let's take advantage of our environment to create more data easily.</div>
+      <div>&nbsp;</div>
+      <div class='tutorial_step'>names=['Abby', 'Bruce', 'Camille', 'Derek', 'Ed', 'Frank', 'Greg', 'Harold', 'Ivy', 'Joseph', 'Karl', 'Lynne', 'Mark', 'Nick', 'Oscar', 'Pam', 'Queen', 'Ramon', 'Steve', 'Ted', 'Ursula', 'Victor', 'Wayne', 'Xavier', 'Young', 'Zack'];</div>
+      <div class='tutorial_step'>professions=['teacher', 'accompanist', 'accountant', 'actor', 'athlete', 'attorney', 'bacteriologist', 'botanist', 'conciliator', 'engineer', 'journalist', 'mathematician', 'mediator', 'meteorologist', 'salesman'];</div>
+      <div class='tutorial_step'>pickFrom = function(array) { return array[Math.floor(Math.random() * array.length)]; };</div>
+      <div class='tutorial_step'>statements = []; for (i = 0; i &lt; 40; i++) statements.push("INSERT name='" + pickFrom(names) + "', age=" + Math.random()*100 + ", profession='" + pickFrom(professions) + "';");</div>
+      <div class='tutorial_step'>q("START TRANSACTION;");</div>
+      <div class='tutorial_step'>for (i = 0; i &lt; statements.length; i++) { q(statements[i]); }</div>
+      <div class='tutorial_step'>q("COMMIT;");</div>
+    </div>
+    <div id='step7'>
+      <div>Step 7</div>
+      <div>Now that we have some data, how about we organize it a little bit?</div>
+      <div>Try this:</div>
+      <div>&nbsp;</div>
+      <div class='tutorial_step'>q("CREATE CLASS workers AS SELECT * WHERE EXISTS(name) AND profession IN :0;"); print("&lt;br&gt;");</div>
+      <div class='tutorial_step'>q("SELECT * FROM workers;"); print("&lt;br&gt;");</div>
+      <div class='tutorial_step'>q("SELECT * FROM workers('musician');"); print("&lt;br&gt;");</div>
+      <div class='tutorial_step'>q("SELECT * FROM workers(['l', 'n']);"); print("&lt;br&gt;");</div>
+      <div class='tutorial_step'>q("CREATE CLASS people AS SELECT * WHERE name IN :0;"); print("&lt;br&gt;");</div>
+      <div class='tutorial_step'>q("SELECT * FROM people(['A', 'G']);");</div>
+    </div>
+    <div id='step8'>
+      <div>Step 8</div>
+      <div>Let's create more friendships:</div>
+      <div>&nbsp;</div>
+      <div class='tutorial_step'>pins = q("SELECT afy:pinID FROM workers;");</div>
+      <div class='tutorial_step'>pickFriend = function() { return Math.floor(Math.random() * pins.length); };</div>
+      <div class='tutorial_step'>statements = []; for (i = 0; i &lt; (3 * pins.length / 2); i++) { from = pins[pickFriend()]['afy:pinID']['$ref']; to = pins[pickFriend()]['afy:pinID']['$ref']; if (from != to) statements.push("UPDATE @" + from + " ADD friends=@" + to + " WHERE (NOT (@" + to + " = friends));"); }</div>
+      <div class='tutorial_step'>q("START TRANSACTION;");</div>
+      <div class='tutorial_step'>for (i = 0; i &lt; statements.length; i++) { q(statements[i]); }</div>
+      <div class='tutorial_step'>q("COMMIT;");</div>
+    </div>
+    <div id='step9'>
+      <div>Step 9</div>
+      <div>Let's attach a different kind of data to the small network generated so far:</div>
+      <div>&nbsp;</div>
+      <div class='tutorial_step'>colors=['amber', 'beige', 'carmine', 'denim', 'emerald', 'fuchsia', 'gold', 'ivory', 'jade', 'khaki', 'lapis lazuli', 'magenta', 'orange', 'pink', 'red', 'salmon', 'turquoise', 'vermilion', 'white', 'yellow'];</div>
+      <div class='tutorial_step'>makes=['Audi', 'Bentley', 'DaimlerChrysler', 'Ferrari', 'GM', 'Honda', 'Jaguar', 'KIA', 'Lamborghini', 'Maserati', 'Nissan', 'Porsche', 'Rolls-Royce', 'Suzuki', 'Toyota', 'Volvo'];</div>
+      <div class='tutorial_step'>pins = q("SELECT afy:pinID FROM workers;");</div>
+      <div class='tutorial_step'>pickFrom = function(array) { return array[Math.floor(Math.random() * array.length)]; };</div>
+      <div class='tutorial_step'>statements = []; for (i = 0; i &lt; pins.length; i++) { statements.push("UPDATE @" + pickFrom(pins)['afy:pinID']['$ref'] + " ADD cars=(INSERT car_make='" + pickFrom(makes) + "', color='" + pickFrom(colors) + "', year='" + (1950 + Math.floor(Math.random() * 62)) + "');"); }</div>
+      <div class='tutorial_step'>q("START TRANSACTION;");</div>
+      <div class='tutorial_step'>for (i = 0; i &lt; statements.length; i++) { q(statements[i]); }</div>
+      <div class='tutorial_step'>q("COMMIT;"); print("&lt;br&gt;");</div>
+      <div class='tutorial_step'>q("CREATE CLASS cars AS SELECT * WHERE EXISTS(car_make);")</div>
+    </div>
+    <div id='step10'>
+      <div>Step 10</div>
+      <div>Path expressions provide an easy yet powerful means of navigating graphs.</div>
+      <div>Here are a few simple examples:</div>
+      <div>&nbsp;</div>
+      <div class='tutorial_step'>friends = q("SELECT * FROM workers.friends;");</div>
+      <div class='tutorial_step'>for (i = 0; i &lt; friends.length; i++) print("friend of a worker: " + friends[i].name + " (" + friends[i].id + ")");</div>
+      <div class='tutorial_step'>q("SELECT * FROM workers('mathematician').friends.friends.friends;"); print("&lt;br&gt;");</div>
+      <div class='tutorial_step'>q("SELECT name, profession FROM workers(['d', 'n']).friends[age &gt; 10 AND age &lt; 50].friends;"); print("&lt;br&gt;");</div>
+      <div class='tutorial_step'>q("SELECT * FROM people(['A', 'J']).friends[SUBSTR(name, 0, 1) IN ['A', 'J']];"); print("&lt;br&gt;");</div>
+      <div class='tutorial_step'>q("SELECT * FROM workers(['d', 'n']).friends{+}[age &lt; 50];"); print("&lt;br&gt;");</div>
+      <div class='tutorial_step'>q("SELECT * FROM workers(['d', 'n']).friends{*}.cars[year IN [1980, 2000]];");</div>
+    </div>
+    <div id='step11'>
+      <div>Step 11</div>
+      <div>Good old JOINs are also available.</div>
+      <div>They can be useful to connect relational schema with graphs.</div>
+      <div>&nbsp;</div>
+      <div class='tutorial_step'>q("SELECT * FROM cars AS c JOIN workers(['d', 'n']) AS w ON (c.afy:pinID = w.cars) WHERE (c.year IN [1980, 2000]);");</div>
+      <!-- <div class='tutorial_step'>q("SELECT c.car_make, c.color, c.year, w.name FROM cars AS c JOIN workers(['d', 'n']) AS w ON (c.afy:pinID = w.cars) WHERE (c.year IN [1980, 2000]);");</div> -->
+    </div>
+    <!-- <div id='step12'>
+      <div>Step 12</div>
+      <div>To finish, let's have a quick look at Affinity's integrated units of measurement.</div>
+      <div>&nbsp;</div>
+      <div class='tutorial_step'>people = q("SELECT * FROM people;");</div>
+      <div class='tutorial_step'>statements = []; for (i = 0; i &lt; people.length; i++) { infeet = (Math.random() > 0.5); statements.push("UPDATE @" + people[i].id + " ADD height=" + (infeet ? (4.5 + Math.random() * 2.5) : (1.5 + Math.random() * 0.5)) + (infeet ? "ft" : "m") + ";"); }</div>
+      <div class='tutorial_step'>q("START TRANSACTION;");</div>
+      <div class='tutorial_step'>for (i = 0; i &lt; statements.length; i++) { q(statements[i]); }</div>
+      <div class='tutorial_step'>q("COMMIT;");</div>
+      <div class='tutorial_step'>q("SELECT name, height FROM workers ORDER BY height;")</div>
+    </div> -->
+  </div>
+  <div id='restart'>End of tutorial.<br>Type t to restart.<br>Or check out the 'Basic Console', 'Histogram' and '2D-Map' tabs, for more fun (watch out for tooltips!).<br>Or go and <a href='../doc/getting%20started.html#setup'>install</a> Affinity!</div>
+</div>
+</body>
+</html>

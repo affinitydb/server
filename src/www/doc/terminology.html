@@ -1,8 +1,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <head>
+  <meta name='viewport' content='width=device-width' />
   <script src='js/jquery.js' type='text/javascript'></script>
   <script src='js/snippets_to_console.js' type='text/javascript'></script>
-  <link href='css/afydoc.css' rel='stylesheet' type='text/css' />
+  <link href='css/afydoc.css' rel='stylesheet' type='text/css' media='screen and (min-device-width: 600px)' />
+  <link href='../m/doc/css/afydoc.css' rel='stylesheet' type='text/css' media='screen and (max-device-width: 599px)' />
   <meta http-equiv='content-type' content='text/html; charset=utf-8'></meta>
 </head>
 <div id='width_constraint' class='horizontally_centered'>
@@ -11,237 +13,466 @@
 <div id='afytocbar'>
   <select id='afytoclist'>
     <option value='intro'>intro</option>
-    <option value='Affinity server'>Affinity server</option>
     <option value='FAQ'>FAQ</option>
-    <option value='cplusplus'>cplusplus</option>
-    <option value='demo_EULA'>demo_EULA</option>
-    <option value='demo_privacy'>demo_privacy</option>
     <option value='features'>features</option>
     <option value='getting started'>getting started</option>
-    <option value='javascript'>javascript</option>
-    <option value='pathSQL primer'>pathSQL primer</option>
+    <option value='interface [cplusplus]'>interface [cplusplus]</option>
+    <option value='interface [javascript]'>interface [javascript]</option>
+    <option value='interface [protobuf]'>interface [protobuf]</option>
+    <option value='pathSQL basics [control]'>pathSQL basics [control]</option>
+    <option value='pathSQL basics [data]'>pathSQL basics [data]</option>
+    <option value='pathSQL reference [definition]'>pathSQL reference [definition]</option>
+    <option value='pathSQL reference [manipulation]'>pathSQL reference [manipulation]</option>
     <option value='pathSQL reference'>pathSQL reference</option>
-    <option value='protobuf'>protobuf</option>
     <option value='release notes'>release notes</option>
+    <option value='server'>server</option>
     <option value='strengths'>strengths</option>
     <option value='terminology' SELECTED>terminology</option>
+    <option value='demo_EULA'>demo_EULA</option>
+    <option value='demo_privacy'>demo_privacy</option>
   </select>
 </div>
 </div>
 <div id="list-of-terms-in-alphabetical-order"
 ><h1
   >List of Terms (in Alphabetical Order)</h1
-  ><p
   ><a href="#acl"
-    >ACL</a
-    >, <a href="#blob"
-    >BLOB</a
-    >, <a href="#c-kernel-interface"
-    >C++ interface</a
-    >, <a href="#class"
-    >class</a
-    >, <a href="#client-side-libraries"
-    >client-side library</a
-    >, <a href="#coercion"
-    >coercion</a
-    >, <a href="#collection"
-    >collection</a
-    >, <a href="#essential-concepts-data-model"
-    >data model</a
-    >, <a href="#element-id-eid"
-    >element ID (eid)</a
-    >, <a href="#encryption"
-    >encryption</a
-    >, <a href="#family"
-    >family</a
-    >, <a href="#identity"
-    >identity</a
-    >, <a href="#index"
-    >index</a
-    >, <a href="#kernel"
-    >kernel</a
-    >, <a href="#namespace"
-    >namespace</a
-    >, <a href="#notification"
-    >notification</a
-    >, <a href="#page"
-    >page</a
-    >, <a href="#parameter"
-    >parameter</a
-    >, <a href="#pathsql"
-    >pathSQL</a
-    >, <a href="#pin"
-    >PIN</a
-    >, <a href="#pin-id-pid"
-    >PIN ID (PID)</a
-    >, <a href="#property"
-    >property</a
-    >, <a href="#protocol-buffer"
-    >protocol-buffer</a
-    >, <a href="#rdf"
-    >RDF</a
-    >, <a href="#pin-reference"
-    >reference</a
-    >, <a href="#replication"
-    >replication</a
-    >, <a href="#server"
-    >server</a
-    >, <a href="#snapshot-isolation"
-    >snapshot isolation</a
-    >, <a href="#soft-deletion-vs-purge"
-    >soft deletion</a
-    >, <a href="#ssv"
-    >SSV</a
-    >, <a href="#uncommitted-pin"
-    >uncommitted PIN</a
-    >, <a href="#unit-of-measurement"
-    >unit of measurement</a
-    >, <a href="#value"
-    >value</a
-    ></p
-  ></div
+  >ACL</a
+  >, <a href="#action"
+  >action</a
+  >, <a href="#blob"
+  >BLOB</a
+  >, <a href="#c-kernel-interface"
+  >C++ interface</a
+  >, <a href="#cep"
+  >CEP</a
+  >, <a href="#class"
+  >class</a
+  >, <a href="#client-side-libraries"
+  >client-side library</a
+  >, <a href="#coercion"
+  >coercion</a
+  >, <a href="#collection"
+  >collection</a
+  >, <a href="#communication-pin"
+  >communication PIN</a
+  >, <a href="#condition"
+  >condition</a
+  >, <a href="#essential-concepts-data-model"
+  >data model</a
+  >, <a href="#element-id-eid"
+  >element ID (eid)</a
+  >, <a href="#encryption"
+  >encryption</a
+  >, <a href="#enumeration"
+  >enumeration</a
+  >, <a href="#family"
+  >family</a
+  >, <a href="#fsm"
+  >FSM</a
+  >, <a href="#identity"
+  >identity</a
+  >, <a href="#index"
+  >index</a
+  >, <a href="#kernel"
+  >kernel</a
+  >, <a href="#loader"
+  >loader</a
+  >, <a href="#map"
+  >map</a
+  >, <a href="#namespace"
+  >namespace</a
+  >, <a href="#notification"
+  >notification</a
+  >, <a href="#page"
+  >page</a
+  >, <a href="#parameter"
+  >parameter</a
+  >, <a href="#pathsql"
+  >pathSQL</a
+  >, <a href="#pin"
+  >PIN</a
+  >, <a href="#pin-id-pid"
+  >PIN ID (PID)</a
+  >, <a href="#property"
+  >property</a
+  >, <a href="#protocol-buffer"
+  >protocol-buffer</a
+  >, <a href="#rdf"
+  >RDF</a
+  >, <a href="#pin-reference"
+  >reference</a
+  >, <a href="#replication"
+  >replication</a
+  >, <a href="#rule"
+  >rule</a
+  >, <a href="#server"
+  >server</a
+  >, <a href="#service"
+  >service</a
+  >, <a href="#ssv"
+  >SSV</a
+  >, <a href="#structure"
+  >structure</a
+  >, <a href="#timer"
+  >timer</a
+  >, <a href="#uncommitted-pin"
+  >uncommitted PIN</a
+  >, <a href="#unit-of-measurement"
+  >unit of measurement</a
+  >, <a href="#value"
+  >value</a
+  ><!-- [snapshot isolation](#snapshot-isolation) -->
+</div
 ><div id="essential-concepts-data-model"
 ><h1
   >Essential Concepts (Data Model)</h1
   ><p
-  >The key components of Affinity's data model are the following: <a href="#pin"
-    >PIN</a
-    >, <a href="#property"
-    >property</a
-    >, <a href="#value"
-    >value</a
-    > (including <a href="#pin-reference"
-    >references</a
-    >), <a href="#collection"
-    >collection</a
-    >, <a href="#class"
-    >class</a
-    >.</p
-  ><div id="pin"
-  ><h3
-    >PIN</h3
-    ><p
-    >The PIN is Affinity's primary information node. It's the basic unit of data. It is somewhat analogous to the row of a relational table, the object of an object-oriented database, the node of a graph database or of XML's DOM, the document of a document database etc. A PIN can contain many <a href="#property"
-      >properties</a
-      >. Each property of a PIN can either hold a single (scalar) <a href="#value"
+  >The key components of Affinity's data model can be presented on two layers:</p
+  ><ol style="list-style-type: decimal;"
+  ><li
+    >a base layer (plain &quot;passive&quot; data items): <a href="#pin"
+      >PIN</a
+      >, <a href="#property"
+      >property</a
+      >, <a href="#value"
       >value</a
-      >, or an arbitrarily large <a href="#collection"
+      > (including <a href="#pin-reference"
+      >references</a
+      >), <a href="#collection"
       >collection</a
-      > of values. Unlike rdbms rows, PINs aren't constrained to any table, and can actually belong to many <a href="#class"
-      >classes</a
-      >. Each PIN can describe its own unique structure (i.e. enumerate its <a href="#property"
-      >properties</a
-      >). PINs can <a href="#pin-reference"
-      >refer</a
-      > to each other. Properties can be added to PINs (or removed) without limitation. Each PIN is uniquely identified by a <a href="#pin-id-pid"
-      >PIN ID</a
-      >.</p
-    ><p
-    ><em
-      >Note: the theoretical maximum number of properties per PIN is related with the configured <a href="#page"
-	>page</a
-	> size - typically, in the order of thousands of properties on a PIN; this limit only puts a boundary on the structural complexity of a PIN, not the amount of data that each property can contain</em
-      ></p
-    ></div
-  ><div id="property"
-  ><h3
-    >Property</h3
-    ><p
-    >Properties are symbolic entities (names) that define the relationship between a <a href="#pin"
-      >PIN</a
-      > and its <a href="#value"
-      >values</a
-      >. Properties define the structure of a PIN. A property, in Affinity, is somewhat analogous to the column name of a relational table, or to a predicate in <a href="#rdf"
-      >RDF</a
-      >. Property names can be composed of multiple sections, separated by a slash (/) character, following the same convention as URIs. This enables a practically infinite, semantically coherent <a href="#namespace"
-      >namespace</a
-      > usable across multiple applications (which may not necessarily be fully aware of each other). The basic data model of Affinity does not attach any type information to properties: instances of a property (<a href="#value"
-      >values</a
-      >) can be of any type. Properties are a key component of <a href="#class"
+      >, <a href="#class"
       >class</a
-      > definitions, because they establish a semantic relationship across PINs (two PINs that contain the same property have something in common, and can be classified accordingly). Because there is no constraint on any value's type, Affinity may perform data type <a href="#coercion"
-      >coercion</a
-      > when required. Internally, a numeric ID is associated with each property. This ID is only valid in the scope of one database instance; any reference to a property outside of that scope must use the textual representation of the property.</p
-    ><p
-    >In the data modeling process with Affinity, selecting meaninful, stable property names constitutes an important first step, that can influence the effectiveness of categorization into <a href="#class"
-      >classes</a
-      > later on. When possible, it is recommended to refer to an already existing source (ontology). The semantic web community uses resources such as the following, to achieve similar goals:</p
-    ><ul
+      ><br
+       /></li
     ><li
-      ><a href="http://sindice.com"
-	>http://sindice.com</a
-	></li
+    >an active layer, <span class='pathsql_new'>NEW in AffinityNG</span> (components of this layer are built upon the base layer): <a href="#condition"
+      >condition</a
+      >, <a href="#action"
+      >action</a
+      >, <a href="#rule"
+      >rule</a
+      >, <a href="#fsm"
+      >FSM</a
+      >, <a href="#cep"
+      >CEP</a
+      >, <a href="#timer"
+      >timer</a
+      >, <a href="#service"
+      >service</a
+      >, <a href="#communication-pin"
+      >communication PIN</a
+      ></li
+    ></ol
+  ><div id="basic-components-of-the-data-model"
+  ><h2
+    >Basic Components Of The Data Model</h2
+    ><div id="pin"
+    ><h3
+      >PIN</h3
+      ><p
+      >The PIN is Affinity's primary information node. It's the basic unit of data. It is somewhat analogous to the object of an object-oriented programming language or database, the row of a relational table, the node of a graph database or of XML's DOM, the document of a document database etc. A PIN can live in memory only, and can also be persistent - transitions between these two states is practically seemless, since the PIN's content access interface is the same in both cases. A PIN can contain many <a href="#property"
+	>properties</a
+	>. Each property of a PIN holds a <a href="#value"
+	>value</a
+	>, which can be a simple scalar, a collection, a map or a complex tree structure. Unlike rdbms rows, PINs aren't constrained to any table, and can actually belong to many <a href="#class"
+	>classes</a
+	>. Each PIN can describe its own unique structure (i.e. enumerate its <a href="#property"
+	>properties</a
+	>). PINs can <a href="#pin-reference"
+	>refer</a
+	> to each other. Properties can be added to PINs (or removed) without limitation. Each PIN is uniquely identified by a <a href="#pin-id-pid"
+	>PIN ID</a
+	>.</p
+      ><p
+      ><em
+	>Note: the theoretical maximum number of properties per PIN is related with the configured <a href="#page"
+	  >page</a
+	  > size - typically, in the order of thousands of properties on a PIN; this limit only puts a boundary on the structural complexity of a PIN, not the amount of data that each property can contain</em
+	></p
+      ></div
+    ><div id="property"
+    ><h3
+      >Property</h3
+      ><p
+      >Properties are symbolic entities (names) that define the relationship between a <a href="#pin"
+	>PIN</a
+	> and its <a href="#value"
+	>values</a
+	>. Properties define the structure of a PIN. A property, in Affinity, is somewhat analogous to the column name of a relational table, to a predicate in <a href="#rdf"
+	>RDF</a
+	>, to the field of a structure in C, or to the property of an object in a standard object-oriented programming language. Property names can be composed of multiple sections, separated by a slash (/) character, following the same convention as URIs. This enables a practically infinite, semantically coherent <a href="#namespace"
+	>namespace</a
+	> usable across multiple applications (which may not necessarily be fully aware of each other). The basic data model of Affinity does not attach any type information to properties: instances of a property (<a href="#value"
+	>values</a
+	>) can be of any type. Properties are a key component of <a href="#class"
+	>class</a
+	> definitions, because they establish a semantic relationship across PINs (two PINs that contain the same property have something in common, and can be classified accordingly). Because there is no constraint on any value's type, Affinity may perform data type <a href="#coercion"
+	>coercion</a
+	> when required. Internally, a numeric ID is associated with each property. This ID is only valid in the scope of one database instance; any reference to a property outside of that scope must use the textual representation of the property.</p
+      ><p
+      >In the data modeling process with Affinity, selecting meaninful, stable property names constitutes an important first step, that can influence the effectiveness of categorization into <a href="#class"
+	>classes</a
+	> later on. When possible, it is recommended to refer to an already existing source (ontology). The semantic web community uses resources such as the following, to achieve similar goals:</p
+      ><ul
       ><li
-      ><a href="http://www.sameas.org"
-	>http://www.sameas.org</a
-	></li
-      ><li
-      ><a href="http://www.daml.org/ontologies/"
-	>DAML</a
-	></li
-      ></ul
-    ></div
-  ><div id="value"
-  ><h3
-    >Value</h3
-    ><p
-    >Like in any database, values can be numbers, strings, booleans, dates, times, <a href="#blob"
-      >BLOBs</a
-      > etc. A value can also be a <a href="#pin-reference"
-      >reference</a
-      > to another <a href="#pin"
-      >PIN</a
-      > (or to another <a href="#property"
-      >property</a
-      > of a PIN, or even to a specific collection <a href="#element-id-eid"
-      >element</a
-      >). There's also a data type attribute allowing to attach a physical <a href="#unit-of-measurement"
-      >unit of measurement</a
-      > to a value. In a future release, it will also be possible to define customized sub-structures (as values embedded in a PIN). Data types are described in detail <a href="./pathSQL%20reference.html#data-types"
-      >here</a
-      >. At the programming level, the same value structure is also used to hold a <a href="#collection"
-      >collection</a
-      >. In Affinity, every instance of a value is free to be of any type; Affinity may perform data type <a href="#coercion"
-      >coercion</a
-      >.</p
-    ></div
-  ><div id="collection"
-  ><h3
-    >Collection</h3
-    ><p
-    >A collection is an ordered list of scalar <a href="#value"
+	><a href="http://sindice.com"
+	  >http://sindice.com</a
+	  ></li
+	><li
+	><a href="http://www.sameas.org"
+	  >http://www.sameas.org</a
+	  ></li
+	><li
+	><a href="http://www.daml.org/ontologies/"
+	  >DAML</a
+	  ></li
+	></ul
+      ></div
+    ><div id="value"
+    ><h3
+      >Value</h3
+      ><p
+      >Like in any database, values can be numbers, strings, booleans, dates, times, <a href="#blob"
+	>BLOBs</a
+	> etc. A value can also be a <a href="#pin-reference"
+	>reference</a
+	> to another <a href="#pin"
+	>PIN</a
+	> (or to another <a href="#property"
+	>property</a
+	> of a PIN, or even to a specific collection <a href="#element-id-eid"
+	>element</a
+	>). At the programming level, the same value structure is also used to hold a <a href="#collection"
+	>collection</a
+	>, a <a href="#structure"
+	>structure</a
+	> or a <a href="#map"
+	>map</a
+	>. As a result, the full addressing model of a standard programming language is readily available in <a href="#pathsql"
+	>pathSQL</a
+	>. Additionally, Affinity provides a data type attribute allowing to attach a physical <a href="#unit-of-measurement"
+	>unit of measurement</a
+	> to a value. Data types are described in detail <a href="./pathSQL%20reference.html#data-types"
+	>here</a
+	>. In Affinity, every instance of a value is free to be of any type; in some contexts Affinity may perform automatic data type <a href="#coercion"
+	>coercion</a
+	>.</p
+      ></div
+    ><div id="collection"
+    ><h3
+      >Collection</h3
+      ><p
+      >A collection is an ordered list of scalar <a href="#value"
+	>values</a
+	>, held by a <a href="#pin"
+	>PIN</a
+	> via a <a href="#property"
+	>property</a
+	>. The values of a collection can be heterogeneous (they can have different types). Internally, each element of a collection is uniquely identified by an immutable <a href="#element-id-eid"
+	>Element ID (eid)</a
+	>. This design enables consistent interactions in concurrent access scenarios. Note that collections cannot directly contain nested collections, in the current version. Small collections (VT_ARRAY) can be represented as arrays internally, and allow random access, whereas very large collections (VT_COLLECTION) must be traversed with an iterator (with the option of seeking to any known <a href="#element-id-eid"
+	>eid</a
+	>). A collection can hold up to 32-bit worth of distinct addressable elements. Collections can be queried just like plain values (additional control is provided). Collections also play a key role in other aspects of the data model, such as <a href="#acl"
+	>ACLs</a
+	>. Collections are represented by either VT_COLLECTION or VT_ARRAY in <a href="./sources/affinity_h.html"
+	>affinity.h</a
+	>.</p
+      ></div
+    ><div id="structure"
+    ><h3
+      >Structure</h3
+      >A structure is a set of labeled <a href="#value"
       >values</a
-      >, held by a <a href="#pin"
-      >PIN</a
-      > via a <a href="#property"
-      >property</a
-      >. The values of a collection can be heterogeneous (they can have different types). Internally, each element of a collection is uniquely identified by an immutable <a href="#element-id-eid"
-      >Element ID (eid)</a
-      >. This design enables consistent interactions in concurrent access scenarios. Note that collections cannot directly contain nested collections, in the current version. Small collections can be represented as arrays internally, and allow random access, whereas very large collections must be traversed with an iterator (with the option of seeking to any known <a href="#element-id-eid"
-      >eid</a
-      >). A collection can hold up to 32-bit worth of distinct addressable elements. Collections can be queried just like plain values (additional control is provided). Collections also play a key role in other aspects of the data model, such as <a href="#acl"
-      >ACLs</a
-      >.</p
-    ></div
-  ><div id="class"
-  ><h3
-    >Class</h3
-    ><p
-    >The class is Affinity's main mechanism of data organization. It is very similar to the materialized view of some relational databases, in the sense that classification operates automatically (<a href="#pin"
-      >PINs</a
-      > are not explicitly declared to belong to a class) and synchronously (in the context of transactions). Where a table or a view would be used in the relational model, one could use a class in Affinity to achieve a similar organization. A class is a stored query predicate (involving any number of <a href="#property"
+      >, aka a set of <a href="#property"
       >properties</a
-      >). It is most often defining an <a href="#index"
-      >index</a
-      >, although this is not mandatory. Classes can be declared at any point in time (both earlier and later than the occurrence of PINs satisfying the predicate). Classes are named according to similar conventions as properties (using URIs). Unlike the 'classes' of programming languages such as C++ or java, Affinity classes don't define static <em
-      >types</em
-      >, in the sense that they don't establish a binding contract with <a href="#pin"
-      >PINs</a
-      >: a PIN can belong to a class during a part of its lifetime, and stop belonging to it during another period; as long as the PIN satisfies the predicate, it's part of the class. A PIN can belong to several classes at once. Classification triggers <a href="#notification"
-      >notifications</a
-      >. Affinity defines a generalization of classes called <a href="#family"
-      >families</a
-      >, but the term 'class' is often used to represent both concepts. 'Category' may also be used as a synonym for 'class' (to avoid the static type connotation).</p
+      >. The structure is analogous to an embedded PIN (held &quot;by value&quot; by its owner PIN). Structures may contain substructures. Structures are represented by VT_STRUCT in <a href="./sources/affinity_h.html"
+      >affinity.h</a
+      >. They are a <span class='pathsql_new'>NEW</span> feature of AffinityNG (even though they were already a stealth feature in AffinityDB).<!-- TODO: point to exact section in doc (make sure there is one; make sure to cover insert, update, query, delete) -->
+</div
+    ><div id="map"
+    ><h3
+      >Map</h3
+      >A map is an associative array (or dictionary) where both the value and the key itself are <a href="#value"
+      >values</a
+      >. Unlike the <a href="#property"
+      >property</a
+      > of a <a href="#pin"
+      >PIN</a
+      >, the key of a map is not limited to a symbolic entity: it can be anything. The map essentially opens up full access to Affinity's internal B-link tree. Maps are represented by VT_MAP in <a href="./sources/affinity_h.html"
+      >affinity.h</a
+      >. They are a <span class='pathsql_new'>NEW</span> feature of AffinityNG.<!-- TODO: point to exact section in doc (make sure there is one; make sure to cover insert, update, query, delete) -->
+</div
+    ><div id="class"
+    ><h3
+      >Class</h3
+      ><p
+      >The class is Affinity's main mechanism of data organization. It is very similar to the materialized view of some relational databases, in the sense that classification operates automatically (<a href="#pin"
+	>PINs</a
+	> are not explicitly declared to belong to a class) and synchronously (in the context of transactions). Where a table or a view would be used in the relational model, one could use a class in Affinity to achieve a similar organization. A class is a stored query predicate (involving any number of <a href="#property"
+	>properties</a
+	>). It is most often defining an <a href="#index"
+	>index</a
+	>, although this is not mandatory. Classes can be declared at any point in time (both earlier and later than the occurrence of PINs satisfying the predicate). In pathSQL, classes are declared with <a href="./pathSQL%20reference%20[definition].html#create-class"
+	>CREATE CLASS</a
+	>. Classes are named according to similar conventions as properties (using URIs). Unlike the 'classes' of programming languages such as C++ or java, Affinity classes don't define static <em
+	>types</em
+	>, in the sense that they don't establish a binding contract with <a href="#pin"
+	>PINs</a
+	>: a PIN can belong to a class during a part of its lifetime, and stop belonging to it during another period; as long as the PIN satisfies the predicate, it's part of the class. A PIN can belong to several classes at once. Classification triggers <a href="#notification"
+	>notifications</a
+	>. Affinity defines a generalization of classes called <a href="#family"
+	>families</a
+	>, but the term 'class' is often used to represent both concepts. 'Category' may also be used as a synonym for 'class' (to avoid the static type connotation).</p
+      ></div
+    ></div
+  ><div id="active-components-of-the-data-model"
+  ><h2
+    >Active Components Of The Data Model</h2
+    ><p
+    >Most of the material from this section is <span class='pathsql_new'>NEW</span> in AffinityNG.</p
+    ><div id="condition"
+    ><h3
+      >Condition</h3
+      ><p
+      >A condition is a predicate, i.e. an expression evaluating to true or false: &quot;should condition X be met, do Y&quot;. Conditions are of common usage in programming languages in general, and in SQL. Those that are of particular interest in the context of the active layer of pathSQL are:</p
+      ><ol style="list-style-type: decimal;"
+      ><li
+	>the predicates of <a href="#class"
+	  >classes</a
+	  >,</li
+	><li
+	>the conditions that define <a href="#rule"
+	  >rules</a
+	  >, and</li
+	><li
+	>the conditions that define state transitions in <a href="#fsm"
+	  >FSMs</a
+	  >, and constitute building blocks for the regular expressions used in <a href="#cep"
+	  >CEP</a
+	  ></li
+	></ol
+      ><p
+      >In pathSQL most conditions are expressed in a declarative or functional style (as opposed to imperative), for example by callback: the statements defined in the <code
+	>afy:onEnter</code
+	> property of a class are invoked automatically by Affinity when the class's <code
+	>afy:predicate</code
+	> evaluates to true for a given PIN.</p
+      ></div
+    ><div id="action"
+    ><h3
+      >Action</h3
+      ><p
+      >An action is a list of <a href="./pathSQL%20reference.html#dml"
+	>DML</a
+	> statements, invoked upon the satisfaction of a <a href="#condition"
+	>condition</a
+	>. Examples of actions are the <code
+	>afy:onEnter</code
+	> property of a <a href="#class"
+	>class</a
+	>, or the <code
+	>afy:action</code
+	> property of a <a href="#timer"
+	>timer</a
+	>. Actions usually modify some state, either locally in the database, or externally via <a href="#communication-pin"
+	>communication PINs</a
+	>. Actions can cause new <a href="#condition"
+	>conditions</a
+	> to evaluate to true, and thus trigger a chain of actions.</p
+      ></div
+    ><div id="rule"
+    ><h3
+      >Rule</h3
+      >A rule is a simple construct that binds a <a href="#condition"
+      >condition</a
+      > to an <a href="#action"
+      >action</a
+      >. While <a href="#class"
+      >classes</a
+      > can be seen as a special category of rule, their declaration is less flexible, and classes also integrate the notion of index. In the alpha release of AffinityNG, rules are available as an implicit feature of <a href="#class"
+      >classes</a
+      >. In an imminent update of the alpha release, a higher-level syntactic construct will also allow to easily reuse <a href="#condition"
+      >conditions</a
+      > and <a href="#action"
+      >actions</a
+      >. The <a href="./pathSQL%20reference%20[definition].html#rule"
+      >reference</a
+      > describes how.<!-- TODO: review when available -->
+</div
+    ><div id="fsm"
+    ><h3
+      >FSM</h3
+      ><p
+      >A Finite State Machine (FSM) is a very common computational model represented as a graph, where vertices are states and edges are transitions. Any instance of a FSM operates on a specific set of PINs, that define its context. The transitions are a special type of <a href="#rule"
+	>rules</a
+	>, i.e. pairs of <a href="#condition"
+	>conditions</a
+	> and <a href="#action"
+	>actions</a
+	>, that operate in that local context. This provides a means of encapsulation, as well as a basis for the definition and recognition of <a href="#cep"
+	>complex events</a
+	>. Affinity's graph database engine makes it trivial to represent FSMs internally (and in pathSQL).</p
+      ></div
+    ><div id="cep"
+    ><h3
+      >CEP</h3
+      >Complex Event Processing (CEP) is the ability to express and detect more complex correlations of events (i.e. <a href="#condition"
+      >conditions</a
+      > encountered at discrete points in time). In pathSQL, those correlations are described as a regular expression of a <a href="#fsm"
+      >FSM's</a
+      > transitions. CEP is not readily available in the alpha release of AffinityNG.<!-- TODO: review when available -->
+</div
+    ><div id="timer"
+    ><h3
+      >Timer</h3
+      ><p
+      >Timers invoke <a href="#action"
+	>actions</a
+	> at regular time intervals, in their own thread. The <a href="./pathSQL%20reference.html#create-timer"
+	>reference</a
+	> describes in detail how to declare timers.</p
+      ></div
+    ><div id="service"
+    ><h3
+      >Service</h3
+      ><p
+      >A service is an OS-level compiled plug-in module (dll/so/dylib), loaded dynamically in Affinity and providing additional building blocks for <a href="#communication-pin"
+	>communication PINs</a
+	>. Those building blocks conform with the <code
+	>Afy::IService</code
+	> interface defined in <a href="./sources/affinity_h.html"
+	>affinity.h</a
+	>. Affinity comes with a few built-in services; external services can be loaded via a <a href="#loader"
+	>loader</a
+	> statement.</p
+      ></div
+    ><div id="communication-pin"
+    ><h3
+      >Communication PIN</h3
+      ><p
+      >Communication PINs are special PINs with dual personnality. Their &quot;RAW&quot; form (i.e. their plain and simple set of <a href="#property"
+	>properties</a
+	> and <a href="#value"
+	>values</a
+	>), defines the configuration of the communication. In pathSQL, once a communication PIN is inserted, its configuration can be examined or modified by adding the <code
+	>RAW</code
+	> keyword to <code
+	>SELECT</code
+	> or <code
+	>UPDATE</code
+	>. The second personnality, seen via non-decorated <code
+	>SELECT</code
+	> or <code
+	>UPDATE</code
+	>, is the active communication channel itself. In that context, <code
+	>SELECT</code
+	> acts as a read, and <code
+	>UPDATE</code
+	> acts as a write. The <a href="./pathSQL%20reference.html#communication-pins"
+	>reference</a
+	> describes communication PINs in more detail.</p
+      ></div
     ></div
   ></div
 ><div id="related-concepts"
@@ -291,6 +522,14 @@
       >family</em
       > (with the predicate &quot;age &gt;= :0&quot;).</p
     ></div
+  ><div id="enumeration"
+  ><h3
+    >Enumeration</h3
+    ><p
+    >An enumeration allows to declare inter-related symbolic values, without polluting the global namespace. This can be useful for managing states, options and conditions based on those. For a more detailed description, please visit the <a href="./pathSQL%20reference.html#create-enumeration"
+      >reference</a
+      >.</p
+    ></div
   ><div id="parameter"
   ><h3
     >Parameter</h3
@@ -305,17 +544,16 @@
   ><div id="uncommitted-pin"
   ><h3
     >Uncommitted PIN</h3
-    ><p
     >This concept is more or less invisible, depending on the interface used to talk to Affinity. An uncommitted <a href="#pin"
-      >PIN</a
-      > is a representation that is not yet stored in the database. The C++ interface allows to create uncommitted PINs in memory, that can be inter-connected (and form any number of graphs). These PINs can be committed very efficiently in a single-operation transaction (thus minimizing the amount of disk io required, and maximizing opportunities for data compaction on <a href="#page"
-      >pages</a
-      >). The implementations supporting the <a href="#protocol-buffer"
-      >protocol-buffer</a
-      > streaming interface and <a href="#pathsql"
-      >pathSQL</a
-      > both create uncommitted PINs automatically, whenever possible.</p
-    ></div
+    >PIN</a
+    > is a representation that is not yet stored in the database. The C++ interface allows to create uncommitted PINs in memory, that can be inter-connected (and form any number of graphs). These PINs can be committed very efficiently in a single-operation transaction (thus minimizing the amount of disk io required, and maximizing opportunities for data compaction on <a href="#page"
+    >pages</a
+    >). The implementations supporting the <a href="#protocol-buffer"
+    >protocol-buffer</a
+    > streaming interface and <a href="#pathsql"
+    >pathSQL</a
+    > both create uncommitted PINs automatically, whenever possible.<!-- TODO: review to reflect recent evolution toward transient-first... -->
+</div
   ><div id="pin-reference"
   ><h3
     >PIN Reference</h3
@@ -374,7 +612,7 @@
       >identities</em
       >) to access subsets of the data (using <a href="#acl"
       >ACLs</a
-      >), or to create new data (in principle, the owner can also fetch data from another user's database and cache it locally, but this is not fully exposed in the current version). Each user is identified by name, and the store associates a numeric ID to each name (the numeric ID of the database owner is 0 (STORE_OWNER)). Within the context of any specific database instance, a fully qualified <a href="#pin-id-pid"
+      >), or to create new data (in principle, the owner can also fetch data from another user's database and cache it locally, but this is not fully exposed in the current version). Each user is identified by name, and the store associates a numeric ID to each name (the numeric ID of the database owner is 0 (STORE_OWNER)). Within the context of any specific store instance, a fully qualified <a href="#pin-id-pid"
       >PID</a
       > contains the numeric ID of that <a href="#pin"
       >PIN</a
@@ -407,14 +645,6 @@
       > basis, for individual <a href="#identity"
       >identities</a
       >. However, in the initial release of the Affinity package, multi-user scenarios are not fully enabled yet.</p
-    ></div
-  ><div id="soft-deletion-vs-purge"
-  ><h3
-    >Soft Deletion vs Purge</h3
-    ><p
-    ><a href="#pin"
-      >PINs</a
-      > can be marked for deletion, while being preserved in the database. This reduces their accessibility through querying, while providing an opportunity to restore them later on. Note that deleted PINs can be retrieved with queries, provided that MODE_DELETED is specified. Irreversible deletion is called &quot;purge&quot;.</p
     ></div
   ><div id="unit-of-measurement"
   ><h3
@@ -506,13 +736,32 @@
   ><h3
     >Replication</h3
     ><p
-    >Although several elements of Affinity's design take database replication into consideration, replication is not part of the initial release of Affinity. Database replication is typically used to increase reliability and accessibility.</p
-    ></div
-  ><div id="snapshot-isolation"
+    >Although several elements of Affinity's design take database replication into consideration, replication is not a part of the AffinityNG release. Database replication is typically used to increase reliability and accessibility.</p
+    ><!--
+###Snapshot Isolation
+Affinity uses the Read-Only multiversion [ROMV] protocol for read-only transactions,
+thus enabling non-blocking reads. This only applies to transactions that are explicitly
+specified as read-only by the caller. These transactions read a snapshot that
+will correspond to the effect of committed write transactions up to the point
+the read-only transaction started (n.b. if the number of snapshots grows very large
+at any point in time, an older [already allocated] snapshot may be used).
+In contrast, plain read-write or read-only transactions (not explicitly marked as
+read-only by the caller) progress according to the 2-phase-locking protocol,
+and may in some cases read data items in a "newer" state than the corresponding explicit
+read-only transaction would.
+-->
+</div
+  ><div id="loader"
   ><h3
-    >Snapshot Isolation</h3
+    >Loader</h3
     ><p
-    >Affinity uses the Read-Only multiversion [ROMV] protocol for read-only transactions, thus enabling non-blocking reads. This only applies to transactions that are explicitly specified as read-only by the caller. These transactions read a snapshot that will correspond to the effect of committed write transactions up to the point the read-only transaction started (n.b. if the number of snapshots grows very large at any point in time, an older [already allocated] snapshot may be used). In contrast, plain read-write or read-only transactions (not explicitly marked as read-only by the caller) progress according to the 2-phase-locking protocol, and may in some cases read data items in a &quot;newer&quot; state than the corresponding explicit read-only transaction would.</p
+    >A loader is a declaration for an external <a href="#service"
+      >service</a
+      > dependency, in the form of a persistent <a href="#pin"
+      >PIN</a
+      >. It binds a URI to the service and loads it on demand. The pathSQL statement is <a href="./pathSQL%20reference%20[definition].html#create-loader"
+      >CREATE LOADER</a
+      >.</p
     ></div
   ></div
 ><div id="interfaces"
@@ -523,12 +772,14 @@
     >Affinity kernel library</a
     > is written in C++, and provides a <a href="#c-kernel-interface"
     >C++ interface</a
-    > directly talking to the kernel. In addition, it also proposes <a href="#pathsql"
+    > directly talking to the kernel. The main interface to Affinity is <a href="#pathsql"
     >pathSQL</a
-    >, and a <a href="#protocol-buffer"
+    >, in which it is possible to write complete programs, with the benefit of having no data translations between multiple representations (in memory, persistent, or for specialized procedural interfaces). Additionally, a <a href="#protocol-buffer"
     >protocol-buffer</a
-    >-based streaming interface, both of which are better suited as client interfaces for remote access (e.g. through a <a href="#server"
+    >-based streaming interface is provided, for efficient data transfers in machine-to-machine scenarios, or for the more traditional client-server case (either via the <a href="#server"
     >server</a
+    > or via communication <a href="#service"
+    >services</a
     >). <a href="#client-side-libraries"
     >Client-side libraries</a
     > are also available.</p
@@ -544,7 +795,7 @@
       >startup.h</a
       > and <a href="./sources/units_h.html"
       >units.h</a
-      >) defines a self-contained, low-level interface directly connected to the Affinity kernel. It exposes a set of C++ abstract base classes (aka C++ interfaces), plus a few constants and structures. The ISession interface represents a logical connection to a database instance, and provides an entry point for every possible interaction. It exposes the <a href="#pathSQL"
+      >) defines a self-contained, low-level interface directly connected to the Affinity kernel. It exposes a set of C++ abstract base classes (aka C++ interfaces), for which implementations are provided by the kernel, plus a few constants and structures. The IAffinity interface represents a store instance, and allows to create interactive sessions. The ISession interface represents a logical connection to a store instance, and provides an entry point for every possible interaction. It understands the <a href="#pathsql"
       >pathSQL</a
       > dialect, as well as the <a href="#protocol-buffer"
       >protocol-buffer</a
@@ -552,7 +803,7 @@
       >class</a
       > predicates can be defined using expression trees (IExprTree), which enable the embedding application to develop any desired query language (e.g. sql, xquery, sparql, linq etc.), and compile it into this low-level representation. <a href="#pin"
       >PINs</a
-      > are mainly represented by the IPIN interface, which allows fine-grained control of the in-memory snapshot of a PIN and related read-write activity to the database (in the context of one specific session). Since affinity.h is primarily a kernel integration interface (rather than a client interface), most of the design decisions related with memory and reference management were taken by ranking performance implications with higher importance than ease of use. Here's a <a href="./cplusplus.html"
+      > are mainly represented by the IPIN interface, which allows fine-grained control of the in-memory snapshot of a PIN and related read-write activity to the store (in the context of one specific session). Since affinity.h is primarily a kernel integration interface (rather than the client interface in a client-server model), most of the design decisions related with memory and reference management were taken by ranking performance implications with higher importance than ease of use. Here's a <a href="./interface%20[cplusplus].html"
       >link</a
       > to more information.</p
     ></div
@@ -560,7 +811,7 @@
   ><h3
     >pathSQL</h3
     ><p
-    >pathSQL is the name of a dialect of SQL defined for Affinity. Here's a <a href="./pathSQL%20primer.html"
+    >pathSQL is the name of a dialect of SQL defined for Affinity. pathSQL provides complete, self-contained access to all passive and active aspects of AffinityNG. Here's a <a href="./pathSQL%20basics%20[control].html"
       >link</a
       > to more information.</p
     ></div
@@ -572,7 +823,9 @@
       >affinity.proto</a
       >. This is one of the interfaces exposed by the <a href="#server"
       >server</a
-      >. Here's a <a href="./protobuf.html"
+      >, and also useful in machine-to-machine scenarios via <a href="#service"
+      >services</a
+      >. Here's a <a href="./interface%20[protobuf].html"
       >link</a
       > to more information.</p
     ></div
@@ -580,17 +833,15 @@
   ><h3
     >Client-Side Libraries</h3
     ><p
-    >Although the <a href="#server"
-      >server</a
-      > makes it easy to talk to the store using <a href="#pathsql"
+    >For the traditional client-server scenario, <a href="#pathsql"
       >pathSQL</a
-      >, this traditional approach still implies a mapping process to translate structured objects on the client side into DML statements. The <a href="#protocol-buffer"
+      > still implies a mapping process to translate structured objects on the client side into DDL &amp; DML statements. The <a href="#protocol-buffer"
       >protocol-buffer</a
       > interface provides a more direct means of expressing those structures to Affinity. The client-side libraries further facilitate the use of both interfaces, in the context of their specific programming language. The first release emphasizes <a href="./sources/affinity-client_js.html"
       >javascript</a
       > for node.js. Libraries for <a href="./sources/affinity_py.html"
       >python</a
-      > and ruby are also available, and java and C++ are under development.</p
+      > and ruby are also available. Java is soon to be released, and C++ is under development for a future release.</p
     ></div
   ></div
 ><div id="software-components"
@@ -599,7 +850,9 @@
   ><p
   >The Affinity package contains the following components: the Affinity <a href="#kernel"
     >kernel</a
-    > library, the database <a href="#server"
+    > library, a set of built-in and external <a href="#service"
+    >services</a
+    >, the database <a href="#server"
     >server</a
     > with its online console and documentation, and some <a href="#client-side-libraries"
     >client-side libraries</a
@@ -608,23 +861,13 @@
   ><h3
     >Kernel</h3
     ><p
-    >The Affinity kernel library is the core component of the Affinity package. It provides a comprehensive database engine that proposes a new, powerful, object-friendly <a href="#essential-concepts-data-model"
-      >data model</a
-      >, while preserving many of the precious properties of relational database systems, such as a <a href="#pathsql"
-      >SQL interface (pathSQL)</a
-      >, ACID transactions, logging and recovery, efficient <a href="#page"
-      >page</a
-      > management and B-link tree <a href="#index"
-      >indexing</a
-      >, full-text indexing, etc. It is written in C++, and provides a number of <a href="#interfaces"
-      >interfaces</a
-      >. This library could be embedded directly into an application. Most of the Affinity documentation focuses on various aspects of this component.</p
+    >The Affinity kernel library is the core component of the Affinity package. Most of the Affinity documentation focuses on various aspects of this component.</p
     ></div
   ><div id="server"
   ><h3
     >Server</h3
     ><p
-    >This process is a database server that embeds the Affinity <a href="#kernel"
+    >This process is a store access server that embeds the Affinity <a href="#kernel"
       >kernel</a
       >. It understands the HTTP protocol, and accepts messages in <a href="#pathsql"
       >pathSQL</a
@@ -632,8 +875,10 @@
       >protocol-buffer</a
       >. It can return results in json format, or <a href="#protocol-buffer"
       >protocol-buffer</a
-      > format. It is primarily a database server, but its HTTP interface allows it to act as a web server, for increased convenience. For more information, visit this <a href="./Affinity%20server.html"
+      > format. It can also act as as a web server, for increased convenience. For more information, visit this <a href="./server.html"
       >link</a
+      >. In the near future, this process will be drastically simplified by substituting its custom implementation with generic <a href="#service"
+      >services</a
       >.</p
     ></div
   ></div

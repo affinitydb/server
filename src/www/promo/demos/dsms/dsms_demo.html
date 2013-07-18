@@ -1,0 +1,45 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link href='./css/dsms_demo.css' rel='stylesheet' type='text/css' />
+  <script src='../../../js/jquery.js' type='text/javascript'></script>
+  <script src='../../../js/persist-min.js' type='text/javascript'></script>
+  <script src='../../../js/afycommon.js' type='text/javascript'></script>
+  <script src='./js/dsms_common.js' type='text/javascript'></script>
+  <script src='./js/dsms_emitter.js' type='text/javascript'></script>
+  <script src='./js/dsms_viewer.js' type='text/javascript'></script>
+  <title>DSMS Demo</title>
+</head>
+<body>
+
+<!--
+  This was the earliest DSMS+sensor-related demo, started in May 2012 (in preparation for RADIO).
+-->
+
+<div id='content'>
+  <div id='logo'><img src='../../../images/dsms/logo_raw.png'></img></div>
+  <div id='control_area'>
+    <div id='control_machine'>
+      <h2>Machine</h2>
+      <select id='machines_list'></select>
+    </div>
+    <div id='control_sensors'>
+      <h2>Available Sensors</h2>
+      <select id='sensors_list'></select>
+      <button id='view_add'>Add a View...</button>
+    </div>
+  </div>
+  <div id='viewing_area'>
+    <h2>Views</h2>
+    <div id='sensors_views'></div>
+    <div id='stepdisplay'></div>
+  </div>
+  <div id='rules_descriptions'>
+    <h2>Programmed Rules In Action</h2>
+    <div id='rules_list'></div>
+  </div>
+</div>
+
+</body>
+</html>

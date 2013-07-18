@@ -1,6 +1,6 @@
 /* -*- Mode: C; c-file-style: "stroustrup"; indent-tabs-mode:nil; -*- */
 /*
-Copyright (c) 2004-2012 VMware, Inc. All Rights Reserved.
+Copyright (c) 2004-2013 GoPivotal, Inc. All Rights Reserved.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -19,6 +19,10 @@ under the License.
     // For python distutils... I may find a better solution with their 'define_macros'.
     #define POSIX
 #endif
+#ifdef WIN32
+    #define WIN32_LEAN_AND_MEAN
+#endif
+
 #include <sstream>
 #include <stdio.h>
 #include <stdlib.h>
@@ -32,7 +36,7 @@ under the License.
 #include "portability.h"
 #include "storenotifier.h"
 
-using namespace AfyDB;
+using namespace Afy;
 
 #ifdef WIN32
 #define _LX_FM "%016I64X"
@@ -143,19 +147,6 @@ void MainNotificationHandler::notify( NotificationEvent *events,unsigned nEvents
     }
 }
 
-void MainNotificationHandler::replicationNotify( NotificationEvent*, unsigned, uint64_t ) { /* not needed for now */ }
-
-void MainNotificationHandler::txNotify( TxEventType type,uint64_t txid ) {
-    // Safely grab a copy of clients.
-    TClients lClients;
-    { MutexP const lLock(&mLock); lClients = mClients; }
-    // Dispatch outside of any lock.
-    TClients::iterator iC;
-    for ( iC = mClients.begin(); mClients.end() != iC; iC++ ) {
-        (*iC)->txNotify( type, txid );
-    }
-}
-
 void MainNotificationHandler::registerClient( IStoreNotification* pClient ) {
     MutexP const lLock(&mLock);
     if ( mClients.end() != mClients.find(pClient) )
@@ -240,7 +231,6 @@ protected:
 protected:
     typedef std::map<uint64_t, std::string> TTxStacks;
     typedef std::set<PID> TPIDs;
-    TTxStacks mHitStacks; // To manage the transaction stack and notify only upon tx commit (n.b. this will be done by Affinity later on).
     TPIDs mReasons; // What caused the notifications; always expressed in terms of PIDs. Note: Currently in case of nested rollbacks, this will be inaccurate, but not in a dangerous way, and I don't want to invest too much effort on this considering Mark's upcoming changes.
     Mutex mLock;
 public:
@@ -286,74 +276,11 @@ public:
                 break;
             }
         }
-        // If it does, mark the corresponding transaction stack with a '1'.
-        // Note: We only notify upon top-level tx commit.
         if ( !lReasons.empty() ) {
-            MutexP const lockStacks( &mLock );
-            TTxStacks::iterator iHS = mHitStacks.find( txid );
-            if ( mHitStacks.end() != iHS && ( *iHS ).second.length() > 0 ) {
-                std::string & lHitStack = ( *iHS ).second;
-                lHitStack[ lHitStack.length() - 1 ] = '1';
+            { 
+                MutexP const lockStacks( &mLock );
+                mReasons.insert( lReasons.begin(), lReasons.end() );
             }
-            mReasons.insert( lReasons.begin(), lReasons.end() );
-        }
-    }
-    virtual void replicationNotify( NotificationEvent*, unsigned, uint64_t ) { /* not needed for now */ }
-    virtual void txNotify( TxEventType type, uint64_t txid ) {
-        if ( mTerminated ) {
-            return;
-        }
-        // Manage the transaction stacks, and determine if we're due to notify.
-        bool hit = false;
-        {
-            MutexP const lockStacks( &mLock );
-            TTxStacks::iterator iHS = mHitStacks.find( txid );
-            if ( mHitStacks.end() == iHS ) {
-                iHS = mHitStacks.insert( TTxStacks::value_type( txid, std::string() ) ).first;
-            }
-            std::string & lHitStack = ( *iHS ).second;
-            switch ( type ) {
-                case IStoreNotification::NTX_START:
-                case IStoreNotification::NTX_SAVEPOINT:
-                    lHitStack.push_back('0');
-                    break;
-                case IStoreNotification::NTX_COMMIT: {
-                    size_t i;
-                    for ( i = 0; i < lHitStack.length() && !hit; i++ ) {
-                        hit = ( lHitStack[ i ] == '1' );
-                    }
-                    mHitStacks.erase( iHS );
-                    break;
-                }
-                case IStoreNotification::NTX_ABORT:
-                    mHitStacks.erase( iHS );
-                    break;
-                case IStoreNotification::NTX_COMMIT_SP:
-                    if ( lHitStack.length() > 0 ) {
-                        if ( lHitStack[ lHitStack.length() - 1 ] == '1' ) {
-                            if ( lHitStack.length() >= 2 ) { 
-                                lHitStack[ lHitStack.length() - 2 ] = '1';
-                            } else {
-                                hit = true;
-                            }
-                        }
-                        if ( lHitStack.length() > 1 ) {
-                            lHitStack.erase( lHitStack.length() - 1 );
-                        } else {
-                            mHitStacks.erase( iHS );
-                        }
-                    }
-                    break;
-                case IStoreNotification::NTX_ABORT_SP:
-                    if ( lHitStack.length() > 1 ) {
-                        lHitStack.erase( lHitStack.length() - 1 );
-                    } else {
-                        mHitStacks.erase( iHS );
-                    }
-                    break;
-            }
-        }
-        if ( hit ) {
             signalAll();
         }
     }
@@ -457,7 +384,7 @@ public:
         os << "}" << std::endl;
         std::string const str = os.str();
         size_t const reslen = 1 + str.length();
-        char* lres = ( char* )sess.alloc( reslen );
+        char* lres = ( char* )sess.malloc( reslen );
         memcpy( lres, str.c_str(), str.length() );
         lres[ reslen - 1 ] = 0;
         *res = lres;
@@ -519,7 +446,7 @@ RC afy_regNotifi( MainNotificationHandler& mainh, ISession& sess, char const* ty
         mainh.registerClient( handler );
     }
     size_t const lResLen = strlen( lOutput );
-    char* lres = ( char* )sess.alloc( 1 + lResLen );
+    char* lres = ( char* )sess.malloc( 1 + lResLen );
     memcpy( lres, lOutput, lResLen );
     lres[ lResLen ] = 0;
     *res = lres;
@@ -545,7 +472,7 @@ RC afy_unregNotifi( MainNotificationHandler& mainh, ISession& sess, char const* 
     }
     if ( response ) {
         size_t const lResLen = strlen( response );
-        char* lres = ( char* )sess.alloc( 1 + lResLen );
+        char* lres = ( char* )sess.malloc( 1 + lResLen );
         memcpy( lres, response, lResLen );
         lres[ lResLen ] = 0;
         *res = lres;
@@ -590,7 +517,7 @@ RC afy_waitNotifi( MainNotificationHandler& mainh, ISession& sess, char const* n
         // Note: This could happen if, for example, a clientid request was received during client termination.
         char const* response = "{\"timeout\":\"true\"}";
         size_t const lResLen = strlen( response );
-        char* lres = ( char* )sess.alloc( 1 + lResLen );
+        char* lres = ( char* )sess.malloc( 1 + lResLen );
         memcpy( lres, response, lResLen );
         lres[ lResLen ] = 0;
         *res = lres;

@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2004-2012 VMware, Inc. All Rights Reserved.
+Copyright (c) 2004-2013 GoPivotal, Inc. All Rights Reserved.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -69,378 +69,6 @@ function NavTabs()
 }
 
 /**
- * QResultTable.
- * Deals with infinitely long results, using pagination and special scollbars.
- * Contains at least 2 columns: PID, Other Properties.
- * When the query is on a class (or eventually join etc.), adds more columns.
- * Goal: improve readability by showing common properties, and also reduce waste of space.
- */
-gQrtIndex = 0;
-function QResultTable(pContainer, pClassName)
-{
-  var lThis = this;
-  var lEvalVScrollerRowHeight =
-    function()
-    {
-      lThis.mQrtVScroller.css("visibility", "hidden").css("display", "block");
-      var _lLine = $("<p>HeightTest</p>").appendTo(lThis.mQrtVScroller);
-      var _lH = _lLine.height();
-      _lLine.remove();
-      lThis.mQrtVScroller.css("display", "none").css("visibility", "visible");
-      return _lH;
-    }
-  this.mInitialized = false;
-  this.mAborted = false;
-  this.mQrtIndex = gQrtIndex++;
-  this.mUIContainer = pContainer; // In this div we will create all the widgets we need to operate our infinite table.
-  this.mClassName = pClassName;
-  this.mQrtContainer = $("<div id='qrt_cnt_" + this.mQrtIndex + "' class='qrt_cnt' />").appendTo(this.mUIContainer); // This div is used for horizontal scrolling; it contains the table.
-  this.mTables = []; // Double-buffering (due to our peculiar pagination mechanism).
-  this.mTables.push($("<table id='qrt_table1_" + this.mQrtIndex + "' class='qrt_table' />").appendTo(this.mQrtContainer));
-  this.mTables.push($("<table id='qrt_table2_" + this.mQrtIndex + "' class='qrt_table' style='visibility:hidden' />").appendTo(this.mQrtContainer));
-  this.mQrtHScroller = $("<div id='qrt_hscroller_" + this.mQrtIndex + "' class='qrt_hscroller' />").appendTo(this.mUIContainer);
-  this.mQrtHScrollerContent = $("<div id='qrt_hscroller_content_" + this.mQrtIndex + "' class='qrt_hscroller_content' />").appendTo(this.mQrtHScroller);
-  this.mQrtVScroller = $("<div id='qrt_vscroller_" + this.mQrtIndex + "' class='qrt_vscroller' />").appendTo(this.mUIContainer);
-  this.mQrtVScrollerContent = $("<div id='qrt_vscroller_content_" + this.mQrtIndex + "' class='qrt_vscroller_content' />").appendTo(this.mQrtVScroller);
-  this.mQrtVSNominalRowHeight = lEvalVScrollerRowHeight() + 4; // Hack: To this date, I have failed to identify why this +4 is needed; it reflects the scroll increment actually calculated by the browser, for this scroller's font.
-  this.mCurTable = 0; // Next table to update, in the double-buffered mechanism.
-  this.mCurRow = null; // Workaround: somehow, sometimes, our current pagination model seems to confuse the table's selected row mechanism; with this we take control...
-  this.mRowCache = {}; // Cache of {rownum:rowdata}.
-  this.mRowLRU = []; // Array of rownum, from least recently used to most recently used.
-  this.mScrollPos = 0; // Last (raw) scroll position.
-  this.mNumRows = 0; // Total number of rows.
-  this.mQuery = null; // Query string producing the results.
-  this.mAddPIDColumn = true; // Whether or not to add a afy:pinID column.
-  this.mQrtVScroller.scroll(function() { lThis._onScroll(this.scrollTop); });
-  this.mQrtHScroller.scroll(function() { lThis.mQrtContainer.scrollLeft(this.scrollLeft); });
-  var lOnWheel = function(e) { var _lV = ('wheelDelta' in e ? -e.wheelDelta : e.detail); var _lDelta = (_lV > 0 ? lThis.mQrtVSNominalRowHeight : -lThis.mQrtVSNominalRowHeight); var _lNewPos = $(lThis.mQrtVScroller).scrollTop() + _lDelta; lThis.mQrtVScroller.scrollTop(_lNewPos); lThis.mQrtVScroller.scroll(); }
-  var lOnResize = function() { lThis._setNumRows(lThis.mNumRows); lThis._onScroll(lThis.mScrollPos); }; // To avoid half-empty pages when the display grows.
-  var lManageWindowEvents =
-    function(_pOn)
-    {
-      var _lFunc = _pOn ? window.addEventListener : window.removeEventListener;
-      _lFunc('mousewheel', lOnWheel, true);
-      _lFunc('DOMMouseScroll', lOnWheel, true);
-      if (_pOn)
-        $(window).resize(lOnResize);
-      else
-        $(window).unbind('resize', lOnResize);
-    }
-  this.onActivateTab = function() { lManageWindowEvents(true); }
-  this.onDeactivateTab = function() { lManageWindowEvents(false); }
-  lManageWindowEvents(true);
-}
-QResultTable.PAGESIZE = 50; // Review: Fine-tune this...
-QResultTable.CACHE_SIZE = 20 * QResultTable.PAGESIZE; // Note: Must be at least 2*PAGESIZE, to work with internal logic.
-QResultTable.prototype.populate = function(pQuery)
-{
-  var lThis = this;
-  if (undefined == pQuery || 0 == pQuery.length)
-  {
-    this.mQuery = null;
-  }
-  else if (undefined == pQuery.match(/^\s*select/i))
-  {
-    // For insert/update/create-class, just run the query once.
-    this.mQuery = null;
-    var lOnResult = function(_pJson) { lThis._setNumRows(_pJson.length); lThis._recordRows(_pJson, 0); lThis._onScroll(0); };
-    afy_query(pQuery, new QResultHandler(lOnResult, null, null));
-  }
-  else
-  {
-    // For select, count how many pins are expected for pQuery, and then proceed page by page.
-    this.mQuery = pQuery;
-    var lOnCount = function(_pJson) { lThis._setNumRows(parseInt(_pJson)); lThis._onScroll(0); };
-    afy_query(this.mQuery, new QResultHandler(lOnCount, null, null), {countonly:true});
-  }
-}
-QResultTable.prototype._onScroll = function(pPos)
-{
-  // See if our cache can satisfy the request.
-  var lThis = this;
-  this.mScrollPos = pPos;
-  var lStartPos = Math.floor(pPos / this.mQrtVSNominalRowHeight);
-  var lEndPos = Math.min(lStartPos + QResultTable.PAGESIZE, this.mNumRows);
-  for (var iR = lStartPos; iR < lEndPos && (String(iR) in this.mRowCache); iR++);
-  if (iR >= lEndPos)
-  {
-    // If yes, then refresh the UI and we're done.
-    setTimeout(function() { lThis._fillTableUI(lThis.mCurTable, pPos); }, 20);
-    this.mCurTable = 1 - this.mCurTable;
-    return;
-  }
-
-  // Otherwise, query a page.
-  if (undefined == this.mQuery)
-    { alert("Unexpected: no query specified, yet not enough results"); return; }
-  if (iR == lStartPos && iR > 0)
-  {
-    // When scrolling upward, or seeking at a random point, fetch up to half a page upward (and the rest downward).
-    var lNewStart = Math.max(0, lStartPos - Math.floor(QResultTable.PAGESIZE / 2));
-    for (--iR; iR > lNewStart && !(String(iR) in this.mRowCache); iR--);
-  }
-  var lOnPage =
-    function(_pJson, _pUserData)
-    {
-      if (undefined == _pJson)
-        return;
-      lThis._recordRows(_pJson, _pUserData.offset);
-      if (_pUserData.pos == lThis.mScrollPos)
-        lThis._onScroll(_pUserData.pos);
-      if (undefined != lThis.mQuery.match(/^\s*create\s*class/i))
-        { populate_classes(); }
-    };
-  afy_query(this.mQuery, new QResultHandler(lOnPage, null, {offset:iR, pos:pPos}), {limit:QResultTable.PAGESIZE, offset:iR});
-}
-QResultTable.prototype._setNumRows = function(pNum)
-{
-  this.mNumRows = pNum;
-  var lPhysH = this.mQrtContainer.height();
-  var lTotH = lPhysH + this.mQrtVSNominalRowHeight * (pNum - 1);
-  this.mQrtVScrollerContent.height(lTotH);
-  this.mQrtVScroller.scrollTop(0);
-}
-QResultTable.prototype._initTables = function(pJson)
-{
-  if (this.mInitialized)
-    return;
-
-  // Determine the column layout (from initial data/page).
-  this.mClassProps = new Object();
-  this.mCommonProps = new Object(), lCommonProps = new Object();
-  var lClass = null;
-  if (this.mClassName)
-  {
-    lClass = function(_pN){ for (var i = 0; null != AFY_CONTEXT.mClasses && i < AFY_CONTEXT.mClasses.length; i++) { if (AFY_CONTEXT.mClasses[i]["afy:classID"] == _pN) return AFY_CONTEXT.mClasses[i]; } return null; }(this.mClassName);
-    for (var iProp in lClass["afy:properties"])
-    {
-      var lPName = lClass["afy:properties"][iProp];
-      this.mClassProps[lPName] = 1;
-    }
-  }
-  this.mAddPIDColumn = false;
-  for (var i = 0; i < pJson.length; i++)
-  {
-    var lPin = (pJson[i] instanceof Array || pJson[i][0] != undefined) ? pJson[i][0] : pJson[i];
-    for (var iProp in lPin)
-    {
-      if (iProp == "id" || iProp == "afy:pinID") { this.mAddPIDColumn = true; continue; }
-      if (iProp in this.mClassProps) continue;
-      if (iProp in lCommonProps) { lCommonProps[iProp] = lCommonProps[iProp] + 1; continue; }
-      lCommonProps[iProp] = 1;
-    }
-  }
-  
-  for (var iProp in lCommonProps)
-  {
-    if (lCommonProps[iProp] < (pJson.length / 2)) continue; // Only keep properties that appear at least in 50% of the results.
-    this.mCommonProps[iProp] = 1;
-  }
-
-  // Initialize the two tables (for double-buffering).
-  for (var iT = 0; iT < this.mTables.length; iT++)
-    this._initTableUI(iT);
-
-  this.mInitialized = true;
-}
-QResultTable.prototype._recordRows = function(pQResJson, pOffset)
-{
-  if (undefined == pQResJson)
-    return;
-  var lJson = pQResJson;
-
-  // Initialize upon receiving the first batch of results,
-  // in order to be able to gather "common" properties, based on that first batch.
-  this._initTables(lJson);
-
-  // Throw away least-recently-used items from the cache, if necessary.
-  while (this.mRowLRU.length + lJson.length > QResultTable.CACHE_SIZE)
-    delete this.mRowCache[String(this.mRowLRU.splice(0, 1))];
-  
-  // Create the rows.
-  for (var i = 0; i < lJson.length; i++)
-  {
-    // For now, if an element of the result is a list (result from a JOIN), just take the leftmost pin.
-    // When the kernel behavior stabilizes with respect to the structure and contents of JOIN results,
-    // we can do more.
-    var lPin = (lJson[i] instanceof Array || lJson[i][0] != undefined) ? lJson[i][0] : lJson[i];
-    var lK = String(pOffset + i);
-    if (lK in this.mRowCache)
-      this._removeFromLRU(pOffset + i);
-    this.mRowCache[lK] = {pin:lPin};
-    this.mRowLRU.push(pOffset + i);
-  }
-}
-QResultTable.prototype._initTableUI = function(pWhich)
-{
-  // Clear the table.
-  var lT = this.mTables[pWhich];
-  lT.empty();
-
-  // Create the column headers (PID, class props, common props, other props).
-  // REVIEW: We could decide to color-code the sections (class vs common vs other).
-  var lHead = $("<thead />").appendTo(lT);
-  var lHeadR = $("<tr />").appendTo(lHead);
-  if (this.mAddPIDColumn)
-    lHeadR.append($("<th class='qrt_table_th' align=\"left\">afy:pinID</th>"));
-  var lClass = null;
-  for (var iProp in this.mClassProps)
-    lHeadR.append($("<th class='qrt_table_th' align=\"left\">" + iProp + "</th>"));
-  for (var iProp in this.mCommonProps)
-    lHeadR.append($("<th class='qrt_table_th' align=\"left\">" + iProp + "</th>"));
-  lHeadR.append($("<th class='qrt_table_th' align=\"left\">Other Properties</th>"));
-  $("<tbody />").appendTo(lT);
-}
-QResultTable.prototype._fillTableUI = function(pWhich, pPos)
-{
-  // Use the display height as a way to add the least number of rows possible.
-  var lCt = this.mTables[pWhich];
-  var lHt = lCt.parent().height();
-  var lWt = lCt.parent().width();
-
-  // Remove and recreate the offscreen-table's body.
-  // Review: Is it this content replacement technique that somehow confuses the table's selected row?
-  lCt.children("tbody").each(function(_pI, _pE) { $(_pE).remove(); });
-  $("<tbody />").appendTo(lCt);
-  this.mCurRow = null;
-
-  // Add the required rows.
-  // Note: We don't sum up the height of individual rows, because the layout engine can make them change as new rows are inserted.
-  var lAccH = lCt.height();
-  var lStartPos = Math.floor(pPos / this.mQrtVSNominalRowHeight);
-  var lEndPos = Math.min(lStartPos + QResultTable.PAGESIZE, this.mNumRows);
-  var lSuccess = true;
-  for (var iR = lStartPos; iR < lEndPos && ((0 == lHt && undefined == this.mQuery) || lAccH < lHt); iR++, lAccH = lCt.height())
-  {
-    var lK = String(iR);
-    if (!(lK in this.mRowCache)) { lSuccess = false; break; }
-    this._removeFromLRU(iR);
-    this._addRowUI(pWhich, this.mRowCache[String(iR)].pin);
-    this.mRowLRU.push(iR);
-  }
-  if (!lSuccess)
-    { myLog("Couldn't retrieve data in cache"); return; }
-
-  // Hide the vertical scroller, if there aren't enough results.
-  // Hack:
-  //   The lNormWidth calculation is an approximation, meant to deal with the fact that
-  //   a native scroller's physical dimension can't be evaluated precisely (for any zoom level).
-  //   This adjustment is required because css pixels are zoomed (while native scrollers aren't);
-  //   otherwise the browser sometimes chooses to hide the scroll bars (when zoomed out).
-  //   As far as I can tell, this touches an extremely messy aspect of browser coordinate systems.
-  // Note:
-  //   In ie the scrollbars are scaled along with browser zoom.
-  var lNormWidth = ("msie" in $.browser && $.browser["msie"]) ? 20 : Math.round(30 * screen.width / 1800);
-  var lNWs = "" + lNormWidth + "px";
-  if (0 == pPos && iR <= lEndPos && lAccH < lHt)
-  {
-    this.mQrtVScroller.css("display", "none");
-    this.mQrtContainer.css("right", "0px");
-    this.mQrtHScroller.css("right", "0px");
-  }
-  else
-  {
-    this.mQrtVScroller.css("display", "block");
-    this.mQrtVScroller.css("width", lNWs);
-    this.mQrtContainer.css("right", lNWs);
-    this.mQrtHScroller.css("right", lNWs);
-  }
-
-  // Hide the horizontal scroller, unless necessary.
-  if (lCt.width() <= lWt)
-  {
-    this.mQrtHScroller.css("display", "none");
-    this.mQrtContainer.css("bottom", "0px");
-    this.mQrtVScroller.css("bottom", lNWs); // Note: Normally this would be 0px, but because we hide/show the horizontal scroller on a page-by-page basis, I want to avoid having the downward scrolling arrow move...
-  }
-  else
-  {
-    this.mQrtHScrollerContent.width(lCt.width());
-    this.mQrtHScroller.css("display", "block");
-    this.mQrtHScroller.css("height", lNWs);
-    this.mQrtContainer.css("bottom", lNWs);
-    this.mQrtVScroller.css("bottom", lNWs);
-  }
-
-  // Swap visibility.
-  // Note: Using 'visibility' instead of 'display' allows to obtain row heigths while building the off-screen version.
-  this.mTables[1 - pWhich].css("visibility", "hidden");
-  lCt.css("visibility", "visible");
-}
-QResultTable.prototype._addRowUI = function(pWhich, pPin)
-{
-  // Create a new row and bind mouse interactions.
-  var lThis = this;
-  var lBody = this.mTables[pWhich].children("tbody");
-  var lShortPid = trimPID('id' in pPin ? pPin['id'] : ('afy:pinID' in pPin ? pPin['afy:pinID'] : null));
-  var lRow = $("<tr id=\"" + lShortPid + "\"/>").appendTo(lBody);
-  lRow.mouseover(function(){$(this).addClass("highlighted");});
-  lRow.mouseout(function(){$(this).removeClass("highlighted");});
-  lRow.click(function(){if (undefined != lThis.mCurRow) {lThis.mCurRow.removeClass("selected"); lThis.mCurRow = null;} on_pin_click($(this).attr("id")); $(this).addClass("selected"); lThis.mCurRow = $(this);});
-  var lRefs = new Object();
-
-  // Create the first column.
-  if (this.mAddPIDColumn)
-    lRow.append($("<td>@" + lShortPid + "</td>"));
-
-  // Create the class-related columns, if any.
-  for (var iProp in this.mClassProps)
-    { lRow.append($("<td>" + this._createValueUI(pPin[iProp], lRefs, lShortPid + "rqt" + pWhich) + "</td>")); }
-
-  // Create the common props columns, if any.
-  for (var iProp in this.mCommonProps)
-    { lRow.append($("<td>" + (iProp in pPin ? this._createValueUI(pPin[iProp], lRefs, lShortPid + "rqt" + pWhich) : "") + "</td>")); }
-
-  // Create the last column (all remaining properties).
-  lOtherProps = $("<p />");
-  for (var iProp in pPin)
-  {
-    if (iProp == "id" || iProp == "afy:pinID") continue;
-    if (iProp in this.mClassProps) continue;
-    if (iProp in this.mCommonProps) continue;
-    lOtherProps.append($("<span class='afypropname'>" + iProp + "</span>"));
-    lOtherProps.append($("<span>:" + this._createValueUI(pPin[iProp], lRefs, lShortPid + "rqt" + pWhich) + "  </span>"));
-  }
-  var lOPD = $("<td />");
-  lOPD.append(lOtherProps);
-  lRow.append(lOPD);
-
-  // Bind mouse interactions for references.
-  for (iRef in lRefs)
-    { $("#" + iRef).click(function(){on_pin_click($(this).text().replace(/^@/, "")); return false;}); }  
-    
-  return lRow;
-}
-QResultTable.prototype._removeFromLRU = function(pKey)
-{
-  for (var iLRU = 0; iLRU < this.mRowLRU.length; iLRU++)
-    if (this.mRowLRU[iLRU] == pKey) { this.mRowLRU.splice(iLRU, 1); break; }
-}
-QResultTable.createValueUI = function(pProp, pRefs, pRefPrefix)
-{
-  if (typeof(pProp) != "object")
-    { return pProp; }
-  for (var iElm in pProp)
-  {
-    if (iElm == "$ref")
-    {
-      var lShortRef = trimPID(pProp[iElm]);
-      pRefs[pRefPrefix + lShortRef] = true;
-      return "<a id=\"" + pRefPrefix + lShortRef + "\" href=\"#" + lShortRef + "\">@" + lShortRef + "</a>";
-    }
-    else if (!isNaN(parseInt(iElm)))
-    {
-      var lElements = new Array();
-      for (iElm in pProp)
-        { lElements.push(QResultTable.createValueUI(pProp[iElm], pRefs, pRefPrefix)); }      
-      return "{" + lElements.join(",") + "}";
-    }
-    else { myLog("QResultTable.createValueUI: unexpected property: " + iElm); }
-  }
-}
-QResultTable.prototype._createValueUI = QResultTable.createValueUI;
-
-/**
  * BatchingSQL
  */
 function BatchingSQL()
@@ -468,7 +96,7 @@ BatchingSQL.prototype.go = function()
   this.mResultPage.empty();
   this.mPages = new Array();
   var lThis = this;
-  var lQueries = this.mQueryAreaQ.val().replace(/\n/g,"").replace(/;\s*$/, "").split(';');
+  var lQueries = afy_without_comments(this.mQueryAreaQ.val(), false).text.replace(/\n/g,"").replace(/;\s*$/, "").split(';');
   var lOnResults =
     function(_pJson)
     {
@@ -482,7 +110,7 @@ BatchingSQL.prototype.go = function()
         if (_lTxOp) // Currently, txops don't produce any json result.
           _lPage.ui.append($("<p>ok</p>"));
         else
-          _lPage.result = new QResultTable(_lPage.ui, null);
+          _lPage.result = new QResultTable(_lPage.ui, null, {onPinClick:on_pin_click});
         AFY_CONTEXT.mQueryHistory.recordQuery(_lPage.query);
         lThis.mResultList.append($("<option>" + _lPage.query + "</option>"));
         lThis.mPages.push(_lPage);
@@ -852,7 +480,7 @@ function histo_LayoutEngine()
         _pLayoutCtx.result = _pJson[0]["afy:value"];
         for (var _iE in _pLayoutCtx.result)
         {
-          var _lV = parseInt(_pLayoutCtx.result[_iE]["afy:value"]);
+          var _lV = parseInt(_pLayoutCtx.result[_iE]["afy:count"]);
           if (_lV < _pLayoutCtx.range.min)
             _pLayoutCtx.range.min = _lV;
           if (_lV > _pLayoutCtx.range.max)
@@ -898,13 +526,13 @@ function Histogram()
         var _lX = 0;
         for (var _iE in lLayoutCtx.result)
         {
-          var _lVal = parseInt(lLayoutCtx.result[_iE]["afy:value"]);
+          var _lVal = parseInt(lLayoutCtx.result[_iE]["afy:count"]);
           var _lHeight = _lHUnit * _lVal;
           l2dCtx.fillStyle = "#20a0ee";
           l2dCtx.fillRect(_lX, lVPHeight - 2 - _lHeight, 20, _lHeight);
           l2dCtx.fillStyle = "#444";
           l2dCtx.rotate(-0.5 * Math.PI);
-          l2dCtx.fillText(myStringify(lLayoutCtx.result[_iE]["afy:key"]) + " (" + _lVal + ")", - lVPHeight + 5, _lX + 14);
+          l2dCtx.fillText(lLayoutCtx.result[_iE]["afy:value"] + " (" + _lVal + ")", - lVPHeight + 5, _lX + 14);
           l2dCtx.rotate(0.5 * Math.PI);
           _lX += 25;
         }
@@ -957,7 +585,7 @@ function Histogram()
     {
       for (var _iC = 0; _iC < AFY_CONTEXT.mClasses.length; _iC++)
       {
-        var _lCn = AFY_CONTEXT.mClasses[_iC]["afy:classID"];
+        var _lCn = AFY_CONTEXT.mClasses[_iC]["afy:objectID"];
         $("#histo_class").append($("<option value=\"" + _lCn + "\">" + _lCn + "</option>"));
       }
       lQClass = $("#histo_class option:selected").val();
@@ -1015,9 +643,9 @@ $(document).ready(
         $("#storepw").val(lLastStorePw);
     }
     // Setup hard-coded prefixes.
-    var lAfy = 'http://www.affinitydb.org/builtin';
+    var lAfy = 'http://affinityng.org/builtin';
     AFY_CONTEXT.mDef2QnPrefix[lAfy] = 'afy';
-    AFY_CONTEXT.mQnPrefix2Def['afy'] = lAfy;
+    AFY_CONTEXT.mQnPrefix2Def['afy'] = {value:lAfy, scope:null};
     // Determine if the 2D-Map tab should be disabled. 
     if ("msie" in $.browser && $.browser["msie"])
       { var lV = $.browser.version.match(/^([0-9]+)\./); if (undefined == lV || parseInt(lV[0]) < 9) { disableTab("#tab-map"); } }
@@ -1051,12 +679,17 @@ $(document).ready(
     // Setup the initial query string, if one was specified (used for links from doc to console).
     var lInitialQ = location.href.match(/query\=(.*?)((&.*)|(#.*)|\0)?$/i);
     if (undefined != lInitialQ && lInitialQ.length > 0)
-      $("#query").val(unescape(lInitialQ[1]).replace(/\+/g, " "));
+      $("#query").val(unescape(lInitialQ[1].replace(/\+/g, " ")));
     var lInitialStoreId = location.href.match(/storeid\=(.*?)((&.*)|(#.*)|\0)?$/i);
     if (undefined != lInitialStoreId && lInitialStoreId.length > 0)
     {
       $("#storeident").val(unescape(lInitialStoreId[1]));
       $("#storepw").val("");
+    }
+    if (0 == AFY_CONTEXT.mStoreIdent.length)
+    {
+      AFY_CONTEXT.mStoreIdent = $("#storeident").val() || "";
+      AFY_CONTEXT.mStorePw = $("#storepw").val() || "";
     }
     // UI callback for query form.
     $("#form").submit(function() {
@@ -1072,7 +705,7 @@ $(document).ready(
         if (null != AFY_CONTEXT.mLastQResult)
           { AFY_CONTEXT.mLastQResult.mAborted = true; }
         lResultList.empty();
-        AFY_CONTEXT.mLastQResult = new QResultTable(lResultList, lClassName);
+        AFY_CONTEXT.mLastQResult = new QResultTable(lResultList, lClassName, {onPinClick:on_pin_click});
         AFY_CONTEXT.mLastQResult.populate(lQueryStr);
         AFY_CONTEXT.mQueryHistory.recordQuery(lQueryStr);
       }
@@ -1113,8 +746,8 @@ $(document).ready(
     //   However, the console is primarily intended for navigation, and password-protected
     //   stores would be marginal in early exploratory experiments done in the console,
     //   so for the moment I prefer not to invest any time improving this.
-    $("#storeident").change(function() { AFY_CONTEXT.mStoreIdent = this.val(); populate_classes(); if (undefined != AFY_CONTEXT.mUIStore) { AFY_CONTEXT.mUIStore.set('laststoreident', $("#storeident").val()); } });
-    $("#storepw").change(function() { AFY_CONTEXT.mStorePw = this.val(); populate_classes(); if (undefined != AFY_CONTEXT.mUIStore) { AFY_CONTEXT.mUIStore.set('laststorepw', $("#storepw").val()); } });
+    $("#storeident").change(function() { AFY_CONTEXT.mStoreIdent = $("#storeident").val(); populate_classes(); if (undefined != AFY_CONTEXT.mUIStore) { AFY_CONTEXT.mUIStore.set('laststoreident', $("#storeident").val()); } });
+    $("#storepw").change(function() { AFY_CONTEXT.mStorePw = $("#storepw").val(); populate_classes(); if (undefined != AFY_CONTEXT.mUIStore) { AFY_CONTEXT.mUIStore.set('laststorepw', $("#storepw").val()); } });
   });
 
 /**
@@ -1139,7 +772,7 @@ function populate_classes(pOnDone)
       if (undefined == _pJson) { myLog("populate_classes: undefined _pJson"); return; }
       for (var i = 0; i < _pJson.length; i++)
       {
-        var lCName = _pJson[i]["afy:classID"];
+        var lCName = _pJson[i]["afy:objectID"];
         var lOption = "<option value=\"" + lCName + "\">" + lCName + "</option>";
         $("#classes").append(lOption);
       }
@@ -1154,7 +787,7 @@ function on_class_change()
   update_qnames_ui();
 
   var lCurClassName = $("#classes option:selected").val();
-  var lCurClass = function(_pN){ for (var i = 0; null != AFY_CONTEXT.mClasses && i < AFY_CONTEXT.mClasses.length; i++) { if (AFY_CONTEXT.mClasses[i]["afy:classID"] == _pN) return AFY_CONTEXT.mClasses[i]; } return null; }(lCurClassName);
+  var lCurClass = function(_pN){ for (var i = 0; null != AFY_CONTEXT.mClasses && i < AFY_CONTEXT.mClasses.length; i++) { if (AFY_CONTEXT.mClasses[i]["afy:objectID"] == _pN) return AFY_CONTEXT.mClasses[i]; } return null; }(lCurClassName);
   if (undefined == lCurClass) return;
   $("#class_properties").empty();
   for (var iProp in lCurClass["afy:properties"])
@@ -1181,7 +814,7 @@ function on_class_change()
 function on_class_dblclick()
 {
   var lCurClassName = afy_sanitize_classname(afy_without_qname($("#classes option:selected").val()));
-  $("#query").val("SELECT * FROM " + lCurClassName + ";");
+  $("#query").val("SELECT RAW * FROM " + lCurClassName + ";");
 }
 
 function on_cprop_change()
@@ -1207,6 +840,8 @@ function on_cprop_dblclick()
 
 function on_pin_click(pPID)
 {
+  if (undefined == pPID) // e.g. histogram result...
+    return;
   update_qnames_ui();
 
   // Manage the row selection.
@@ -1220,33 +855,7 @@ function on_pin_click(pPID)
   $("#" + AFY_CONTEXT.mSelectedPID).addClass("selected");
 
   // Update the selected PIN's information section.
-  get_pin_info(
-    pPID,
-    function(_pInfo)
-    {
-      var lPinArea = $("#result_pin");
-      lPinArea.empty();
-
-      // Class info.
-      if (0 == _pInfo.classes.length)
-        _pInfo.classes.push("unclassified pin");
-      lPinClasses = $("<p>PIN @" + _pInfo.pid + " IS A " + _pInfo.classes.join(",") + "</p>").appendTo(lPinArea);
-
-      // Data info.
-      var lRefs = new Object();
-      var lTxt = $("<p />");
-      for (iProp in _pInfo.data)
-      {
-        if (iProp == "id" || iProp == "afy:pinID") continue;
-        lTxt.append($("<span class='afypropname'>" + iProp + "</span>"));
-        lTxt.append($("<span>:" + QResultTable.createValueUI(_pInfo.data[iProp], lRefs, pPID + "refdet") + "  </span>"));
-      }
-      lPinArea.append(lTxt);
-      for (iRef in lRefs)
-        { $("#" + iRef).click(function(){on_pin_click($(this).text().replace(/^@/, "")); return false;}); }
-    });
+  if (!('_handler' in constructor.prototype))
+    constructor.prototype._handler = new pin_info_handler($("#result_pin"));
+  constructor.prototype._handler(pPID);
 }
-
-// TODO (Ming): special hints for divergences from standard SQL
-// TODO: syntax completion etc.
-// TODO: future modes (e.g. erdiagram, wizard to create pins that conform with 1..n classes, ...)

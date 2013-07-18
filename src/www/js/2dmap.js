@@ -1,5 +1,5 @@
 /*
-Copyright (c) 2004-2012 VMware, Inc. All Rights Reserved.
+Copyright (c) 2004-2013 GoPivotal, Inc. All Rights Reserved.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ $(document).ready(
   function()
   {
     // Setup the graph/map.
-    lGM = new GraphMap();
+    var lGM = new GraphMap();
 
     // Make sure the tab is activated in all circumstances.
     // Note:
@@ -208,7 +208,7 @@ function gm_PageByPage(pQueryStr, pPageSize, pHandler, pUserData)
   var lOnCount =
     function(_pJson)
     {
-      var _lPaginationCtx = new Object();
+      var _lPaginationCtx = {};
       _lPaginationCtx.mNumPins = parseInt(_pJson);
       _lPaginationCtx.mOffset = 0;
       var _lOnPage =
@@ -713,7 +713,7 @@ gm_TBstar.prototype.init = function(pCallback)
           lThis.state = 1;
           pCallback(lThis);
         }
-      afy_query("SELECT * WHERE afy:pinID IN (" + lBnb_str.join(",") + ");", new QResultHandler(lOnBnb, null, null));
+      afy_query("SELECT RAW * WHERE afy:pinID IN (" + lBnb_str.join(",") + ");", new QResultHandler(lOnBnb, null, null));
     }
     else
     {
@@ -897,7 +897,7 @@ function gm_LayoutEngine_completeG_mem()
       var _lBstr = [];
       for (var _i = 0; _i < _lB.length; _i++)
         _lBstr.push("@" + _lB[_i].id);
-      afy_query("SELECT * WHERE afy:pinID IN (" + _lBstr.join(",") + ");", new QResultHandler(_lOnBdata, null, null));
+      afy_query("SELECT RAW * WHERE afy:pinID IN (" + _lBstr.join(",") + ");", new QResultHandler(_lOnBdata, null, null));
     }
     
   this.doLayout =
@@ -1084,7 +1084,7 @@ function gm_LayoutEngine_completeG_EmMCE()
       var _lBstr = [];
       for (var _i = 0; _i < _lB.length; _i++)
         _lBstr.push("@" + _lB[_i].id);
-      afy_query("SELECT * WHERE afy:pinID IN (" + _lBstr.join(",") + ");", new QResultHandler(_lOnBdata, null, null));
+      afy_query("SELECT RAW * WHERE afy:pinID IN (" + _lBstr.join(",") + ");", new QResultHandler(_lOnBdata, null, null));
     }
 
   this.doLayout =
@@ -1186,7 +1186,7 @@ function gm_LayoutEngine_disjointG()
       _pSS.push(
         function()
         {
-          var _lQ = "SELECT * FROM {" + _pRefs.join(",") + "}";
+          var _lQ = "SELECT RAW * FROM {" + _pRefs.join(",") + "}";
           var _lFilters = lGetClassFilters(_pLayoutCtx);
           if (_lFilters.length > 0)
             _lQ = _lQ + " WHERE (" + _lFilters.join(" AND ") + ")";
@@ -1381,6 +1381,7 @@ function GraphMap()
   var lHideClasses = {};
   var lHideRefprops = {};
   var lBypos = {}; // In screen coordinates.
+  var lClassesOfInterest = [];
   var lBackground = new gm_Background(l2dCtx); // Once a view is rendered, we immediately capture it to be able to draw/erase over it, quickly.
   var lPinDetails = new gm_PinDetails(l2dCtx, lBackground);
   var lDoDraw = // The rendering engine.
@@ -1471,11 +1472,11 @@ function GraphMap()
       l2dCtx.strokeStyle = "#666";
       l2dCtx.fillText("click&drag", 50, lVPHeight - 62);
       l2dCtx.fillText("scroll or z+click&drag", 50, lVPHeight - 42);
-      if (undefined != AFY_CONTEXT.mClasses)
+      if (undefined != lClassesOfInterest)
       {
-        for (var _iC = 0; _iC < AFY_CONTEXT.mClasses.length; _iC++)
+        for (var _iC = 0; _iC < lClassesOfInterest.length; _iC++)
         {
-          l2dCtx.fillStyle = (AFY_CONTEXT.mClasses[_iC]["afy:classID"] in lLayoutCtx.hideClasses) ? "#e4e4e4" : "#8f8";
+          l2dCtx.fillStyle = (lClassesOfInterest[_iC]["afy:objectID"] in lLayoutCtx.hideClasses) ? "#e4e4e4" : "#8f8";
           l2dCtx.fillRect(50 + _iC * 15, lVPHeight - 15 - 22, 15, 15);
           l2dCtx.strokeRect(50 + _iC * 15, lVPHeight - 15 - 22, 15, 15);
         }
@@ -1518,11 +1519,11 @@ function GraphMap()
     {
       var _lOffset = $("#map_area").offset();
       var _lNLP = {x:(lPanZoom.curX() - _lOffset.left - 50), y:(lPanZoom.curY() - _lOffset.top - _pY)};
-      if (_lNLP.x >= 0 && _lNLP.x < 15 * AFY_CONTEXT.mClasses.length && _lNLP.y >= 0 && _lNLP.y <= 15)
+      if (_lNLP.x >= 0 && _lNLP.x < 15 * lClassesOfInterest.length && _lNLP.y >= 0 && _lNLP.y <= 15)
         return Math.floor(_lNLP.x / 15);
       return null;
     }    
-  var lClassIndexFromPoint = function() { return (undefined != AFY_CONTEXT.mClasses) ? lCheckboxIndexFromPoint(lVPHeight - 37) : null; }
+  var lClassIndexFromPoint = function() { return (undefined != lClassesOfInterest) ? lCheckboxIndexFromPoint(lVPHeight - 37) : null; }
   var lPropIndexFromPoint = function() { var _lNumProps = countProperties(lLayoutCtx.refprops); return (0 != _lNumProps) ? lCheckboxIndexFromPoint(lVPHeight - 17): null; }
   var lPinfoFromPoint =
     function()
@@ -1565,7 +1566,7 @@ function GraphMap()
         {
           var _lClassIndex = lClassIndexFromPoint();
           if (undefined != _lClassIndex)
-            { bindTooltip($("#map_area"), AFY_CONTEXT.mClasses[_lClassIndex]["afy:classID"], {left:lPanZoom.curX(), top:lPanZoom.curY() - 40}, {once:true, start:0, end:500, offy:-15}); _lDone = true; }
+            { bindTooltip($("#map_area"), lClassesOfInterest[_lClassIndex]["afy:objectID"], {left:lPanZoom.curX(), top:lPanZoom.curY() - 40}, {once:true, start:0, end:500, offy:-15}); _lDone = true; }
           if (!_lDone)
           {
             var _lPropIndex = lPropIndexFromPoint();
@@ -1593,7 +1594,7 @@ function GraphMap()
         var _lClassIndex, _lPropIndex;
         if (undefined != (_lClassIndex = lClassIndexFromPoint()))
         {
-          lDoCheckBox(lClassIndex_modified = _lClassIndex, lVPHeight - 37, (AFY_CONTEXT.mClasses[_lClassIndex]["afy:classID"] in lHideClasses) ? "#8f8" : "#e4e4e4");
+          lDoCheckBox(lClassIndex_modified = _lClassIndex, lVPHeight - 37, (lClassesOfInterest[_lClassIndex]["afy:objectID"] in lHideClasses) ? "#8f8" : "#e4e4e4");
           _lDone = true;
         }
         else if (undefined != (_lPropIndex = lPropIndexFromPoint()))
@@ -1611,7 +1612,7 @@ function GraphMap()
       lPanZoom.onMouseUp();
       if (undefined != lClassIndex_modified)
       {
-        var _lClassName = AFY_CONTEXT.mClasses[lClassIndex_modified]["afy:classID"];
+        var _lClassName = lClassesOfInterest[lClassIndex_modified]["afy:objectID"];
         if (_lClassName in lHideClasses)
           delete lHideClasses[_lClassName];
         else
@@ -1673,9 +1674,21 @@ function GraphMap()
       get_classes(
         function()
         {
-          var __lL = (undefined != AFY_CONTEXT.mClasses) ? AFY_CONTEXT.mClasses.length : 0;
+          // Update the set of classes we're interested in.
+          lClassesOfInterest.splice(0);
+          for (var _iC = 0; _iC < AFY_CONTEXT.mClasses.length; _iC++)
+            if (undefined == AFY_CONTEXT.mClasses[_iC]['afy:objectID'].match(/^afy:/))
+              lClassesOfInterest.push(AFY_CONTEXT.mClasses[_iC]);
+
+          // Initialize the map_query field, if needed.
           if (0 == $("#map_query").val().length)
-            { $("#map_query").val("SELECT FROM " + (__lL > 1 ? AFY_CONTEXT.mClasses[1]['afy:classID'] : "*")); lDoRefresh(true); }
+          {
+            if (lClassesOfInterest.length > 0)
+              $("#map_query").val("SELECT FROM " + lClassesOfInterest[0]['afy:objectID']);
+            else
+              $("#map_query").val("SELECT RAW *");
+            lDoRefresh(true);
+          }
           else
             lDoDraw(); // In case classes changed...
         });

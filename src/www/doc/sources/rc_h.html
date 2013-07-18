@@ -8,7 +8,7 @@
 <!-- begin highlighted code -->
 <div class="highlight"><pre><span class="cm">/**************************************************************************************</span>
 
-<span class="cm">Copyright (c) 2004-2012 VMware, Inc. All rights reserved.</span>
+<span class="cm">Copyright © 2004-2013 GoPivotal, Inc. All rights reserved.</span>
 
 <span class="cm">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
 <span class="cm">you may not use this file except in compliance with the License.</span>
@@ -28,6 +28,13 @@
 
 <span class="cp">#ifndef _RC_H_</span>
 <span class="cp">#define _RC_H_</span>
+
+<span class="cp">#undef AFY_EXP</span>
+<span class="cp">#ifdef _MSC_VER</span>
+<span class="cp">#define AFY_EXP    _declspec(dllexport)</span>
+<span class="cp">#else</span>
+<span class="cp">#define AFY_EXP</span>
+<span class="cp">#endif</span>
 
 <span class="n">namespace</span> <span class="n">AfyRC</span> 
 <span class="p">{</span>
@@ -77,8 +84,11 @@
     <span class="n">RC_INVOP</span><span class="p">,</span>             <span class="cm">/**&lt; invalid operation for this object */</span>
     <span class="n">RC_SYNTAX</span><span class="p">,</span>                <span class="cm">/**&lt; syntactic error in query or expression */</span>
     <span class="n">RC_TOOBIG</span><span class="p">,</span>                <span class="cm">/**&lt; object (pin, property, collection) is too big */</span>
-    <span class="n">RC_PAGEFULL</span>              <span class="cm">/**&lt; no space on page for the object (either pin or index entry) */</span>
+    <span class="n">RC_PAGEFULL</span><span class="p">,</span>          <span class="cm">/**&lt; no space on page for the object (either pin or index entry) */</span>
+    <span class="n">RC_CONSTRAINT</span>            <span class="cm">/**&lt; PIN doesn&#39;t satisfy membership constraints or not unique, or transaction was aborted in a class action or attempt to modify immutable property */</span>           
 <span class="p">};</span>
+
+<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="n">AFY_EXP</span> <span class="kt">void</span>  <span class="n">report</span><span class="p">(</span><span class="n">MsgType</span> <span class="n">type</span><span class="p">,</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">str</span><span class="p">,...);</span>        <span class="cm">/**&lt; report an error, warning or debugging info, printf style */</span>
 
 <span class="p">};</span>
 

@@ -1,8 +1,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <head>
+  <meta name='viewport' content='width=device-width' />
   <script src='js/jquery.js' type='text/javascript'></script>
   <script src='js/snippets_to_console.js' type='text/javascript'></script>
-  <link href='css/afydoc.css' rel='stylesheet' type='text/css' />
+  <link href='css/afydoc.css' rel='stylesheet' type='text/css' media='screen and (min-device-width: 600px)' />
+  <link href='../m/doc/css/afydoc.css' rel='stylesheet' type='text/css' media='screen and (max-device-width: 599px)' />
   <meta http-equiv='content-type' content='text/html; charset=utf-8'></meta>
 </head>
 <div id='width_constraint' class='horizontally_centered'>
@@ -11,65 +13,84 @@
 <div id='afytocbar'>
   <select id='afytoclist'>
     <option value='intro'>intro</option>
-    <option value='Affinity server'>Affinity server</option>
     <option value='FAQ' SELECTED>FAQ</option>
-    <option value='cplusplus'>cplusplus</option>
-    <option value='demo_EULA'>demo_EULA</option>
-    <option value='demo_privacy'>demo_privacy</option>
     <option value='features'>features</option>
     <option value='getting started'>getting started</option>
-    <option value='javascript'>javascript</option>
-    <option value='pathSQL primer'>pathSQL primer</option>
+    <option value='interface [cplusplus]'>interface [cplusplus]</option>
+    <option value='interface [javascript]'>interface [javascript]</option>
+    <option value='interface [protobuf]'>interface [protobuf]</option>
+    <option value='pathSQL basics [control]'>pathSQL basics [control]</option>
+    <option value='pathSQL basics [data]'>pathSQL basics [data]</option>
+    <option value='pathSQL reference [definition]'>pathSQL reference [definition]</option>
+    <option value='pathSQL reference [manipulation]'>pathSQL reference [manipulation]</option>
     <option value='pathSQL reference'>pathSQL reference</option>
-    <option value='protobuf'>protobuf</option>
     <option value='release notes'>release notes</option>
+    <option value='server'>server</option>
     <option value='strengths'>strengths</option>
     <option value='terminology'>terminology</option>
+    <option value='demo_EULA'>demo_EULA</option>
+    <option value='demo_privacy'>demo_privacy</option>
   </select>
 </div>
 </div>
-<div id="what-is-affinity"
+<div id="what-is-affinityng"
 ><h1
-  >What is Affinity?</h1
+  >What is AffinityNG?</h1
   ><p
-  >Affinity is a new open-source database kernel, licensed under the Apache License Version 2.0. Its features borrow (we hope the best) aspects from RDBMS, OODBMS, document databases, graph databases, and RDF and XML stores. In academic terms, it is a hybrid between value-oriented databases (that distinguish entities primarily by their values [e.g. primary keys of relational systems]) and ID-based object-oriented databases.</p
+  >AffinityNG is the second major open-source release of the Affinity kernel, licensed under the Apache License Version 2.0. In a nutshell, it's a platform that brings together information processing, control, and secure communication. It's built around the unified data representation, storage and access provided by the AffinityDB core (a graph database). AffinityNG is designed to lower the barrier of entry for systems targeting the Internet of Things (IoT), Wireless Sensor Networks (WSNs), ubiquitous computing, control systems and robotics.</p
   ><p
-  >Unlike relational databases, Affinity is schema-less (no tables), yet provides a rich native <a href="./terminology.html#essential-concepts-data-model"
-    >data model</a
-    > including objects with fields of various native datatypes, ordered <a href="./terminology.html#collection"
-    >collections</a
-    > (for modeling XML-like list structures) and <a href="./terminology.html#pin-reference"
-    >references</a
-    > (for modeling relationships between objects). Objects are self-describing (every field is labeled with a URI) and freely extensible (different objects can have different fields). Schema or organization (<a href="./terminology.html#class"
-    >classes</a
-    >) can be overlaid on the data, without any change to the data.</p
-  ><p
-  >Affinity provides built-in <a href="./terminology.html#index"
-    >indexing</a
-    > (both structured and full-text) and query processing. However, unlike relational systems, Affinity does this using dynamic <a href="./terminology.html#class"
-    >classification</a
-    >. The result is that Affinity objects do not need to be declared as belonging to any specific class (or table) when they are created. Instead, objects can be stored first, and then dynamically classified into independently defined classes. Membership in these classes may change as the objects change, and as new applications with new classes begin operating in the database.</p
-  ><p
-  >The current C++ implementation of Affinity runs in a small-footprint, multithreaded process on OSX, linux, Windows and ARM-based systems. Data is persisted in the file system. There is support for ACID transactions with isolation and crash recovery.</p
-  ><p
-  >Affinity has a native embedded <a href="./terminology.html#c-kernel-interface"
-    >C++ interface</a
-    >, as well as a remoteable interface operating through <a href="./terminology.html#protocol-buffer"
-    >protobuf</a
-    >-encoded request/response streams. Queries can be passed to the database via <a href="./terminology.html#pathsql"
+  >AffinityNG provides complete data-acquisition and device control functionality. The primary programming language is a SQL dialect (<a href="./terminology.html#pathsql"
     >pathSQL</a
-    >, a SQL-like query language. Affinity also produces JSON responses.</p
+    >). All components of a program (the program itself as well as configurations, logs etc.) are represented in a declarative manner, as inspectable data items (<a href="./terminology.html#pin"
+    >PINs</a
+    >). AffinityNG offers a multi-level programming model, with interoperable modes of expression including event-driven, rule-based, state-machine-based (textual and graphical), functional, synchronous and asynchronous, etc.</p
   ><p
-  >Affinity can also operate as a MySQL storage engine via afyEngine, which maps between the native Affinity data model and the MySQL relational data model. This component is not part of the initial release.</p
-  ><p
-  >Please refer to the <a href="./strengths.html"
-    >strengths</a
-    > page, for more information on the basic tenets of Affinity.</p
+  >By taking care of a multitude of lower-level difficulties (e.g. establishment of ad-hoc networks, communication over various channels, interaction with devices, event detection, exception handling, synchronization etc.), and by exposing simple solutions at a higher level of abstraction, we believe that AffinityNG can significantly reduce the burden of interacting with complex ecosystems seen in typical IoT and industrial sensor network scenarios, such as smart factories, smart retail etc. A single data representation for all components (the <a href="./terminology.html#pin"
+    >PIN</a
+    >) brings at your fingertips the complete database artillery.</p
+  ><div id="database-core"
+  ><h3
+    >Database Core</h3
+    ><p
+    >The database core pays special attention to stream processing for data acquisition and analytics. For the more static aspects, it also borrows (we hope the best) aspects from RDBMS, OODBMS, document databases, RDF and XML stores. Affinity is schema-less (no tables), yet provides a rich native <a href="./terminology.html#essential-concepts-data-model"
+      >data model</a
+      > including objects with fields of various native datatypes, ordered <a href="./terminology.html#collection"
+      >collections</a
+      > (for modeling XML-like list structures), <a href="./terminology.html#structure"
+      >sub-structures</a
+      >, <a href="./terminology.html#map"
+      >associative arrays</a
+      > and <a href="./terminology.html#pin-reference"
+      >references</a
+      > (for modeling relationships between objects). Objects are self-describing (every field is labeled with a URI) and freely extendable (different objects can have different fields). Schema or organization (<a href="./terminology.html#class"
+      >classes</a
+      >) can be overlaid on the data, without any change to the data.</p
+    ><p
+    >Affinity provides built-in <a href="./terminology.html#index"
+      >indexing</a
+      > (both structured and full-text) and query processing, with dynamic <a href="./terminology.html#class"
+      >classification</a
+      >. Affinity objects do not need to be declared as belonging to any specific class (or table) when they are created. Instead, objects can be stored first, and then dynamically classified into independently defined classes. Membership in these classes may change as the objects change, and as new applications with new classes begin operating in the store.</p
+    ><p
+    >The current C++ implementation of Affinity runs in a small-footprint, multithreaded process on smaller ARM-based systems (iOS, Android, Raspberry Pi etc.), OSX, linux and Windows. There is full support for ACID transactions, with isolation and crash recovery.</p
+    ><p
+    >Affinity has a native embedded <a href="./terminology.html#c-kernel-interface"
+      >C++ interface</a
+      >, as well as a remoteable interface operating through <a href="./terminology.html#protocol-buffer"
+      >protobuf</a
+      >-encoded request/response streams. From punctual queries all the way to complete programs, everything can be expressed via <a href="./terminology.html#pathsql"
+      >pathSQL</a
+      >.</p
+    ><p
+    >Please refer to the <a href="./strengths.html"
+      >strengths</a
+      > page, for more information on the basic tenets of Affinity.</p
+    ></div
   ><div id="about-the-team"
   ><h2
     >About the Team</h2
     ><p
-    >The Affinity kernel has been under development since 2004, and is the work of a single author, Dr. Mark Venguerov. He is surrounded by a small team that focuses primarily on testing and stability, but also provides complementary components (e.g. server, consoles, client libraries, integration layers with other systems, documentation, benchmarks, deployment etc.). At the present time, the team includes: Michael Andronov, Dr. Adam Back, Ming Li, Wen Lin, Dr. Anoop Sinha, Sonic Wang, and Max Windisch.</p
+    >The Affinity kernel has been under development since 2004, and is the work of a single author, Dr. Mark Venguerov. He is surrounded by a small team that focuses primarily on testing and stability, but also provides complementary components (e.g. services, consoles, client libraries, integration layers with other systems, documentation, benchmarks, deployment, platform compatibility etc.). At the present time, the team includes: Michael Andronov, Dr. Adam Back, Ming Li, Wen Lin, Dr. Mark Venguerov and Max Windisch.</p
     ></div
   ><div id="faq"
   ><h2
@@ -78,27 +99,29 @@
     ><h3
       >What is the history of Affinity?</h3
       ><p
-      >Affinity was originally conceived as a flexible database engine for all personal information. It started in 2003-2004, in the context of PI Corporation. PI was acquired by EMC in 2008. Affinity was transferred to VMware in 2010.</p
+      >Affinity was originally conceived as a flexible embedded database engine for personal information. It started in 2003-2004, in the context of PI Corporation. PI was acquired by EMC in 2008. Affinity was transferred to VMware in 2010, where it was released as an open-source project for the first time (in February 2012), presented as a graph database with a SQL interface. In 2012-2013 the team re-oriented the product around the requirements of the increasingly actual &quot;Internet of Things&quot;, by adding to the database core a set of <a href="./terminology.html#active-components-of-the-data-model"
+	>active components</a
+	>, thus transforming it into AffinityNG, a universal embedded information-processing, control and communication platform - the present release.</p
       ></div
-    ><div id="why-is-vmware-open-sourcing-it-now"
+    ><div id="why-open-source"
     ><h3
-      >Why is VMware Open-Sourcing it now?</h3
+      >Why Open-Source?</h3
       ><p
-      >The Affinity Open-Source release shows VMware's support for the Open-Source community. Affinity has been under research &amp; development for several years, and has reached a level of maturity that we hope will be appreciated by the Open-Source community, especially for novel scenarios such as social graph analysis, stream processing, and modern web applications.</p
+      >The Affinity Open-Source release shows GoPivotal's support for the Open-Source community. With fast-growing interest for the &quot;Internet of Things&quot;, and increased availability of very cheap, small, generic hardware platforms (e.g. ARM-based devices), we believe that a free, easy to use and comprehensive software platform can play an enabling role, by bringing more developers up to speed and by supporting the deployment of more systems, faster.</p
       ></div
     ><div id="what-were-affinitys-design-goals"
     ><h3
       >What were Affinity's design goals?</h3
       ><p
-      >Designed with the target of having very flexible data model, no rigid schema, self-describing objects, automatic multi-classification of objects, a strong commitment to ACID semantics, and a SQL-based query language with great support for path expressions. Implemented entirely in C++, with a rigorous discipline ensuring a tiny runtime footprint (e.g. today the binary size of the kernel is ~1Mb).</p
+      >The AffinityNG platform was designed for the &quot;Internet of Things&quot;, providing a unified, high-level, efficient platform for communication, control and stream processing, with an event-driven processing model. AffinityNG builds on a database kernel with a very flexible data model, no rigid schema, self-describing objects, automatic multi-classification of objects, a strong commitment to ACID semantics, and a SQL-based query language with great support for path expressions. Implemented entirely in C++, with a rigorous discipline ensuring a tiny runtime footprint (e.g. today the binary size of the kernel is ~1Mb).</p
       ></div
     ><div id="what-is-affinitys-query-language"
     ><h3
       >What is Affinity's query language?</h3
       ><p
-      >We named Affinity's language <a href="./pathSQL%20primer.html"
+      >We named Affinity's language <a href="./pathSQL%20basics%20[control].html"
 	>&quot;pathSQL&quot;</a
-	>, to highlight its unique support for path expressions. It also extends standard SQL with respect to the manipulation of references, collections and classes. Due to Affinity's data modeling philosophy, constraints are practically absent from pathSQL. Otherwise, the language offers very good compliance with standard SQL.</p
+	>, to highlight its unique support for path expressions. It also extends standard SQL with respect to the manipulation of references, collections, sub-structures and classes. Due to Affinity's data modeling philosophy, constraints are practically absent from pathSQL. Otherwise, the language offers very good compliance with standard SQL.</p
       ></div
     ><div id="what-are-affinitys-data-elements"
     ><h3
@@ -108,16 +131,15 @@
 	>PINs</a
 	>) with untyped <a href="./terminology.html#property"
 	>properties</a
-	>. Affinity currently supports two external formats for serialization: JSON, and protocol buffers. Both are exposed by the server via HTTP.</p
+	>. Affinity currently supports several external formats for serialization, e.g. XML, JSON, and protocol buffers.</p
       ></div
     ><div id="what-client-libraries-exist"
     ><h3
       >What client libraries exist?</h3
-      ><p
-      >Presently, <a href="./terminology.html#client-side-libraries"
-	>client libraries</a
-	> are provided for javascript (in the context of node.js), ruby and python. Additional libraries are under development for java and C++. The kernel can also be embedded directly into an application, via its C++ interface.</p
-      ></div
+      >We expect AffinityNG to be used as an operating system, with programs written in pure pathSQL. For more traditional use cases, <a href="./terminology.html#client-side-libraries"
+      >client libraries</a
+      > are also provided, for javascript (in the context of node.js), ruby, python and soon java. The kernel can also be embedded directly into an application, via its C++ interface.<!-- TODO: update as soon as java lib will be thoroughly reviewed and copied to github -->
+</div
     ><div id="what-other-features-does-affinity-have"
     ><h3
       >What other features does Affinity have?</h3
@@ -125,18 +147,6 @@
       >Please follow this <a href="./features.html"
 	>link</a
 	> for a complete list of features.</p
-      ></div
-    ><div id="what-about-scalability"
-    ><h3
-      >What about scalability?</h3
-      ><p
-      >Affinity is released in Open-Source as a single-node database kernel. The initial release doesn't provide full support for replication, which is planned for the next release.</p
-      ></div
-    ><div id="what-is-planned-for-affinity-in-the-future"
-    ><h3
-      >What is planned for Affinity in the future?</h3
-      ><p
-      >We are focusing on three aspects: better pathSQL for social graph analysis, stream processing for small devices, and a novel approach to covering the spectrum of small devices to cloud storage.</p
       ></div
     ></div
   ></div

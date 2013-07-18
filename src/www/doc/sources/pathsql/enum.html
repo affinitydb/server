@@ -1,0 +1,23 @@
+<head>
+  <link href='../../css/afydoc.css' rel='stylesheet' type='text/css' />
+  <link href='../../css/source.css' rel='stylesheet' type='text/css' />
+</head>
+<div id="enum_sql">
+<h1>enum.sql</h1>
+
+<!-- begin highlighted code -->
+<pre>
+CREATE ENUMERATION WEEK AS {'Monday','Tuesday','Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'};
+
+INSERT calendar_name='Weekly Meeting', calendar_time='10:00', calendar_day = WEEK#Monday, repeat_interval = 'weekly';
+INSERT calendar_name='Happy Hours', calendar_time='16:00', calendar_day = WEEK#Friday, repeat_interval = 'weekly';
+
+SELECT CAST(calendar_day AS STRING) WHERE EXISTS(repeat_interval);
+SELECT CAST(calendar_day AS UINT) WHERE EXISTS(repeat_interval);
+
+SELECT * WHERE calendar_day > WEEK#Wednesday;
+SELECT * WHERE calendar_day <= WEEK#Wednesday;
+</pre>
+<!-- end highlighted code -->
+
+</div>

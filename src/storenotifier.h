@@ -1,6 +1,6 @@
 /* -*- Mode: C; c-file-style: "stroustrup"; indent-tabs-mode:nil; -*- */
 /*
-Copyright (c) 2004-2012 VMware, Inc. All Rights Reserved.
+Copyright (c) 2004-2013 GoPivotal, Inc. All Rights Reserved.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -33,7 +33,7 @@ under the License.
     #define InterlockedIncrement(a) __sync_add_and_fetch(a,1)
     #define InterlockedDecrement(a) __sync_sub_and_fetch(a,1)
 #endif
-namespace AfyDB { class ISession; };
+namespace Afy { class ISession; };
 
 /**
  * Mutex
@@ -147,8 +147,6 @@ protected:
 public:
     // Review: Could decide to clear orphaned events in mClientEvents, in a destructor.
     virtual void notify( NotificationEvent *events,unsigned nEvents,uint64_t txid );
-    virtual void replicationNotify( NotificationEvent*, unsigned, uint64_t );
-    virtual void txNotify( TxEventType type,uint64_t txid );
 public:
     void registerClient( IStoreNotification* pClient );
     void unregisterClient( IStoreNotification* pClient );
@@ -160,8 +158,8 @@ public:
     void releaseGroupEvent( char const* clientid );
 };
 
-RC afy_regNotifi( MainNotificationHandler& mainh, AfyDB::ISession& sess, char const* type, char const* notifparam, char const* clientid, char** res, bool persistent=true );
-RC afy_unregNotifi( MainNotificationHandler& mainh, AfyDB::ISession& sess, char const* notifparam, char const* clientid, char**res );
-RC afy_waitNotifi( MainNotificationHandler& mainh, AfyDB::ISession& sess, char const* notifparam, char const* clientid, int timeout, char**res );
+RC afy_regNotifi( MainNotificationHandler& mainh, Afy::ISession& sess, char const* type, char const* notifparam, char const* clientid, char** res, bool persistent=true );
+RC afy_unregNotifi( MainNotificationHandler& mainh, Afy::ISession& sess, char const* notifparam, char const* clientid, char**res );
+RC afy_waitNotifi( MainNotificationHandler& mainh, Afy::ISession& sess, char const* notifparam, char const* clientid, int timeout, char**res );
 
 #endif

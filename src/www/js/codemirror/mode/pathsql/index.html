@@ -1,0 +1,106 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>CodeMirror: pathSQL mode</title>
+    <link rel="stylesheet" href="../../lib/codemirror.css">
+    <script src="../../lib/codemirror.js"></script>
+    <script src="../../lib/util/matchbrackets.js"></script>
+    <script src="../../lib/util/continuecomment.js"></script>
+    <script src="../../../jquery.js"></script>
+    <script src="../../../afycommon.js"></script>
+    <script src="../../../afyparser.js"></script>
+    <script src='../../../editingctx.js' type='text/javascript'></script>
+    <script src="pathsql.js"></script>
+    <link rel="stylesheet" href="../../doc/docs.css">
+    <style type="text/css">.CodeMirror {border-top: 1px solid black; border-bottom: 1px solid black;}</style>
+  </head>
+  <body>
+    <h1>CodeMirror: pathSQL mode</h1>
+
+<div><textarea id="code" name="code">
+/**
+ * Demo Code
+ */
+-- Core Classes
+CREATE CLASS world:locations AS SELECT * WHERE EXISTS(world:latitude) AND EXISTS(world:longitude);
+CREATE CLASS world:homes AS SELECT * FROM world:locations WHERE EXISTS(world:appliances);
+CREATE CLASS world:appliances AS SELECT * WHERE EXISTS(control:control_energy);
+CREATE CLASS control:sensors AS SELECT * WHERE control:"sensor/name" IN :0;
+CREATE CLASS control:"rt/signalable" AS SELECT * WHERE EXISTS(control:"rt/time/signal");
+CREATE CLASS control:"rt/physical/samples" AS SELECT * WHERE EXISTS(control:"rt/time/step") AND EXISTS(control:"rt/sensor");
+CREATE CLASS simul:"value/generators" AS SELECT * WHERE CONTAINS(afy:objectID, 'simul/value/gen/');
+CREATE TIMER control:"rt/source/timer" INTERVAl '00:00:01' AS UPDATE control:"rt/signalable" SET control:"rt/time/signal"=EXTRACT(SECOND FROM CURRENT_TIMESTAMP), control:"rt/time"=CURRENT_TIMESTAMP;
+-- Generators
+CREATE CLASS simul:"value/gen/sinus" AS SELECT * WHERE simul:"rt/value/gen/id"=@class.afy:objectID SET
+  meta:description='A general-purpose value generator for sinusoidal curves',
+  afy:joinTrigger=${UPDATE @self SET control:"rt/value"=MAX(simul:"rt/gen/min", MIN(simul:"rt/gen/max", (simul:"rt/gen/min" + ((0.5 + SIN(control:"rt/time/step")) * (simul:"rt/gen/max" - simul:"rt/gen/min"))) + simul:"rt/gen/jitter"))};
+CREATE CLASS simul:"value/gen/linear_up" AS SELECT * WHERE simul:"rt/value/gen/id"=@class.afy:objectID SET
+  meta:description='A general-purpose value generator for linear upward curves',
+  afy:joinTrigger=${UPDATE @self SET control:"rt/value"=MAX(simul:"rt/gen/min", MIN(simul:"rt/gen/max", (simul:"rt/gen/min" + (control:"rt/time/step" * simul:"rt/gen/spread") * (simul:"rt/gen/max" - simul:"rt/gen/min")) + simul:"rt/gen/jitter"))};
+CREATE CLASS simul:"value/gen/linear_down" AS SELECT * WHERE simul:"rt/value/gen/id"=@class.afy:objectID SET
+  meta:description='A general-purpose value generator for linear downward curves',
+  afy:joinTrigger=${UPDATE @self SET control:"rt/value"=MAX(simul:"rt/gen/min", MIN(simul:"rt/gen/max", (simul:"rt/gen/max" - (control:"rt/time/step" * simul:"rt/gen/spread") * (simul:"rt/gen/max" - simul:"rt/gen/min")) + simul:"rt/gen/jitter"))};
+-- Sensor Template
+INSERT @:1
+  meta:description='On/Off Simulated Sensor Template (572ef13c)',
+  afy:objectID=.simul:"template/sensor/on.off.572ef13c",
+  afy:predicate=${SELECT * WHERE EXISTS(simul:"new/sensor/572ef13c")},
+  control:"template/sensor/step/handler"=
+    (CREATE CLASS control:"template/sensor/step/handler/on.off.572ef13c" AS SELECT * FROM control:"rt/signalable" WHERE control:"sensor/model"=.simul:"template/sensor/on.off.572ef13c" SET
+      control:"template/sensor"=@:1,
+      afy:updateTrigger=${INSERT 
+        simul:"rt/gen/spread"=(SELECT simul:"template/gen/spread" FROM @class.control:"template/sensor"),
+        simul:"rt/gen/min"=(SELECT simul:"template/gen/min" FROM @class.control:"template/sensor"),
+        simul:"rt/gen/max"=(SELECT simul:"template/gen/max" FROM @class.control:"template/sensor"),
+        simul:"rt/gen/jitter"=(SELECT simul:"template/gen/jitter" FROM @class.control:"template/sensor") * EXTRACT(SECOND FROM CURRENT_TIMESTAMP),
+        simul:"rt/value/gen/id"=.simul:"value/gen/sinus",
+        control:"rt/sensor"=(SELECT control:sensor FROM @self),
+        control:"rt/sensor/model"=(SELECT control:"sensor/model" FROM @self.control:sensor),
+        control:"rt/time/step"=(SELECT control:"rt/time/signal" FROM @self), control:"rt/time"=CURRENT_TIMESTAMP}),
+  control:"template/sensor/conditions"={
+    (INSERT 
+      meta:description='Condition: turned off a 572ef13c sensor',
+      afy:objectID=.control:"template/condition/572ef13c/off",
+      afy:predicate=${SELECT * WHERE (@ IS A control:"rt/physical/samples" AND control:"rt/sensor/model"=@:1.afy:objectID AND control:"rt/value" < 0.5)}),
+    (INSERT 
+      meta:description='Condition: turned on a 572ef13c sensor',
+      afy:objectID=.control:"template/condition/572ef13c/on",
+      afy:predicate=${SELECT * WHERE (@ IS A control:"rt/physical/samples" AND control:"rt/sensor/model"=@:1.afy:objectID AND control:"rt/value" >= 0.5)}),
+    (INSERT 
+      meta:description='Condition (optional): confirmed that a 572ef13c sensor was off',
+      afy:objectID=.control:"template/condition/572ef13c/off.confirmed",
+      afy:predicate=${SELECT * WHERE (@ IS A world:appliances AND NOT EXISTS(control:"rt/emergency/time") AND (control:"rt/warning/time"[:LAST] - control:"rt/warning/time"[:FIRST] >= INTERVAL '00:00:05'))})},
+  simul:"template/sensor/generator"=(SELECT afy:pinID FROM afy:Classes WHERE afy:objectID=.simul:"value/gen/sinus"),
+  simul:"template/gen/type"='boolean', simul:"template/gen/jitter"=0,
+  simul:"template/gen/min"=0, simul:"template/gen/max"=100,
+  simul:"template/gen/spread"=1.5,
+  afy:joinTrigger=
+    ${INSERT @:20
+      meta:description='On/Off Simulated Sensor Instance (572ef13c): ', -- || (SELECT inst:name FROM @self),
+      control:"sensor/model"=(SELECT afy:objectID FROM @class),
+      control:"sensor/name"=(SELECT inst:name FROM @self),
+      control:appliance=(SELECT inst:appliance FROM @self),
+      simul:"sensor/signalable"=
+        (INSERT @:30
+          meta:description='Timer generating samples for sensor ', -- || (SELECT afy:pinID FROM @:20),
+          control:"rt/time/signal"=0,
+          control:"sensor/model"=(SELECT afy:objectID FROM @class), -- @:20.control:"sensor/model" 
+          control:sensor=@:20)};
+</textarea></div>
+
+    <script>
+      var editor = CodeMirror.fromTextArea(document.getElementById("code"), {
+        lineNumbers: true,
+        matchBrackets: true,
+        extraKeys: {"Enter": "newlineAndIndentContinueComment"}
+      });
+    </script>
+
+    <p>
+      pathSQL supports a single configuration
+    </p>
+
+    <p><strong>MIME types defined:</strong> <code>text/pathsql</code>.</p>
+  </body>
+</html>

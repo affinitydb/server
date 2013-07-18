@@ -1,8 +1,10 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <head>
+  <meta name='viewport' content='width=device-width' />
   <script src='js/jquery.js' type='text/javascript'></script>
   <script src='js/snippets_to_console.js' type='text/javascript'></script>
-  <link href='css/afydoc.css' rel='stylesheet' type='text/css' />
+  <link href='css/afydoc.css' rel='stylesheet' type='text/css' media='screen and (min-device-width: 600px)' />
+  <link href='../m/doc/css/afydoc.css' rel='stylesheet' type='text/css' media='screen and (max-device-width: 599px)' />
   <meta http-equiv='content-type' content='text/html; charset=utf-8'></meta>
 </head>
 <div id='width_constraint' class='horizontally_centered'>
@@ -11,20 +13,23 @@
 <div id='afytocbar'>
   <select id='afytoclist'>
     <option value='intro'>intro</option>
-    <option value='Affinity server'>Affinity server</option>
     <option value='FAQ'>FAQ</option>
-    <option value='cplusplus'>cplusplus</option>
-    <option value='demo_EULA'>demo_EULA</option>
-    <option value='demo_privacy'>demo_privacy</option>
     <option value='features'>features</option>
     <option value='getting started'>getting started</option>
-    <option value='javascript'>javascript</option>
-    <option value='pathSQL primer'>pathSQL primer</option>
+    <option value='interface [cplusplus]'>interface [cplusplus]</option>
+    <option value='interface [javascript]'>interface [javascript]</option>
+    <option value='interface [protobuf]'>interface [protobuf]</option>
+    <option value='pathSQL basics [control]'>pathSQL basics [control]</option>
+    <option value='pathSQL basics [data]'>pathSQL basics [data]</option>
+    <option value='pathSQL reference [definition]'>pathSQL reference [definition]</option>
+    <option value='pathSQL reference [manipulation]'>pathSQL reference [manipulation]</option>
     <option value='pathSQL reference'>pathSQL reference</option>
-    <option value='protobuf'>protobuf</option>
     <option value='release notes' SELECTED>release notes</option>
+    <option value='server'>server</option>
     <option value='strengths'>strengths</option>
     <option value='terminology'>terminology</option>
+    <option value='demo_EULA'>demo_EULA</option>
+    <option value='demo_privacy'>demo_privacy</option>
   </select>
 </div>
 </div>
@@ -32,39 +37,423 @@
 ><h1
   >Release Notes</h1
   ><p
-  >The following limitations are part of the initial release of Affinity.</p
-  ><ul
-  ><li
-    >dump&amp;load and replication not yet available</li
+  >AffinityNG is a major evolution of its ancestor (AffinityDB), having the graph database grow into a universal embedded information-processing, control and communication platform. In the process, in addition to all the new functionality added, some syntactic and semantic changes were made. Most of these changes would be invisible from an ordinary application (for example, the whole online tutorial of AffinityDB is still valid in AffinityNG, unchanged). We'll enumerate those changes briefly here.</p
+  ><div id="changes"
+  ><h2
+    >Changes</h2
+    ><ul
     ><li
-    >limitations with multi-segment indexes</li
+      >The default store file name in AffinityNG is <code
+	>affinity.store</code
+	> (as opposed to <code
+	>affinity.db</code
+	>). Note that AffinityNG is not binary-compatible with AffinityDB, and thus won't read <code
+	>affinity.db</code
+	> files. We are considering to provide an upgrade path from AffinityDB to AffinityNG. Should you be in that situation, please let us know, either via an issue in github or a message in our discussion forum.<!-- TODO: enable when it's there (e.g. beta, or maybe before)
+ * The functionality of the `server` process evolved into a service of the kernel, and the process itself moved to
+   the `daemons` project. The REST interface exposed by AffinityDB's server has not changed and remains fully supported
+   in AffinityNG.  
+--></li
+      ><li
+      ><code
+	>createServerInputStream</code
+	> and <code
+	>IConnection</code
+	>: These elements of the single-threaded server interface were removed (asynchronous request handling migrated to the new communication stack).</li
+      ><li
+      >Several minor and major security improvements were made, including an upgrade to AES256, SHA256 etc.</li
+      ><li
+      >The URI prefix for built-in properties and other primitives in AffinityNG is <code
+	>http://affinityng.org/builtin/</code
+	> (as opposed to <code
+	>http://affinitydb.org/builtin/</code
+	> in AffinityDB).</li
+      ><li
+      >The SPARQL-style comment (<code
+	># comment</code
+	>) is no longer supported in pathSQL.</li
+      ><li
+      ><code
+	>PREFIX</code
+	>, <code
+	>SET BASE</code
+	> and <code
+	>SET PREFIX</code
+	>: The per-statement <code
+	>PREFIX</code
+	> was removed, and <code
+	>SET PREFIX</code
+	> and <code
+	>SET BASE</code
+	> now operate like a compiler directive (analogous to #define in C) rather than a statement, and can be prepended to any statement or group of statements (separated with a semicolon). Their scope is one interaction with AffinityNG (i.e. one REST request, one <code
+	>q</code
+	> call from a client library, or one <code
+	>IStmt::execute</code
+	> or <code
+	>ISession::execute</code
+	> call in C++). These changes participate in an effort to reduce per-session state to an absolute minimum.</li
+      ><li
+      ><code
+	>SELECT @ FROM ...</code
+	>: This form no longer selects a PIN's ID, but rather has the same effect as <code
+	>SELECT * FROM ...</code
+	>; to select the PIN's ID, one must now do <code
+	>SELECT afy:pinID FROM ...</code
+	>. Note also that <code
+	>SELECT afy:pinID</code
+	> no longer produces a reference in the JSON output (<code
+	>['afy:pinID']['$ref']</code
+	>), but rather a simple <code
+	>id</code
+	>.</li
+      ><li
+      ><code
+	>afy:ClassOfClasses</code
+	>: This special class was renamed to <code
+	>afy:Classes</code
+	>.</li
+      ><li
+      ><code
+	>afy:classID</code
+	>: This special property (aka <code
+	>PROP_SPEC_CLASSID</code
+	>) was replaced by the more general <code
+	>afy:objectID</code
+	>.</li
+      ><li
+      ><code
+	>afy:URI</code
+	>: This special property (aka <code
+	>PROP_SPEC_URI</code
+	>) was replaced by the more general <code
+	>afy:objectID</code
+	>.</li
+      ><li
+      ><code
+	>UPDATE ... FROM x</code
+	>: This form is no longer supported; it was replaced with <code
+	>UPDATE x ...</code
+	>.</li
+      ><li
+      >Full text indexing is no longer enabled by default; to reflect this, the <code
+	>META_PROP_NOFTINDEX</code
+	> flag was replaced by its opposite, <code
+	>META_PROP_FTINDEX</code
+	>.<!-- TODO: augment this when it also becomes true of class indexing... --></li
+      ><li
+      ><code
+	>PIN_NO_INDEX</code
+	> no longer exists; PINs to be hidden from normal queries can be marked as <code
+	>PIN_HIDDEN</code
+	>, but they may still be indexed.</li
+      ><li
+      ><code
+	>OP_REGEX</code
+	> no longer exists and was replaced by <code
+	>OP_SIMILAR</code
+	>, which now fully implements regular expressions, with conditions of this form: <code
+	>SELECT WHERE myproperty SIMILAR TO /.*something$/</code
+	>.<!-- TODO: activate when fully implemented
+ * Notifications have been formalized in such way that they are now sent only upon fully committed (i.e. topmost)
+   transactions, as opposed to leaking information during ongoing transactions. For the same reason,
+   the C++ method `IStoreNotification::txNotify` was removed.
+--></li
+      ><li
+      >In the C++ interface, <code
+	>openStore</code
+	> and <code
+	>createStore</code
+	> no longer return an opaque context pointer, but rather a pointer to a new interface named <code
+	>IAffinity</code
+	>. The <code
+	>shutdownStore</code
+	> function became <code
+	>IAffinity::shutdown</code
+	>, and a few new global methods were introduced for new functionality (e.g. service registration).</li
+      ><li
+      >In the C++ interface, <code
+	>createPIN</code
+	> and <code
+	>createUncommittedPIN</code
+	> changed names, for <code
+	>createPINAndCommit</code
+	> and <code
+	>createPIN</code
+	> (this is to reflect AffinityNG's preference for in-memory processing by default).</li
+      ><li
+      >The PIN's update stamp is now represented by an optional built-in property (<code
+	>afy:stamp</code
+	> aka PROP_SPEC_STAMP), and is no longer accessible via the C++ <code
+	>IPIN::getStamp</code
+	>. The <code
+	>afy:stamp</code
+	> property must be added explicitly at PIN creation, in the same manner as <code
+	>afy:updated</code
+	>, <code
+	>afy:created</code
+	> etc.</li
+      ><li
+      >In the C++ interface, <code
+	>Value::setPart</code
+	> is no longer available. A PIN can still be referenced as a &quot;part&quot; by setting the <code
+	>META_PROP_PART</code
+	> flag on that referencing property. Alternatively, <code
+	>VT_STRUCT</code
+	> (expressed in pathSQL with <code
+	>INSERT mystruct={field1='Value1', field2='Value2', ...}</code
+	>) can be used to hold structured parts even closer to the owning PIN.</li
+      ><li
+      >The output of <code
+	>SELECT HISTOGRAM(property) FROM ...</code
+	> changed slightly, and now contains an <code
+	>afy:aggregate</code
+	> property.</li
+      ><li
+      >The old <code
+	>ACL_READ</code
+	> and <code
+	>ACL_WRITE</code
+	> have become standard <code
+	>META_PROP_READ</code
+	> and <code
+	>META_PROP_WRITE</code
+	>.</li
+      ><li
+      ><code
+	>CLASS_CLUSTERED</code
+	> and <code
+	>CLASS_UNIQUE</code
+	> are no longer available.</li
+      ><li
+      >A few other rarely or never used <code
+	>META_PROP_*</code
+	> and <code
+	>PIN_*</code
+	> flags were removed.</li
+      ><li
+      >The usage of referencing (&amp;) and dereferencing (*) operators in pathSQL was simplified.<!-- TODO: review in detail the changes in path expressions, if the sum of them justifies it
+ * a.{*}.b -> a.*.b (?)
+-->
+</li
+      ></ul
+    ></div
+  ><div id="additions"
+  ><h2
+    >Additions</h2
+    ><!-- TODO: make sure all these things are linked to the sections that fully document them -->
+<ul
     ><li
-    >limitations with projections in JOIN and ORDER BY</li
+      >Event-handlers (written in pathSQL) can be attached to <a href="./terminology.html#class"
+	>classes</a
+	>. These handlers execute operations in response to events concerning the class they're attached to. For example, when a PIN becomes a member of a class, the statements contained by an <code
+	>afy:onEnter</code
+	> property will be executed. The handlers, through the statements that define them, have access to special context properties (e.g. <code
+	>@self</code
+	> and <code
+	>@class</code
+	>), referencing the PINs involved in the event.<!-- TODO: enable when exists
+ * A higher-level packaging framework allows to organize and compose [rules](./terminology.html#rule) from a directory of
+   [conditions](./terminology.html#condition) and [actions](./terminology.html#action), as commonly seen in business rule
+   engines and production systems.
+--></li
+      ><li
+      >A simple data and execution model is defined for <a href="./terminology.html#fsm"
+	>finite-state machines (FSMs)</a
+	>, proposed as an intuitive programming model to work with inter-related states and events (at practically any level of abstraction). FSMs provide precise scopes for the evaluation of events and conditions, as well as for the definition of complex events (CEP).<!-- TODO: finalize when ready... --></li
+      ><li
+      ><a href="./terminology.html#timer"
+	>Timer</a
+	> PINs can trigger events at regular time intervals.</li
+      ><li
+      ><a href="./terminology.html#communication-pin"
+	>Communication PINs</a
+	> allow to send data to (and receive from) external entities, such as other stores, devices, sensors, actuators etc. Communication PINs declare and configure the service stacks that correspond with the desired communication channels (e.g. socket, file, serial, zigbee, REST endpoints; various data transformations like URL or XML or JSON parsing).</li
+      ><li
+      >Loadable <a href="./terminology.html#service"
+	>services</a
+	> allow to augment AffinityNG with customized software components (for processing and messaging), that can participate in a communication PIN's service stack.</li
+      ><li
+      >Built-in services use the <code
+	>srv</code
+	> URI prefix, defined as <code
+	>http://affinityng.org/service/</code
+	>.</li
+      ><li
+      >A number of new options allow to <code
+	>INSERT</code
+	> multiple PINs in one statement:<ul
+	><li
+	  ><code
+	    >INSERT (a,b,c) VALUES (10,11,12), (20,21,22), ('30', '31', '32')</code
+	    ><br
+	     /></li
+	  ><li
+	  ><code
+	    >INSERT @{a=10, b=11, c=12}, @{a=20, b=21, c=22}, @{a='30', b='31', c='32'}</code
+	    ><br
+	     /></li
+	  ><li
+	  ><code
+	    >INSERT @:1 @{a=10, b=11, c=12, refs={@:3, @:2}}, @:2 @{a=20, b=21, c=22, refs={@:1, @:3}}, @:3 @{a='30', b='31', c='32', refs={@:1, @:2}}</code
+	    ><br
+	     /></li
+	  ><li
+	  ><code
+	    >INSERT @:1 mylist={(INSERT @:2 mymember=1, myparent=@:1, mysibling=@:3), (INSERT @:3 mymember=2, myparent=@:1, mysibling=@:2)}</code
+	    ><br
+	     /></li
+	  ></ul
+	></li
+      ><li
+      >The <a href="./terminology.html#structure"
+	><code
+	  >VT_STRUCT</code
+	  ></a
+	> data type, introduced in AffinityDB though incomplete, is now fully operational and provides finer control for data modeling.</li
+      ><li
+      >A new <code
+	>VT_ENUM</code
+	> data type allows to declare symbolic enumerations of inter-related values, and then use them instead of literal constants (for better expressiveness and control):<ul
+	><li
+	  ><code
+	    >CREATE ENUMERATION PAINT_COLORS AS {'RED', 'GREEN', 'BLUE', 'ORANGE'}</code
+	    ><br
+	     /></li
+	  ><li
+	  ><code
+	    >INSERT car_color=PAINT_COLORS#ORANGE</code
+	    ><br
+	     /></li
+	  ><li
+	  ><code
+	    >UPDATE * SET repaint=PAINT_COLORS#RED WHERE car_color=PAINT_COLORS#ORANGE</code
+	    ><br
+	     /></li
+	  ></ul
+	></li
+      ><li
+      >A new <a href="./terminology.html#map"
+	><code
+	  >VT_MAP</code
+	  ></a
+	> data type allows to store dictionaries (associative arrays) as properties of a PIN (keys are not limited to symbolic values, can be of any data type, and can be much more numerous than the number of properties on a PIN)</li
+      ><li
+      ><code
+	>SELECT MEMBERSHIP(@) FROM ...</code
+	> returns all the class memberships of selected PINs in one go. It can be considered as a complement of the <code
+	>IS A</code
+	> condition (already available in AffinityDB).</li
+      ><li
+      >It is now possible to perform constraint checks at insertion, with the form <code
+	>INSERT INTO myclass myproperty1='a', myproperty2='b', ...</code
+	>. This will only insert the new specified PIN if it complies with the predicate of <code
+	>myclass</code
+	>.</li
+      ><li
+      >The <code
+	>CREATE</code
+	> syntax now supports an additional <code
+	>SET</code
+	> clause, allowing to add additional properties beyond the standard templates for classes, timers, listeners etc.</li
+      ><li
+      >The <code
+	>createPIN</code
+	><!-- TODO: something about in-memory classes etc. (all non-persistent active stuff) -->
+<!-- TODO: something about UNIQUE and IDEMPOTENT, when ready -->
+<!-- TODO: aggregate, sliding window etc. -->
+<!-- TODO: undo feature, when available --></li
+      ><li
+      >It's now possible to <code
+	>INSERT SELECT ...</code
+	>, e.g. to insert a result obtained via communication PINs, or to duplicate and transform existing PINs.</li
+      ><li
+      >The HMAC computations on pages were made optional, due to their computational cost and lesser relevance in some contexts.</li
+      ><li
+      >Reflecting all the new functionality, a blank AffinityNG store comes with more built-in classes (not only <code
+	>afy:Classes</code
+	>, but also <code
+	>afy:Timers</code
+	>, <code
+	>afy:Listeners</code
+	> etc.)</li
+      ><li
+      ><code
+	>PIN_IMMUTABLE</code
+	> and <code
+	>META_PROP_IMMUTABLE</code
+	>: It is now possible to create PINs and properties that cannot be modified. This is useful for recurrent measurements (e.g. sensor readings). By relieving the kernel from watching changes on those values, AffinityNG can handle a higher volume and flow rate of incoming data.</li
+      ><li
+      >It's now possible to extract the fractional part of timestamps with <code
+	>EXTRACT(FRACTIONAL FROM myprop)</code
+	>.</li
+      ><li
+      ><code
+	>GROUP BY</code
+	> can now be used in combination with <code
+	>SELECT HISTOGRAM</code
+	>, thus providing complex data summaries at the tip of the programmer's fingers; e.g. <code
+	>SELECT HISTOGRAM(age) FROM ... GROUP BY age/10</code
+	>.</li
+      ><li
+      >Trigonometric functions were added to the set of core operators (e.g. <code
+	>INSERT y=SIN(3.14159265 / 4)</code
+	>).</li
+      ><li
+      >The pathSQL parser now accepts multiple <code
+	>WHERE</code
+	> clauses in <code
+	>SELECT</code
+	>.</li
+      ><li
+      >More hardware platforms and operating systems are now supported (including older versions of ARM processors, android, iOS etc.)</li
+      ><li
+      >XCode projects were added for OSX, as a convenient alternative for cmake projects.</li
+      ></ul
+    ></div
+  ><div id="limitations"
+  ><h2
+    >Limitations</h2
+    ><p
+    >The following limitations are part of the alpha release of AffinityNG.</p
+    ><ul
     ><li
-    >limitations with nested JOIN (bug 183)</li
-    ><li
-    >limitations with path expressions in clauses other than FROM</li
-    ><li
-    >limitations with projections in path expressions</li
-    ><li
-    >limitations related with introspection of a class's properties</li
-    ><li
-    >can't insert cyclic graphs in a single statement, with protobuf and pathSQL (bug 173)</li
-    ><li
-    >SELECT COUNT with protobuf (bug 249)</li
-    ><li
-    >the function to rebuild full-text indexes is disabled (bug 130)</li
-    ><li
-    >inconsistencies when dropping classes (bug 131)</li
-    ><li
-    >incompleteness of OP_CONCAT (bug 152)</li
-    ><li
-    >server clean shutdown (bug 200)</li
-    ><li
-    >weak support for uniqueness during insert (bug 166)</li
-    ><li
-    >a few marginal memory leaks</li
-    ></ul
+      >Most of the <a href="./terminology.html#service"
+	>services</a
+	> are incomplete and not yet fully documented.</li
+      ><li
+      >The security &amp; privacy models for communications are not yet available.</li
+      ><li
+      ><a href="./terminology.html#fsm"
+	>FSMs</a
+	>, <a href="./terminology.html#communication-pin"
+	>communication</a
+	>, and the synergy between them are still young and may expose bugs. Your contribution in reporting issues (via github) would be very appreciated.</li
+      ><li
+      >Pre-built platform-specific packages are not yet polished or readily available.</li
+      ><li
+      >Path expressions in pathSQL have important limitations (e.g. mostly available in FROM, limitations related to <a href="./terminology.html#structure"
+	>structures</a
+	> and <a href="./terminology.html#map"
+	>maps</a
+	>, etc.</li
+      ><li
+      >AffinityNG is moving toward a transient-first approach (as opposed to its ancestor AffinityDB, which favored the more traditional database approach with persistent-first objects); this evolution may not be completely accomplished in the alpha release.</li
+      ><li
+      >JSON parsing is not yet supported.</li
+      ><li
+      >Dump&amp;load and replication not fully implemented.</li
+      ><li
+      >There are limitations with projections in JOIN.</li
+      ><li
+      >Support for uniqueness during insert is not yet complete.</li
+      ><li
+      >The current implementation of the <a href="./terminology.html#server"
+	>server</a
+	> is phasing out and will soon be replaced with tiny platform-specific daemons using generic <a href="./terminology.html#service"
+	>services</a
+	>.</li
+      ></ul
+    ></div
   ></div
 >
 </div>

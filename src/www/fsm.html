@@ -1,0 +1,73 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link href='css/fsm.css' rel='stylesheet' type='text/css' />
+  <script src='js/jquery.js' type='text/javascript'></script>
+  <script src='js/persist-min.js' type='text/javascript'></script>
+  <script src='js/afycommon.js' type='text/javascript'></script>
+  <script src='js/afywidgets.js' type='text/javascript'></script>
+  <script src='js/fsm.js' type='text/javascript'></script>
+  <title>FSM</title>
+</head>
+<body>
+
+<div id='content'>
+  <div id='fsm_query_spec'>
+    <input id='fsm_query' name='fsm_query'></input>
+    <button id='fsm_querygo'> go </button>
+  </div>
+  <div id='fsm_area_c'>
+    <canvas id='fsm_area'>
+    </canvas>
+  </div>
+  <div id='fsm_status'>
+  </div>
+</div>
+
+<div id='thedialogs'>
+  <div id='dlg_new_state'>
+    <div>
+      <p>New State's Name</p>
+      <input id='dlg_ns_name'></input>
+      <br><br>
+      <button id='dlg_ns_ok'>OK</button>
+      <button id='dlg_ns_cancel'>Cancel</button>
+    </div>
+  </div>
+  <div id='dlg_new_transition'>
+    <div>
+      <p style='width:100%; text-align:center;'>New Transition</p>
+      <p>Condition</p>
+      <input id='dlg_nt_condition'></input>
+      <p>Action</p>
+      <input id='dlg_nt_action'></input>
+      <br><br>
+      <button id='dlg_nt_ok'>OK</button>
+      <button id='dlg_nt_cancel'>Cancel</button>
+    </div>
+  </div>
+  <div id='dlg_remove_transition'>
+    <div>
+      <p style='width:100%; text-align:center;'>Disconnect <span id='dlg_rt_what'></span></p>
+      <p>From</p>
+      <select id='dlg_rt_from'></select>
+      <br><br>
+      <button id='dlg_rt_ok'>OK</button>
+      <button id='dlg_rt_cancel'>Cancel</button>
+    </div>
+  </div>
+</div>
+<div id='thetooltip'>tooltip</div>
+<div id='thetooltiptable'></div>
+<div id='themenutable'>
+  <div id='other'>
+    <div id='tool_edit'>edit</div>
+    <div id='tool_connect'>connect</div>
+    <div id='tool_insert'>insert</div>
+    <div id='tool_delete'>delete</div>
+  </div>
+</div>
+
+</body>
+</html>

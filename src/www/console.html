@@ -1,10 +1,12 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
 <head>
+  <meta charset="UTF-8">
   <link href='css/affinity.css' rel='stylesheet' type='text/css' />
   <script src='js/jquery.js' type='text/javascript'></script>
   <script src='js/persist-min.js' type='text/javascript'></script>
   <script src='js/afycommon.js' type='text/javascript'></script>
+  <script src='js/afywidgets.js' type='text/javascript'></script>
   <script src='js/affinity.js' type='text/javascript'></script>
   <script type="text/javascript">
     // google analytics
@@ -28,8 +30,10 @@
       <li><a href="#tab-tutorial"><img src='images/tutorial.png'></a></li>
       <li><a href="#tab-basic"><img src='images/basic.png'></a></li>
       <li><a href="#tab-batching"><img src='images/batch.png'></a></li>
+      <li><a href="#tab-fsm"><img src='images/fsm.png'></a></li>
       <li><a href="#tab-map"><img src='images/map.png'></a></li>
       <li><a href="#tab-histogram"><img src='images/histo.png'></a></li>
+      <li><a href="#tab-ruleassistant"><img src='images/ruleassistant.png'></a></li>
       <li><a href="#tab-queryhistory"><img src='images/history.png'></a></li>
       <li><a href="#tab-config"><img src='images/config.png'></a></li>
     </ul>
@@ -111,11 +115,21 @@
           <br>
           <p>h: print the help</p>
           <p>t: start the interactive tutorial</p>
-          <p>... and don't hesitate to visit the <a href='doc/intro.html'>documentation</a>, check out this short <a href='doc/presentations/p_nutshell/nutshell.html'>presentation</a>, or <a href='doc/getting%20started.html#setup'>install</a>!</p> 
+          <p>... and don't hesitate to visit the <a href='doc/intro.html'>documentation</a>, check out this short <a href='promo/ddos.html'>presentation</a>, or <a href='doc/getting%20started.html#setup'>install</a>!</p> 
           <br>
         </div>
         <div id='tutorial_input_line'>&gt;<input id='tutorial_input' /></div>
       </div>
+    </div>
+  </div>
+  <!-- FSM -->
+  <div id="tab-fsm">
+    <div id='content_title'>
+      <img src='images/affinityheader.png' id='title_img'></img>
+      <div id='title_text'>FSM</div>
+    </div>
+    <div id='fsm_left'>
+      <iframe id='fsm_iframe' src='fsm.html'></iframe>
     </div>
   </div>
   <!-- Map/Graph -->
@@ -151,6 +165,16 @@
       </div>
     </div>
   </div>
+  <!-- Rule Programming Assistant -->
+  <div id="tab-ruleassistant">
+    <div id='content_title'>
+      <img src='images/affinityheader.png' id='title_img'></img>
+      <div id='title_text'>Programming Assistant</div>
+    </div>
+    <div id='ra_left'>
+      <iframe id='ra_iframe' src='ruleassistant.html'></iframe>
+    </div>
+  </div>
   <!-- Query History -->
   <div id="tab-queryhistory">
     <div id='content_title'>
@@ -182,8 +206,8 @@
 </div>
 
 <div id='generic_footer'>
-  <!-- <img src='images/affinityfooter.png' id='footer_img' class='horizontally_centered'></img> -->
-  <div id='footer_text'>&copy; 2012 VMware, Inc. All rights reserved.</div>
+  <!-- <img src='images/affinityfooter.jpg' id='footer_img' class='horizontally_centered'></img> -->
+  <div id='footer_text'>&copy; 2013 GoPivotal, Inc. All rights reserved.</div>
 </div>
 
 <!--
@@ -196,8 +220,10 @@
     <div id='tooltip_tab-basic'>Basic Console</div>
     <div id='tooltip_tab-batching'>Batching Console</div>
     <div id='tooltip_tab-tutorial'>Interactive Tutorial</div>
+    <div id='tooltip_tab-fsm'>FSM</div>
     <div id='tooltip_tab-map'>2D-Map</div>
     <div id='tooltip_tab-histogram'>Histogram</div>
+    <div id='tooltip_tab-ruleassistant'>Rule Programming Assistant</div>
     <div id='tooltip_tab-queryhistory'>Query History</div>
     <div id='tooltip_tab-config'>Configuration &amp; Administration</div>
   </div>
@@ -219,7 +245,7 @@
   <div id='menu_query'>
     <div id='menuitem_query_pin'>Query PIN (SELECT FROM @...)</div>
     <div id='menuitem_query_class'>Query Class (SELECT FROM ...)</div>
-    <div id='menuitem_query_all'>Query All PINs (SELECT *)</div>
+    <div id='menuitem_query_all'>Query All PINs (SELECT RAW *)</div>
     <div id='menuitem_query_classft'>Query Class With Full-Text</div>
     <div id='menuitem_query_classjoin'>Query Class Join</div>
     <div id='menuitem_query_insertpin'>Insert PIN</div>
@@ -342,7 +368,7 @@
       <div>&nbsp;</div>
       <div class='tutorial_step'>pins = q("SELECT afy:pinID FROM workers;");</div>
       <div class='tutorial_step'>pickFriend = function() { return Math.floor(Math.random() * pins.length); };</div>
-      <div class='tutorial_step'>statements = []; for (i = 0; i &lt; (3 * pins.length / 2); i++) { from = pins[pickFriend()]['afy:pinID']['$ref']; to = pins[pickFriend()]['afy:pinID']['$ref']; if (from != to) statements.push("UPDATE @" + from + " ADD friends=@" + to + " WHERE (NOT (@" + to + " = friends));"); }</div>
+      <div class='tutorial_step'>statements = []; for (i = 0; i &lt; (3 * pins.length / 2); i++) { from = pins[pickFriend()].id; to = pins[pickFriend()].id; if (from != to) statements.push("UPDATE @" + from + " ADD friends=@" + to + " WHERE (NOT (@" + to + " = friends));"); }</div>
       <div class='tutorial_step'>q("START TRANSACTION;");</div>
       <div class='tutorial_step'>for (i = 0; i &lt; statements.length; i++) { q(statements[i]); }</div>
       <div class='tutorial_step'>q("COMMIT;");</div>
@@ -355,7 +381,7 @@
       <div class='tutorial_step'>makes=['Audi', 'Bentley', 'DaimlerChrysler', 'Ferrari', 'GM', 'Honda', 'Jaguar', 'KIA', 'Lamborghini', 'Maserati', 'Nissan', 'Porsche', 'Rolls-Royce', 'Suzuki', 'Toyota', 'Volvo'];</div>
       <div class='tutorial_step'>pins = q("SELECT afy:pinID FROM workers;");</div>
       <div class='tutorial_step'>pickFrom = function(array) { return array[Math.floor(Math.random() * array.length)]; };</div>
-      <div class='tutorial_step'>statements = []; for (i = 0; i &lt; pins.length; i++) { statements.push("UPDATE @" + pickFrom(pins)['afy:pinID']['$ref'] + " ADD cars=(INSERT car_make='" + pickFrom(makes) + "', color='" + pickFrom(colors) + "', year='" + (1950 + Math.floor(Math.random() * 62)) + "');"); }</div>
+      <div class='tutorial_step'>statements = []; for (i = 0; i &lt; pins.length; i++) { statements.push("UPDATE @" + pickFrom(pins).id + " ADD cars=(INSERT car_make='" + pickFrom(makes) + "', color='" + pickFrom(colors) + "', year='" + (1950 + Math.floor(Math.random() * 62)) + "');"); }</div>
       <div class='tutorial_step'>q("START TRANSACTION;");</div>
       <div class='tutorial_step'>for (i = 0; i &lt; statements.length; i++) { q(statements[i]); }</div>
       <div class='tutorial_step'>q("COMMIT;"); print("&lt;br&gt;");</div>
@@ -380,19 +406,20 @@
       <div>They can be useful to connect relational schema with graphs.</div>
       <div>&nbsp;</div>
       <div class='tutorial_step'>q("SELECT * FROM cars AS c JOIN workers(['d', 'n']) AS w ON (c.afy:pinID = w.cars) WHERE (c.year IN [1980, 2000]);");</div>
-      <!-- <div class='tutorial_step'>q("SELECT c.car_make, c.color, c.year, w.name FROM cars AS c JOIN workers(['d', 'n']) AS w ON (c.afy:pinID = w.cars) WHERE (c.year IN [1980, 2000]);");</div> -->
+      <div class='tutorial_step'>q("SELECT c.car_make, c.color, c.year, w.name, w.profession FROM cars AS c JOIN workers(['d', 'n']) AS w ON (c.afy:pinID = w.cars) WHERE (c.year IN [1980, 2000]);");</div>
     </div>
-    <!-- <div id='step12'>
+    <div id='step12'>
       <div>Step 12</div>
-      <div>To finish, let's have a quick look at Affinity's integrated units of measurement.</div>
+      <div>To finish, let's have a quick look at Affinity's integrated units of measurement, and histograms.</div>
       <div>&nbsp;</div>
+      <div class='tutorial_step'>q("SELECT HISTOGRAM(CAST(age AS INT)/10) WHERE EXISTS(age) GROUP BY CAST(age AS INT)/10");</div>
       <div class='tutorial_step'>people = q("SELECT * FROM people;");</div>
       <div class='tutorial_step'>statements = []; for (i = 0; i &lt; people.length; i++) { infeet = (Math.random() > 0.5); statements.push("UPDATE @" + people[i].id + " ADD height=" + (infeet ? (4.5 + Math.random() * 2.5) : (1.5 + Math.random() * 0.5)) + (infeet ? "ft" : "m") + ";"); }</div>
       <div class='tutorial_step'>q("START TRANSACTION;");</div>
       <div class='tutorial_step'>for (i = 0; i &lt; statements.length; i++) { q(statements[i]); }</div>
       <div class='tutorial_step'>q("COMMIT;");</div>
-      <div class='tutorial_step'>q("SELECT name, height FROM workers ORDER BY height;")</div>
-    </div> -->
+      <div class='tutorial_step'>q("SELECT name, CAST(height AS ft) FROM workers ORDER BY height;")</div>
+    </div>
   </div>
   <div id='restart'>End of tutorial.<br>Type t to restart.<br>Or check out the 'Basic Console', 'Histogram' and '2D-Map' tabs, for more fun (watch out for tooltips!).<br>Or go and <a href='doc/getting%20started.html#setup'>install</a> Affinity!</div>
 </div>

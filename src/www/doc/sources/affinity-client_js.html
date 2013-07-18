@@ -7,7 +7,7 @@
 
 <!-- begin highlighted code -->
 <div class="highlight"><pre><span class="cm">/*</span>
-<span class="cm">Copyright (c) 2004-2012 VMware, Inc. All Rights Reserved.</span>
+<span class="cm">Copyright (c) 2004-2013 GoPivotal, Inc. All Rights Reserved.</span>
 
 <span class="cm">   Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
 <span class="cm">   you may not use this file except in compliance with the License.</span>
@@ -364,11 +364,13 @@
   <span class="p">{</span>
     <span class="nx">console</span><span class="p">.</span><span class="nx">log</span><span class="p">(</span><span class="k">new</span> <span class="nb">Error</span><span class="p">().</span><span class="nx">stack</span><span class="p">);</span>
   <span class="p">}</span>
+  <span class="kd">var</span> <span class="nx">SAVED_PB_IDX</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
   <span class="kd">function</span> <span class="nx">dbg_savePBStr</span><span class="p">(</span><span class="nx">_pMsgStr</span><span class="p">)</span> <span class="c1">// Similar to affinity.py.</span>
   <span class="p">{</span>
-    <span class="nx">_lF</span> <span class="o">=</span> <span class="nx">lib_fs</span><span class="p">.</span><span class="nx">openSync</span><span class="p">(</span><span class="s2">&quot;/tmp/myproto.bin&quot;</span><span class="p">,</span> <span class="s2">&quot;w+&quot;</span><span class="p">);</span>
+    <span class="nx">_lF</span> <span class="o">=</span> <span class="nx">lib_fs</span><span class="p">.</span><span class="nx">openSync</span><span class="p">(</span><span class="s2">&quot;/tmp/myproto.bin.&quot;</span> <span class="o">+</span> <span class="nx">SAVED_PB_IDX</span><span class="p">,</span> <span class="s2">&quot;w+&quot;</span><span class="p">);</span>
     <span class="nx">lib_fs</span><span class="p">.</span><span class="nx">writeSync</span><span class="p">(</span><span class="nx">_lF</span><span class="p">,</span> <span class="nx">_pMsgStr</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="nx">_pMsgStr</span><span class="p">.</span><span class="nx">length</span><span class="p">,</span> <span class="mi">0</span><span class="p">);</span>
     <span class="nx">lib_fs</span><span class="p">.</span><span class="nx">close</span><span class="p">(</span><span class="nx">_lF</span><span class="p">);</span>
+    <span class="nx">SAVED_PB_IDX</span> <span class="o">+=</span> <span class="mi">1</span><span class="p">;</span>
   <span class="p">}</span>
 
   <span class="c1">// Protobuf: transaction context (similar to affinity.py).</span>
@@ -581,6 +583,7 @@
   <span class="p">}</span>
   <span class="nx">private_TxCtx</span><span class="p">.</span><span class="nx">prototype</span><span class="p">.</span><span class="nx">_pushData_impl</span> <span class="o">=</span> <span class="kd">function</span><span class="p">(</span><span class="nx">_pMsgSer</span><span class="p">)</span>
   <span class="p">{</span>
+    <span class="c1">// dbg_savePBStr(_pMsgSer);</span>
     <span class="k">if</span> <span class="p">(</span><span class="kc">undefined</span> <span class="o">==</span> <span class="k">this</span><span class="p">.</span><span class="nx">mLongHttp</span><span class="p">)</span>
     <span class="p">{</span>
       <span class="kd">var</span> <span class="nx">_lThis</span> <span class="o">=</span> <span class="k">this</span><span class="p">;</span>
@@ -1026,6 +1029,7 @@
       <span class="kd">var</span> <span class="nx">__lParser</span> <span class="o">=</span> <span class="k">new</span> <span class="nx">private_PBResponseParser</span><span class="p">(</span><span class="nx">__pR</span><span class="p">);</span>
       <span class="nx">pCallback</span><span class="p">(</span><span class="kc">null</span><span class="p">,</span> <span class="p">(</span><span class="nx">pPINs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">instanceof</span> <span class="nx">private_PINUpdate</span><span class="p">)</span> <span class="o">?</span> <span class="nx">__lParser</span><span class="p">.</span><span class="nx">finalizeUpdates</span><span class="p">(</span><span class="nx">pPINs</span><span class="p">)</span> <span class="o">:</span> <span class="nx">__lParser</span><span class="p">.</span><span class="nx">finalizeCreates</span><span class="p">(</span><span class="nx">pPINs</span><span class="p">));</span>
     <span class="p">}</span>
+    <span class="c1">// dbg_savePBStr(pMsgSer);</span>
     <span class="k">return</span> <span class="nx">private_http</span><span class="p">(</span><span class="nx">lUri</span><span class="p">.</span><span class="nx">pathname</span> <span class="o">+</span> <span class="s2">&quot;?i=proto&amp;o=proto&quot;</span><span class="p">,</span> <span class="nx">pMsgSer</span><span class="p">,</span> <span class="nx">_lOnPBResult</span><span class="p">);</span>
   <span class="p">}</span>
   <span class="c1">// Static helper to serialize the descriptions/updates to a buffer in PB format, ready to be sent to Affinity.</span>
@@ -1860,7 +1864,7 @@
           <span class="kd">function</span><span class="p">()</span>
           <span class="p">{</span>
             <span class="nx">pathsql</span><span class="p">(</span>
-              <span class="s2">&quot;SELECT * WHERE @ IN (@&quot;</span> <span class="o">+</span> <span class="nx">__pObj</span><span class="p">[</span><span class="nx">PROP_JS_PROTOTYPE</span><span class="p">][</span><span class="s2">&quot;$ref&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;,@&quot;</span> <span class="o">+</span> <span class="nx">__pObj</span><span class="p">[</span><span class="nx">PROP_JS_CONSTRUCTOR</span><span class="p">][</span><span class="s2">&quot;$ref&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;)&quot;</span><span class="p">,</span>
+              <span class="s2">&quot;SELECT * WHERE afy:pinID IN (@&quot;</span> <span class="o">+</span> <span class="nx">__pObj</span><span class="p">[</span><span class="nx">PROP_JS_PROTOTYPE</span><span class="p">][</span><span class="s2">&quot;$ref&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;,@&quot;</span> <span class="o">+</span> <span class="nx">__pObj</span><span class="p">[</span><span class="nx">PROP_JS_CONSTRUCTOR</span><span class="p">][</span><span class="s2">&quot;$ref&quot;</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;)&quot;</span><span class="p">,</span>
               <span class="kd">function</span><span class="p">(</span><span class="nx">___pE</span><span class="p">,</span> <span class="nx">___pR</span><span class="p">)</span>
               <span class="p">{</span>
                 <span class="k">if</span> <span class="p">(</span><span class="nx">___pE</span><span class="p">)</span> <span class="p">{</span> <span class="nx">_pCallback</span><span class="p">(</span><span class="nx">___pE</span><span class="p">,</span> <span class="kc">null</span><span class="p">);</span> <span class="k">return</span><span class="p">;</span> <span class="p">}</span>
@@ -1937,6 +1941,9 @@
   <span class="p">};</span>
   <span class="k">return</span> <span class="nx">lConnection</span><span class="p">;</span>
 <span class="p">}</span>
+
+<span class="c1">// TODO: add a guard to the public interface, to warn against attempting to do concurrent things in a connection</span>
+<span class="c1">// TODO: in keepalive mode, should better integrate pure pathSQL transactions with startTx-commitTx (Ming&#39;s argument).</span>
 </pre></div>
 <!-- end highlighted code -->
 

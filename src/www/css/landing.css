@@ -1,13 +1,15 @@
+@font-face { font-family:blueprint; src:local('Helvetica'); /*commenting out for now: weird/slow behavior on the mac especially*//*src:url('FFF_Tusj.ttf');*/ }
 body { font-family:Helvetica; margin:0; font-size:0.8em; background-color:#e4e4e4; overflow:hidden; }
 .horizontally_centered { display:block; margin-left:auto; margin-right:auto; }
-.button_highlighted { opacity:0.7; cursor:pointer; }
-.button_highlighted_text { color:#000; cursor:pointer; }
+.button_highlighted { opacity:0.9; cursor:pointer; }
+.button_highlighted_text { color:#fff; cursor:pointer; }
+.button_highlighted_subtext { background-color:#fff; cursor:pointer; }
 
 #width_constraint { top:0; width:960px; }
 
 #generic_header { position:relative; top:3px; left:0; width:100%; height:20px; margin:0; }
 #title { position:relative; top:10px; left:0; width:100%; }
-#topics { position:relative; top:25px; left:0; width:100%; height:180px; left:0; color:#335; }
+#topics { position:relative; top:25px; left:0; width:100%; height:180px; }
 #generic_footer { position:relative; top:10px; left:0; width:100%; margin:0; text-align:center; }
 
 #gh_logo { float:left; margin-left:5px; }
@@ -15,21 +17,19 @@ body { font-family:Helvetica; margin:0; font-size:0.8em; background-color:#e4e4e
 #gh_links { float:right; margin-right:5px; }
 
 #title_img { width:100%; border:none; }
-#title_text { position:absolute; left:0; top:0; width:100%; height:100%; text-align:center; }
-#title_text_main { position:relative; top:100px; font-size:5em; }
-#title_text_sub { position:relative; top:200px; left:30px; font-size:1.0em; }
+#title_prerelease { position:absolute; right:20px; bottom:10px; font-size:2.2em; font-family:blueprint; color:#000; letter-spacing:1px; z-index:100; }
 
 #doc { position:relative; left:0; top:0; width:303px; height:100%; }
-#doc_button_text { position:absolute; left:0; top:30px; width:100%; height:100%; text-align:center; font-size:1.7em; }
+#doc_button_text { position:absolute; left:0; top:25px; width:100%; text-align:center; font-family:blueprint; font-size:2.2em; letter-spacing:1px; }
 #doc_text { margin-top:5px; margin-left:5px; text-align:justify; }
 
-#console { position:absolute; left:325px; top:0; width:303px; height:100%; }
-#console_button_text { position:absolute; left:0; top:30px; width:100%; height:100%; text-align:center; font-size:1.7em; }
+#console { position:absolute; left:328px; top:0; width:303px; height:100%; }
+#console_button_text { position:absolute; left:0; top:25px; width:100%; text-align:center; font-family:blueprint; font-size:2.2em; letter-spacing:1px; }
 #console_text { margin-top:5px; margin-left:5px; text-align:justify; }
 
 #contact { position:absolute; right:0; top:0; width:303px; height:100%; }
-#contact_button_text { position:absolute; left:0; top:30px; width:100%; height:100%; text-align:center; font-size:1.7em; }
+#contact_button_text { position:absolute; left:0; top:25px; width:100%; text-align:center; font-family:blueprint; font-size:2.2em; letter-spacing:1px; }
 #contact_text { margin-top:5px; margin-left:5px; text-align:justify; }
 
-#footer_img { width:100%; border:none; }
-#footer_text { position:absolute; left:0; top:14px; width:100%; font-size:0.8em; }
+#footer_img { width:100%; border:none; bottom:0; }
+#footer_text { position:absolute; right:20px; top:10px; width:100%; font-size:1em; font-style:italic; text-align:right; color:#fff; }

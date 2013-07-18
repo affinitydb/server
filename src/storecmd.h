@@ -1,6 +1,6 @@
 /* -*- Mode: C; c-file-style: "stroustrup"; indent-tabs-mode:nil; -*- */
 /*
-Copyright (c) 2004-2012 VMware, Inc. All Rights Reserved.
+Copyright (c) 2004-2013 GoPivotal, Inc. All Rights Reserved.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.

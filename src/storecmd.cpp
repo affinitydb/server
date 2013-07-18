@@ -1,6 +1,6 @@
 /* -*- Mode: C; c-file-style: "stroustrup"; indent-tabs-mode:nil; -*- */
 /*
-Copyright (c) 2004-2012 VMware, Inc. All Rights Reserved.
+Copyright (c) 2004-2013 GoPivotal, Inc. All Rights Reserved.
 
    Licensed under the Apache License, Version 2.0 (the "License");
    you may not use this file except in compliance with the License.
@@ -15,22 +15,29 @@ License for the specific language governing permissions and limitations
 under the License.
 */
 
+#ifdef WIN32
+    #define WIN32_LEAN_AND_MEAN
+#endif
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <ctype.h>
 #if !defined(Darwin)
-#include <malloc.h>
+    #include <malloc.h>
+#else
+    #include <libproc.h>
 #endif
 #include <errno.h>
 #include "affinity.h"
 #include "startup.h"
 #include "storenotifier.h"
+#include "storebuiltinservices.h"
 #include "portability.h"
 #include "intr.h"
 #include "storecmd.h"
 #include <vector>
 
-using namespace AfyDB;
+using namespace Afy;
 
 const char* storedir = NULL;
 const char* const default_storeident = "test"; 
@@ -47,9 +54,10 @@ const char* const default_storeident = "test";
  */
 class AffinityStoresMgr {
 public:
+    typedef IAffinity* AfyCtx;
     class AffinityInstance {
     protected:
-        AfyDBCtx storeCtx;
+        IAffinity * storeCtx;
         MainNotificationHandler* notificationHandler;
         std::string userName;
         long volatile useCount;
@@ -60,6 +68,22 @@ public:
             StartupParameters params;
             std::string lStoreDir;
             params.directory = getStoreDir( pUserName, lStoreDir );
+            #ifndef WIN32
+              // Note:
+              //   Presently the kernel loads service dlls from the executable's directory by default on windows,
+              //   but not on linux/OSX (where it uses getcwd instead).  At least for the time being, I prefer to make this uniform here,
+              //   e.g. for doc snippets.
+              char lExeDir[ 2048 ];
+              #ifdef Darwin
+                proc_pidpath( getpid(), lExeDir, sizeof(lExeDir) );
+              #else
+                readlink( "/proc/self/exe", lExeDir, sizeof(lExeDir) );
+              #endif
+              char * lExeDirLastSlash = strrchr( lExeDir, '/' );
+              if ( lExeDirLastSlash && 1 + size_t(lExeDirLastSlash - lExeDir) < sizeof(lExeDir) )
+                *( lExeDirLastSlash + 1 ) = 0;
+              params.serviceDirectory = lExeDir;
+            #endif
             ensuredir( params.directory );
             params.password = ( pUserPw && strlen( pUserPw ) > 0 ) ? pUserPw : NULL;
             notificationHandler = new MainNotificationHandler();
@@ -74,18 +98,22 @@ public:
                 create_params.pageSize = 32768; // Note: Don't take chances with default...
                 res = createStore( create_params, params, storeCtx );
                 if ( res != RC_OK ) {
-                    LOG_LINE(kLogError, "affinity error %d", res);
+                    LOG_LINE(kLogError, "createStore: affinity error %d", res);
                 }
             }
+            res = afy_regBuiltinServices( storeCtx );
+            if ( RC_OK != res ) {
+                LOG_LINE(kLogError, "afy_regBuiltinServices: affinity error %d", res);
+            }
         }
-        AffinityInstance( void * pStoreCtx ) : storeCtx( ( AfyDBCtx )pStoreCtx ), useCount( 0 ), bAfyEngine( 1 ) {}
-        ~AffinityInstance() { if ( !bAfyEngine ) { shutdownStore( storeCtx ); } delete notificationHandler; }
+        AffinityInstance( void * pStoreCtx ) : storeCtx( ( AfyCtx )pStoreCtx ), useCount( 0 ), bAfyEngine( 1 ) {}
+        ~AffinityInstance() { if ( !bAfyEngine ) { storeCtx->shutdown(); } delete notificationHandler; }
     public:
         long refcount() { return useCount; }
         long addref() { return InterlockedIncrement( &useCount ); }
         long release() { return InterlockedDecrement( &useCount ); }
         char const * getUserName() const { return userName.c_str(); }
-        AfyDBCtx getStoreCtx() const { return storeCtx; }
+        AfyCtx getStoreCtx() const { return storeCtx; }
         MainNotificationHandler * getNotificationHandler() const { return notificationHandler; }
     public:
         static char const * getStoreDir( char const * pUserName, std::string & pResult )
@@ -113,7 +141,7 @@ public:
     // beginUseInstance - endUseInstance
     // This interface sets up the caller to facilitate on-demand load/unload later on;
     // allows recursion.
-    AfyDBCtx beginUseInstance( char const * pUserName, char const * pUserPw, bool pAutoCreate ) {
+    AfyCtx beginUseInstance( char const * pUserName, char const * pUserPw, bool pAutoCreate ) {
         if ( !pUserName ) {
             pUserName = default_storeident;
         }
@@ -129,21 +157,21 @@ public:
         lInst->addref();
         return lInst->getStoreCtx();
     }
-    AfyDBCtx beginUseInstance( void * pStoreCtx ) {
-        AffinityInstance * lInst = findByStore( ( AfyDBCtx )pStoreCtx );
+    AfyCtx beginUseInstance( void * pStoreCtx ) {
+        AffinityInstance * lInst = findByStore( ( AfyCtx )pStoreCtx );
         if ( !lInst ) {
             MutexP const lLock( &creationLock ); // At this stage, only newcomers will block each other.
-            lInst = findByStore( ( AfyDBCtx )pStoreCtx );
+            lInst = findByStore( ( AfyCtx )pStoreCtx );
             if ( !lInst ) {
-                lInst = new AffinityInstance( ( AfyDBCtx )pStoreCtx );
+                lInst = new AffinityInstance( ( AfyCtx )pStoreCtx );
                 stores.push_back( lInst );
             }
         }
         lInst->addref();
         return lInst->getStoreCtx();
     }
-    void endUseInstance( AfyDBCtx pStoreCtx ) {
-        AffinityInstance * lI = findByStore( ( AfyDBCtx )pStoreCtx );
+    void endUseInstance( AfyCtx pStoreCtx ) {
+        AffinityInstance * lI = findByStore( ( AfyCtx )pStoreCtx );
         if ( lI && 0 == lI->release() ) {
             #if 0
                 // Review:
@@ -184,7 +212,7 @@ public:
             LOG_LINE(kLogError, "invalid state (no storectx)");
             return NULL;
         }
-        pCCtx->session = ISession::startSession( ( AfyDBCtx )pCCtx->storectx, pCCtx->storeident, pCCtx->storepw );
+        pCCtx->session = ( ( IAffinity* )pCCtx->storectx )->startSession( pCCtx->storeident, pCCtx->storepw );
         return ( ISession* )pCCtx->session;
     }
     AffinityInstance * findByName( char const * pUserName, bool pDrop=false ) {
@@ -204,7 +232,7 @@ public:
         }
         return NULL;
     }
-    AffinityInstance * findByStore( AfyDBCtx pStoreCtx ) {
+    AffinityInstance * findByStore( AfyCtx pStoreCtx ) {
         if ( !pStoreCtx ) {
             LOG_LINE(kLogError, "invalid argument");
             return NULL;
@@ -224,13 +252,13 @@ void strerror( RC rc, ISession& sess, CompilationError& ce,
     if ( rc == RC_SYNTAX && ce.msg ) {
         if ( !res ) {
             len = ce.pos+strlen(ce.msg)+50;
-            res = (char*)sess.alloc( len+1 );
+            res = (char*)sess.malloc( len+1 );
         }
         len = snprintf( res, len, "%*s\nSyntax: %s at %d, line %d\n", 
                         ce.pos+2, "^", ce.msg, ce.pos, ce.line );
     } else if ( rc != RC_OK ) {
         if ( !res ) {
-            len = 50; res = (char*)sess.alloc( len+1 );
+            len = 50; res = (char*)sess.malloc( len+1 );
         }
         len = snprintf( res, len, "affinity error: (%d)\n", rc );
     }
@@ -259,7 +287,7 @@ void str2value( ISession& sess, Value* vals,
 #define MAX_ALLOCA 10240
 
 #define ALLOCA( se, n, sz, yes )                                        \
-    ( (*(yes)=((n)*(sz)>MAX_ALLOCA) ) ? (se)->alloc( (n)*(sz) ) :       \
+    ( (*(yes)=((n)*(sz)>MAX_ALLOCA) ) ? (se)->malloc( (n)*(sz) ) :       \
       alloca( (n)*(sz) ) )
 #define AFREE( se, yes, ptr ) \
     do { if ( (yes) && (ptr) ) { (se)->free(ptr); } } while (0)
@@ -282,7 +310,7 @@ RC afy_expr2jsoni( ISession& sess, const char* pExpr,
     AFREE( &sess, alloc, vals );
     if ( !expr ) { strerror( RC_SYNTAX, sess, lCE, pErr, len ); }
 
-    *v = (Value*)sess.alloc( sizeof( Value ) );
+    *v = (Value*)sess.malloc( sizeof( Value ) );
     const RC rc = expr->execute( **v, vals, nparams ); 
     if ( rc != RC_OK ) {
         LOG_LINE(kLogError, "affinity error %d", rc);
@@ -361,7 +389,7 @@ ssize_t afy_sql2rawi( ISession& sess, afy_stream_t* pCtx,
         out->destroy();
 #else
         unsigned len = 0x1000;
-        unsigned char* buf = (unsigned char*)sess.alloc( len );
+        unsigned char* buf = (unsigned char*)sess.malloc( len );
         size_t got = len;
         if ( buf == NULL ) { 
             res = RC_OTHER; 
@@ -497,7 +525,7 @@ extern "C"
             ( ( ISession* )cctxp->session )->terminate();
         }
         if ( cctxp->storectx ) {
-            ( ( AffinityStoresMgr* )cctxp->mgr )->endUseInstance( ( AfyDBCtx )cctxp->storectx );
+            ( ( AffinityStoresMgr* )cctxp->mgr )->endUseInstance( ( IAffinity * )cctxp->storectx );
         }
         delete [] cctxp->storeident;
         delete [] cctxp->storepw;
@@ -623,7 +651,7 @@ extern "C"
         }
         /* workaround - anaylze of insert? */
         if ( rc == RC_OK && *res == NULL ) { 
-            *res = (char*)sess->alloc( strlen("insert")+1 );
+            *res = (char*)sess->malloc( strlen("insert")+1 );
             strcpy( *res, "insert" );
         }
         return 1;
@@ -650,7 +678,7 @@ extern "C"
     int afy_regNotif( afy_connection_ctx_t* cctxp,
                       const char* type, const char* notifparam, 
                       const char* clientid, char **res ) {
-        MainNotificationHandler* const mainh = ((AffinityStoresMgr*)cctxp->mgr)->findByStore((AfyDBCtx)cctxp->storectx)->getNotificationHandler();
+        MainNotificationHandler* const mainh = ((AffinityStoresMgr*)cctxp->mgr)->findByStore((IAffinity*)cctxp->storectx)->getNotificationHandler();
         ISession* const sess = AffinityStoresMgr::haveSession(cctxp);
         return ( mainh && RC_OK == afy_regNotifi( *mainh, *sess, type, notifparam, clientid, res ) ) ? 1 : 0;
     }
@@ -658,7 +686,7 @@ extern "C"
     int afy_unregNotif( afy_connection_ctx_t* cctxp,
                         const char* notifparam, const char* clientid, 
                         char **res ) {
-        MainNotificationHandler* const mainh = ((AffinityStoresMgr*)cctxp->mgr)->findByStore((AfyDBCtx)cctxp->storectx)->getNotificationHandler();
+        MainNotificationHandler* const mainh = ((AffinityStoresMgr*)cctxp->mgr)->findByStore((IAffinity*)cctxp->storectx)->getNotificationHandler();
         ISession* const sess = AffinityStoresMgr::haveSession(cctxp);
         return ( mainh && RC_OK == afy_unregNotifi( *mainh, *sess, notifparam, clientid, res ) ) ? 1 : 0;
     }
@@ -666,7 +694,7 @@ extern "C"
     int afy_waitNotif( afy_connection_ctx_t* cctxp,
                        const char* notifparam, const char* clientid, 
                        int timeout, char **res ) {
-        MainNotificationHandler* const mainh = ((AffinityStoresMgr*)cctxp->mgr)->findByStore((AfyDBCtx)cctxp->storectx)->getNotificationHandler();
+        MainNotificationHandler* const mainh = ((AffinityStoresMgr*)cctxp->mgr)->findByStore((IAffinity*)cctxp->storectx)->getNotificationHandler();
         ISession* const sess = AffinityStoresMgr::haveSession(cctxp);
         return ( mainh && RC_OK == afy_waitNotifi( *mainh, *sess, notifparam, clientid, timeout, res ) ) ? 1 : 0;
     }
