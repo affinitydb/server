@@ -51,6 +51,7 @@ function PrezRenderCtx(pCanvas, pDrawFunc)
   this.timeTick = 50; // The elapsed time between each frame, in ms.
   this.time = 0; // The animation time, in ticks (time just keeps increasing until the slide changes).
   this.drawFunc = pDrawFunc; // The function that redraws the canvas.
+  this.changeCursor = function(pType) { pCanvas.css("cursor", pType); }
   this.updateCanvasSize = function() { pCanvas.attr("width", pCanvas.width()); pCanvas.attr("height", pCanvas.height()); }
   this.setSlideNum = function(pDeck, pNum) { lThis.slideNum = pNum; if (lThis.slideNum < 0 || lThis.slideNum >= pDeck.getNumSlides()) lThis.slideNum = 0; }
   this.nextSlide = function(pDeck) { lThis.slideNum++; if (lThis.slideNum >= pDeck.getNumSlides()) lThis.slideNum = 0; }
@@ -890,6 +891,19 @@ function PrezElm_Title(pText, pFont, pDeck)
   this.setPos = function(pPos) { if ('x' in pPos) lX = pPos.x; if ('y' in pPos) lY = pPos.y; }
   this.getPos = function() { return {y:lY}; }
   this.evalHeight = function(pCtx) { return 50; }
+  this.onMouseDown =
+    function(pCtx, pPos)
+    {
+      var _lX0 = lParent.getEffectiveWidthConstraint(pCtx) - lX - lLogo.width - 5;
+      if (pPos.x >= _lX0 && pPos.y < lY + 35)
+        window.location.href = 'http://' + location.hostname + ":" + location.port;
+    };
+  this.onMouseMove =
+    function(pCtx, pPos)
+    {
+      var _lX0 = lParent.getEffectiveWidthConstraint(pCtx) - lX - lLogo.width - 5;
+      pCtx.changeCursor((pPos.x >= _lX0 && pPos.y < lY + 35) ? "pointer" : "default");
+    };
 }
 
 /**
@@ -946,7 +960,7 @@ function PrezTextInBox(pHtmlText, pAttributes/*fontsize, fontattr, fonttype, lin
   var lSimpleText = lHasStyles ? null : lWords.map(function(_pW) { return _pW.text; }).join("");
   var lFontPt = lGetAttr('font_size', 12);
   var lFont = lGetAttr('font_attr', "") + " " + lFontPt + "pt " + lGetAttr('font_type', "Helvetica");
-  var lLineSpacing = lGetAttr('line_spacing', 6);
+  var lLineSpacing = lGetAttr('line_spacing', 10);
   var lAlinea = lGetAttr('alinea', 0);
   var lParaProlog = lGetAttr('para_prolog', "");
   var lHasParaProlog = (undefined != lParaProlog && lParaProlog.length > 0);

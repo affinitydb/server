@@ -119,7 +119,9 @@
 	>PROP_SPEC_CLASSID</code
 	>) was replaced by the more general <code
 	>afy:objectID</code
-	>.</li
+	> (<code
+	>PROP_SPEC_OBJID</code
+	>).</li
       ><li
       ><code
 	>afy:URI</code
@@ -179,7 +181,9 @@
 	>createPINAndCommit</code
 	> and <code
 	>createPIN</code
-	> (this is to reflect AffinityNG's preference for in-memory processing by default).</li
+	> (this is to reflect AffinityNG's preference for in-memory processing by default). The notion of batch insert has been distinguished from the broader topic of in-memory PINs, and a new interface was introduced for batch insert specifically: <code
+	>IBatch</code
+	>.</li
       ><li
       >The PIN's update stamp is now represented by an optional built-in property (<code
 	>afy:stamp</code
@@ -203,6 +207,24 @@
 	>INSERT mystruct={field1='Value1', field2='Value2', ...}</code
 	>) can be used to hold structured parts even closer to the owning PIN.</li
       ><li
+      >A number of smaller changes were made in the C++ interface, such as <code
+	>STORE_INVALID_PROPID</code
+	> being renamed to <code
+	>STORE_INVALID_URIID</code
+	>, <code
+	>ClassSpec</code
+	> to <code
+	>SourceSpec</code
+	>, <code
+	>ISession::alloc</code
+	> to <code
+	>ISession::malloc</code
+	>, the <code
+	>AfyDB</code
+	> namespace renamed to <code
+	>Afy</code
+	>, etc.</li
+      ><li
       >The output of <code
 	>SELECT HISTOGRAM(property) FROM ...</code
 	> changed slightly, and now contains an <code
@@ -218,6 +240,14 @@
 	> and <code
 	>META_PROP_WRITE</code
 	>.</li
+      ><li
+      ><code
+	>ISession::setURIAlias</code
+	> has been removed.</li
+      ><li
+      >Most state held by a an <code
+	>ISession</code
+	> was migrated to a different scope; the session is practically stateless now, except for its transaction stack.</li
       ><li
       ><code
 	>CLASS_CLUSTERED</code

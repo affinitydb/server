@@ -36,92 +36,94 @@
 <div id="list-of-terms-in-alphabetical-order"
 ><h1
   >List of Terms (in Alphabetical Order)</h1
+  ><p
   ><a href="#acl"
-  >ACL</a
-  >, <a href="#action"
-  >action</a
-  >, <a href="#blob"
-  >BLOB</a
-  >, <a href="#c-kernel-interface"
-  >C++ interface</a
-  >, <a href="#cep"
-  >CEP</a
-  >, <a href="#class"
-  >class</a
-  >, <a href="#client-side-libraries"
-  >client-side library</a
-  >, <a href="#coercion"
-  >coercion</a
-  >, <a href="#collection"
-  >collection</a
-  >, <a href="#communication-pin"
-  >communication PIN</a
-  >, <a href="#condition"
-  >condition</a
-  >, <a href="#essential-concepts-data-model"
-  >data model</a
-  >, <a href="#element-id-eid"
-  >element ID (eid)</a
-  >, <a href="#encryption"
-  >encryption</a
-  >, <a href="#enumeration"
-  >enumeration</a
-  >, <a href="#family"
-  >family</a
-  >, <a href="#fsm"
-  >FSM</a
-  >, <a href="#identity"
-  >identity</a
-  >, <a href="#index"
-  >index</a
-  >, <a href="#kernel"
-  >kernel</a
-  >, <a href="#loader"
-  >loader</a
-  >, <a href="#map"
-  >map</a
-  >, <a href="#namespace"
-  >namespace</a
-  >, <a href="#notification"
-  >notification</a
-  >, <a href="#page"
-  >page</a
-  >, <a href="#parameter"
-  >parameter</a
-  >, <a href="#pathsql"
-  >pathSQL</a
-  >, <a href="#pin"
-  >PIN</a
-  >, <a href="#pin-id-pid"
-  >PIN ID (PID)</a
-  >, <a href="#property"
-  >property</a
-  >, <a href="#protocol-buffer"
-  >protocol-buffer</a
-  >, <a href="#rdf"
-  >RDF</a
-  >, <a href="#pin-reference"
-  >reference</a
-  >, <a href="#replication"
-  >replication</a
-  >, <a href="#rule"
-  >rule</a
-  >, <a href="#server"
-  >server</a
-  >, <a href="#service"
-  >service</a
-  >, <a href="#ssv"
-  >SSV</a
-  >, <a href="#structure"
-  >structure</a
-  >, <a href="#timer"
-  >timer</a
-  >, <a href="#uncommitted-pin"
-  >uncommitted PIN</a
-  >, <a href="#unit-of-measurement"
-  >unit of measurement</a
-  >, <a href="#value"
-  >value</a
+    >ACL</a
+    >, <a href="#action"
+    >action</a
+    >, <a href="#blob"
+    >BLOB</a
+    >, <a href="#c-kernel-interface"
+    >C++ interface</a
+    >, <a href="#cep"
+    >CEP</a
+    >, <a href="#class"
+    >class</a
+    >, <a href="#client-side-libraries"
+    >client-side library</a
+    >, <a href="#coercion"
+    >coercion</a
+    >, <a href="#collection"
+    >collection</a
+    >, <a href="#communication-pin"
+    >communication PIN</a
+    >, <a href="#condition"
+    >condition</a
+    >, <a href="#essential-concepts-data-model"
+    >data model</a
+    >, <a href="#element-id-eid"
+    >element ID (eid)</a
+    >, <a href="#encryption"
+    >encryption</a
+    >, <a href="#enumeration"
+    >enumeration</a
+    >, <a href="#family"
+    >family</a
+    >, <a href="#fsm"
+    >FSM</a
+    >, <a href="#identity"
+    >identity</a
+    >, <a href="#index"
+    >index</a
+    >, <a href="#kernel"
+    >kernel</a
+    >, <a href="#loader"
+    >loader</a
+    >, <a href="#map"
+    >map</a
+    >, <a href="#namespace"
+    >namespace</a
+    >, <a href="#notification"
+    >notification</a
+    >, <a href="#page"
+    >page</a
+    >, <a href="#parameter"
+    >parameter</a
+    >, <a href="#pathsql"
+    >pathSQL</a
+    >, <a href="#pin"
+    >PIN</a
+    >, <a href="#pin-id-pid"
+    >PIN ID (PID)</a
+    >, <a href="#property"
+    >property</a
+    >, <a href="#protocol-buffer"
+    >protocol-buffer</a
+    >, <a href="#rdf"
+    >RDF</a
+    >, <a href="#pin-reference"
+    >reference</a
+    >, <a href="#replication"
+    >replication</a
+    >, <a href="#rule"
+    >rule</a
+    >, <a href="#server"
+    >server</a
+    >, <a href="#service"
+    >service</a
+    >, <a href="#ssv"
+    >SSV</a
+    >, <a href="#structure"
+    >structure</a
+    >, <a href="#timer"
+    >timer</a
+    >, <a href="#uncommitted-pin"
+    >uncommitted PIN</a
+    >, <a href="#unit-of-measurement"
+    >unit of measurement</a
+    >, <a href="#value"
+    >value</a
+    ></p
   ><!-- [snapshot isolation](#snapshot-isolation) -->
 </div
 ><div id="essential-concepts-data-model"
@@ -282,26 +284,30 @@
     ><div id="structure"
     ><h3
       >Structure</h3
+      ><p
       >A structure is a set of labeled <a href="#value"
-      >values</a
-      >, aka a set of <a href="#property"
-      >properties</a
-      >. The structure is analogous to an embedded PIN (held &quot;by value&quot; by its owner PIN). Structures may contain substructures. Structures are represented by VT_STRUCT in <a href="./sources/affinity_h.html"
-      >affinity.h</a
-      >. They are a <span class='pathsql_new'>NEW</span> feature of AffinityNG (even though they were already a stealth feature in AffinityDB).<!-- TODO: point to exact section in doc (make sure there is one; make sure to cover insert, update, query, delete) -->
+	>values</a
+	>, aka a set of <a href="#property"
+	>properties</a
+	>. The structure is analogous to an embedded PIN (held &quot;by value&quot; by its owner PIN). Structures may contain substructures. Structures are represented by VT_STRUCT in <a href="./sources/affinity_h.html"
+	>affinity.h</a
+	>. They are a <span class='pathsql_new'>NEW</span> feature of AffinityNG (even though they were already a stealth feature in AffinityDB).</p
+      ><!-- TODO: point to exact section in doc (make sure there is one; make sure to cover insert, update, query, delete) -->
 </div
     ><div id="map"
     ><h3
       >Map</h3
+      ><p
       >A map is an associative array (or dictionary) where both the value and the key itself are <a href="#value"
-      >values</a
-      >. Unlike the <a href="#property"
-      >property</a
-      > of a <a href="#pin"
-      >PIN</a
-      >, the key of a map is not limited to a symbolic entity: it can be anything. The map essentially opens up full access to Affinity's internal B-link tree. Maps are represented by VT_MAP in <a href="./sources/affinity_h.html"
-      >affinity.h</a
-      >. They are a <span class='pathsql_new'>NEW</span> feature of AffinityNG.<!-- TODO: point to exact section in doc (make sure there is one; make sure to cover insert, update, query, delete) -->
+	>values</a
+	>. Unlike the <a href="#property"
+	>property</a
+	> of a <a href="#pin"
+	>PIN</a
+	>, the key of a map is not limited to a symbolic entity: it can be anything. The map essentially opens up full access to Affinity's internal B-link tree. Maps are represented by VT_MAP in <a href="./sources/affinity_h.html"
+	>affinity.h</a
+	>. They are a <span class='pathsql_new'>NEW</span> feature of AffinityNG.</p
+      ><!-- TODO: point to exact section in doc (make sure there is one; make sure to cover insert, update, query, delete) -->
 </div
     ><div id="class"
     ><h3
@@ -384,21 +390,23 @@
     ><div id="rule"
     ><h3
       >Rule</h3
+      ><p
       >A rule is a simple construct that binds a <a href="#condition"
-      >condition</a
-      > to an <a href="#action"
-      >action</a
-      >. While <a href="#class"
-      >classes</a
-      > can be seen as a special category of rule, their declaration is less flexible, and classes also integrate the notion of index. In the alpha release of AffinityNG, rules are available as an implicit feature of <a href="#class"
-      >classes</a
-      >. In an imminent update of the alpha release, a higher-level syntactic construct will also allow to easily reuse <a href="#condition"
-      >conditions</a
-      > and <a href="#action"
-      >actions</a
-      >. The <a href="./pathSQL%20reference%20[definition].html#rule"
-      >reference</a
-      > describes how.<!-- TODO: review when available -->
+	>condition</a
+	> to an <a href="#action"
+	>action</a
+	>. While <a href="#class"
+	>classes</a
+	> can be seen as a special category of rule, their declaration is less flexible, and classes also integrate the notion of index. In the alpha release of AffinityNG, rules are available as an implicit feature of <a href="#class"
+	>classes</a
+	>. In an imminent update of the alpha release, a higher-level syntactic construct will also allow to easily reuse <a href="#condition"
+	>conditions</a
+	> and <a href="#action"
+	>actions</a
+	>. The <a href="./pathSQL%20reference%20[definition].html#rule"
+	>reference</a
+	> describes how.</p
+      ><!-- TODO: review when available -->
 </div
     ><div id="fsm"
     ><h3
@@ -417,11 +425,13 @@
     ><div id="cep"
     ><h3
       >CEP</h3
+      ><p
       >Complex Event Processing (CEP) is the ability to express and detect more complex correlations of events (i.e. <a href="#condition"
-      >conditions</a
-      > encountered at discrete points in time). In pathSQL, those correlations are described as a regular expression of a <a href="#fsm"
-      >FSM's</a
-      > transitions. CEP is not readily available in the alpha release of AffinityNG.<!-- TODO: review when available -->
+	>conditions</a
+	> encountered at discrete points in time). In pathSQL, those correlations are described as a regular expression of a <a href="#fsm"
+	>FSM's</a
+	> transitions. CEP is not readily available in the alpha release of AffinityNG.</p
+      ><!-- TODO: review when available -->
 </div
     ><div id="timer"
     ><h3
@@ -429,7 +439,7 @@
       ><p
       >Timers invoke <a href="#action"
 	>actions</a
-	> at regular time intervals, in their own thread. The <a href="./pathSQL%20reference.html#create-timer"
+	> at regular time intervals, in their own thread. The <a href="./pathSQL%20reference%20[definition].html#create-timer"
 	>reference</a
 	> describes in detail how to declare timers.</p
       ></div
@@ -544,16 +554,13 @@
   ><div id="uncommitted-pin"
   ><h3
     >Uncommitted PIN</h3
-    >This concept is more or less invisible, depending on the interface used to talk to Affinity. An uncommitted <a href="#pin"
-    >PIN</a
-    > is a representation that is not yet stored in the database. The C++ interface allows to create uncommitted PINs in memory, that can be inter-connected (and form any number of graphs). These PINs can be committed very efficiently in a single-operation transaction (thus minimizing the amount of disk io required, and maximizing opportunities for data compaction on <a href="#page"
-    >pages</a
-    >). The implementations supporting the <a href="#protocol-buffer"
-    >protocol-buffer</a
-    > streaming interface and <a href="#pathsql"
-    >pathSQL</a
-    > both create uncommitted PINs automatically, whenever possible.<!-- TODO: review to reflect recent evolution toward transient-first... -->
-</div
+    ><p
+    >This terminology is deprecated. An uncommitted PIN designates a PIN that is not persisted. In AffinityNG, a large proportion of PINs may never be persisted (e.g. some may represent sample values of which only an aggregated value will be persisted, others may represent messages only meant to propagate events between sub-systems). AffinityNG distinguishes the concept of PINs living in memory only, from the loosely related concept of inserting PINs by batches (see <a href="./interface%20[cplusplus].html#ibatch"
+      ><code
+	>IBatch</code
+	></a
+      >).</p
+    ></div
   ><div id="pin-reference"
   ><h3
     >PIN Reference</h3

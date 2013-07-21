@@ -8,28 +8,36 @@ body { font-family:Helvetica; margin:0; font-size:0.8em; background-color:#e4e4e
 #width_constraint { top:0; width:960px; }
 
 #generic_header { position:relative; top:3px; left:0; width:100%; height:20px; margin:0; }
-#title { position:relative; top:10px; left:0; width:100%; }
+#title { position:relative; top:10px; left:0; width:100%; height:317px; }
 #topics { position:relative; top:25px; left:0; width:100%; height:180px; }
-#generic_footer { position:relative; top:10px; left:0; width:100%; margin:0; text-align:center; }
+#generic_footer { position:relative; top:10px; left:0; width:100%; height:30px; margin:0; text-align:center; }
 
 #gh_logo { float:left; margin-left:5px; }
 #gh_logo_img { position:absolute; height:25px; }
 #gh_links { float:right; margin-right:5px; }
 
-#title_img { width:100%; border:none; }
+#title_img { position:absolute; left:0; top:0; width:100%; border:none; visibility:hidden; }
+#title_img_loading { position:absolute; left:0; top:0; width:960px; height:317px; background-color:#4d7fc4; }
 #title_prerelease { position:absolute; right:20px; bottom:10px; font-size:2.2em; font-family:blueprint; color:#000; letter-spacing:1px; z-index:100; }
 
 #doc { position:relative; left:0; top:0; width:303px; height:100%; }
+#doc_button_img { position:absolute; left:0; top:0; visibility:hidden; }
+#doc_button_img_loading { position:absolute; left:0; top:0; width:303px; height:77px; border:none; background-color:#4d7fc4; }
 #doc_button_text { position:absolute; left:0; top:25px; width:100%; text-align:center; font-family:blueprint; font-size:2.2em; letter-spacing:1px; }
-#doc_text { margin-top:5px; margin-left:5px; text-align:justify; }
+#doc_text { position:absolute; top:80px; margin-top:5px; margin-left:5px; text-align:justify; }
 
 #console { position:absolute; left:328px; top:0; width:303px; height:100%; }
+#console_button_img { position:absolute; left:0; top:0; visibility:hidden; }
+#console_button_img_loading { position:absolute; left:0; top:0; width:303px; height:77px; border:none; background-color:#4d7fc4; }
 #console_button_text { position:absolute; left:0; top:25px; width:100%; text-align:center; font-family:blueprint; font-size:2.2em; letter-spacing:1px; }
-#console_text { margin-top:5px; margin-left:5px; text-align:justify; }
+#console_text { position:absolute; top:80px; margin-top:5px; margin-left:5px; text-align:justify; }
 
 #contact { position:absolute; right:0; top:0; width:303px; height:100%; }
+#contact_button_img { position:absolute; left:0; top:0; visibility:hidden; }
+#contact_button_img_loading { position:absolute; left:0; top:0; width:303px; height:77px; border:none; background-color:#4d7fc4; }
 #contact_button_text { position:absolute; left:0; top:25px; width:100%; text-align:center; font-family:blueprint; font-size:2.2em; letter-spacing:1px; }
-#contact_text { margin-top:5px; margin-left:5px; text-align:justify; }
+#contact_text { position:absolute; top:80px; margin-top:5px; margin-left:5px; text-align:justify; }
 
-#footer_img { width:100%; border:none; bottom:0; }
-#footer_text { position:absolute; right:20px; top:10px; width:100%; font-size:1em; font-style:italic; text-align:right; color:#fff; }
+#footer_img { position:absolute; width:100%; border:none; bottom:0; visibility:hidden; }
+#footer_img_loading { position:absolute; width:960px; height:33px; bottom:0; border:none; background-color:#4d7fc4; }
+#footer_text { position:absolute; right:20px; bottom:10px; width:100%; font-size:1em; font-style:italic; text-align:right; color:#fff; }

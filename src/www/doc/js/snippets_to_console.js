@@ -17,6 +17,9 @@ under the License.
 // Activate specially marked code fragments in the doc (using the .pathsql_snippet class).
 $(document).ready(
   function() {
+    // Localhost (i.e. developer) deployments don't require EULA acceptance.
+    var lRegisteredUser = (undefined != location.hostname.match(/(localhost|127\.0\.0\.1)/i));
+    
     // Home/logo button.
     $("#gh_logo_img").hover(function() { $(this).addClass("logo-highlighted"); }, function() { $(this).removeClass("logo-highlighted"); });
     $("#gh_logo_img").click(function() { window.location.href = 'http://' + location.hostname + ":" + location.port; });
@@ -139,7 +142,7 @@ $(document).ready(
         $(_pE).replaceWith(lWidget);
         lCode.click(function() { window.open('http://' + location.hostname + ":" + location.port + "/console.html?query=" + lEscapeCode() + "&storeid=docsample#tab-basic"); });
         lCode.hover(function() { lCode.addClass("pathsql_snippet_highlighted"); lCode.css('cursor', 'pointer'); }, function() { lCode.removeClass("pathsql_snippet_highlighted"); });
-        lButton.click(
+        var lDoRequest =
           function()
           {
             $.ajax({
@@ -153,6 +156,25 @@ $(document).ready(
               error: function() { lResult.text("error"); },
               beforeSend : function(req) { req.setRequestHeader('Authorization', "Basic ZG9jc2FtcGxlOg=="/*docsample:*/); }
             });
+          };
+        lButton.click(
+          function()
+          {
+            if (!lRegisteredUser)
+            {
+              $.ajax({
+                type: "GET",
+                url: "/isregistered",
+                dataType: "text",
+                async: true,
+                cache: false,
+                global: false,
+                success: function(data) { if (data != '1') { window.location.href = 'http://' + location.hostname + ":" + location.port + "/registration.html"; } else { lRegisteredUser = true; lDoRequest(); } },
+                error: function() { alert("unexpected error during registration"); }
+              });
+            }
+            if (lRegisteredUser)
+              lDoRequest();
           });
       });
     $(".pathsql_inert").each(

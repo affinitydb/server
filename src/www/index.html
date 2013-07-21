@@ -1,6 +1,7 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
 <html>
 <head>
+  <meta charset="UTF-8">
   <link href='css/landing.css' rel='stylesheet' type='text/css' />
   <script src='js/jquery.js' type='text/javascript'></script>
   <script src='js/detectmobilebrowser.js' type='text/javascript'></script>
@@ -19,6 +20,8 @@
     $(document).ready(
       function()
       {
+        var lImgs = ["#title_img", "#doc_button_img", "#console_button_img", "#contact_button_img", "#footer_img"];
+        lImgs.forEach(function(_pI) { $(_pI).css("visibility", "visible"); $(_pI + "_loading").css("visibility", "hidden"); });
         function wH(pWidget) { return function() { var lWid = pWidget.attr("id"); $("#" + lWid + "_button_img").addClass("button_highlighted"); $("#" + lWid + "_button_text").addClass("button_highlighted_text"); $("#" + lWid + "_text").addClass("button_highlighted_subtext"); }; }
         function wL(pWidget) { return function() { var lWid = pWidget.attr("id"); $("#" + lWid + "_button_img").removeClass("button_highlighted"); $("#" + lWid + "_button_text").removeClass("button_highlighted_text"); $("#" + lWid + "_text").removeClass("button_highlighted_subtext"); }; }
         function reloc(pWhere) { return function() { window.location.href = 'http://' + location.hostname + ":" + location.port + "/" + pWhere; } }
@@ -39,6 +42,7 @@
   </div>
 
   <div id='title'>
+    <div id='title_img_loading'></div>
     <img src='images/affinitybkg.jpg' id='title_img' class='horizontally_centered'></img>
     <div id='title_prerelease'>alpha</div>
   </div>
@@ -46,6 +50,7 @@
   <div id='topics'>
     <div id='doc'>
       <div id='doc_button'>
+        <div id='doc_button_img_loading'></div>
         <img src='images/affinitybutton.jpg' id='doc_button_img'></img>
         <div id='doc_button_text'>Doc</div>
       </div>
@@ -53,6 +58,7 @@
     </div>
     <div id='console'>
       <div id='console_button'>
+        <div id='console_button_img_loading'></div>
         <img src='images/affinitybutton.jpg' id='console_button_img'></img>
         <div id='console_button_text'>&gt; CREATE</div>
       </div>
@@ -60,6 +66,7 @@
     </div>
     <div id='contact'>
       <div id='contact_button'>
+        <div id='contact_button_img_loading'></div>
         <img src='images/affinitybutton.jpg' id='contact_button_img'></img>
         <div id='contact_button_text'>Users</div>
       </div>
@@ -68,6 +75,7 @@
   </div>
 
   <div id='generic_footer'>
+    <div id='footer_img_loading'></div>
     <img src='images/affinityfooter.jpg' id='footer_img' class='horizontally_centered'></img>
     <div id='footer_text'>&copy; 2013 GoPivotal, Inc. All rights reserved.</div>
   </div>

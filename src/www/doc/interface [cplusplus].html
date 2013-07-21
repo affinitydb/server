@@ -49,19 +49,21 @@
     >pathSQL</a
     > and <a href="./terminology.html#protocol-buffer"
     >protocol-buffers</a
-    >. These two entry points are self-sufficient, and enable the writing of &quot;normal&quot; database client code.</p
+    >. These two entry points are self-sufficient (they make it possible to write a full server in very few lines of code, for example).</p
   ><p
-  >However, the bulk of the C++ interface contains elements (such as <a href="#isession::createpin-isession::createuncommittedpin"
+  >However, the bulk of the C++ interface contains elements (such as <a href="#isession::createpin-isession::createpinandcommit"
     >PIN creation</a
     > and <a href="#ipin"
     >modification</a
     > methods, <a href="#isession::createstmt-isession::expr"
     >expression building</a
-    > methods etc.) that overlap with the functionality exposed via pathSQL and protocol-buffers. As a rule of thumb, all these elements should be avoided unless necessary (being in C++, and being inseparable from the kernel itself, they'd make the client code inseparable from the kernel, which is undesirable for normal database client code). Even an embedding process such as the <a href="./terminology.html#server"
+    > methods etc.) that overlap with the functionality exposed via pathSQL and protocol-buffers. As a rule of thumb, all these elements should be avoided unless necessary (being in C++, and being inseparable from the kernel itself, they'd make the client code inseparable from the kernel, which may or may not be desirable depending on the context). Even an embedding process such as the <a href="./terminology.html#server"
     >server</a
     > only uses a tiny fraction of the C++ interface (all in storecmd.cpp). A justification for using more of the C++ interface could be, for example, to implement additional query languages for Affinity.</p
   ><p
-  >Without documenting each and every function (or parameter) of the C++ interface, this page presents enough information to use it successfully. The following interfaces and structures are covered: <a href="#isession"
+  >Without documenting each and every function (or parameter) of the C++ interface, this page presents enough information to use it successfully. The following interfaces and structures are covered: <a href="#iaffinity"
+    >IAffinity</a
+    >, <a href="#isession"
     >ISession</a
     >, <a href="#ipin"
     >IPIN</a
@@ -75,8 +77,14 @@
     >ICursor</a
     >, <a href="#inav"
     >INav</a
+    >, <a href="#imap"
+    >IMap</a
     >, <a href="#istream"
     >IStream</a
+    >, <a href="#ibatch"
+    >IBatch</a
+    >, <a href="#iservice"
+    >IService</a
     >. Please refer to the C++ tests and source code for a complement of information.</p
   ></div
 ><div id="rc.h"
@@ -95,19 +103,21 @@
   ><p
   ><a href="./sources/startup_h.html"
     >startup.h</a
-    > defines the initial entry point to Affinity. It provides functions to create, open and shutdown one or more instances of stores. <code
+    > defines the initial entry point to Affinity. It provides functions to create or open one or more instances of stores. <code
     >openStore</code
     > and <code
     >createStore</code
-    > produce an instance of <code
-    >IAffinity</code
+    > produce an instance of <a href="#iaffinity"
+    ><code
+      >IAffinity</code
+      ></a
     >, used to initiate <a href="#isession"
     >sessions</a
     >.</p
   ><p
   >The <code
     >StoreCreationParameters</code
-    > structure implies a few important decisions (note: some of the immutable fields can be modified via a complete dump &amp; load of the store):</p
+    > structure implies a few important decisions (note: some of the immutable fields can only be modified via a complete dump &amp; load of the store):</p
   ><ol style="list-style-type: decimal;"
   ><li
     ><code
@@ -157,7 +167,12 @@
     ><li
     ><code
       >pctFree</code
-      >: to control the percentage of free space left on pages during insertion. This is immutable.</li
+      >: to control the percentage of free space left on pages during insertion. This is immutable.<br
+       /></li
+    ><li
+    ><code
+      >fPageIntegrity</code
+      >: to request additional validation of page contents at each page I/O. This is immutable.</li
     ></ol
   ><p
   >The <code
@@ -171,15 +186,6 @@
        /></li
     ><li
     ><code
-      >network</code
-      >, <code
-      >notification</code
-      > and <code
-      >io</code
-      > are not fully supported in this release.<br
-       /></li
-    ><li
-    ><code
       >mode</code
       > is related with all the STARTUP_* constants defined in startup.h.</li
     ></ol
@@ -190,12 +196,26 @@
     >StoreCreationParameters::pageSize</code
     >).</p
   ></div
+><div id="iaffinity"
+><h1
+  >IAffinity</h1
+  ><p
+  >This represents a store instance. It replaces the opaque <code
+    >AfyDBCtx</code
+    > pointer that was used for the same purpose in the previous version of Affinity. This interface allows to start <a href="#isession"
+    >sessions</a
+    > on a given store, and also allows to control other store-specific states and behaviors (see the self-explanatory comments in <a href="./sources/affinity_h.html"
+    >affinity.h</a
+    >).</p
+  ></div
 ><div id="isession"
 ><h1
   >ISession</h1
   ><p
   >The session represents a logical connection to an already opened store instance (please refer to <a href="#startup-h"
     >startup.h</a
+    > and <a href="#iaffinity"
+    >IAffinity</a
     >). A session must be attached to a thread determined by the client. A new session attaches itself to the calling thread by default. The client can use <code
     >detachFromCurrentThread</code
     > and <code
@@ -253,7 +273,7 @@
       >properties</a
       > are declared. Note that the pathSQL and protocol-buffer interfaces do this implicitly, so one should only need to call <code
       >mapURIs</code
-      > when going through the lower-level methods (<a href="#isession::createpin-isession::createuncommittedpin"
+      > when going through the lower-level methods (<a href="#isession::createpin-isession::createpinandcommit"
       >createPIN etc.</a
       >). <code
       >mapURIs</code
@@ -264,25 +284,23 @@
       >, the <code
       >URIMap::uid</code
       > field is typically initialized by the caller to <code
-      >STORE_INVALID_PROPID</code
+      >STORE_INVALID_URIID</code
       >, and then the resulting value is stored by the caller (e.g. in some evaluation context variable) upon confirmation of success (<code
       >RC_OK</code
       >). Property IDs are identical across all sessions of a store, but not necessarily identical across different stores. A property ID is meaningless outside of the scope of a specific store instance, and should never be serialized alone (without its textual counterpart). <code
       >ISession::getURI</code
-      > retrieves the name bound to a property ID. <code
-      >ISession::setURIAlias</code
-      > is considered incomplete in the current release.</p
+      > retrieves the name bound to a property ID.</p
     ></div
-  ><div id="isession::createpin-isession::createuncommittedpin"
+  ><div id="isession::createpin-isession::createpinandcommit"
   ><h3
-    >ISession::createPIN, ISession::createUncommittedPIN</h3
+    >ISession::createPIN, ISession::createPINAndCommit</h3
     ><p
     >This is how new <a href="./terminology.html#pin"
       >PINs</a
       > are created. <code
-      >createPIN</code
+      >createPINAndCommit</code
       > creates the new PIN directly in the store, whereas <code
-      >createUncommittedPIN</code
+      >createPIN</code
       > creates <a href="./terminology.html#uncommitted-pin"
       >uncommitted PINs</a
       >, which don't exist in the database until <code
@@ -296,13 +314,13 @@
       >.</p
     ><p
     >When passing data into the store, the store almost always copies the data, and hence the caller retains ownership of the original data. For example when calling <code
-      >createPIN</code
+      >createPINAndCommit</code
       > it is perfectly valid to pass in an array of <code
       >Value</code
       >-s that have been declared on the stack. One exception is <code
-      >createUncommittedPIN</code
+      >createPIN</code
       >, where the store takes ownership of the values passed. With this method, one must either use <code
-      >ISession::alloc</code
+      >ISession::malloc</code
       > to allocate the <code
       >Value</code
       >-s, or use <code
@@ -310,10 +328,12 @@
       > to avoid this behavior and force a copy.</p
     ><p
     >One optimizing effect of <code
-      >createUncommittedPIN</code
-      > is to reduce disk io related with transaction logging (especially when creating a lot of PINs at once). From that perspective, it is somewhat equivalent to calling <code
       >createPIN</code
-      > repeatedly inside a transaction.</p
+      > is to reduce disk I/O related with transaction logging (especially when creating a lot of PINs at once). From that perspective, for PINs intended to be persisted in the end, it is somewhat equivalent to calling <code
+      >createPINAndCommit</code
+      > repeatedly inside a transaction. Obviously, <code
+      >createPIN</code
+      > is also meant to be used for PINs that will never be persisted (e.g. messages).</p
     ><p
     >The <code
       >AllocCtrl</code
@@ -348,17 +368,15 @@
 	>class</a
 	> or <a href="./terminology.html#family"
 	>family</a
-	> is to <a href="#isession::createpin-isession::createuncommittedpin"
+	> is to <a href="#isession::createpin-isession::createpinandcommit"
 	>create a PIN</a
 	> with properties <code
-	>PROP_SPEC_URI</code
+	>PROP_SPEC_OBJID</code
 	> (the name of the class) and <code
 	>PROP_SPEC_PREDICATE</code
 	> (a <a href="#istmt"
 	>IStmt</a
-	> object defining the predicate of the class). Class definitions are considered immutable, because once a class definition is published, it can be reused by any other application - it is not desirable to &quot;pull the rug&quot; under other applications' feet. To upgrade a published definition, a new class must be declared. There exists a <code
-	>ISession::setURIALias</code
-	> method that lets an application use a logical name in place of the actual class name, to minimize code changes in case of class definition upgrades. This is considered a temporary solution (a better design will be published in a future release).</p
+	> object defining the predicate of the class). Class definitions are no longer considered immutable in AffinityNG; however, keep in mind that once a class definition is published, it could be reused by any other application, in which case it may not desirable to &quot;pull the rug&quot; under their feet. A way to avoid this is to declare a new class (a new version).</p
       ><p
       >Here's an example building a multi-segment class index:</p
       ><pre>
@@ -380,13 +398,13 @@
   lExpr2->destroy();
 
   RC rc = RC_OK;
-  lV[0].set(className); lV[0].setPropID(PROP_SPEC_URI);
-  lV[1].set(lQ); lV[1].setPropID(PROP_SPEC_PREDICATE);
-  IPIN * lClass = mSession->createUncommittedPIN(lV, 2, MODE_COPY_VALUES);
+  lV[0].set(className); lV[0].setPropID(PROP_SPEC_OBJID);
+  lV[1].set(lQ); lV[1].setPropID(PROP_SPEC_PREDICATE); lV[1].setMeta(META_PROP_INDEXED);
+  IPIN * lClass = mSession->createPIN(lV, 2, MODE_COPY_VALUES);
   rc = mSession->commitPINs(&lClass, 1);
   if (rc==RC_OK || rc==RC_ALREADYEXISTS)
   {
-    ClassID lCLSID = lClass->getValue(PROP_SPEC_CLASSID)->uid;
+    ClassID lCLSID = lClass->getValue(PROP_SPEC_OBJID)->uid;
     lClass->destroy();
     ...
   }
@@ -400,7 +418,7 @@
     >Transactions are bound to sessions. For a good discussion on all available options, including isolation modes and read-only transactions, please refer to <a href="./pathSQL%20reference.html#transactions"
       >pathSQL's description</a
       >. Note that operations (such as <code
-      >ISession::createPIN</code
+      >ISession::createPINAndCommit</code
       > or <code
       >IPIN::modify</code
       >) can be invoked outside of the explicit scope of a transaction, in which case they implicitly declare their own transaction internally.</p
@@ -436,7 +454,7 @@
   ><p
   >The other major interaction is to <code
     >modify</code
-    > the PIN. Similar to <a href="#isession::createpin-isession::createuncommittedpin"
+    > the PIN. Similar to <a href="#isession::createpin-isession::createpinandcommit"
     >PIN creation</a
     >, it involves filling in <a href="#value"
     >Value</a
@@ -456,7 +474,7 @@
   ><p
   >The PIN's stamp allows to determine if a PIN has changed since the stamp was last grabbed. To obtain the most recent stamp, it is still necessary to load (or <code
     >refresh</code
-    >) the PIN from the database, so this is not a panacea for reducing disk io, but it can be useful.</p
+    >) the PIN from the database, so this is not a panacea for reducing disk I/O, but it can be useful.</p
   ></div
 ><div id="value"
 ><h1
@@ -741,6 +759,16 @@
     >CollectionIterator</code
     > defined at line 247 in serialization.h (in tests_kernel/src).</p
   ></div
+><div id="imap"
+><h1
+  >IMap</h1
+  ><p
+  >The new <a href="./terminology.html#map"
+    >maps</a
+    > are accessed via <code
+    >IMap</code
+    >, which acts as a simple iterator with a random access starting point.</p
+  ></div
 ><div id="istream"
 ><h1
   >IStream</h1
@@ -756,6 +784,48 @@
     > (but in the current state of the implementation, this is not fully optimized for blobs). Note also that text BLOBs can participate to full-text indexes, just like any text property. It is possible to build <a href="./terminology.html#collection"
     >collections</a
     > of BLOBs.</p
+  ></div
+><div id="ibatch"
+><h1
+  >IBatch</h1
+  ><p
+  >In the previous version of Affinity, the concepts of in-memory (non persistent) PINs and of batching were mixed together into the same <a href="./terminology.html#uncommitted-pin"
+    >uncommitted PINs</a
+    >. AffinityNG distinguishes these notions, by introducing the new <code
+    >IBatch</code
+    > interface, which takes care of batch inserts. The interface is easy to use: call <code
+    >IBatch::createPIN</code
+    > for each new PIN in the batch, then establish relationships with <code
+    >IBatch::addRef</code
+    > (n.b. in this context what your new PINs are pointing to, either within the batch [with a <code
+    >VT_INT</code
+    > value specified in to <code
+    >to</code
+    > parameter, representing the index of the PIN pointed to] or outside [e.g. with a <code
+    >VT_REF</code
+    >]. The <code
+    >to</code
+    > parameter also allows to specify via what property the new reference should be held, where to insert it in a collection, etc. Finally, <code
+    >IBatch::process</code
+    > persists all PINs of the batch at once very efficiently in a single-operation transaction (thus minimizing the amount of disk I/O required, and maximizing opportunities for data compaction on <a href="./terminology.html#page"
+    >pages</a
+    >). The implementations supporting the <a href="./terminology.html#protocol-buffer"
+    >protocol-buffer</a
+    > streaming interface and <a href="./terminology.html#pathsql"
+    >pathSQL</a
+    > both use <code
+    >IBatch</code
+    > automatically, whenever possible.</p
+  ></div
+><div id="iservice"
+><h1
+  >IService</h1
+  ><p
+  >Unlike most of the other interfaces in <a href="./sources/affinity_h.html"
+    >affinity.h</a
+    >, <code
+    >IService</code
+    > is meant to be implemented externally (not to be invoked by the client). It provides an extension point for the kernel. Service implementation will be documented in more detail in a future update of the documentation. In the meantime, please refer to example implementations in the code.</p
   ></div
 >
 </div>

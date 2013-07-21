@@ -165,9 +165,8 @@
     ><span class='pathsql_new'>NEW</span> Regular expressions in text manipulations:</p
     ><p
     ><code class='pathsql_snippet'> INSERT _retest='Hello';<br> INSERT _retest='Hello Mike';<br> INSERT _retest='How are you Mike';<br> INSERT _retest='Earth to Mike do you receive?';<br> SELECT _retest AS result1 WHERE _retest SIMILAR TO /.*Mike$/;<br> SELECT _retest AS result2 WHERE _retest SIMILAR TO /.*Mike/; </code></p
-    ><p
-    >and soon... <span style='color:red;'>TODO: probably convert this into an example using the regex service, once bug #405 is fixed</span></p
-    ><p
+    >and soon...<!-- TODO: probably convert this into an example using the regex service, once bug #405 is fixed -->
+<p
     ><code class='pathsql_inert'>INSERT CASE WHEN (SELECT ...) SIMILAR TO /^value=([0-9]+), distance=([0-9]+), clock=([0-9]+)/<br> THEN {sensor=@50005, movement=/1, distance=CAST(/2 AS m), time=CURRENT_TIMESTAMP, sclock=/3}<br> ELSE NULL END; </code></p
     ></div
   ><div id="how-to-use-joins"
