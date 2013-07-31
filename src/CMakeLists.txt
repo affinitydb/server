@@ -120,6 +120,7 @@ ENDIF(CMAKE_SYSTEM_NAME MATCHES Windows)
 add_executable (${AFYCTEST_TARGET_NAME} ${AFYCTEST_SRCS})
 SET_TARGET_PROPERTIES(${AFYCTEST_TARGET_NAME} PROPERTIES LINKER_LANGUAGE C)
 
+# Note (maxw): When I build for online/demo server, I use instead: link_directories("../bin")
 	link_directories("${AFFINITY_PRJ}/lib")
 
 add_executable (${AFFINITYD_TARGET_NAME} ${AFFINITYD_SRCS})
