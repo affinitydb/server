@@ -104,13 +104,13 @@ SIMULCTX.singleInstall(
 // What to install."
 "START TRANSACTION;\n\
 -- Declare generators.\n\
-CREATE CLASS simul:\"value/gen/sinus\" AS SELECT * WHERE simul:\"rt/value/gen/id\"=@class.afy:objectID SET\n\
+CREATE CLASS simul:\"value/gen/sinus\" AS SELECT * WHERE simul:\"rt/value/gen/id\"=@ctx.afy:objectID SET\n\
   meta:description='A general-purpose value generator for sinusoidal curves',\n\
   afy:onEnter=${UPDATE @self SET control:\"rt/value\"=MAX(simul:\"rt/gen/min\", MIN(simul:\"rt/gen/max\", (simul:\"rt/gen/min\" + ((0.5 + SIN(control:\"rt/time/step\")) * (simul:\"rt/gen/max\" - simul:\"rt/gen/min\"))) + simul:\"rt/gen/jitter\"))};\n\
-CREATE CLASS simul:\"value/gen/linear_up\" AS SELECT * WHERE simul:\"rt/value/gen/id\"=@class.afy:objectID SET\n\
+CREATE CLASS simul:\"value/gen/linear_up\" AS SELECT * WHERE simul:\"rt/value/gen/id\"=@ctx.afy:objectID SET\n\
   meta:description='A general-purpose value generator for linear upward curves',\n\
   afy:onEnter=${UPDATE @self SET control:\"rt/value\"=MAX(simul:\"rt/gen/min\", MIN(simul:\"rt/gen/max\", (simul:\"rt/gen/min\" + (control:\"rt/time/step\" * simul:\"rt/gen/spread\") * (simul:\"rt/gen/max\" - simul:\"rt/gen/min\")) + simul:\"rt/gen/jitter\"))};\n\
-CREATE CLASS simul:\"value/gen/linear_down\" AS SELECT * WHERE simul:\"rt/value/gen/id\"=@class.afy:objectID SET\n\
+CREATE CLASS simul:\"value/gen/linear_down\" AS SELECT * WHERE simul:\"rt/value/gen/id\"=@ctx.afy:objectID SET\n\
   meta:description='A general-purpose value generator for linear downward curves',\n\
   afy:onEnter=${UPDATE @self SET control:\"rt/value\"=MAX(simul:\"rt/gen/min\", MIN(simul:\"rt/gen/max\", (simul:\"rt/gen/max\" - (control:\"rt/time/step\" * simul:\"rt/gen/spread\") * (simul:\"rt/gen/max\" - simul:\"rt/gen/min\")) + simul:\"rt/gen/jitter\"))};\n\
 -- Declare unit tests (optional).\n\
@@ -146,10 +146,10 @@ INSERT @:1\n\
     (CREATE CLASS control:\"template/sensor/step/handler/on.off.572ef13c\" AS SELECT * FROM control:\"rt/signalable\" WHERE control:\"sensor/model\"=.simul:\"template/sensor/on.off.572ef13c\" SET\n\
       control:\"template/sensor\"=@:1,\n\
       afy:onUpdate=${INSERT \n\
-        simul:\"rt/gen/spread\"=(SELECT simul:\"template/gen/spread\" FROM @class.control:\"template/sensor\"),\n\
-        simul:\"rt/gen/min\"=(SELECT simul:\"template/gen/min\" FROM @class.control:\"template/sensor\"),\n\
-        simul:\"rt/gen/max\"=(SELECT simul:\"template/gen/max\" FROM @class.control:\"template/sensor\"),\n\
-        simul:\"rt/gen/jitter\"=(SELECT simul:\"template/gen/jitter\" FROM @class.control:\"template/sensor\") * EXTRACT(SECOND FROM CURRENT_TIMESTAMP),\n\
+        simul:\"rt/gen/spread\"=(SELECT simul:\"template/gen/spread\" FROM @ctx.control:\"template/sensor\"),\n\
+        simul:\"rt/gen/min\"=(SELECT simul:\"template/gen/min\" FROM @ctx.control:\"template/sensor\"),\n\
+        simul:\"rt/gen/max\"=(SELECT simul:\"template/gen/max\" FROM @ctx.control:\"template/sensor\"),\n\
+        simul:\"rt/gen/jitter\"=(SELECT simul:\"template/gen/jitter\" FROM @ctx.control:\"template/sensor\") * EXTRACT(SECOND FROM CURRENT_TIMESTAMP),\n\
         simul:\"rt/value/gen/id\"=.simul:\"value/gen/sinus\",\n\
         control:\"rt/sensor\"=(SELECT control:sensor FROM @self),\n\
         control:\"rt/sensor/model\"=(SELECT control:\"sensor/model\" FROM @self.control:sensor),\n\
@@ -174,14 +174,14 @@ INSERT @:1\n\
   afy:onEnter=\n\
     ${INSERT @:20\n\
       meta:description='On/Off Simulated Sensor Instance (572ef13c): ', -- || (SELECT inst:name FROM @self),\n\
-      control:\"sensor/model\"=(SELECT afy:objectID FROM @class),\n\
+      control:\"sensor/model\"=(SELECT afy:objectID FROM @ctx),\n\
       control:\"sensor/name\"=(SELECT inst:name FROM @self),\n\
       control:appliance=(SELECT inst:appliance FROM @self),\n\
       simul:\"sensor/signalable\"=\n\
         (INSERT @:30\n\
           meta:description='Timer generating samples for sensor ', -- || (SELECT afy:pinID FROM @:20),\n\
           control:\"rt/time/signal\"=0,\n\
-          control:\"sensor/model\"=(SELECT afy:objectID FROM @class), -- @:20.control:\"sensor/model\" \n\
+          control:\"sensor/model\"=(SELECT afy:objectID FROM @ctx), -- @:20.control:\"sensor/model\" \n\
           control:sensor=@:20)};\n\
 -- Declare unit tests (optional).\n\
 CREATE CLASS test:\"template/sensor/on.off.572ef13c\" AS SELECT * WHERE EXISTS(test:\"new/572ef13c\") SET \n\
@@ -212,7 +212,7 @@ INSERT @:1\n\
       afy:onEnter={\n\
         ${UPDATE @self ADD control:home_locked=(SELECT control:\"appliance/state\" FROM @self.inst:home.control:appliances WHERE control:\"appliance/model\"=@:1.afy:objectID)},\n\
         ${UPDATE @self.control:appliance ADD control:\"rt/warning/time\"=CURRENT_TIMESTAMP WHERE NOT (1 = control:home_locked[:LAST])},\n\
-        ${INSERT control:_debug=CURRENT_TIMESTAMP, control:_locked=@self.control:home_locked[:LAST], control:_state=(SELECT control:\"appliance/state\" FROM @self.inst:appliance), control:_target_appliance=@self.inst:appliance, control:_this=@self, control:_class=@class},\n\
+        ${INSERT control:_debug=CURRENT_TIMESTAMP, control:_locked=@self.control:home_locked[:LAST], control:_state=(SELECT control:\"appliance/state\" FROM @self.inst:appliance), control:_target_appliance=@self.inst:appliance, control:_this=@self, control:_class=@ctx},\n\
         ${UPDATE @self DELETE control:home_locked}}),\n\
     (INSERT @:11\n\
       meta:description='Action template: reset no presence',\n\
@@ -221,10 +221,10 @@ INSERT @:1\n\
       afy:onEnter={\n\
         ${UPDATE @self ADD control:home_locked=(SELECT control:\"appliance/state\" FROM @self.inst:home.control:appliances WHERE control:\"appliance/model\"=@:1.afy:objectID)},\n\
         ${UPDATE @self.control:appliance SET control:\"appliance/state\"=1 WHERE NOT (1 = @self.control:home_locked[:LAST])},\n\
-        ${INSERT control:_debug=CURRENT_TIMESTAMP, control:_locked=@self.control:home_locked[:LAST], control:_state=(SELECT control:\"appliance/state\" FROM @self.inst:appliance), control:_target_appliance=@self.inst:appliance, control:_this=@self, control:_class=@class},\n\
+        ${INSERT control:_debug=CURRENT_TIMESTAMP, control:_locked=@self.control:home_locked[:LAST], control:_state=(SELECT control:\"appliance/state\" FROM @self.inst:appliance), control:_target_appliance=@self.inst:appliance, control:_this=@self, control:_class=@ctx},\n\
         ${UPDATE @self.control:appliance DELETE control:\"rt/warning/time\" WHERE EXISTS(control:\"rt/warning/time\")},\n\
         ${UPDATE @self.control:appliance DELETE control:\"rt/emergency/time\" WHERE EXISTS(control:\"rt/emergency/time\")},\n\
-        ${UPDATE @class DELETE control:home_locked}}),\n\
+        ${UPDATE @ctx DELETE control:home_locked}}),\n\
     (INSERT @:12\n\
       meta:description='Action template: close the light on absence',\n\
       afy:objectID=.control:\"template/action/53f5265f/close.on.absence\",\n\
@@ -233,7 +233,7 @@ INSERT @:1\n\
         ${UPDATE @self.control:appliance SET control:\"appliance/state\"=0},\n\
         ${UPDATE @self.control:appliance ADD control:\"rt/emergency/log\"=CURRENT_TIMESTAMP},\n\
         ${UPDATE @self.control:appliance SET control:\"rt/emergency/time\"=CURRENT_TIMESTAMP, control:\"rt/warning/time\"={CURRENT_TIMESTAMP}},\n\
-        ${INSERT control:_debug=CURRENT_TIMESTAMP, control:_state=(SELECT control:\"appliance/state\" FROM @self.control:appliance), control:_target_appliance=@self.control:appliance, control:_this=@self, control:_class=@class}}),\n\
+        ${INSERT control:_debug=CURRENT_TIMESTAMP, control:_state=(SELECT control:\"appliance/state\" FROM @self.control:appliance), control:_target_appliance=@self.control:appliance, control:_this=@self, control:_class=@ctx}}),\n\
     (INSERT @:13\n\
       meta:description='Action template: request to close the light on home locked',\n\
       afy:objectID=.control:\"template/action/53f5265f/request.close.on.hlocked\",\n\
@@ -246,7 +246,7 @@ INSERT @:1\n\
       afy:predicate=${SELECT * WHERE EXISTS(control:\"new/action/53f5265f/close.on.hlocked\")},\n\
       afy:onEnter={\n\
         ${UPDATE @self.control:smart_light SET control:\"appliance/state\"=0},\n\
-        ${INSERT control:_debug=CURRENT_TIMESTAMP, control:_target_appliance=@self.control:smart_light, control:_this=@self, control:_class=@class}})},\n\
+        ${INSERT control:_debug=CURRENT_TIMESTAMP, control:_target_appliance=@self.control:smart_light, control:_this=@self, control:_class=@ctx}})},\n\
   control:\"template/appliance/rules\"={\n\
     (INSERT @:20\n\
       meta:description='Rule template: ...',\n\
@@ -257,7 +257,7 @@ INSERT @:1\n\
     ${INSERT @:30\n\
       meta:description='Smart Light Instance (53f5265f): ' || @self.inst:name,\n\
       control:\"home\"=@self.inst:home,\n\
-      control:\"appliance/model\"=@class.afy:objectID,\n\
+      control:\"appliance/model\"=@ctx.afy:objectID,\n\
       control:\"appliance/name\"=@self.inst:name,\n\
       control:\"appliance/state\"=0,\n\
       control:\"tmp/create/sensor\"=(INSERT OPTIONS(transient) simul:\"new/sensor/572ef13c\"=1, inst:name='sensor for ' || @self.inst:name, inst:appliance=@:30)};\n\
@@ -286,7 +286,7 @@ INSERT @:1\n\
     ${INSERT @:10\n\
       meta:description='Alarm System Instance',\n\
       control:\"home\"=@self.inst:home,\n\
-      control:\"appliance/model\"=@class.afy:objectID,\n\
+      control:\"appliance/model\"=@ctx.afy:objectID,\n\
       control:\"appliance/name\"=@self.inst:name,\n\
       control:\"appliance/state\"=0};\n\
 COMMIT;"

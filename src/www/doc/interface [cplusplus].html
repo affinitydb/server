@@ -33,9 +33,9 @@
   </select>
 </div>
 </div>
-<div id="affinity-kernels-c-interface"
+<div id="c-kernel-interface"
 ><h1
-  >Affinity Kernel's C++ Interface</h1
+  >C++ Kernel Interface</h1
   ><!-- TODO: many little things to review here... --><p
   >Please read the brief <a href="./terminology.html#c-kernel-interface"
     >introduction</a
@@ -154,10 +154,14 @@
        /></li
     ><li
     ><code
-      >fEncrypted</code
-      >: to enable <a href="./terminology.html#encryption"
+      >mode</code
+      >: various creation flags, e.g. <code
+      >STORE_CREATE_ENCRYPTED</code
+      > to enable <a href="./terminology.html#encryption"
       >encryption</a
-      >. This is immutable.<br
+      >, or <code
+      >STORE_CREATE_PAGE_INTEGRITY</code
+      > to request additional validation of page contents at each page I/O. This is immutable.<br
        /></li
     ><li
     ><code
@@ -167,12 +171,7 @@
     ><li
     ><code
       >pctFree</code
-      >: to control the percentage of free space left on pages during insertion. This is immutable.<br
-       /></li
-    ><li
-    ><code
-      >fPageIntegrity</code
-      >: to request additional validation of page contents at each page I/O. This is immutable.</li
+      >: to control the percentage of free space left on pages during insertion. This is immutable.</li
     ></ol
   ><p
   >The <code
@@ -825,7 +824,7 @@
     >affinity.h</a
     >, <code
     >IService</code
-    > is meant to be implemented externally (not to be invoked by the client). It provides an extension point for the kernel. Service implementation will be documented in more detail in a future update of the documentation. In the meantime, please refer to example implementations in the code.</p
+    > is meant to be implemented externally (not to be invoked by the client, but by the Affinity kernel). It provides an extension point for the kernel. Service implementation will be documented in more detail in a future update of the documentation. In the meantime, please refer to example implementations in the code.</p
   ></div
 >
 </div>

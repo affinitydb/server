@@ -32,13 +32,13 @@ CREATE CLASS control:"rt/physical/samples" AS SELECT * WHERE EXISTS(control:"rt/
 CREATE CLASS simul:"value/generators" AS SELECT * WHERE CONTAINS(afy:objectID, 'simul/value/gen/');
 CREATE TIMER control:"rt/source/timer" INTERVAl '00:00:01' AS UPDATE control:"rt/signalable" SET control:"rt/time/signal"=EXTRACT(SECOND FROM CURRENT_TIMESTAMP), control:"rt/time"=CURRENT_TIMESTAMP;
 -- Generators
-CREATE CLASS simul:"value/gen/sinus" AS SELECT * WHERE simul:"rt/value/gen/id"=@class.afy:objectID SET
+CREATE CLASS simul:"value/gen/sinus" AS SELECT * WHERE simul:"rt/value/gen/id"=@ctx.afy:objectID SET
   meta:description='A general-purpose value generator for sinusoidal curves',
   afy:joinTrigger=${UPDATE @self SET control:"rt/value"=MAX(simul:"rt/gen/min", MIN(simul:"rt/gen/max", (simul:"rt/gen/min" + ((0.5 + SIN(control:"rt/time/step")) * (simul:"rt/gen/max" - simul:"rt/gen/min"))) + simul:"rt/gen/jitter"))};
-CREATE CLASS simul:"value/gen/linear_up" AS SELECT * WHERE simul:"rt/value/gen/id"=@class.afy:objectID SET
+CREATE CLASS simul:"value/gen/linear_up" AS SELECT * WHERE simul:"rt/value/gen/id"=@ctx.afy:objectID SET
   meta:description='A general-purpose value generator for linear upward curves',
   afy:joinTrigger=${UPDATE @self SET control:"rt/value"=MAX(simul:"rt/gen/min", MIN(simul:"rt/gen/max", (simul:"rt/gen/min" + (control:"rt/time/step" * simul:"rt/gen/spread") * (simul:"rt/gen/max" - simul:"rt/gen/min")) + simul:"rt/gen/jitter"))};
-CREATE CLASS simul:"value/gen/linear_down" AS SELECT * WHERE simul:"rt/value/gen/id"=@class.afy:objectID SET
+CREATE CLASS simul:"value/gen/linear_down" AS SELECT * WHERE simul:"rt/value/gen/id"=@ctx.afy:objectID SET
   meta:description='A general-purpose value generator for linear downward curves',
   afy:joinTrigger=${UPDATE @self SET control:"rt/value"=MAX(simul:"rt/gen/min", MIN(simul:"rt/gen/max", (simul:"rt/gen/max" - (control:"rt/time/step" * simul:"rt/gen/spread") * (simul:"rt/gen/max" - simul:"rt/gen/min")) + simul:"rt/gen/jitter"))};
 -- Sensor Template
@@ -50,10 +50,10 @@ INSERT @:1
     (CREATE CLASS control:"template/sensor/step/handler/on.off.572ef13c" AS SELECT * FROM control:"rt/signalable" WHERE control:"sensor/model"=.simul:"template/sensor/on.off.572ef13c" SET
       control:"template/sensor"=@:1,
       afy:updateTrigger=${INSERT 
-        simul:"rt/gen/spread"=(SELECT simul:"template/gen/spread" FROM @class.control:"template/sensor"),
-        simul:"rt/gen/min"=(SELECT simul:"template/gen/min" FROM @class.control:"template/sensor"),
-        simul:"rt/gen/max"=(SELECT simul:"template/gen/max" FROM @class.control:"template/sensor"),
-        simul:"rt/gen/jitter"=(SELECT simul:"template/gen/jitter" FROM @class.control:"template/sensor") * EXTRACT(SECOND FROM CURRENT_TIMESTAMP),
+        simul:"rt/gen/spread"=(SELECT simul:"template/gen/spread" FROM @ctx.control:"template/sensor"),
+        simul:"rt/gen/min"=(SELECT simul:"template/gen/min" FROM @ctx.control:"template/sensor"),
+        simul:"rt/gen/max"=(SELECT simul:"template/gen/max" FROM @ctx.control:"template/sensor"),
+        simul:"rt/gen/jitter"=(SELECT simul:"template/gen/jitter" FROM @ctx.control:"template/sensor") * EXTRACT(SECOND FROM CURRENT_TIMESTAMP),
         simul:"rt/value/gen/id"=.simul:"value/gen/sinus",
         control:"rt/sensor"=(SELECT control:sensor FROM @self),
         control:"rt/sensor/model"=(SELECT control:"sensor/model" FROM @self.control:sensor),
@@ -78,14 +78,14 @@ INSERT @:1
   afy:joinTrigger=
     ${INSERT @:20
       meta:description='On/Off Simulated Sensor Instance (572ef13c): ', -- || (SELECT inst:name FROM @self),
-      control:"sensor/model"=(SELECT afy:objectID FROM @class),
+      control:"sensor/model"=(SELECT afy:objectID FROM @ctx),
       control:"sensor/name"=(SELECT inst:name FROM @self),
       control:appliance=(SELECT inst:appliance FROM @self),
       simul:"sensor/signalable"=
         (INSERT @:30
           meta:description='Timer generating samples for sensor ', -- || (SELECT afy:pinID FROM @:20),
           control:"rt/time/signal"=0,
-          control:"sensor/model"=(SELECT afy:objectID FROM @class), -- @:20.control:"sensor/model" 
+          control:"sensor/model"=(SELECT afy:objectID FROM @ctx), -- @:20.control:"sensor/model" 
           control:sensor=@:20)};
 </textarea></div>
 

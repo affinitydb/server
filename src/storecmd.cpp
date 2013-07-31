@@ -94,8 +94,11 @@ public:
                 StoreCreationParameters create_params;
                 create_params.identity = pUserName;
                 create_params.password = ( pUserPw && strlen( pUserPw ) > 0 ) ? pUserPw : NULL;
-                create_params.fEncrypted = (create_params.password && strlen(create_params.password)>0);
+                if ( create_params.password && strlen(create_params.password)>0 ) {
+                    create_params.mode |= STORE_CREATE_ENCRYPTED;
+                }
                 create_params.pageSize = 32768; // Note: Don't take chances with default...
+                create_params.xSyncStack = 100; // Note: More generous default, for demos etc.; will readjust when able to control via pathSQL.
                 res = createStore( create_params, params, storeCtx );
                 if ( res != RC_OK ) {
                     LOG_LINE(kLogError, "createStore: affinity error %d", res);

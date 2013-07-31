@@ -76,7 +76,7 @@ tr.selected { background-color:#a2a2a2; }
 #query_area_q { float:left; width:100%; height:100%; }
 #query_area_go { float:right; margin-left:5px; margin-right:-112px; width:100px; }
 #result_area { overflow:none; margin-left:0.9em; position:absolute; top:40%; width:80%; bottom:30px; border:none; }
-#result_area_page { overflow:auto; height:90%; }
+#result_area_page { overflow:auto; position:absolute; width:100%; height:90%; top:30px; }
 
 /* content_left (tutorial tab) */
 #tutorial_left { position:absolute; top:50px; width:100%; bottom:0; margin:0; white-space:normal; border:none; padding-left:0.9em;  }

@@ -51,7 +51,7 @@ SIMULCTX.createClass = function(pClassDef, pCompletion)
 }
 SIMULCTX.createClasses = function(pCompletion)
 {
-  var lAction_GhostTurn =
+  var lAction_GhostTurn_oldatself =
   [
     // -- the 4 next statements update the ghost's logical position, making sure to repeat the WHERE clause due to async treatment of notifications (n.b. 4 separate statements due to lack of CASE...WHEN)
     "${UPDATE @self SET simul:\"moveable/x\"+=1 WHERE (CONTAINS(simul:\"moveable/direction\", 'R') AND (simul:\"moveable/entering\" >= 1.0))}",
@@ -75,7 +75,31 @@ SIMULCTX.createClasses = function(pCompletion)
     // -- the next statement removes all temporary variables
     "${UPDATE @self DELETE simul:\"ghost/tmpv1\", simul:\"ghost/tmpv2\", simul:\"ghost/tmpv3\", simul:\"ghost/tmpv4\", simul:\"ghost/tmprand\"}",
   ];
-  var lAction_PlayerTurnConstraint =
+  var lAction_GhostTurn_newatauto = // converted to @auto and almost working...
+  [
+    // -- the 4 next statements update the ghost's logical position, making sure to repeat the WHERE clause due to async treatment of notifications (n.b. 4 separate statements due to lack of CASE...WHEN)
+    "${UPDATE @self SET simul:\"moveable/x\"+=1 WHERE (CONTAINS(simul:\"moveable/direction\", 'R') AND (simul:\"moveable/entering\" >= 1.0))}",
+    "${UPDATE @self SET simul:\"moveable/x\"-=1 WHERE (CONTAINS(simul:\"moveable/direction\", 'L') AND (simul:\"moveable/entering\" >= 1.0))}",
+    "${UPDATE @self SET simul:\"moveable/y\"+=1 WHERE (CONTAINS(simul:\"moveable/direction\", 'B') AND (simul:\"moveable/entering\" >= 1.0))}",
+    "${UPDATE @self SET simul:\"moveable/y\"-=1 WHERE (CONTAINS(simul:\"moveable/direction\", 'T') AND (simul:\"moveable/entering\" >= 1.0))}",
+    // -- the next statement calculates a temporary variable corresponding to the board's constraints for the ghost's current position; this technique is used to circumvent limitations with nested SELECT in various contexts... UPDATE ADD is used to circumvent bug #319...
+    "${UPDATE @auto ADD simul:\"ghost/tmpv1\"=(SELECT simul:\"square/constraints\" FROM simul:squares WHERE simul:\"square/x\"=@self.simul:\"moveable/x\" AND simul:\"square/y\"=@self.simul:\"moveable/y\")}",
+    // -- the next statements calculate a temporary variable corresponding to the next direction to take, if necessary; string manipulations are made because intersections/differences on collections don't seem to work...
+    // -- I avoid returning the inverse direction, and use some pseudo randomness (based on CURRENT_TIMESTAMP's ms).
+    // -- REVIEW: now that bug 320 is fixed, reinsert 'WHERE LENGTH(simul:\"ghost/tmpv1\"[:LAST]) > 1' when assigning tmpv4, after pre-assigning a default (n.b. I tried quickly but noticed strange side-effects, to be investigated...)
+    "${UPDATE @auto SET simul:\"ghost/tmpv2\"=(SELECT REPLACE('TBLR', SUBSTR(simul:invdir, POSITION(simul:dir, simul:\"moveable/direction\"), 1), '') FROM @self)}",
+    "${UPDATE @auto SET simul:\"ghost/tmpv3\"=REPLACE(simul:\"ghost/tmpv2\"[:LAST], SUBSTR(simul:\"ghost/tmpv1\"[:LAST], 0, 1), '')}",
+    "${UPDATE @auto SET simul:\"ghost/tmpv4\"=REPLACE(simul:\"ghost/tmpv3\", SUBSTR(simul:\"ghost/tmpv1\"[:LAST], 1, 1), '')}",
+    "${UPDATE @auto SET simul:\"ghost/tmprand\"=0}",
+// Note: #435 comment #10
+//    "${UPDATE @auto SET simul:\"ghost/tmprand\"=(EXTRACT(FRACTIONAL FROM CURRENT_TIMESTAMP) % 2) WHERE LENGTH(simul:\"ghost/tmpv4\") > 1}",
+    // -- the next statement assigns the new direction, if necessary
+    "${UPDATE @self SET simul:\"moveable/direction\"=SUBSTR(@auto.simul:\"ghost/tmpv4\", @auto.simul:\"ghost/tmprand\", 1) WHERE CONTAINS(@auto.simul:\"ghost/tmpv1\"[:LAST], simul:\"moveable/direction\") AND (simul:\"moveable/entering\" >= 1.0)}",
+    // -- the next statement resets the inter-step progression counter
+    "${UPDATE @self SET simul:\"moveable/entering\"=0.1 WHERE (simul:\"moveable/entering\" >= 1.0)}",
+    "${INSERT SELECT * FROM @auto}",
+  ];
+  var lAction_PlayerTurnConstraint_oldatself =
   [
     // Note:
     //   I chose to do this validation as a join trigger (as opposed to at the source, when setting the new direction)
@@ -89,7 +113,20 @@ SIMULCTX.createClasses = function(pCompletion)
     "${UPDATE @self SET simul:\"moveable/direction\"=simul:\"player/direction/next\" WHERE simul:\"moveable/direction\"='-' AND NOT CONTAINS(simul:\"player/tmpv\"[:LAST], simul:\"player/direction/tentative\")}",
     "${UPDATE @self DELETE simul:\"player/tmpv\", simul:\"player/direction/tentative\"}",
   ];
-  var lAction_PlayerTurn =
+  var lAction_PlayerTurnConstraint_newatauto = // converted to @auto and working
+  [
+    // Note:
+    //   I chose to do this validation as a join trigger (as opposed to at the source, when setting the new direction)
+    //   because of problems encountered with JOIN (here one side of the JOIN becomes a cst, and it works);
+    //   I couldn't use an update trigger (updating @self caused some trouble). I couldn't figure how to ROLLBACK either,
+    //   due to the complexity of the condition (involving a JOIN).
+    // TODO: I think we might need to further investigate potential inherent difficulties in onUpdate...
+    "${UPDATE @auto ADD simul:\"player/tmpv\"=(SELECT simul:\"square/constraints\" FROM simul:squares WHERE simul:\"square/x\"=@self.simul:\"moveable/x\" AND simul:\"square/y\"=@self.simul:\"moveable/y\")}",
+    "${UPDATE @self SET simul:\"player/direction/next\"=simul:\"player/direction/tentative\"}",
+    "${UPDATE @self SET simul:\"moveable/direction\"=simul:\"player/direction/next\" WHERE simul:\"moveable/direction\"='-' AND NOT CONTAINS(@auto.simul:\"player/tmpv\"[:LAST], simul:\"player/direction/tentative\")}",
+    "${UPDATE @self DELETE simul:\"player/direction/tentative\"}",
+  ];
+  var lAction_PlayerTurn_oldatself =
   [
     // -- grab the direction constraints of the square on which the player is currently located.
     "${UPDATE @self ADD simul:\"player/tmpv1\"=(SELECT simul:\"square/constraints\" FROM simul:squares WHERE simul:\"square/x\"=@self.simul:\"moveable/x\" AND simul:\"square/y\"=@self.simul:\"moveable/y\")}",
@@ -116,6 +153,9 @@ SIMULCTX.createClasses = function(pCompletion)
     // -- remove temporary variables.
     "${UPDATE @self DELETE simul:\"player/tmpv1\", simul:\"player/tmpv2\", simul:\"player/tmpv3\", simul:\"player/tmpv4\"}",
   ];
+  var lAction_GhostTurn = lAction_GhostTurn_oldatself;
+  var lAction_PlayerTurnConstraint = lAction_PlayerTurnConstraint_oldatself;
+  var lAction_PlayerTurn = lAction_PlayerTurn_oldatself;
   var lClassDecl =
   [
     "CREATE CLASS simul:squares AS SELECT * WHERE simul:\"square/constraints\" IN :0;",

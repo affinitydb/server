@@ -43,6 +43,76 @@ function disableTab(pName, pParentFrame)
 }
 
 /**
+ * Scrolling on mobile.
+ */
+function ScrollOnMobile(pDivId, pScrollers/*optional*/)
+{
+  if (!AFY_CONTEXT.mMobileVersion)
+  {
+    this.activate = this.deactivate = function(){};
+    return;
+  }
+  // Note: On mobile the 'overflow:auto' behavior is disabled, so we emulate it here...
+  // Review: May be slightly different on iPhone...
+  var lThis = this;
+  var lScrollerX = (undefined != pScrollers && 'x' in pScrollers ? pScrollers.x : pDivId);
+  var lScrollerY = (undefined != pScrollers && 'y' in pScrollers ? pScrollers.y : pDivId);
+  var lCurPoint = {x:0, y:0};
+  var lAnchorPoint = null;
+  var lMouseDown = false;
+  var lGrabCurPoint = function(e) { if (undefined == e) return; if ('touches' in e) { lCurPoint.x = e.touches[0].pageX; lCurPoint.y = e.touches[0].pageY; } else { lCurPoint.x = e.pageX; lCurPoint.y = e.pageY; } };
+  $(pDivId).bind("touchstart", function(e) { lAnchorPoint = null; lMouseDown = true; });
+  $(pDivId).bind("touchend", function() { lMouseDown = false; });
+  $(pDivId).bind("touchcancel", function() { lMouseDown = false; });
+  $(pDivId).mouseup(function() { lMouseDown = false; });
+  var lOnTouch =
+    function(e)
+    {
+      e.preventDefault(); // Review: not all browsers?
+      lGrabCurPoint(window.event);
+      if (undefined == lAnchorPoint)
+        { lAnchorPoint = {x:lCurPoint.x, y:lCurPoint.y, st:$(lScrollerY).scrollTop(), sl:$(lScrollerX).scrollLeft()}; }
+      if (lMouseDown)
+      {
+        $(lScrollerY).scrollTop(lAnchorPoint.st + lAnchorPoint.y - lCurPoint.y);
+        $(lScrollerX).scrollLeft(lAnchorPoint.sl + lAnchorPoint.x - lCurPoint.x);
+      }
+    };
+  this.activate = function() { $(window).bind("touchmove", lOnTouch); };
+  this.deactivate = function() { $(window).unbind("touchmove", lOnTouch); };
+}
+
+// TODO: unify with above
+function TrackMouseOnMobile(pDivId, pHandlers)
+{
+  if (!AFY_CONTEXT.mMobileVersion || undefined == pHandlers)
+  {
+    this.activate = this.deactivate = this.activation = function(){};
+    return;
+  }
+  // Note: On some(?) mobile platforms the mouse emulation is really bad... we emulate it here...
+  var lThis = this;
+  var lCurPoint = {x:0, y:0};
+  var lCallHandler = function(pWhich, pArg) { if (pWhich in pHandlers) pHandlers[pWhich].call(pHandlers, pArg); };
+  var lGrabCurPoint = function(e) { if (undefined == e) return; if ('touches' in e) { lCurPoint.x = e.touches[0].pageX; lCurPoint.y = e.touches[0].pageY; } else { lCurPoint.x = e.pageX; lCurPoint.y = e.pageY; } };
+  $(pDivId).bind("touchstart", function(e) { lGrabCurPoint(window.event); lCallHandler('mousedown', lCurPoint); });
+  $(pDivId).bind("touchend", function() { lCallHandler('mouseup', lCurPoint); });
+  $(pDivId).bind("touchcancel", function() { lCallHandler('mouseup', lCurPoint); });
+  $(pDivId).mouseup(function() { lCallHandler('mouseup', lCurPoint); });
+  var lOnTouch =
+    function(e)
+    {
+      e.preventDefault(); // Review: not all browsers?
+      lGrabCurPoint(window.event);
+      //$("#footer_text").text("p:" + lCurPoint.x + "-" + lCurPoint.y);
+      lCallHandler('mousemove', lCurPoint);
+    };
+  this.activate = function() { $(window).bind("touchmove", lOnTouch); };
+  this.deactivate = function() { $(window).unbind("touchmove", lOnTouch); };
+  this.activation = function(pOn) { if (pOn) lThis.activate(); else lThis.deactivate(); };
+}
+
+/**
  * Tooltips.
  * Simple mechanism to bind #thetooltip to any
  * div section on the page.
@@ -325,6 +395,7 @@ function QResultTable(pContainer, pClassName, pCallbacks, pOptions)
   this.mScrollPos = 0; // Last (raw) scroll position.
   this.mNumRows = 0; // Total number of rows.
   this.mQuery = null; // Query string producing the results.
+  this.mQueryOrg = null; // Originally-specified query (especially for insert/update/create tracking).
   this.invokeCB = function(_pFuncName, _pArgs) { if (undefined != pCallbacks && _pFuncName in pCallbacks) pCallbacks[_pFuncName].apply(null, _pArgs); }
   var lDefaultOptions = {showPID:true, showOtherProps:true, autoSelect:false};
   this.getOption = function(_pOptionName) { return (undefined != pOptions && _pOptionName in pOptions) ? pOptions[_pOptionName] : ((_pOptionName in lDefaultOptions) ? lDefaultOptions[_pOptionName] : null); }
@@ -336,6 +407,7 @@ function QResultTable(pContainer, pClassName, pCallbacks, pOptions)
   this.mQrtHScroller.scroll(function() { lThis.mQrtContainer.scrollLeft(this.scrollLeft); });
   var lOnWheel = function(e) { if (!lThis.mMouseOnTable) { return; } var _lV = ('wheelDelta' in e ? -e.wheelDelta : e.detail); var _lDelta = (_lV > 0 ? lThis.mQrtVSNominalRowHeight : -lThis.mQrtVSNominalRowHeight); var _lNewPos = $(lThis.mQrtVScroller).scrollTop() + _lDelta; lThis.mQrtVScroller.scrollTop(_lNewPos); lThis.mQrtVScroller.scroll(); }
   var lOnResize = function() { lThis._setNumRows(lThis.mNumRows); lThis._onScroll(lThis.mScrollPos); }; // To avoid half-empty pages when the display grows.
+  var lScrollOnMobile = new ScrollOnMobile(lThis.mUIContainer, {x:lThis.mQrtHScroller, y:lThis.mQrtVScroller});
   var lManageWindowEvents =
     function(_pOn)
     {
@@ -343,9 +415,15 @@ function QResultTable(pContainer, pClassName, pCallbacks, pOptions)
       _lFunc('mousewheel', lOnWheel, true);
       _lFunc('DOMMouseScroll', lOnWheel, true);
       if (_pOn)
+      {
         $(window).resize(lOnResize);
+        lScrollOnMobile.activate();
+      }
       else
+      {
         $(window).unbind('resize', lOnResize);
+        lScrollOnMobile.deactivate();
+      }
     }
   this.onActivateTab = function() { lManageWindowEvents(true); }
   this.onDeactivateTab = function() { lManageWindowEvents(false); }
@@ -357,6 +435,7 @@ QResultTable.CACHE_SIZE = 20 * QResultTable.PAGESIZE; // Note: Must be at least 
 QResultTable.prototype.populate = function(pQuery)
 {
   var lThis = this;
+  this.mQueryOrg = pQuery;
   if (undefined == pQuery || 0 == pQuery.length)
   {
     this.mQuery = null;
@@ -394,7 +473,7 @@ QResultTable.prototype._onScroll = function(pPos)
 
   // Otherwise, query a page.
   if (undefined == this.mQuery)
-    { alert("Unexpected: no query specified, yet not enough results"); return; }
+    { alert("Unexpectedly trying to fetch more results for: " + this.mQueryOrg + " (" + lStartPos + "-" + lEndPos + ")"); return; }
   if (iR == lStartPos && iR > 0)
   {
     // When scrolling upward, or seeking at a random point, fetch up to half a page upward (and the rest downward).
@@ -597,7 +676,7 @@ QResultTable.prototype._addRowUI = function(pWhich, pPin)
   var lThis = this;
   var lBody = this.mTables[pWhich].children("tbody");
   var lRowCountBefore = lBody.children().length;
-  var lShortPid = 'id' in pPin ? trimPID(pPin['id']) : ('afy:pinID' in pPin ? trimPID(pPin['afy:pinID']) : null);
+  var lShortPid = 'id' in pPin ? trimPID(pPin['id']) : ('afy:pinID' in pPin ? trimPID(pPin['afy:pinID']['$ref']) : null);
   var lRow = $("<tr id=\"" + lShortPid + "\"/>").appendTo(lBody);
   lRow.mouseover(function(){$(this).addClass("highlighted");});
   lRow.mouseout(function(){$(this).removeClass("highlighted");});

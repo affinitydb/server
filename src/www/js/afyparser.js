@@ -140,7 +140,7 @@ AfyToken.declare('tdCommentSingleLine', /(\/\/)|(\-\-)/g);
 AfyToken.declare('tdCommentMutliLineOpen', /\/\*/g);
 AfyToken.declare('tdCommentMutliLineClose', /\*\//g);
 // ---
-AfyToken.declare('tdAtClass', /^@class/ig);
+AfyToken.declare('tdAtCtx', /^@ctx/ig);
 AfyToken.declare('tdAtSelf', /^@self/ig);
 AfyToken.declare('tdAtPin', /^@[a-f0-9]+/ig);
 AfyToken.declare('tdAtLocal', /^@:\d+/ig);
@@ -965,7 +965,7 @@ AfyParser.prototype._processReference = function(pTokens, pTokenIter, pNode)
     switch (lToken.mType)
     {
       case AfyToken.tdAtPin.afy_tokenType:
-      case AfyToken.tdAtClass.afy_tokenType:
+      case AfyToken.tdAtCtx.afy_tokenType:
       case AfyToken.tdAtSelf.afy_tokenType:
       case AfyToken.tdAtLocal.afy_tokenType:
         pNode.setPIN(lToken.mText);
@@ -1103,7 +1103,7 @@ AfyParser.prototype._processExpression = function(pTokens, pTokenIter, pNode)
       // References.
       // Review: will this eventually become a full path exp?
       case AfyToken.tdAtPin.afy_tokenType:
-      case AfyToken.tdAtClass.afy_tokenType:
+      case AfyToken.tdAtCtx.afy_tokenType:
       case AfyToken.tdAtSelf.afy_tokenType:
       case AfyToken.tdAtLocal.afy_tokenType:
       case AfyToken.tdAtSign.afy_tokenType:
@@ -1754,9 +1754,9 @@ AfyParser.prototype._processSelectionScope = function(pTokens, pTokenIter, pNode
         break;
 
       // PID (as a terminal scope, or as starting point of a path).
-      // TODO: @class, @self and @:n are only valid in some contexts...
+      // TODO: @ctx, @self and @:n are only valid in some contexts...
       case AfyToken.tdAtPin.afy_tokenType:
-      case AfyToken.tdAtClass.afy_tokenType:
+      case AfyToken.tdAtCtx.afy_tokenType:
       case AfyToken.tdAtSelf.afy_tokenType:
       case AfyToken.tdAtLocal.afy_tokenType:
       case AfyToken.tdAtSign.afy_tokenType:

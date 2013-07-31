@@ -40,8 +40,8 @@
   </div>
 </div>
 
-<div id="mobile_constraints_1"></div> <!-- temporary visual check/guideline -->
-<!-- <div id="mobile_constraints_2"></div> -- temporary visual check/guideline -->
+<div id="mobile_constraints_1"></div><!-- visual check/guideline -->
+<div id="mobile_constraints_2"></div><!-- visual check/guideline -->
 
 <div id='content'>
   <!-- Basic Console -->
@@ -94,12 +94,12 @@
     <div id='batching_left'>
       <div id='query_area'>
         <textarea id='query_area_q' cols=10></textarea>
-        <button id='query_area_go'>go</button>
       </div>
+      <button id='query_area_go'>go</button>
+      <select name='results' id='result_area_selector'>
+        <option value="none">none</option>
+      </select>
       <div id='result_area'>
-        <select name='results' id='result_area_selector'>
-          <option value="none">none</option>
-        </select>
         <div id='result_area_page'></div>
       </div>
     </div>
@@ -117,7 +117,7 @@
           <br>
           <p>h: print the help</p>
           <p>t: start the interactive tutorial</p>
-          <p>... and don't hesitate to visit the <a href='../doc/intro.html'>documentation</a>, check out this short <a href='../promo/ddos.html'>presentation</a>, or <a href='../doc/getting%20started.html#setup'>install</a>!</p> 
+          <p>... and don't hesitate to visit the <a href='../doc/intro.html'>documentation</a>, check out this short <a href='../promo/ddos.html'>presentation</a>, or <a href='../doc/getting%20started.html'>install</a>!</p> 
           <br>
         </div>
         <div id='tutorial_input_line'>&gt;<input id='tutorial_input' /></div>
@@ -143,14 +143,13 @@
     <div id='histo_left'>
       <div id='histo_spec'>
         <span>Domain:</span>
-        <select name="histo_class" id="histo_class"></select>
+        <select name="histo_class" id="histo_class"></select><br>
         <span>Property:</span>
-        <select name="histo_property" id="histo_property"></select>
-        <button id='histo_go' style='display:none'> go </button>
+        <select name="histo_property" id="histo_property"></select><br>
         <div id="histo_query">Please select a class and a property...</div>
       </div>
-      <div id='histo_area_c'>
-        <canvas id='histo_area'>
+      <div id='histo_area_c' class='not_selectable'>
+        <canvas id='histo_area' class='not_selectable'>
         </canvas>
       </div>
       <div id='histo_status'>
@@ -199,7 +198,7 @@
 
 <div id='generic_footer'>
   <!-- <img src='../images/affinityfooter.jpg' id='footer_img' class='horizontally_centered'></img> -->
-  <div id='gh_links'><a href="../doc/getting%20started.html#setup">Download</a> &middot; <a href="../doc/intro.html">Doc</a> &middot; <a href="../doc/FAQ.html">About</a> &middot; <a href="../doc/demo_privacy.html">Privacy</a></div>
+  <div id='gh_links'><a href="../doc/getting%20started.html">Download</a> &middot; <a href="../doc/intro.html">Doc</a> &middot; <a href="../doc/FAQ.html">About</a> &middot; <a href="../doc/demo_privacy.html">Privacy</a></div>
   <div id='footer_text'>&copy; 2013 GoPivotal, Inc. All rights reserved.</div>
 </div>
 
@@ -398,21 +397,22 @@
       <div>They can be useful to connect relational schema with graphs.</div>
       <div>&nbsp;</div>
       <div class='tutorial_step'>q("SELECT * FROM cars AS c JOIN workers(['d', 'n']) AS w ON (c.afy:pinID = w.cars) WHERE (c.year IN [1980, 2000]);");</div>
-      <!-- <div class='tutorial_step'>q("SELECT c.car_make, c.color, c.year, w.name FROM cars AS c JOIN workers(['d', 'n']) AS w ON (c.afy:pinID = w.cars) WHERE (c.year IN [1980, 2000]);");</div> -->
+      <div class='tutorial_step'>q("SELECT c.car_make, c.color, c.year, w.name, w.profession FROM cars AS c JOIN workers(['d', 'n']) AS w ON (c.afy:pinID = w.cars) WHERE (c.year IN [1980, 2000]);");</div>
     </div>
-    <!-- <div id='step12'>
+    <div id='step12'>
       <div>Step 12</div>
-      <div>To finish, let's have a quick look at Affinity's integrated units of measurement.</div>
+      <div>To finish, let's have a quick look at Affinity's integrated units of measurement, and histograms.</div>
       <div>&nbsp;</div>
+      <div class='tutorial_step'>q("SELECT HISTOGRAM(CAST(age AS INT)/10) WHERE EXISTS(age) GROUP BY CAST(age AS INT)/10");</div>
       <div class='tutorial_step'>people = q("SELECT * FROM people;");</div>
       <div class='tutorial_step'>statements = []; for (i = 0; i &lt; people.length; i++) { infeet = (Math.random() > 0.5); statements.push("UPDATE @" + people[i].id + " ADD height=" + (infeet ? (4.5 + Math.random() * 2.5) : (1.5 + Math.random() * 0.5)) + (infeet ? "ft" : "m") + ";"); }</div>
       <div class='tutorial_step'>q("START TRANSACTION;");</div>
       <div class='tutorial_step'>for (i = 0; i &lt; statements.length; i++) { q(statements[i]); }</div>
       <div class='tutorial_step'>q("COMMIT;");</div>
-      <div class='tutorial_step'>q("SELECT name, height FROM workers ORDER BY height;")</div>
-    </div> -->
+      <div class='tutorial_step'>q("SELECT name, CAST(height AS ft) FROM workers ORDER BY height;")</div>
+    </div>
   </div>
-  <div id='restart'>End of tutorial.<br>Type t to restart.<br>Or check out the 'Basic Console', 'Histogram' and '2D-Map' tabs, for more fun (watch out for tooltips!).<br>Or go and <a href='../doc/getting%20started.html#setup'>install</a> Affinity!</div>
+  <div id='restart'>End of tutorial.<br>Type t to restart.<br>Or check out the 'Basic Console', 'Histogram' and '2D-Map' tabs, for more fun (watch out for tooltips!).<br>Or go and <a href='../doc/getting%20started.html'>install</a> Affinity!</div>
 </div>
 </body>
 </html>

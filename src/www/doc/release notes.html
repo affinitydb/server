@@ -49,7 +49,17 @@
 	>affinity.db</code
 	>). Note that AffinityNG is not binary-compatible with AffinityDB, and thus won't read <code
 	>affinity.db</code
-	> files. We are considering to provide an upgrade path from AffinityDB to AffinityNG. Should you be in that situation, please let us know, either via an issue in github or a message in our discussion forum.<!-- TODO: enable when it's there (e.g. beta, or maybe before)
+	> files. We are considering to provide an upgrade path from AffinityDB to AffinityNG. Should you be in that situation, please let us know, either via an issue in github or a message in our discussion forum.</li
+      ><li
+      >In the <code
+	>StoreCreationParameters</code
+	> structure (C++), the <code
+	>fEncrypted</code
+	> field became a bit of a new <code
+	>mode</code
+	> field, alongside new bits such as <code
+	>STORE_CREATE_PAGE_INTEGRITY</code
+	>.<!-- TODO: enable when it's there (e.g. beta, or maybe before)
  * The functionality of the `server` process evolved into a service of the kernel, and the process itself moved to
    the `daemons` project. The REST interface exposed by AffinityDB's server has not changed and remains fully supported
    in AffinityNG.  
@@ -99,12 +109,6 @@
 	>SELECT * FROM ...</code
 	>; to select the PIN's ID, one must now do <code
 	>SELECT afy:pinID FROM ...</code
-	>. Note also that <code
-	>SELECT afy:pinID</code
-	> no longer produces a reference in the JSON output (<code
-	>['afy:pinID']['$ref']</code
-	>), but rather a simple <code
-	>id</code
 	>.</li
       ><li
       ><code
@@ -280,7 +284,7 @@
 	> property will be executed. The handlers, through the statements that define them, have access to special context properties (e.g. <code
 	>@self</code
 	> and <code
-	>@class</code
+	>@ctx</code
 	>), referencing the PINs involved in the event.<!-- TODO: enable when exists
  * A higher-level packaging framework allows to organize and compose [rules](./terminology.html#rule) from a directory of
    [conditions](./terminology.html#condition) and [actions](./terminology.html#action), as commonly seen in business rule
@@ -308,6 +312,23 @@
 	> URI prefix, defined as <code
 	>http://affinityng.org/service/</code
 	>.</li
+      ><li
+      ><a href="./pathSQL%20basics%20[data].html#named-pins"
+	>Named PINs</a
+	>, allowing to access PINs efficiently via their globally unique name (<code
+	>afy:objectID</code
+	> property), instead of by PID or query conditions. This removes a burden on applications, of defining a basic access path for a lot of their utility PINs. Presently, the global name index is only looked up for #-names used in the <code
+	>FROM</code
+	> clause (or target of <code
+	>UPDATE</code
+	>):<ul
+	><li
+	  ><code
+	    >SET PREFIX pfx: 'http://example/'; INSERT afy:objectID=.pfx:myname, myvalue=1; UPDATE #pfx:myname SET myvalue=2;</code
+	    ><br
+	     /></li
+	  ></ul
+	></li
       ><li
       >A number of new options allow to <code
 	>INSERT</code

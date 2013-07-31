@@ -32,6 +32,7 @@ AFY_CONTEXT.mQNamesDirty = false; // For lazy update of qname prefixes, based on
 AFY_CONTEXT.mTooltipTimer = null; // For tooltips.
 AFY_CONTEXT.mStoreIdent = ""; // The current store identity specified by the user.
 AFY_CONTEXT.mStorePw = ""; // The current store password specified by the user.
+AFY_CONTEXT.mMobileVersion = false; // Whether or not the user is currently visualizing the mobile version.
 
 /**
  * General-purpose helpers.

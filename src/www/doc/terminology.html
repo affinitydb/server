@@ -33,9 +33,9 @@
   </select>
 </div>
 </div>
-<div id="list-of-terms-in-alphabetical-order"
+<div id="list-of-terms"
 ><h1
-  >List of Terms (in Alphabetical Order)</h1
+  >List of Terms</h1
   ><p
   ><a href="#acl"
     >ACL</a
@@ -59,7 +59,7 @@
     >communication PIN</a
     >, <a href="#condition"
     >condition</a
-    >, <a href="#essential-concepts-data-model"
+    >, <a href="#essentials-data-model"
     >data model</a
     >, <a href="#element-id-eid"
     >element ID (eid)</a
@@ -126,9 +126,9 @@
     ></p
   ><!-- [snapshot isolation](#snapshot-isolation) -->
 </div
-><div id="essential-concepts-data-model"
+><div id="essentials-data-model"
 ><h1
-  >Essential Concepts (Data Model)</h1
+  >Essentials (Data Model)</h1
   ><p
   >The key components of Affinity's data model can be presented on two layers:</p
   ><ol style="list-style-type: decimal;"
@@ -166,9 +166,9 @@
       >communication PIN</a
       ></li
     ></ol
-  ><div id="basic-components-of-the-data-model"
+  ><div id="data-model:-basic-components"
   ><h2
-    >Basic Components Of The Data Model</h2
+    >Data Model: Basic Components</h2
     ><div id="pin"
     ><h3
       >PIN</h3
@@ -185,6 +185,8 @@
 	>refer</a
 	> to each other. Properties can be added to PINs (or removed) without limitation. Each PIN is uniquely identified by a <a href="#pin-id-pid"
 	>PIN ID</a
+	>. Also <span class='pathsql_new'>NEW in AffinityNG</span>, a PIN can be <a href="./pathSQL%20basics%20[data].html#named-pins"
+	>named</a
 	>.</p
       ><p
       ><em
@@ -332,9 +334,9 @@
 	>, but the term 'class' is often used to represent both concepts. 'Category' may also be used as a synonym for 'class' (to avoid the static type connotation).</p
       ></div
     ></div
-  ><div id="active-components-of-the-data-model"
+  ><div id="data-model:-active-components"
   ><h2
-    >Active Components Of The Data Model</h2
+    >Data Model: Active Components</h2
     ><p
     >Most of the material from this section is <span class='pathsql_new'>NEW</span> in AffinityNG.</p
     ><div id="condition"
@@ -391,23 +393,18 @@
     ><h3
       >Rule</h3
       ><p
-      >A rule is a simple construct that binds a <a href="#condition"
-	>condition</a
-	> to an <a href="#action"
-	>action</a
-	>. While <a href="#class"
-	>classes</a
-	> can be seen as a special category of rule, their declaration is less flexible, and classes also integrate the notion of index. In the alpha release of AffinityNG, rules are available as an implicit feature of <a href="#class"
-	>classes</a
-	>. In an imminent update of the alpha release, a higher-level syntactic construct will also allow to easily reuse <a href="#condition"
+      >A rule is a simple construct that binds a conjunction of <a href="#condition"
 	>conditions</a
-	> and <a href="#action"
+	> to a list of <a href="#action"
 	>actions</a
-	>. The <a href="./pathSQL%20reference%20[definition].html#rule"
-	>reference</a
-	> describes how.</p
-      ><!-- TODO: review when available -->
-</div
+	>. Internally, a rule functions very much like a <a href="#class"
+	>non-indexed class (aka simple event handler)</a
+	>. The rule hides implementation details, by presenting to the reader its conditions and actions as named entities, rather than code. Rules also allow to reuse and share conditions and actions. For more information, see the <a href="./pathSQL%20basics%20[control].html#rules"
+	>basic example</a
+	> and the <a href="./pathSQL%20reference%20[definition].html#rule"
+	>reference section</a
+	>.</p
+      ></div
     ><div id="fsm"
     ><h3
       >FSM</h3
@@ -461,7 +458,7 @@
     ><h3
       >Communication PIN</h3
       ><p
-      >Communication PINs are special PINs with dual personnality. Their &quot;RAW&quot; form (i.e. their plain and simple set of <a href="#property"
+      >Communication PINs are special PINs with dual personality. Their &quot;RAW&quot; form (i.e. their plain and simple set of <a href="#property"
 	>properties</a
 	> and <a href="#value"
 	>values</a
@@ -471,7 +468,7 @@
 	>SELECT</code
 	> or <code
 	>UPDATE</code
-	>. The second personnality, seen via non-decorated <code
+	>. The second personality, seen via non-decorated <code
 	>SELECT</code
 	> or <code
 	>UPDATE</code
@@ -479,7 +476,7 @@
 	>SELECT</code
 	> acts as a read, and <code
 	>UPDATE</code
-	> acts as a write. The <a href="./pathSQL%20reference.html#communication-pins"
+	> acts as a write. The <a href="./pathSQL%20reference%20[definition].html#communication-pins"
 	>reference</a
 	> describes communication PINs in more detail.</p
       ></div

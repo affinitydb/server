@@ -96,7 +96,9 @@ BatchingSQL.prototype.go = function()
   this.mResultPage.empty();
   this.mPages = new Array();
   var lThis = this;
+  var lReSilentOp = /(\s*start\s*transaction\s*)|(\s*commit\s*)|(\s*rollback\s*)|(\s*set\s*prefix\s)/i;
   var lQueries = afy_without_comments(this.mQueryAreaQ.val(), false).text.replace(/\n/g,"").replace(/;\s*$/, "").split(';');
+  var lNumNonSilentQueries = lQueries.filter(function(_pQ) { return !_pQ.match(lReSilentOp); }).length;
   var lOnResults =
     function(_pJson)
     {
@@ -105,9 +107,9 @@ BatchingSQL.prototype.go = function()
       var iQr = 0;
       for (var iQ = 0; iQ < lQueries.length; iQ++)
       {
-        var _lPage = {ui:$("<div style='overflow:hidden; position:absolute; top:30px; width:100%; height:100%;'/>"), query:(lQueries[iQ] + ";"), result:null};
-        var _lTxOp = (undefined != _lPage.query.match(/(\s*start\s*transaction\s*)|(\s*commit\s*)|(\s*rollback\s*)/i));
-        if (_lTxOp) // Currently, txops don't produce any json result.
+        var _lPage = {ui:$("<div style='overflow:hidden; width:100%; height:100%;'/>"), query:(lQueries[iQ] + ";"), result:null};
+        var _lSilentOp = (undefined != _lPage.query.match(lReSilentOp));
+        if (_lSilentOp) // E.g. txops and SET PREFIX don't produce any json result.
           _lPage.ui.append($("<p>ok</p>"));
         else
           _lPage.result = new QResultTable(_lPage.ui, null, {onPinClick:on_pin_click});
@@ -115,9 +117,9 @@ BatchingSQL.prototype.go = function()
         lThis.mResultList.append($("<option>" + _lPage.query + "</option>"));
         lThis.mPages.push(_lPage);
         lThis.mResultPage.append(_lPage.ui);
-        if (!_lTxOp)
+        if (!_lSilentOp)
         {
-          var _lData = (1 == lQueries.length) ? _pJson : _pJson[iQr++];
+          var _lData = (1 == lNumNonSilentQueries) ? _pJson : _pJson[iQr++];
           _lPage.result._setNumRows(_lData.length);
           _lPage.result._recordRows(_lData, 0);
           _lPage.result._onScroll(0);
@@ -125,7 +127,15 @@ BatchingSQL.prototype.go = function()
         _lPage.ui.css("display", "none");
       }
     };
-  afy_batch_query(lQueries, new QResultHandler(lOnResults, function(_pError){ print("error:" + _pError[0].responseText); }), {sync:true});
+  var lOnError =
+    function(_pError)
+    {
+      if (_pError[0].responseText.length > 0)
+        alert(_pError[0].responseText);
+      else
+        alert("An error occurred (on the server or during communication).");
+    }
+  afy_batch_query(lQueries, new QResultHandler(lOnResults, lOnError), {sync:true});
   if (this.mPages.length > 0)
     this.mPages[0].ui.css("display", "block");
 }
@@ -448,12 +458,24 @@ function Tutorial()
   this.mPushInput = function() { lThis.mHistory.append($("<p class='tutorial_stmt'>&gt;" + lThis.mInput.val().replace(/<br>/g, "&lt;br&gt;") + "</p>")); lThis.mInput.val(''); }
   this.mScroll = function() { $("#tutorial_area").scrollTop(lThis.mHistory.height() + 2 * $("#tutorial_input").height() - $("#tutorial_area").height()); $("#tutorial_area").scrollLeft(0); }
   this.mTutorialStep = 0;
-  var lCurPoint = {x:0, y:0};
-  var lAnchorPoint = {x:0, y:0};
-  $("#tutorial_area").mousemove(function(e) { lCurPoint.x = e.pageX; lCurPoint.y = e.pageY; });
-  $("#tutorial_area").mousedown(function() { lAnchorPoint.x = lCurPoint.x; lAnchorPoint.y = lCurPoint.y; });
-  $("#tutorial_area").mouseup(function() { if (Math.abs(lCurPoint.x - lAnchorPoint.x) < 5 && Math.abs(lCurPoint.y - lAnchorPoint.y) < 5) lThis.mInput.focus(); }); // Give focus to the input line, but only if the mouse hasn't moved significantly (otherwise, let it do its standard job, e.g. for selection and copy&paste).
-  $("#tab-tutorial").bind("activate_tab", function() { lThis.mInput.focus(); });
+  if (AFY_CONTEXT.mMobileVersion)
+  {
+    // Review: deactivate with a lManageWindowEvents...
+    var lScrollOnMobile = new ScrollOnMobile("#tutorial_area");
+    lScrollOnMobile.activate();
+  }
+  else
+  {
+    // Note:
+    //   Auto-focus on input line is nice on a std mouse+kbd environment, but it
+    //   pops up the keyboard on mobile, which turns out to be annoying.
+    var lCurPoint = {x:0, y:0};
+    var lAnchorPoint = {x:0, y:0};
+    $("#tutorial_area").mousemove(function(e) { lCurPoint.x = e.pageX; lCurPoint.y = e.pageY; });
+    $("#tutorial_area").mousedown(function() { lAnchorPoint.x = lCurPoint.x; lAnchorPoint.y = lCurPoint.y; });
+    $("#tutorial_area").mouseup(function() { if (Math.abs(lCurPoint.x - lAnchorPoint.x) < 5 && Math.abs(lCurPoint.y - lAnchorPoint.y) < 5) lThis.mInput.focus(); }); // Give focus to the input line, but only if the mouse hasn't moved significantly (otherwise, let it do its standard job, e.g. for selection and copy&paste).
+    $("#tab-tutorial").bind("activate_tab", function() { lThis.mInput.focus(); });
+  }
 }
 
 /**
@@ -600,6 +622,13 @@ function Histogram()
   $("#histo_area").mouseout(function() { lPanZoom.onMouseUp(); });
   $("#histo_area").mouseleave(function() { lPanZoom.onMouseUp(); });
   var lOnWheel = function(e) { lPanZoom.onWheel(e); lDoDraw(); return false; }
+  var lMouseOnMobile = new TrackMouseOnMobile(
+    "#histo_area",
+    {
+      'mousedown':function(p) { lPanZoom.onMouseMove({pageX:p.x, pageY:p.y}); lPanZoom.onMouseDown(); },
+      'mousemove':function(p) { lPanZoom.onMouseMove({pageX:p.x, pageY:p.y}); if (lPanZoom.isButtonDown()) lDoDraw(); },
+      'mouseup':function() { lPanZoom.onMouseUp(); }
+    });
   var lManageWindowEvents =
     function(_pOn)
     {
@@ -608,6 +637,7 @@ function Histogram()
       _lFunc('DOMMouseScroll', lOnWheel, true);
       _lFunc('keydown', lPanZoom.onKeyDown, true);
       _lFunc('keyup', lPanZoom.onKeyUp, true);
+      lMouseOnMobile.activation(_pOn);
     }
 
   // Other interactions.
@@ -628,6 +658,8 @@ function Histogram()
 $(document).ready(
   function()
   {
+    // Determine if we're running the mobile version.
+    AFY_CONTEXT.mMobileVersion = (undefined != location.pathname.match(/^\/m\//));
     // Home/logo button.
     $("#gh_logo_img").hover(function() { $(this).addClass("logo-highlighted"); }, function() { $(this).removeClass("logo-highlighted"); });
     $("#gh_logo_img").click(function() { window.location.href = 'http://' + location.hostname + ":" + location.port; });

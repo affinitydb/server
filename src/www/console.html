@@ -38,7 +38,7 @@
       <li><a href="#tab-config"><img src='images/config.png'></a></li>
     </ul>
   </div>
-  <div id='gh_links'><a href="doc/getting%20started.html#setup">Download</a> &middot; <a href="doc/intro.html">Doc</a> &middot; <a href="doc/FAQ.html">About</a> &middot; <a href="doc/demo_privacy.html">Privacy</a></div>
+  <div id='gh_links'><a href="doc/getting%20started.html">Download</a> &middot; <a href="doc/intro.html">Doc</a> &middot; <a href="doc/FAQ.html">About</a> &middot; <a href="doc/demo_privacy.html">Privacy</a></div>
 </div>
 
 <div id='content'>
@@ -115,7 +115,7 @@
           <br>
           <p>h: print the help</p>
           <p>t: start the interactive tutorial</p>
-          <p>... and don't hesitate to visit the <a href='doc/intro.html'>documentation</a>, check out this short <a href='promo/ddos.html'>presentation</a>, or <a href='doc/getting%20started.html#setup'>install</a>!</p> 
+          <p>... and don't hesitate to visit the <a href='doc/intro.html'>documentation</a>, check out this short <a href='promo/ddos.html'>presentation</a>, or <a href='doc/getting%20started.html'>install</a>!</p> 
           <br>
         </div>
         <div id='tutorial_input_line'>&gt;<input id='tutorial_input' /></div>
@@ -368,7 +368,7 @@
       <div>&nbsp;</div>
       <div class='tutorial_step'>pins = q("SELECT afy:pinID FROM workers;");</div>
       <div class='tutorial_step'>pickFriend = function() { return Math.floor(Math.random() * pins.length); };</div>
-      <div class='tutorial_step'>statements = []; for (i = 0; i &lt; (3 * pins.length / 2); i++) { from = pins[pickFriend()].id; to = pins[pickFriend()].id; if (from != to) statements.push("UPDATE @" + from + " ADD friends=@" + to + " WHERE (NOT (@" + to + " = friends));"); }</div>
+      <div class='tutorial_step'>statements = []; for (i = 0; i &lt; (3 * pins.length / 2); i++) { from = pins[pickFriend()]['afy:pinID']['$ref']; to = pins[pickFriend()]['afy:pinID']['$ref']; if (from != to) statements.push("UPDATE @" + from + " ADD friends=@" + to + " WHERE (NOT (@" + to + " = friends));"); }</div>
       <div class='tutorial_step'>q("START TRANSACTION;");</div>
       <div class='tutorial_step'>for (i = 0; i &lt; statements.length; i++) { q(statements[i]); }</div>
       <div class='tutorial_step'>q("COMMIT;");</div>
@@ -381,7 +381,7 @@
       <div class='tutorial_step'>makes=['Audi', 'Bentley', 'DaimlerChrysler', 'Ferrari', 'GM', 'Honda', 'Jaguar', 'KIA', 'Lamborghini', 'Maserati', 'Nissan', 'Porsche', 'Rolls-Royce', 'Suzuki', 'Toyota', 'Volvo'];</div>
       <div class='tutorial_step'>pins = q("SELECT afy:pinID FROM workers;");</div>
       <div class='tutorial_step'>pickFrom = function(array) { return array[Math.floor(Math.random() * array.length)]; };</div>
-      <div class='tutorial_step'>statements = []; for (i = 0; i &lt; pins.length; i++) { statements.push("UPDATE @" + pickFrom(pins).id + " ADD cars=(INSERT car_make='" + pickFrom(makes) + "', color='" + pickFrom(colors) + "', year='" + (1950 + Math.floor(Math.random() * 62)) + "');"); }</div>
+      <div class='tutorial_step'>statements = []; for (i = 0; i &lt; pins.length; i++) { statements.push("UPDATE @" + pickFrom(pins)['afy:pinID']['$ref'] + " ADD cars=(INSERT car_make='" + pickFrom(makes) + "', color='" + pickFrom(colors) + "', year='" + (1950 + Math.floor(Math.random() * 62)) + "');"); }</div>
       <div class='tutorial_step'>q("START TRANSACTION;");</div>
       <div class='tutorial_step'>for (i = 0; i &lt; statements.length; i++) { q(statements[i]); }</div>
       <div class='tutorial_step'>q("COMMIT;"); print("&lt;br&gt;");</div>
@@ -421,7 +421,7 @@
       <div class='tutorial_step'>q("SELECT name, CAST(height AS ft) FROM workers ORDER BY height;")</div>
     </div>
   </div>
-  <div id='restart'>End of tutorial.<br>Type t to restart.<br>Or check out the 'Basic Console', 'Histogram' and '2D-Map' tabs, for more fun (watch out for tooltips!).<br>Or go and <a href='doc/getting%20started.html#setup'>install</a> Affinity!</div>
+  <div id='restart'>End of tutorial.<br>Type t to restart.<br>Or check out the 'Basic Console', 'Histogram' and '2D-Map' tabs, for more fun (watch out for tooltips!).<br>Or go and <a href='doc/getting%20started.html'>install</a> Affinity!</div>
 </div>
 </body>
 </html>

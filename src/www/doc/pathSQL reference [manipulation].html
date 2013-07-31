@@ -65,6 +65,19 @@
     >and <em
       >prop_option</em
       > is property options which also be specified for a specific property, it can be: - NO_FT_INDEX: this property is not to be FT indexed/searched - NO_NOTIFICATION: this property doesn't generate notifications when modified - STOPWORDS: filter stop words in ft indexing - SEPARATE_STORAGE: store this property separately from the pin body (for string, stream and collection property types)</p
+    ><p
+    >Any PIN can have the special <code
+      >afy:objectID</code
+      > property (with value of type <code
+      >VT_STRING</code
+      > or <code
+      >VT_URIID</code
+      > [i.e. dot-symbol notation in pathSQL]). This automatically inserts the PIN in a special global name index, and allows retrieval with the special character #, as follows:</p
+    ><pre
+    ><code
+      >    SET PREFIX pfx: 'http://example/'; INSERT afy:objectID=.pfx:myname, myvalue=1; UPDATE #pfx:myname SET myvalue=2;
+</code
+      ></pre
     ><div id="constraint:"
     ><h5
       >Constraint:</h5

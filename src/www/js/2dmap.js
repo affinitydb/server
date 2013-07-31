@@ -804,7 +804,7 @@ gm_LayoutEngine.prototype.getDomain = function(pLayoutCtx, pOnResult)
   }
   else
     lQ = lQ.replace(lSelect[1], "SELECT afy:pinID ");
-  var lOnDomain = function(_pJson) { var _lDomain = []; for (var _i = 0; _i < _pJson.length; _i++) { _lDomain.push({id:trimPID(_pJson[_i].id)}); } pOnResult(_lDomain); }
+  var lOnDomain = function(_pJson) { var _lDomain = []; for (var _i = 0; _i < _pJson.length; _i++) { _lDomain.push({id:trimPID(_pJson[_i]['afy:pinID']['$ref'])}); } pOnResult(_lDomain); }
   afy_query(lQ, new QResultHandler(lOnDomain, null, null));
 }
 gm_LayoutEngine.prototype.recomputePositions = function(pLayoutCtx)
