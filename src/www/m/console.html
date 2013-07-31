@@ -31,6 +31,7 @@
       <li><a href="#tab-tutorial"><img src='../images/tutorial.png'></a></li>
       <li><a href="#tab-basic"><img src='../images/basic.png'></a></li>
       <li><a href="#tab-batching"><img src='../images/batch.png'></a></li>
+      <li><a href="#tab-fsm"><img src='../images/fsm.png'></a></li>
       <li><a href="#tab-map"><img src='../images/map.png'></a></li>
       <li><a href="#tab-histogram"><img src='../images/histo.png'></a></li>
       <li><a href="#tab-ruleassistant"><img src='../images/ruleassistant.png'></a></li>
@@ -124,6 +125,16 @@
       </div>
     </div>
   </div>
+  <!-- FSM -->
+  <div id="tab-fsm">
+    <div id='content_title'>
+      <img src='../images/affinityheader.png' id='title_img'></img>
+      <div id='title_text'>FSM</div>
+    </div>
+    <div id='fsm_left'>
+      <iframe id='fsm_iframe' src='../fsm.html'></iframe>
+    </div>
+  </div>
   <!-- Map/Graph -->
   <div id="tab-map">
     <div id='content_title'>
@@ -212,6 +223,7 @@
     <div id='tooltip_tab-basic'>Basic Console</div>
     <div id='tooltip_tab-batching'>Batching Console</div>
     <div id='tooltip_tab-tutorial'>Interactive Tutorial</div>
+    <div id='tooltip_tab-fsm'>FSM</div>
     <div id='tooltip_tab-map'>2D-Map</div>
     <div id='tooltip_tab-histogram'>Histogram</div>
     <div id='tooltip_tab-ruleassistant'>Rule Programming Assistant</div>
@@ -236,7 +248,7 @@
   <div id='menu_query'>
     <div id='menuitem_query_pin'>Query PIN (SELECT FROM @...)</div>
     <div id='menuitem_query_class'>Query Class (SELECT FROM ...)</div>
-    <div id='menuitem_query_all'>Query All PINs (SELECT *)</div>
+    <div id='menuitem_query_all'>Query All PINs (SELECT RAW *)</div>
     <div id='menuitem_query_classft'>Query Class With Full-Text</div>
     <div id='menuitem_query_classjoin'>Query Class Join</div>
     <div id='menuitem_query_insertpin'>Insert PIN</div>

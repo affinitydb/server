@@ -75,7 +75,7 @@ Emitter.processStep = function(pRunCtx, pStepCommands, pCompletion)
       for (var _iR = 0; _iR < _pJson.length; _iR++)
       {
         var _lSample = _pJson[_iR][0];
-        var _lS = {x:pRunCtx.time_step, y:1.5 * _lSample[DSMS_CONTEXT.mNs + '/sample/X'][0]};
+        var _lS = {x:pRunCtx.time_step, y:1.5 * _lSample[DSMS_CONTEXT.mNs + '/sample/X']}; // Note: the (SELECT...) in Emitter.step used to produce a collection, until recently (~rev1522, +/-)...
         pRunCtx.samples[_lSample[DSMS_CONTEXT.mNs + '/sensor_id_cpy']].push(_lS);
       }
     }
