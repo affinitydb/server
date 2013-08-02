@@ -1634,7 +1634,7 @@ function GraphMap()
       {
         var _lPinfo = lPinfoFromPoint();
         if (undefined == _lPinfo)
-          { if (undefined != lPinDetails.pid) { lPinDetails.reset(); lBackground.restore(); } }
+          { if (undefined != lPinDetails.pid) { lPinDetails.reset(); lBackground.restore(); } lPanZoom.reset(); lDoDraw(); }
         else
         {
           var _lOffset = $("#map_area").offset();
@@ -1645,6 +1645,14 @@ function GraphMap()
     });
   $("#map_area").mouseout(function() { lPanZoom.onMouseUp(); });
   $("#map_area").mouseleave(function() { lPanZoom.onMouseUp(); });
+  var lMouseOnMobile = new TrackMouseOnMobile(
+    "#map_area",
+    {
+      'wheel':function(p) { lPanZoom.onMouseMove({pageX:p.x, pageY:p.y}); lPanZoom.onWheel(p); lDoDraw(); },
+      'mousedown':function(p) { lPanZoom.onMouseMove({pageX:p.x, pageY:p.y}); lPanZoom.onMouseDown(); },
+      'mousemove':function(p) { lPanZoom.onMouseMove({pageX:p.x, pageY:p.y}); if (lPanZoom.isButtonDown()) lDoDraw(); },
+      'mouseup':function() { lPanZoom.onMouseUp(); }
+    });
   var lOnWheel = function(e) { lPanZoom.onWheel(e); lDoDraw(); return false; }
   var lUpdateCanvasSize = function() { var _lA = $("#map_area"); _lA.attr("width", _lA.width()); _lA.attr("height", _lA.height()); }
   var lOnResize = function() { lVPHeight = $("#map_area").height(); lPanZoom = new PanZoom($("#map_area"), lVPHeight / (2 * gm_LayoutCtx.CLIQUE_RADIUS)); lUpdateCanvasSize(); lDoRefresh(true); }
@@ -1657,6 +1665,7 @@ function GraphMap()
       _lFunc('DOMMouseScroll', lOnWheel, true);
       _lFunc('keydown', lPanZoom.onKeyDown, true);
       _lFunc('keyup', lPanZoom.onKeyUp, true);
+      lMouseOnMobile.activation(_pOn);
     }
 
   // Other interactions.

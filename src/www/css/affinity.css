@@ -132,5 +132,8 @@ tr.selected { background-color:#a2a2a2; }
 #themenutable { display:none; }
 #thetutorial { display:none; }
 
+/* registration page */
+#content_left_registration { position:absolute; top:50px; width:95%; bottom:0; margin:0; white-space:normal; border:none; padding:0 0 0 0.9em; }
+#eula_ok { width:120px; height:25px; }
 /* text files */
 #file pre { font-size:1.1em; line-height:1.4em; margin:0; }

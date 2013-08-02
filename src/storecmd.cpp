@@ -48,11 +48,19 @@ const char* const default_storeident = "test";
 #define _LX_FM "%016LX"
 #endif
 
+#define ENABLE_AFY_TRACES 0
+
 /**
  * AffinityStoresMgr is the manager of all store instances.
  * Note: Later on multi-store management can become much more sophisticated (e.g. open on demand etc.).
  */
 class AffinityStoresMgr {
+protected:
+    class StoreTracing : public ITrace {
+    public:
+        virtual void trace( long code, const char *msg, va_list args ) { LOG_LINE( kLogReport, msg, args ); }
+    };
+    static StoreTracing sStoreTracing;
 public:
     typedef IAffinity* AfyCtx;
     class AffinityInstance {
@@ -104,6 +112,9 @@ public:
                     LOG_LINE(kLogError, "createStore: affinity error %d", res);
                 }
             }
+            #if ENABLE_AFY_TRACES
+                storeCtx->changeTraceMode( 0xff ); // Can't get pathsql/session equivalents to work at the moment.
+            #endif
             res = afy_regBuiltinServices( storeCtx );
             if ( RC_OK != res ) {
                 LOG_LINE(kLogError, "afy_regBuiltinServices: affinity error %d", res);
@@ -216,6 +227,11 @@ public:
             return NULL;
         }
         pCCtx->session = ( ( IAffinity* )pCCtx->storectx )->startSession( pCCtx->storeident, pCCtx->storepw );
+        #if ENABLE_AFY_TRACES
+            if ( pCCtx->session ) {
+                ( ( ISession * )pCCtx->session )->setTrace( &AffinityStoresMgr::sStoreTracing );
+            }
+        #endif
         return ( ISession* )pCCtx->session;
     }
     AffinityInstance * findByName( char const * pUserName, bool pDrop=false ) {
@@ -249,6 +265,7 @@ public:
         return NULL;
     }
 };
+AffinityStoresMgr::StoreTracing AffinityStoresMgr::sStoreTracing;
 
 void strerror( RC rc, ISession& sess, CompilationError& ce, 
                char*& res, size_t& len ) {

@@ -51,7 +51,7 @@
     <div id='content_left'>
       <div id='query_spec'>
         <form id='form' method="get" action="/db">
-          <input id='query' name='query' />
+          <input id='query' name='query' autocorrect='off' autocapitalize='off' />
           <button id='querygo'> go </button>
           <select name="type" id='querytype'>
             <option value="query">query</option>
@@ -91,7 +91,7 @@
     </div>
     <div id='batching_left'>
       <div id='query_area'>
-        <textarea id='query_area_q' cols=10></textarea>
+        <textarea id='query_area_q' cols=10 autocorrect='off' autocapitalize='off'></textarea>
         <button id='query_area_go'>go</button>
       </div>
       <div id='result_area'>
@@ -118,7 +118,7 @@
           <p>... and don't hesitate to visit the <a href='doc/intro.html'>documentation</a>, check out this short <a href='promo/ddos.html'>presentation</a>, or <a href='doc/getting%20started.html'>install</a>!</p> 
           <br>
         </div>
-        <div id='tutorial_input_line'>&gt;<input id='tutorial_input' /></div>
+        <div id='tutorial_input_line'>&gt;<input id='tutorial_input' autocorrect='off' autocapitalize='off' /></div>
       </div>
     </div>
   </div>
@@ -197,9 +197,9 @@
     <div id='content_left'>
       <div id='config_options'>
         <h3>Current Store Name</h3>
-        <input id='storeident' name='storeident' size='25' />
+        <input id='storeident' name='storeident' size='25' autocorrect='off' autocapitalize='off' />
         <h3>Current Store Password</h3>
-        <input id='storepw' name='storepw' size='25' />
+        <input id='storepw' name='storepw' size='25' autocorrect='off' autocapitalize='off' />
       </div>
     </div>
   </div>
@@ -419,6 +419,60 @@
       <div class='tutorial_step'>for (i = 0; i &lt; statements.length; i++) { q(statements[i]); }</div>
       <div class='tutorial_step'>q("COMMIT;");</div>
       <div class='tutorial_step'>q("SELECT name, CAST(height AS ft) FROM workers ORDER BY height;")</div>
+    </div>
+    <div id='step13'>
+      <div>Step 13</div>
+      <div>To finish, a quick look at rules and their building blocks.</div>
+      <div>&nbsp;</div>
+      <!-- Create simple context to be able to express a multitude of conditions, actions and rules. -->
+      <div class='tutorial_step'>tutcoffee_alreadyrun = q("SELECT * FROM afy:Timers WHERE ENDS(afy:objectID, 'tutcoffee_timer')");</div>
+      <div class='tutorial_step'>if (undefined != tutcoffee_alreadyrun &amp;&amp; tutcoffee_alreadyrun.length > 0) { print("This step can only run once. Use the console to observe all its effects."); stopStep(); }</div>
+      <div class='tutorial_step'>q("CREATE TIMER tutcoffee_timer INTERVAL'00:00:05' AS INSERT tutcoffee_time=CURRENT_TIMESTAMP;");</div>
+      <div class='tutorial_step'>q("CREATE CLASS tutcoffee_simulator AS SELECT * WHERE EXISTS(tutcoffee_time) SET 
+        tutcoffee_level_columbian=100.0, tutcoffee_level_tanzanian=100.0, tutcoffee_level_jamaican=100.0,
+        tutcoffee_level_milk=100.0, tutcoffee_level_sugar=100.0,
+        tutcoffee_level_coins25=100, tutcoffee_level_coins100=10,
+        tutcoffee_water_problem=0, tutcoffee_power_problem=0, tutcoffee_jam_problem=0,
+        afy:onEnter={
+          ${UPDATE @auto SET rand1=EXTRACT(FRACTIONAL FROM CURRENT_TIMESTAMP)},
+          ${UPDATE @ctx SET tutcoffee_level_columbian-=ABS(5 * SIN(@auto.rand1))},
+          ${UPDATE @ctx SET tutcoffee_level_tanzanian-=ABS(5 * COS(@auto.rand1))},
+          ${UPDATE @ctx SET tutcoffee_level_jamaican-=ABS(5 * SIN(@auto.rand1 % 100))},
+          ${UPDATE @ctx SET tutcoffee_level_milk-=ABS(7 * SIN((@auto.rand1 / 3) % 100))},
+          ${UPDATE @ctx SET tutcoffee_level_sugar-=ABS(3 * COS(@auto.rand1 / 3))},
+          ${UPDATE @ctx SET tutcoffee_level_coins25-=@auto.rand1 % 5},
+          ${UPDATE @ctx SET tutcoffee_level_coins100+=(@auto.rand1 / 3) % 5},
+          ${UPDATE @ctx SET tutcoffee_water_problem=1 WHERE SIN(@auto.rand1) &gt; 0.98},
+          ${UPDATE @ctx SET tutcoffee_power_problem=1 WHERE COS(@auto.rand1) &gt; 0.98},
+          ${UPDATE @ctx SET tutcoffee_jam_problem=1 WHERE SIN(@auto.rand1) &lt; 0.02}};");</div>
+      <div class='tutorial_step'>q("CREATE CONDITION tutcoffee_low_columbian AS tutcoffee_level_columbian &lt; 10.0;");</div>
+      <div class='tutorial_step'>q("CREATE CONDITION tutcoffee_low_tanzanian AS tutcoffee_level_tanzanian &lt; 10.0;");</div>
+      <div class='tutorial_step'>q("CREATE CONDITION tutcoffee_low_jamaican AS tutcoffee_level_jamaican &lt; 10.0;");</div>
+      <div class='tutorial_step'>q("CREATE CONDITION tutcoffee_low_coffee AS (tutcoffee_level_columbian &lt; 10.0 OR tutcoffee_level_tanzanian &lt; 10.0 OR tutcoffee_level_jamaican &lt; 10.0);");</div>
+      <div class='tutorial_step'>q("CREATE CONDITION tutcoffee_low_milk AS tutcoffee_level_milk &lt; 10.0;");</div>
+      <div class='tutorial_step'>q("CREATE CONDITION tutcoffee_low_sugar AS tutcoffee_level_sugar &lt; 10.0;");</div>
+      <div class='tutorial_step'>q("CREATE CONDITION tutcoffee_low_ingredients AS (tutcoffee_level_columbian &lt; 10.0 OR tutcoffee_level_tanzanian &lt; 10.0 OR tutcoffee_level_jamaican &lt; 10.0 OR tutcoffee_level_milk &lt; 10.0 OR tutcoffee_level_sugar &lt; 10.0);");</div>
+      <div class='tutorial_step'>q("CREATE CONDITION tutcoffee_low_coins25 AS tutcoffee_level_coins25 &lt; 10;");</div>
+      <div class='tutorial_step'>q("CREATE CONDITION tutcoffee_high_coins100 AS tutcoffee_level_coins100 &gt; 90;");</div>
+      <div class='tutorial_step'>q("CREATE CONDITION tutcoffee_alert_water AS tutcoffee_water_problem=1;");</div>
+      <div class='tutorial_step'>q("CREATE CONDITION tutcoffee_alert_power AS tutcoffee_power_problem=1;");</div>
+      <div class='tutorial_step'>q("CREATE CONDITION tutcoffee_alert_jam AS tutcoffee_jam_problem=1;");</div>
+      <div class='tutorial_step'>q("CREATE ACTION tutcoffee_log_lowsupplies AS INSERT tutcoffee_lowsupplies_at=CURRENT_TIMESTAMP, tutcoffee_levels={columbian=@self.tutcoffee_level_columbian, tanzanian=@self.tutcoffee_level_tanzanian, jamaican=@self.tutcoffee_level_jamaican, milk=@self.tutcoffee_level_milk, sugar=@self.tutcoffee_level_sugar};");</div>
+      <div class='tutorial_step'>q("CREATE ACTION tutcoffee_log_alert AS INSERT tutcoffee_alert_at=CURRENT_TIMESTAMP, tutcoffee_alerts={_water=@self.tutcoffee_water_problem, _power=@self.tutcoffee_power_problem, _jam=@self.tutcoffee_jam_problem};");</div>
+      <div class='tutorial_step'>q("CREATE ACTION tutcoffee_restock_coffee AS UPDATE @self SET tutcoffee_level_columbian=100.0, tutcoffee_level_tanzanian=100.0, tutcoffee_level_jamaican=100.0, tutcoffee_restocked_coffee_at=CURRENT_TIMESTAMP;");</div>
+      <div class='tutorial_step'>q("CREATE ACTION tutcoffee_restock_ingredients AS UPDATE @self SET tutcoffee_level_milk=100.0, tutcoffee_level_sugar=100.0, tutcoffee_restocked_ingredients_at=CURRENT_TIMESTAMP;");</div>
+      <div class='tutorial_step'>q("CREATE ACTION tutcoffee_manage_coins AS UPDATE @self SET tutcoffee_level_coins25=100.0, tutcoffee_level_coins100=10.0, tutcoffee_managed_at=CURRENT_TIMESTAMP;");</div>
+      <div class='tutorial_step'>q("CREATE ACTION tutcoffee_call_plumber AS INSERT tutcoffee_send_message_to_plumber=1, _at=CURRENT_TIMESTAMP;");</div>
+      <div class='tutorial_step'>q("CREATE ACTION tutcoffee_call_electrician AS INSERT tutcoffee_send_message_to_electrician=1, _at=CURRENT_TIMESTAMP;");</div>
+      <div class='tutorial_step'>q("RULE tutcoffee_money_maintenance : tutcoffee_low_coins25 AND tutcoffee_high_coins100 -> tutcoffee_manage_coins;");</div>
+      <!-- making sure all actions work:
+      <div class='tutorial_step'>
+        q("RULE tutcoffee_test_actions : tutcoffee_low_ingredients ->
+            tutcoffee_log_lowsupplies, tutcoffee_log_alert,
+            tutcoffee_restock_coffee, tutcoffee_restock_ingredients,
+            tutcoffee_manage_coins, tutcoffee_call_plumber;");
+      </div>
+      -->
     </div>
   </div>
   <div id='restart'>End of tutorial.<br>Type t to restart.<br>Or check out the 'Basic Console', 'Histogram' and '2D-Map' tabs, for more fun (watch out for tooltips!).<br>Or go and <a href='doc/getting%20started.html'>install</a> Affinity!</div>

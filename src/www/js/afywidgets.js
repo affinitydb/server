@@ -93,22 +93,30 @@ function TrackMouseOnMobile(pDivId, pHandlers)
   // Note: On some(?) mobile platforms the mouse emulation is really bad... we emulate it here...
   var lThis = this;
   var lCurPoint = {x:0, y:0};
+  var lSecPoint = null;
+  var lWheelData = {x:0, y:0, detail:1.0, lastdst2:0.0};
   var lCallHandler = function(pWhich, pArg) { if (pWhich in pHandlers) pHandlers[pWhich].call(pHandlers, pArg); };
-  var lGrabCurPoint = function(e) { if (undefined == e) return; if ('touches' in e) { lCurPoint.x = e.touches[0].pageX; lCurPoint.y = e.touches[0].pageY; } else { lCurPoint.x = e.pageX; lCurPoint.y = e.pageY; } };
-  $(pDivId).bind("touchstart", function(e) { lGrabCurPoint(window.event); lCallHandler('mousedown', lCurPoint); });
+  var lCalcDst2 = function() { return Math.pow(lCurPoint.x - lSecPoint.x, 2) + Math.pow(lCurPoint.y - lSecPoint.y, 2); };
+  var lInitWheel = function() { lWheelData.x = 0.5 * (lCurPoint.x + lSecPoint.x); lWheelData.y = 0.5 * (lCurPoint.y + lSecPoint.y); lWheelData.lastdst2 = lCalcDst2(); lWheelData.detail = 1.0; };
+  var lCallWheel = function() { var _lNd = lCalcDst2(); lWheelData.detail = (lWheelData.lastdst2 > _lNd ? 1.0 : -1.0); lWheelData.lastdst2 = _lNd; lCallHandler('wheel', lWheelData); };
+  var lGrabCurPoint = function(e) { if (undefined == e) return; lSecPoint = null; if ('touches' in e) { lCurPoint.x = e.touches[0].pageX; lCurPoint.y = e.touches[0].pageY; if (e.touches.length > 1) { lSecPoint = {x:e.touches[1].pageX, y:e.touches[1].pageY}; } } else { lCurPoint.x = e.pageX; lCurPoint.y = e.pageY; } };
+  $(pDivId).bind("touchstart", function(e) { lGrabCurPoint(window.event); if (undefined == lSecPoint) { lCallHandler('mousedown', lCurPoint); } else { lInitWheel(); } });
   $(pDivId).bind("touchend", function() { lCallHandler('mouseup', lCurPoint); });
   $(pDivId).bind("touchcancel", function() { lCallHandler('mouseup', lCurPoint); });
   $(pDivId).mouseup(function() { lCallHandler('mouseup', lCurPoint); });
-  var lOnTouch =
+  var lOnTouchMove =
     function(e)
     {
       e.preventDefault(); // Review: not all browsers?
       lGrabCurPoint(window.event);
       //$("#footer_text").text("p:" + lCurPoint.x + "-" + lCurPoint.y);
-      lCallHandler('mousemove', lCurPoint);
+      if (undefined == lSecPoint)
+        lCallHandler('mousemove', lCurPoint);
+      else
+        lCallWheel();
     };
-  this.activate = function() { $(window).bind("touchmove", lOnTouch); };
-  this.deactivate = function() { $(window).unbind("touchmove", lOnTouch); };
+  this.activate = function() { $(window).bind("touchmove", lOnTouchMove); };
+  this.deactivate = function() { $(window).unbind("touchmove", lOnTouchMove); };
   this.activation = function(pOn) { if (pOn) lThis.activate(); else lThis.deactivate(); };
 }
 
@@ -119,6 +127,8 @@ function TrackMouseOnMobile(pDivId, pHandlers)
  */
 function bindTooltip(pDiv, pMessage, pPos, pOptions/*{start:_, stop:_, once:_, offy:_}*/)
 {
+  if (AFY_CONTEXT.mMobileVersion)
+    { return; }
   var lGetOption = function(_pWhat, _pDefault) { return (undefined != pOptions && _pWhat in pOptions) ? pOptions[_pWhat] : _pDefault; }
   var lClearTimeout =
     function()
@@ -289,7 +299,7 @@ function bindStaticCtxMenus()
       // If there's no selected class, select the first one (+/- simulates click on right-click).
       if (undefined == $("#classes option:selected").val())
         $("#classes option:eq(0)").attr("selected", "selected");
-      
+
       var _lMenu = new CtxMenu();
       _lMenu.addItem($("#menuitem_classes_q").text(), function() { on_class_dblclick(); }, null, true);
       _lMenu.addItem($("#menuitem_classes_q_ft").text(), function() { on_class_dblclick(); var _lQ = $("#query").val(); $("#query").val(_lQ.substr(0, _lQ.length - 1) + " MATCH AGAINST ('hello');"); });
@@ -321,6 +331,7 @@ function PanZoom(pArea, pZoom)
   this.area = pArea;
   this.pan = {x:0, y:0};
   this.zoom = (undefined != pZoom) ? pZoom : 1.0;
+  this.reset = function() { lThis.pan.x = 0; lThis.pan.y = 0; lThis.zoom = (undefined != pZoom) ? pZoom : 1.0; }
   this.curX = function() { return lLastPoint.x; }
   this.curY = function() { return lLastPoint.y; }
   this.isButtonDown = function() { return lButtonDown; }

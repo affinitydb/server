@@ -32,7 +32,7 @@ AFY_CONTEXT.mQNamesDirty = false; // For lazy update of qname prefixes, based on
 AFY_CONTEXT.mTooltipTimer = null; // For tooltips.
 AFY_CONTEXT.mStoreIdent = ""; // The current store identity specified by the user.
 AFY_CONTEXT.mStorePw = ""; // The current store password specified by the user.
-AFY_CONTEXT.mMobileVersion = false; // Whether or not the user is currently visualizing the mobile version.
+AFY_CONTEXT.mMobileVersion = (undefined != location.pathname.match(/^\/m\//)); // Whether or not the user is currently visualizing the mobile version.
 
 /**
  * General-purpose helpers.
@@ -492,4 +492,28 @@ function get_pin_info(pPID, pCallback)
       afy_query("SELECT MEMBERSHIP(@" + pPID + ");", new QResultHandler(_lOnSuccess, null, null), {keepalive:false});
     }
   lGetClasses();
+}
+function get_conditions_and_actions(pOnDone)
+{
+  var lTruncateLeadingDot = function(_pStr) { return _pStr.charAt(0) == "." ? _pStr.substr(1) : _pStr; }
+  var lConditions = [];
+  var lActions = [];
+  var lOnActions =
+    function(_pJson)
+    {
+      for (var iC = 0; null != _pJson && iC < _pJson.length; iC++)
+        if (undefined != _pJson[iC]["afy:objectID"] && undefined != _pJson[iC]["afy:action"])
+          lActions.push({id:afy_with_qname(lTruncateLeadingDot(_pJson[iC]["afy:objectID"])), action:_pJson[iC]["afy:action"]});
+      if (undefined != pOnDone)
+        pOnDone(lConditions, lActions);
+    };
+  var lOnConditions =
+    function(_pJson)
+    {
+      for (var iC = 0; null != _pJson && iC < _pJson.length; iC++)
+        if (undefined != _pJson[iC]["afy:objectID"] && undefined != _pJson[iC]["afy:condition"])
+          lConditions.push({id:afy_with_qname(lTruncateLeadingDot(_pJson[iC]["afy:objectID"])), condition:_pJson[iC]["afy:condition"]});
+      afy_query("SELECT * FROM afy:NamedObjects WHERE EXISTS(afy:action);", new QResultHandler(lOnActions, null, null), {keepalive:false});
+    };
+  afy_query("SELECT * FROM afy:NamedObjects WHERE EXISTS(afy:condition);", new QResultHandler(lOnConditions, null, null), {keepalive:false});
 }

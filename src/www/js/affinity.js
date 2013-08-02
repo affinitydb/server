@@ -156,6 +156,12 @@ function QHistory(pContainer, pUIStore)
   this.mTable = $("<table id='qhistorytable' width=\"100%\" />").appendTo(pContainer);
   $("#query_history_clear").click(function() { lThis.clearHistory(); });
   this._init();
+  if (AFY_CONTEXT.mMobileVersion)
+  {
+    // Review: deactivate with a lManageWindowEvents...
+    var lScrollOnMobile = new ScrollOnMobile("#query_history");
+    lScrollOnMobile.activate();
+  }
 }
 QHistory.prototype._init = function()
 {
@@ -278,6 +284,8 @@ function Tutorial()
       function print(__pWhat) { lThis.mHistory.append($("<p class='tutorial_result'>" + _stringify(__pWhat, false) + "</p>")); }
       function pathsql(__pSql)
       {
+        if (stepStopped()) { return ""; }
+
         // Log in the query history.
         // WARNING:
         //   This proves to be catastrophically slow, and is so detrimental to the
@@ -387,6 +395,7 @@ function Tutorial()
       }
       function n()
       {
+        lThis.mTSI = 0;
         var lNumSteps = $("#thetutorial #steps > div").size();
         if (lThis.mTutorialStep < lNumSteps)
         {
@@ -402,8 +411,9 @@ function Tutorial()
               {
                 lThis.mInput.val("");
                 $("#thetutorial #steps #step" + lQuickRunStep + " .tutorial_step").each(
-                  function(_pI, _pE) { lThis.mInput.val(lThis.mInput.val() + $(_pE).html().replace(/&nbsp;/g, " ").replace(/&lt;/g, "<").replace(/&gt;/g, ">")); });
+                  function(_pI, _pE) { lThis.mInput.val(lThis.mInput.val() + $(_pE).html().replace(/&nbsp;/g, " ").replace(/&lt;/g, "<").replace(/&gt;/g, ">").replace(/&amp;/g, "&")); });
                 lExecuteLine();
+                lThis.mTSI = 0;
               });
           }
           lThis.mTutorialStep++;
@@ -419,18 +429,23 @@ function Tutorial()
         lThis.mTutorialStep = Math.min(__pStep, lNumSteps);
         n();
       }
+      function s(__pStep) { step(__pStep); }
       function next() { n(); }
+      function stopStep() { lThis.mTSI = 1; }
+      function stepStopped() { return (0 != lThis.mTSI); }
       var _lStmt = lThis.mInput.val().replace(/var/, ""); // Review: should we support var?
+      var _lQuickStep = _lStmt.match(/^\s*s\s*([0-9]+)\s*$/); // Quick step: s 5
       if (_lStmt == "t") _lStmt = "t()";
       else if (_lStmt == "n") _lStmt = "n()";
       else if (_lStmt == "h") _lStmt = "h()";
       else if (_lStmt == "next") _lStmt = "n()";
+      else if (undefined != _lQuickStep) _lStmt = "step(" + _lQuickStep[1] + ")";
       lThis.mPushInput();
       lThis.mStmtHistory.push(_lStmt);
       lThis.mStmtHistoryCursor = null;
       eval(_lStmt);
       lThis.mScroll();
-    }
+    };
   this.mPendingTx = null;
   this.mInput = $("#tutorial_input");
   this.mHistory = $("#tutorial_history");
@@ -455,9 +470,11 @@ function Tutorial()
       }
     } // if 0 == pEvent.which ... 38:up 40:down
   this.mInput.keypress(this.mOnKey);
-  this.mPushInput = function() { lThis.mHistory.append($("<p class='tutorial_stmt'>&gt;" + lThis.mInput.val().replace(/<br>/g, "&lt;br&gt;") + "</p>")); lThis.mInput.val(''); }
+  var lDropFocus = function() { if (AFY_CONTEXT.mMobileVersion) { lThis.mInput.blur(); } }; // Keyboard area tends to confuse the rendering of the page otherwise (e.g. weird white offset at the top of the page on iphone, when I click on the step button while keyboard is still up).
+  this.mPushInput = function() { lThis.mHistory.append($("<p class='tutorial_stmt'>&gt;" + lThis.mInput.val().replace(/<br>/g, "&lt;br&gt;") + "</p>")); lThis.mInput.val(''); lDropFocus();  }
   this.mScroll = function() { $("#tutorial_area").scrollTop(lThis.mHistory.height() + 2 * $("#tutorial_input").height() - $("#tutorial_area").height()); $("#tutorial_area").scrollLeft(0); }
   this.mTutorialStep = 0;
+  this.mTSI = 0; // Tutorial Step Interrupt.
   if (AFY_CONTEXT.mMobileVersion)
   {
     // Review: deactivate with a lManageWindowEvents...
@@ -618,13 +635,14 @@ function Histogram()
   // Pan & Zoom etc.
   $("#histo_area").mousemove(function(e) { lPanZoom.onMouseMove(e); if (lPanZoom.isButtonDown()) lDoDraw(); });
   $("#histo_area").mousedown(function(e) { lPanZoom.onMouseDown(); });
-  $("#histo_area").mouseup(function() { lPanZoom.onMouseUp(); });
+  $("#histo_area").mouseup(function() { lPanZoom.onMouseUp(); lPanZoom.reset(); lDoDraw(); });
   $("#histo_area").mouseout(function() { lPanZoom.onMouseUp(); });
   $("#histo_area").mouseleave(function() { lPanZoom.onMouseUp(); });
   var lOnWheel = function(e) { lPanZoom.onWheel(e); lDoDraw(); return false; }
   var lMouseOnMobile = new TrackMouseOnMobile(
     "#histo_area",
     {
+      'wheel':function(p) { lPanZoom.onMouseMove({pageX:p.x, pageY:p.y}); lPanZoom.onWheel(p); lDoDraw(); },
       'mousedown':function(p) { lPanZoom.onMouseMove({pageX:p.x, pageY:p.y}); lPanZoom.onMouseDown(); },
       'mousemove':function(p) { lPanZoom.onMouseMove({pageX:p.x, pageY:p.y}); if (lPanZoom.isButtonDown()) lDoDraw(); },
       'mouseup':function() { lPanZoom.onMouseUp(); }
@@ -650,6 +668,83 @@ function Histogram()
   // Initialize the canvas's dimensions (critical for rendering quality).
   $("#histo_area").attr("width", $("#histo_area").width());
   $("#histo_area").attr("height", $("#histo_area").height());
+}
+
+/**
+ * SimpleDlg.
+ */
+function SimpleDlg(pDlgRs, pOkRs, pCancelRs, pOnOk, pOnCancel)
+{
+  var lCloseDlg = function() { pDlgRs.css("visibility", "hidden"); pDlgRs.unbind('keyup'); pOkRs.unbind('click'); pCancelRs.unbind('click'); };
+  var lDo =
+    function()
+    {
+      if (pDlgRs.css("visibility") == "hidden")
+        return;
+      if (pOnOk)
+        pOnOk(lCloseDlg);
+    };
+  pDlgRs.css("visibility", "visible");
+  pDlgRs.keyup(function(_e) { if (_e.which == 13) lDo(); else if (_e.which == 27) lCloseDlg(); });
+  pOkRs.click(lDo);
+  pCancelRs.click(function() { if (pOnCancel) { pOnCancel(); } lCloseDlg(); });
+}
+
+/**
+ * popDlgNewRule.
+ */
+function popDlgNewRule(pOnOk, pOnCancel)
+{
+  var lAddChoice =
+    function(_pChoiceType, _pPopulateFunc)
+    {
+      var _lCur = $("#dlg_newrule_" + _pChoiceType + "s select");
+      var _lCurNum = _lCur.size();
+      var _lNew = $("<select id='dlg_newrule_" + _pChoiceType + "_" + _lCurNum + "' style='width:100%;'></select>");
+      _pPopulateFunc(_lNew, true);
+      _lNew.insertAfter(_lCur.last());
+    };
+  var lUnbindButtons =
+    function()
+    {
+      $("#dlg_newrule_condition_add").unbind('click');
+      $("#dlg_newrule_action_add").unbind('click');
+    };
+  get_conditions_and_actions(
+    function(_pConditions, _pActions)
+    {
+      var _lAddNil = function(_pSelectList) { _pSelectList.append($("<option value='nil'>nil</value>")); };
+      var _lPopulateConditions = function(_pSelectList, _pWithNil) { _pSelectList.empty(); _pConditions.forEach(function(_c) { _pSelectList.append("<option value='" + _c.id + "'>" + _c.id + " : " + _c.condition + "</option>"); }); if (_pWithNil) { _lAddNil(_pSelectList); } };
+      var _lPopulateActions = function(_pSelectList, _pWithNil) { _pSelectList.empty(); _pActions.forEach(function(_c) { _pSelectList.append("<option value='" + _c.id + "'>" + _c.id + " : " + _c.action + "</option>"); }); if (_pWithNil) { _lAddNil(_pSelectList); } };
+      var _lAddCondition = function() { lAddChoice("condition", _lPopulateConditions); return false; }
+      var _lAddAction = function() { lAddChoice("action", _lPopulateActions); return false; }
+      // Start afresh.
+      $("#dlg_newrule_name").val('');
+      $("#dlg_newrule_conditions select").each(function(_pI, _pE) { if (_pI > 0) { $(_pE).remove(); } });
+      $("#dlg_newrule_actions select").each(function(_pI, _pE) { if (_pI > 0) { $(_pE).remove(); } });
+      _lPopulateConditions($("#dlg_newrule_condition_0"));
+      _lPopulateActions($("#dlg_newrule_action_0"));
+      $("#dlg_newrule_condition_add").click(_lAddCondition);
+      $("#dlg_newrule_action_add").click(_lAddAction);
+      // Launch.
+      new SimpleDlg($("#dlg_newrule"), $("#dlg_newrule_ok"), $("#dlg_newrule_cancel"),
+        function(_pCloseDlg)
+        {
+          // Build resulting rule, trimming out undesired stuff (nil, repeats etc.).
+          var _lSelectedConditions = {d:{}, l:[]}, _lSelectedActions = {d:{}, l:[]};
+          var _lAddUnique = function(_pSet, _pWhat) { if (_pWhat == "nil" || _pWhat in _pSet.d) return; _pSet.d[_pWhat] = 1; _pSet.l.push(_pWhat); };
+          $("#dlg_newrule_conditions select").each(function(_pI, _pE) { _lAddUnique(_lSelectedConditions, $(_pE).val()); });
+          $("#dlg_newrule_actions select").each(function(_pI, _pE) { _lAddUnique(_lSelectedActions, $(_pE).val()); });
+          var _lName = $("#dlg_newrule_name").val();
+          var _lResultingRule = "RULE " + (_lName.length > 0 ? _lName : "myrule") + " : " + _lSelectedConditions.l.join(" AND ") + " -> " + _lSelectedActions.l.join(", ");
+          // Done.
+          lUnbindButtons();
+          _pCloseDlg();
+          if (pOnOk)
+            pOnOk(_lResultingRule);
+        },
+        function() { lUnbindButtons(); pOnCancel(); });
+    });
 }
 
 /**
@@ -694,15 +789,60 @@ $(document).ready(
     // Note:
     //   This also allows to land on the tutorial page without emitting any query to the store upfront,
     //   which is nice in a setup where the front-end is hosted in a separate environment.
-    $("#tab-basic").bind("activate_tab", function() { populate_classes(); if (undefined != AFY_CONTEXT.mLastQResult) { AFY_CONTEXT.mLastQResult.onActivateTab(); } $("#query").focus(); });
+    var lUpdateSuggestions =
+      function()
+      {
+        if (!AFY_CONTEXT.mMobileVersion)
+          return;
+        var lQuerySuggest = $("#querysuggest");
+        lQuerySuggest.empty();
+        lQuerySuggest.append($("<option value='_suggest'>" + $("#menuitem_query_suggest").text() + "</option>"));
+        lQuerySuggest.append($("<option value='_newrule'>" + $("#menuitem_query_newrule").text() + "</option>"));
+        lQuerySuggest.append($("<option value='SELECT RAW *'>" + $("#menuitem_query_all").text() + "</option>"));
+        if (undefined == AFY_CONTEXT.mClasses)
+          return;
+        for (var _iC = 0; _iC < AFY_CONTEXT.mClasses.length; _iC++)
+        {
+          var _lCn = AFY_CONTEXT.mClasses[_iC]["afy:objectID"];
+          lQuerySuggest.append($("<option value='SELECT RAW * FROM " + _lCn + "'>" + _lCn + "</option>"));
+        }
+      };
+    $("#tab-basic").bind("activate_tab", function() { populate_classes(lUpdateSuggestions); if (undefined != AFY_CONTEXT.mLastQResult) { AFY_CONTEXT.mLastQResult.onActivateTab(); } if (!AFY_CONTEXT.mMobileVersion) { $("#query").focus(); } });
     $("#tab-basic").bind("deactivate_tab", function() { if (undefined != AFY_CONTEXT.mLastQResult) { AFY_CONTEXT.mLastQResult.onDeactivateTab(); } });
     // Setup the main navigational tab system.
     // Note: We set this up after the actual tabs, in order for them to receive the initial 'activate_tab'.
-    AFY_CONTEXT.mNavTabs = new NavTabs();    
-    // Setup the basic tooltips.
-    bindAutomaticTooltips();
-    // Setup static context menus.
-    bindStaticCtxMenus();
+    AFY_CONTEXT.mNavTabs = new NavTabs();
+    // Setup tooltips/menus.
+    if (AFY_CONTEXT.mMobileVersion)
+    {
+      (new ScrollOnMobile("#result_pin")).activate();
+      $("#querysuggest").change(
+        function()
+        {
+          // Get current suggestion.
+          var _lSuggestion = $("#querysuggest option:selected").val();
+          // Set it as the current query, if relevant.
+          if (_lSuggestion.charAt(0) != '_')
+            $("#query").val(_lSuggestion);
+          else if (_lSuggestion == "_newrule")
+          {
+            popDlgNewRule(
+              function(_pNr) { $("#query").val(_pNr); $("#querysuggest").val("_suggest"); },
+              function() { $("#querysuggest").val("_suggest"); });
+            // On iphone, this gets rid of the selection list... otherwise it stays there and must be closed manually;
+            // this behavior is actually nice for plain selections (allows to try in-place many options quickly),
+            // so I left it there, except in the case of a new rule, where it becomes undesirable.
+            $("#querysuggest").blur();
+          }
+        });
+    }
+    else
+    {
+      // Setup the basic tooltips.
+      bindAutomaticTooltips();
+      // Setup static context menus.
+      bindStaticCtxMenus();
+    }
     // Setup the persistent cache for the query history.
     AFY_CONTEXT.mQueryHistory = new QHistory($("#query_history"), AFY_CONTEXT.mUIStore);
     // Unless the deployment is local, don't show the administration tab.
@@ -725,6 +865,8 @@ $(document).ready(
     }
     // UI callback for query form.
     $("#form").submit(function() {
+      if (AFY_CONTEXT.mMobileVersion)
+        $("#querysuggest").val("_suggest");
       var lResultList = $("#result_table");
       lResultList.html("loading...");
       if ($("#result_pin pre").size() > 0) // If the contents of the #result_pin represent an error report from a previous query, clear it now; otherwise, let the contents stay there.

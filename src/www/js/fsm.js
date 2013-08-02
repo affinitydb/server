@@ -98,8 +98,9 @@ function FsmModel(pQuery, pCompletion, pOptions)
     {
       var _lQ = lThis.query;
       var _lSelect = _lQ.match(/(\s*select\s*\*)/i);
+      // TODO: investigate apparent regression below... afy:pinID and afy:transition don't appear in the new resulting afy:value...
       if (_lSelect[1].length > 0)
-        _lQ = _lQ.replace(_lSelect[1], "SELECT afy:pinID, afy:transition, fsmedt:layout, fsm_state_name ");
+        _lQ = _lQ.replace(_lSelect[1], "SELECT *"); // afy:pinID, afy:transition, fsmedt:layout, fsm_state_name ");
       var _lOnDomain = function(_pJson) { _pOnResult(_pJson); }
       FSMCTX.query(_lQ, new QResultHandler(_lOnDomain, null, null));
     };
@@ -316,7 +317,7 @@ function FsmModel(pQuery, pCompletion, pOptions)
             _lNext.push({center:_lStartAt, relative:_lR});
         }
         lLayoutBFS(_lNext, _lGrid, _lTrace);
-        
+
         // Remove all processed guys.
         for (var _iP = _lToProcess.length - 1; _iP >= 0; _iP--)
           if (sLayoutProp in _lToProcess[_iP])
@@ -844,7 +845,7 @@ function FsmEditor()
       l2dCtx.moveTo(0, 0);
       l2dCtx.lineTo(0, 10000);
       l2dCtx.stroke();
-      
+
       // Draw the model.
       l2dCtx.strokeStyle = "#20a0ee";
       lModel.draw(l2dCtx);
@@ -895,7 +896,7 @@ function FsmEditor()
     };
 
   // Mouse interactions.
-  $("#fsm_area").mousedown(
+  var lOnMouseDown =
     function(e)
     {
       // Check change of active tool.
@@ -949,8 +950,8 @@ function FsmEditor()
         if (!_lHandled)
           lPanZoom.onMouseDown();
       }
-    });
-  $("#fsm_area").mousemove(
+    };
+  var lOnMouseMove =
     function(e)
     {
       lPanZoom.onMouseMove(e);
@@ -1014,11 +1015,10 @@ function FsmEditor()
           }
         }
       }
-    });
-  $("#fsm_area").mouseup(
+    };
+  var lOnMouseUp =
     function()
     {
-      lPanZoom.onMouseUp();
       if (undefined != lInteractions.selected.state)
       {
         switch (lInteractions.selected.tool)
@@ -1074,9 +1074,27 @@ function FsmEditor()
         }
         lInteractions.selected.state = null;
       }
-    });
+      else if (lPanZoom.isButtonDown())
+        lPanZoom.onMouseUp();
+      else
+      {
+        lPanZoom.reset();
+        lDoDraw();
+      }
+    };
+  $("#fsm_area").mousedown(lOnMouseDown);
+  $("#fsm_area").mousemove(lOnMouseMove);
+  $("#fsm_area").mouseup(lOnMouseUp);
   $("#fsm_area").mouseout(function() { lPanZoom.onMouseUp(); });
   $("#fsm_area").mouseleave(function() { lPanZoom.onMouseUp(); });
+  var lMouseOnMobile = new TrackMouseOnMobile(
+    "#fsm_area",
+    {
+      'wheel':function(p) { lPanZoom.onMouseMove({pageX:p.x, pageY:p.y}); lPanZoom.onWheel(p); lDoDraw(); },
+      'mousedown':function(p) { var _p = {pageX:p.x, pageY:p.y}; lOnMouseMove(_p); lOnMouseDown(_p); },
+      'mousemove':function(p) { lOnMouseMove({pageX:p.x, pageY:p.y}); },
+      'mouseup':function() { lOnMouseUp(); }
+    });
   var lOnWheel = function(e) { lPanZoom.onWheel(e); lDoDraw(); return false; }
   var lUpdateCanvasSize = function() { var _lA = $("#fsm_area"); _lA.attr("width", _lA.width()); _lA.attr("height", _lA.height()); }
   var lOnResize = function() { lVPHeight = $("#fsm_area").height(); lPanZoom = lInitPanZoom(); lUpdateCanvasSize(); lDoRefresh(); }
@@ -1089,6 +1107,7 @@ function FsmEditor()
       _lFunc('DOMMouseScroll', lOnWheel, true);
       _lFunc('keydown', lPanZoom.onKeyDown, true);
       _lFunc('keyup', lPanZoom.onKeyUp, true);
+      lMouseOnMobile.activation(_pOn);
     }
 
   // Other interactions.
