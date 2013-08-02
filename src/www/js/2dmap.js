@@ -1634,7 +1634,12 @@ function GraphMap()
       {
         var _lPinfo = lPinfoFromPoint();
         if (undefined == _lPinfo)
-          { if (undefined != lPinDetails.pid) { lPinDetails.reset(); lBackground.restore(); } lPanZoom.reset(); lDoDraw(); }
+        {
+          if (undefined != lPinDetails.pid)
+            { lPinDetails.reset(); lBackground.restore(); }
+          if (!lPanZoom.didMove())
+            { lPanZoom.reset(); lDoDraw(); }
+        }
         else
         {
           var _lOffset = $("#map_area").offset();

@@ -589,7 +589,7 @@ function Histogram()
     {
       if (undefined == lQClass || undefined == lQProp)
         { $("#histo_query").text("Please select a class and a property..."); return; }
-      $("#histo_query").text(afy_with_qname_prefixes("SELECT HISTOGRAM(" + lQProp + ") FROM " + lQClass));
+      $("#histo_query").html(afy_with_qname_prefixes("<br>SELECT HISTOGRAM(" + lQProp + ") FROM " + lQClass));
       lDoRefresh();
     }
   var lDoUpdateProperties =
@@ -635,7 +635,7 @@ function Histogram()
   // Pan & Zoom etc.
   $("#histo_area").mousemove(function(e) { lPanZoom.onMouseMove(e); if (lPanZoom.isButtonDown()) lDoDraw(); });
   $("#histo_area").mousedown(function(e) { lPanZoom.onMouseDown(); });
-  $("#histo_area").mouseup(function() { lPanZoom.onMouseUp(); lPanZoom.reset(); lDoDraw(); });
+  $("#histo_area").mouseup(function() { if (!lPanZoom.didMove()) { lPanZoom.reset(); lDoDraw(); } lPanZoom.onMouseUp(); });
   $("#histo_area").mouseout(function() { lPanZoom.onMouseUp(); });
   $("#histo_area").mouseleave(function() { lPanZoom.onMouseUp(); });
   var lOnWheel = function(e) { lPanZoom.onWheel(e); lDoDraw(); return false; }

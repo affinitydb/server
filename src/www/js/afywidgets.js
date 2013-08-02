@@ -335,6 +335,7 @@ function PanZoom(pArea, pZoom)
   this.curX = function() { return lLastPoint.x; }
   this.curY = function() { return lLastPoint.y; }
   this.isButtonDown = function() { return lButtonDown; }
+  this.didMove = function(pThreshold2) { return Math.pow(lLastPoint.x - lAnchorPoint.x, 2) + Math.pow(lLastPoint.y - lAnchorPoint.y, 2) > (undefined != pThreshold2 ? pThreshold2 : 10); }
   this.onMouseDown =
     function()
     {

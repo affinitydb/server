@@ -107,7 +107,7 @@ tr.selected { background-color:#a2a2a2; }
 #histo_spec { overflow:none; position:relative; top:0px; width:100%; height:20px; border:none; padding-left:0.9em; }
 #histo_class { width:150px; background-color:#f8f8f8; color:#0f80cc; font-size:1em; }
 #histo_property { width:150px; background-color:#f8f8f8; color:#0f80cc; font-size:1em; }
-#histo_query { font-size:0.6em; width:100%; }
+#histo_query { position:absolute; top:60px; font-size:0.6em; width:100%; line-height:1em; }
 #histo_area_c { overflow:none; position:absolute; left:0; top:80px;/*review*/ bottom:10px; width:100%; border:none; }
 #histo_area { width:100%; height:100%; }
 #histo_status { position:absolute; bottom:0; width:100%; height:10px; border:none; }
