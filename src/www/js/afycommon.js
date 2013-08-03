@@ -111,6 +111,30 @@ function update_qnames_ui()
     { lQNames.append("<option>" + AFY_CONTEXT.mDef2QnPrefix[iP] + "=" + iP + "</option>"); }
   AFY_CONTEXT.mQNamesDirty = false;
 }
+function afy_create_class(pName, pDecl, pCompletion)
+{
+  var lDoProceed = function() { afy_post_query(pDecl, new QResultHandler(pCompletion, null, null)); }
+  var lOnCount = function(_pJson) { if (undefined == _pJson || parseInt(_pJson) == 0) { lDoProceed(); } else { pCompletion(); } }
+  afy_query("SELECT * FROM afy:Classes WHERE CONTAINS(afy:objectID, '" + pName + "')", new QResultHandler(lOnCount, null, null), {countonly:true});
+}
+function afy_setup_preferred_prefixes(pAll, pCompletion)
+{
+  var lOnPrefixes =
+    function(_pJson)
+    {
+      if (undefined != _pJson)
+        for (var _i = 0; _i < _pJson.length; _i++)
+          afy_add_qnprefix(_pJson[_i]["http://localhost/afy/preferredPrefix/scope"], _pJson[_i]["http://localhost/afy/preferredPrefix/name"], _pJson[_i]["http://localhost/afy/preferredPrefix/value"]);
+      if (undefined != pCompletion)
+        pCompletion();
+    };
+  afy_add_qnprefix(null, 'afy', 'http://affinityng.org/builtin');
+  afy_add_qnprefix(null, 'srv', 'http://affinityng.org/service');
+  if (pAll)
+    afy_query("SELECT * FROM \"http://localhost/afy/preferredPrefixes\"", new QResultHandler(lOnPrefixes, null, null), {longnames:true});
+  else if (pCompletion)
+    pCompletion();
+}
 function afy_add_qnprefix(pScope, pName, pValue)
 {
   AFY_CONTEXT.mDef2QnPrefix[pValue] = pName;
@@ -214,7 +238,7 @@ function afy_without_qname(pRawName)
 }
 function afy_with_qname_prefixes(pQueryStr)
 {
-  var lAlreadyDefined = {'http':1, 'afy':1};
+  var lAlreadyDefined = {'http':1, 'afy':1, 'srv':1};
   {
     var lAlreadyDefinedPattern = /PREFIX\s*(\w*)\:/gi;
     var lAD;

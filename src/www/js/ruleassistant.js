@@ -471,7 +471,7 @@ function OrganicCodeRenderer(pDbg_noParsing)
           continue;
         _lTree.addNode(_iC, _lTree.findParentNode(_iC));
       }
-      
+
       // Verify the tree.
       var _lExpectedCount = countProperties(lPid2CInfo);
       var _lActualCount = _lTree.countNodes();
@@ -682,13 +682,7 @@ function ProgrammingAssistant()
   var lCodeChangeHandler = new CodeChangeHandler(lDbg_explicitParseOnly);
   var lCM = null;
 
-  var lCreateClass =
-    function(_pName, _pDecl, _pCompletion)
-    {
-      var _lDoProceed = function() { afy_post_query(_pDecl, new QResultHandler(_pCompletion, null, null)); }
-      var _lOnCount = function(_pJson) { if (undefined == _pJson || parseInt(_pJson) == 0) { _lDoProceed(); } else { _pCompletion(); } }
-      afy_query("SELECT * FROM afy:Classes WHERE CONTAINS(afy:objectID, '" + _pName + "')", new QResultHandler(_lOnCount, null, null), {countonly:true});
-    };
+  var lCreateClass = afy_create_class;
   var lSetupPreferredPrefixes =
     function(_pCompletion)
     {
@@ -702,6 +696,7 @@ function ProgrammingAssistant()
             _pCompletion();
         };
       afy_add_qnprefix(null, 'afy', 'http://affinityng.org/builtin');
+      afy_add_qnprefix(null, 'srv', 'http://affinityng.org/service');
       afy_query("SELECT * FROM \"http://localhost/afy/preferredPrefixes\"", new QResultHandler(_lOnPrefixes, null, null), {longnames:true});
     };
   
@@ -904,7 +899,7 @@ function ProgrammingAssistant()
               var _lMatchUsing = lScopeMatchUsing();
               if (_lMatchUsing && afy_without_qname(_lMatchUsing[1]) == __lOldName)
                 { $("#editor_scope").val("using " + afy_with_qname(__lNewName)); lUpdateScope(true, lUpdateScope); }
-                
+
               // Refactor instances, if desired.
               // TODO:
               //   In the future it would be interesting to provide a more detailed assessment of existing
@@ -956,7 +951,7 @@ function ProgrammingAssistant()
             "http://localhost/afy/allCode", "CREATE CLASS \"http://localhost/afy/allCode\" AS SELECT * WHERE (EXISTS(afy:predicate) OR EXISTS(afy:action));",
             function()
             {
-              lSetupPreferredPrefixes(
+              afy_setup_preferred_prefixes(true,
                 function()
                 {
                   lUpdateScope(true);

@@ -687,9 +687,9 @@ function FsmModel(pQuery, pCompletion, pOptions)
       var _lNewTransition = {'afy:ref':{'$ref':trimPID(_pStateTo.id)}};
       var _lStmt = "UPDATE @" + trimPID(_pStateFrom.id) + " ADD afy:transition={afy:ref=@" + trimPID(_pStateTo.id);
       if (undefined != _pParams && 'condition' in _pParams)
-        { _lStmt += ", afy:condition=" + _pParams.condition; _lNewTransition['afy:condition'] = _pParams.condition; }
+        { _lStmt += ", afy:condition='" + _pParams.condition + "'"; _lNewTransition['afy:condition'] = _pParams.condition; }
       if (undefined != _pParams && 'action' in _pParams)
-        { _lStmt += ", afy:action=" + _pParams.action; _lNewTransition['afy:action'] = _pParams.action; }
+        { _lStmt += ", afy:action='" + _pParams.action + "'"; _lNewTransition['afy:action'] = _pParams.action; }
       _lStmt += "}";
 
       // Add the in-memory transition.
@@ -801,7 +801,7 @@ function FsmEditor()
   var l2dCtx;
   try { l2dCtx = document.getElementById("fsm_area").getContext("2d"); } catch(e) { myLog("html5 canvas not supported"); disableTab("#tab-fsm", true); return; }
   var lVPHeight = $("#fsm_area").height();
-  var lInitPanZoom = function() { var _lPZ = new PanZoom($("#fsm_area"), lVPHeight / (8 * FsmModel.HALF_UNIT_INPX)); _lPZ.pan = {x:2 * FsmModel.HALF_UNIT_INPX, y:FsmModel.HALF_UNIT_INPX}; return _lPZ; }
+  var lInitPanZoom = function() { var _lPZ = new PanZoom($("#fsm_area"), lVPHeight / (8 * FsmModel.HALF_UNIT_INPX)); _lPZ.pan = {x:2.5 * FsmModel.HALF_UNIT_INPX, y:FsmModel.HALF_UNIT_INPX}; return _lPZ; }
   var lPanZoom = lInitPanZoom();
   var lModel = null;
   var lLayoutCtx = null;
@@ -817,7 +817,7 @@ function FsmEditor()
       l2dCtx.fillRect(_pX, _pY, _pW, _pH);
       l2dCtx.strokeRect(_pX, _pY, _pW, _pH);
       l2dCtx.fillStyle = "#000000";
-      l2dCtx.fillText(_pText, _pX + 0.5 * (_pW - _lTw), _pY + 14);
+      l2dCtx.fillText(_pText, _pX + 0.5 * (_pW - _lTw), _pY + 19);
     };
   var lDoDraw = // The rendering engine.
     function()
@@ -856,7 +856,7 @@ function FsmEditor()
       l2dCtx.strokeStyle = "#444444";
       l2dCtx.font = "8pt Helvetica";
       for (var _iT = 0; _iT < lToolNames.length; _iT++)
-        lDrawToolButton(lToolNames[_iT], 5, lVPHeight - 82 + (20 * _iT), 50, 20, _iT == lInteractions.selected.tool);
+        lDrawToolButton(lToolNames[_iT], 5, lVPHeight - 122 + (30 * _iT), 60, 30, _iT == lInteractions.selected.tool);
 
       // Capture the rendered scene.
       lBackground.capture();
@@ -882,11 +882,11 @@ function FsmEditor()
     function()
     {
       var _lOffset = $("#fsm_area").offset();
-      var _lNLP = {x:(lPanZoom.curX() - _lOffset.left - 5), y:(lPanZoom.curY() - _lOffset.top - (lVPHeight - 82))};
-      if (_lNLP.x >= 0 && _lNLP.x < 50 && _lNLP.y >= 0 && _lNLP.y <= 80)
-        return Math.floor(_lNLP.y / 20);
+      var _lNLP = {x:(lPanZoom.curX() - _lOffset.left - 5), y:(lPanZoom.curY() - _lOffset.top - (lVPHeight - 122))};
+      if (_lNLP.x >= 0 && _lNLP.x < 60 && _lNLP.y >= 0 && _lNLP.y <= 120)
+        return Math.floor(_lNLP.y / 30);
       return null;
-    }    
+    };
   var lSetup2dCtx =
     function()
     {
@@ -917,23 +917,6 @@ function FsmEditor()
             lInteractions.selected.state = lStateFromPoint().state;
             _lHandled = (undefined != lInteractions.selected.state);
             break;
-          case lToolIndexes.insert:
-          {
-            var _lTaken = lStateFromPoint();
-            if (undefined == _lTaken.state && _lTaken.pos[0] >= 0 && _lTaken.pos[1] >= 0)
-            {
-              _lHandled = true;
-              setTimeout(function() { $("#dlg_ns_name").focus(); }, 500);
-              new FsmDlgBox($("#dlg_new_state"), $("#dlg_ns_ok"), $("#dlg_ns_cancel"),
-                function(_pCloseDlg)
-                {
-                  var _lStateName = afy_without_qname($("#dlg_ns_name").val());
-                  _pCloseDlg();
-                  lModel.insertState(_lStateName, _lTaken.pos, lDoDraw);
-                });
-            }
-            break;
-          }
           case lToolIndexes.delete:
           {
             var _lToDelete = lStateFromPoint().state;
@@ -1074,11 +1057,28 @@ function FsmEditor()
         }
         lInteractions.selected.state = null;
       }
-      else if (lPanZoom.isButtonDown())
+      else if (lPanZoom.didMove())
         lPanZoom.onMouseUp();
+      else if (lInteractions.selected.tool == lToolIndexes.insert)
+      {
+        var _lTaken = lStateFromPoint();
+        if (undefined == _lTaken.state && _lTaken.pos[0] >= 0 && _lTaken.pos[1] >= 0)
+        {
+          _lHandled = true;
+          $("#dlg_ns_name").val('');
+          setTimeout(function() { $("#dlg_ns_name").focus(); }, 500);
+          new FsmDlgBox($("#dlg_new_state"), $("#dlg_ns_ok"), $("#dlg_ns_cancel"),
+            function(_pCloseDlg)
+            {
+              var _lStateName = afy_without_qname($("#dlg_ns_name").val());
+              _pCloseDlg();
+              lModel.insertState(_lStateName, _lTaken.pos, lDoDraw);
+            });
+        }
+      }
       else
       {
-        lPanZoom.reset();
+        lPanZoom = lInitPanZoom();
         lDoDraw();
       }
     };

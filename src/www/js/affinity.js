@@ -281,7 +281,29 @@ function Tutorial()
       function _stringify(__pWhat, __pQuoteStrings) { return myStringify(__pWhat, {quoteStrings:__pQuoteStrings, lineBreaks:true}); }
       function _onPathsqlResult(__pJson) { print(__pJson); }
       function _pushTutInstr(__pLine) { lThis.mHistory.append($("<p class='tutorial_instructions'>" + __pLine + "</p>")); }
+      function _sanitizeStr(__pStr) { return __pStr.replace(/'/g, ""); };
       function print(__pWhat) { lThis.mHistory.append($("<p class='tutorial_result'>" + _stringify(__pWhat, false) + "</p>")); }
+      function usePrefix(__pPfxName, __pPfxScope, __pPfxField, __pPfxPurpose, __pRemember)
+      {
+        var __lPfx = _sanitizeStr(__pPfxScope + '/' + __pPfxField);
+        lThis.mCurPrefixes[__pPfxName] = __lPfx;
+        if (__pRemember)
+        {
+          var __lOnCount =
+            function(__pJsonCnt)
+            {
+              if (undefined != __pJsonCnt && 0 != parseInt(__pJsonCnt))
+                return;
+              var __lQ = "INSERT \"http://localhost/afy/preferredPrefix/scope\"='" + _sanitizeStr(__pPfxScope);
+              __lQ += "', \"http://localhost/afy/preferredPrefix/name\"='" + _sanitizeStr(__pPfxName);
+              __lQ += "', \"http://localhost/afy/preferredPrefix/value\"='" + __lPfx;
+              __lQ += "', \"http://localhost/afy/preferredPrefix/description\"='" + _sanitizeStr(__pPfxPurpose) + "';";
+              afy_query(__lQ, new QResultHandler(null, null, null), {sync:true});
+            };
+          afy_query("SELECT * FROM \"http://localhost/afy/preferredPrefixes\" WHERE \"http://localhost/afy/preferredPrefix/name\"='" + _sanitizeStr(__pPfxName) + "';", new QResultHandler(__lOnCount, null, null), {countonly:true});
+        }
+      }
+      function unusePrefix(__pPfxName) { if (__pPfxName in lThis.mCurPrefixes) delete lThis.mCurPrefixes[__pPfxName]; }
       function pathsql(__pSql)
       {
         if (stepStopped()) { return ""; }
@@ -294,6 +316,11 @@ function Tutorial()
 
         var __lEvalResult = null;
         var __lOnPathsql = function(__pJson, __pD) { _onPathsqlResult(__pJson); __lEvalResult = __pJson; }
+
+        // Prepend prefixes, if any.
+        var __lPrefixesStr = "";
+        for (var __iP in lThis.mCurPrefixes)
+          __lPrefixesStr += "SET PREFIX " + __iP + ": '" + lThis.mCurPrefixes[__iP] + "'; ";
 
         // Note:
         //   It doesn't appear to be possible to rely on keep-alive for transactions, in all browsers.
@@ -321,12 +348,12 @@ function Tutorial()
         else if (__pSql.match(/\s*start\s*transaction/i))
         {
           lThis.mPendingTx = new Array();
-          lThis.mPendingTx.push(__pSql);
+          lThis.mPendingTx.push(__lPrefixesStr + __pSql);
           return {"note":"in the web console, results of operations in a transaction are returned upon commit"};
         }
         else
         {
-          afy_query(afy_sanitize_semicolon(__pSql), new QResultHandler(__lOnPathsql, function(__pError){ print("error:" + __pError[0].responseText); }), {sync:true});
+          afy_query(__lPrefixesStr + afy_sanitize_semicolon(__pSql), new QResultHandler(__lOnPathsql, function(__pError){ print("error:" + __pError[0].responseText); }), {sync:true});
           return __lEvalResult;
         }
       }
@@ -474,6 +501,7 @@ function Tutorial()
   this.mPushInput = function() { lThis.mHistory.append($("<p class='tutorial_stmt'>&gt;" + lThis.mInput.val().replace(/<br>/g, "&lt;br&gt;") + "</p>")); lThis.mInput.val(''); lDropFocus();  }
   this.mScroll = function() { $("#tutorial_area").scrollTop(lThis.mHistory.height() + 2 * $("#tutorial_input").height() - $("#tutorial_area").height()); $("#tutorial_area").scrollLeft(0); }
   this.mTutorialStep = 0;
+  this.mCurPrefixes = {};
   this.mTSI = 0; // Tutorial Step Interrupt.
   if (AFY_CONTEXT.mMobileVersion)
   {
@@ -714,8 +742,8 @@ function popDlgNewRule(pOnOk, pOnCancel)
     function(_pConditions, _pActions)
     {
       var _lAddNil = function(_pSelectList) { _pSelectList.append($("<option value='nil'>nil</value>")); };
-      var _lPopulateConditions = function(_pSelectList, _pWithNil) { _pSelectList.empty(); _pConditions.forEach(function(_c) { _pSelectList.append("<option value='" + _c.id + "'>" + _c.id + " : " + _c.condition + "</option>"); }); if (_pWithNil) { _lAddNil(_pSelectList); } };
-      var _lPopulateActions = function(_pSelectList, _pWithNil) { _pSelectList.empty(); _pActions.forEach(function(_c) { _pSelectList.append("<option value='" + _c.id + "'>" + _c.id + " : " + _c.action + "</option>"); }); if (_pWithNil) { _lAddNil(_pSelectList); } };
+      var _lPopulateConditions = function(_pSelectList, _pWithNil) { _pSelectList.empty(); _pConditions.forEach(function(_c) { _pSelectList.append("<option value='" + _c.id + "'>" + _c.id /*+ " : " + _c.condition*/ + "</option>"); }); if (_pWithNil) { _lAddNil(_pSelectList); } };
+      var _lPopulateActions = function(_pSelectList, _pWithNil) { _pSelectList.empty(); _pActions.forEach(function(_c) { _pSelectList.append("<option value='" + _c.id + "'>" + _c.id /*+ " : " + _c.action*/ + "</option>"); }); if (_pWithNil) { _lAddNil(_pSelectList); } };
       var _lAddCondition = function() { lAddChoice("condition", _lPopulateConditions); return false; }
       var _lAddAction = function() { lAddChoice("action", _lPopulateActions); return false; }
       // Start afresh.
@@ -769,10 +797,11 @@ $(document).ready(
       if (undefined != lLastStorePw)
         $("#storepw").val(lLastStorePw);
     }
-    // Setup hard-coded prefixes.
-    var lAfy = 'http://affinityng.org/builtin';
-    AFY_CONTEXT.mDef2QnPrefix[lAfy] = 'afy';
-    AFY_CONTEXT.mQnPrefix2Def['afy'] = {value:lAfy, scope:null};
+    // Setup hard-coded / pre-configured / preferred prefixes.
+    afy_create_class(
+      "http://localhost/afy/preferredPrefixes",
+      "CREATE CLASS \"http://localhost/afy/preferredPrefixes\" AS SELECT * WHERE EXISTS(\"http://localhost/afy/preferredPrefix/name\") AND EXISTS(\"http://localhost/afy/preferredPrefix/value\") AND EXISTS(\"http://localhost/afy/preferredPrefix/scope\")",
+      function() { afy_setup_preferred_prefixes(false); });
     // Determine if the 2D-Map tab should be disabled. 
     if ("msie" in $.browser && $.browser["msie"])
       { var lV = $.browser.version.match(/^([0-9]+)\./); if (undefined == lV || parseInt(lV[0]) < 9) { disableTab("#tab-map"); } }
@@ -935,25 +964,26 @@ function hqbr(s) {return hq(s).replace(/\n/g,"<br/>").replace(/ /g,"&nbsp;");}
  */
 function populate_classes(pOnDone)
 {
-  get_classes(
-    function(_pJson)
-    {
-      $("#classes").empty();
-      $("#class_properties").empty();
-      $("#class_doc").empty();
-      $("#property_doc").empty();
-      $("#qnames").empty();
-      if (undefined == _pJson) { myLog("populate_classes: undefined _pJson"); return; }
-      for (var i = 0; i < _pJson.length; i++)
+  afy_setup_preferred_prefixes(true,
+    get_classes(
+      function(_pJson)
       {
-        var lCName = _pJson[i]["afy:objectID"];
-        var lOption = "<option value=\"" + lCName + "\">" + lCName + "</option>";
-        $("#classes").append(lOption);
-      }
-      on_class_change();
-      if (undefined != pOnDone)
-        pOnDone(_pJson);
-    });
+        $("#classes").empty();
+        $("#class_properties").empty();
+        $("#class_doc").empty();
+        $("#property_doc").empty();
+        $("#qnames").empty();
+        if (undefined == _pJson) { myLog("populate_classes: undefined _pJson"); return; }
+        for (var i = 0; i < _pJson.length; i++)
+        {
+          var lCName = _pJson[i]["afy:objectID"];
+          var lOption = "<option value=\"" + lCName + "\">" + lCName + "</option>";
+          $("#classes").append(lOption);
+        }
+        on_class_change();
+        if (undefined != pOnDone)
+          pOnDone(_pJson);
+      }));
 }
 
 function on_class_change()

@@ -455,54 +455,56 @@
       <div>To finish, a quick look at rules and their building blocks.</div>
       <div>&nbsp;</div>
       <!-- Create simple context to be able to express a multitude of conditions, actions and rules. -->
-      <div class='tutorial_step'>tutcoffee_alreadyrun = q("SELECT * FROM afy:Timers WHERE ENDS(afy:objectID, 'tutcoffee_timer')");</div>
+      <div class='tutorial_step'>usePrefix('cm', 'http://affinityng.org/tutorial', 'coffee_machine', 'Tutorial step simulating a coffee machine', true);</div>
+      <div class='tutorial_step'>tutcoffee_alreadyrun = q("SELECT * FROM afy:Timers WHERE afy:objectID=.cm:Timer");</div>
       <div class='tutorial_step'>if (undefined != tutcoffee_alreadyrun &amp;&amp; tutcoffee_alreadyrun.length > 0) { print("This step can only run once. Use the console to observe all its effects."); stopStep(); }</div>
-      <div class='tutorial_step'>q("CREATE TIMER tutcoffee_timer INTERVAL'00:00:05' AS INSERT tutcoffee_time=CURRENT_TIMESTAMP;");</div>
-      <div class='tutorial_step'>q("CREATE CLASS tutcoffee_simulator AS SELECT * WHERE EXISTS(tutcoffee_time) SET 
-        tutcoffee_level_columbian=100.0, tutcoffee_level_tanzanian=100.0, tutcoffee_level_jamaican=100.0,
-        tutcoffee_level_milk=100.0, tutcoffee_level_sugar=100.0,
-        tutcoffee_level_coins25=100, tutcoffee_level_coins100=10,
-        tutcoffee_water_problem=0, tutcoffee_power_problem=0, tutcoffee_jam_problem=0,
+      <div class='tutorial_step'>q("CREATE TIMER cm:Timer INTERVAL'00:00:05' AS INSERT cm:time=CURRENT_TIMESTAMP;");</div>
+      <div class='tutorial_step'>q("CREATE CLASS cm:Simulator AS SELECT * WHERE EXISTS(cm:time) SET 
+        cm:level_columbian=100.0, cm:level_tanzanian=100.0, cm:level_jamaican=100.0,
+        cm:level_milk=100.0, cm:level_sugar=100.0,
+        cm:level_coins25=100, cm:level_coins100=10,
+        cm:problem_water=0, cm:problem_power=0, cm:problem_jam=0,
         afy:onEnter={
           ${UPDATE @auto SET rand1=EXTRACT(FRACTIONAL FROM CURRENT_TIMESTAMP)},
-          ${UPDATE @ctx SET tutcoffee_level_columbian-=ABS(5 * SIN(@auto.rand1))},
-          ${UPDATE @ctx SET tutcoffee_level_tanzanian-=ABS(5 * COS(@auto.rand1))},
-          ${UPDATE @ctx SET tutcoffee_level_jamaican-=ABS(5 * SIN(@auto.rand1 % 100))},
-          ${UPDATE @ctx SET tutcoffee_level_milk-=ABS(7 * SIN((@auto.rand1 / 3) % 100))},
-          ${UPDATE @ctx SET tutcoffee_level_sugar-=ABS(3 * COS(@auto.rand1 / 3))},
-          ${UPDATE @ctx SET tutcoffee_level_coins25-=@auto.rand1 % 5},
-          ${UPDATE @ctx SET tutcoffee_level_coins100+=(@auto.rand1 / 3) % 5},
-          ${UPDATE @ctx SET tutcoffee_water_problem=1 WHERE SIN(@auto.rand1) &gt; 0.98},
-          ${UPDATE @ctx SET tutcoffee_power_problem=1 WHERE COS(@auto.rand1) &gt; 0.98},
-          ${UPDATE @ctx SET tutcoffee_jam_problem=1 WHERE SIN(@auto.rand1) &lt; 0.02}};");</div>
-      <div class='tutorial_step'>q("CREATE CONDITION tutcoffee_low_columbian AS tutcoffee_level_columbian &lt; 10.0;");</div>
-      <div class='tutorial_step'>q("CREATE CONDITION tutcoffee_low_tanzanian AS tutcoffee_level_tanzanian &lt; 10.0;");</div>
-      <div class='tutorial_step'>q("CREATE CONDITION tutcoffee_low_jamaican AS tutcoffee_level_jamaican &lt; 10.0;");</div>
-      <div class='tutorial_step'>q("CREATE CONDITION tutcoffee_low_coffee AS (tutcoffee_level_columbian &lt; 10.0 OR tutcoffee_level_tanzanian &lt; 10.0 OR tutcoffee_level_jamaican &lt; 10.0);");</div>
-      <div class='tutorial_step'>q("CREATE CONDITION tutcoffee_low_milk AS tutcoffee_level_milk &lt; 10.0;");</div>
-      <div class='tutorial_step'>q("CREATE CONDITION tutcoffee_low_sugar AS tutcoffee_level_sugar &lt; 10.0;");</div>
-      <div class='tutorial_step'>q("CREATE CONDITION tutcoffee_low_ingredients AS (tutcoffee_level_columbian &lt; 10.0 OR tutcoffee_level_tanzanian &lt; 10.0 OR tutcoffee_level_jamaican &lt; 10.0 OR tutcoffee_level_milk &lt; 10.0 OR tutcoffee_level_sugar &lt; 10.0);");</div>
-      <div class='tutorial_step'>q("CREATE CONDITION tutcoffee_low_coins25 AS tutcoffee_level_coins25 &lt; 10;");</div>
-      <div class='tutorial_step'>q("CREATE CONDITION tutcoffee_high_coins100 AS tutcoffee_level_coins100 &gt; 90;");</div>
-      <div class='tutorial_step'>q("CREATE CONDITION tutcoffee_alert_water AS tutcoffee_water_problem=1;");</div>
-      <div class='tutorial_step'>q("CREATE CONDITION tutcoffee_alert_power AS tutcoffee_power_problem=1;");</div>
-      <div class='tutorial_step'>q("CREATE CONDITION tutcoffee_alert_jam AS tutcoffee_jam_problem=1;");</div>
-      <div class='tutorial_step'>q("CREATE ACTION tutcoffee_log_lowsupplies AS INSERT tutcoffee_lowsupplies_at=CURRENT_TIMESTAMP, tutcoffee_levels={columbian=@self.tutcoffee_level_columbian, tanzanian=@self.tutcoffee_level_tanzanian, jamaican=@self.tutcoffee_level_jamaican, milk=@self.tutcoffee_level_milk, sugar=@self.tutcoffee_level_sugar};");</div>
-      <div class='tutorial_step'>q("CREATE ACTION tutcoffee_log_alert AS INSERT tutcoffee_alert_at=CURRENT_TIMESTAMP, tutcoffee_alerts={_water=@self.tutcoffee_water_problem, _power=@self.tutcoffee_power_problem, _jam=@self.tutcoffee_jam_problem};");</div>
-      <div class='tutorial_step'>q("CREATE ACTION tutcoffee_restock_coffee AS UPDATE @self SET tutcoffee_level_columbian=100.0, tutcoffee_level_tanzanian=100.0, tutcoffee_level_jamaican=100.0, tutcoffee_restocked_coffee_at=CURRENT_TIMESTAMP;");</div>
-      <div class='tutorial_step'>q("CREATE ACTION tutcoffee_restock_ingredients AS UPDATE @self SET tutcoffee_level_milk=100.0, tutcoffee_level_sugar=100.0, tutcoffee_restocked_ingredients_at=CURRENT_TIMESTAMP;");</div>
-      <div class='tutorial_step'>q("CREATE ACTION tutcoffee_manage_coins AS UPDATE @self SET tutcoffee_level_coins25=100.0, tutcoffee_level_coins100=10.0, tutcoffee_managed_at=CURRENT_TIMESTAMP;");</div>
-      <div class='tutorial_step'>q("CREATE ACTION tutcoffee_call_plumber AS INSERT tutcoffee_send_message_to_plumber=1, _at=CURRENT_TIMESTAMP;");</div>
-      <div class='tutorial_step'>q("CREATE ACTION tutcoffee_call_electrician AS INSERT tutcoffee_send_message_to_electrician=1, _at=CURRENT_TIMESTAMP;");</div>
-      <div class='tutorial_step'>q("RULE tutcoffee_money_maintenance : tutcoffee_low_coins25 AND tutcoffee_high_coins100 -> tutcoffee_manage_coins;");</div>
+          ${UPDATE @ctx SET cm:level_columbian-=ABS(5 * SIN(@auto.rand1))},
+          ${UPDATE @ctx SET cm:level_tanzanian-=ABS(5 * COS(@auto.rand1))},
+          ${UPDATE @ctx SET cm:level_jamaican-=ABS(5 * SIN(@auto.rand1 % 100))},
+          ${UPDATE @ctx SET cm:level_milk-=ABS(7 * SIN((@auto.rand1 / 3) % 100))},
+          ${UPDATE @ctx SET cm:level_sugar-=ABS(3 * COS(@auto.rand1 / 3))},
+          ${UPDATE @ctx SET cm:level_coins25-=@auto.rand1 % 5},
+          ${UPDATE @ctx SET cm:level_coins100+=(@auto.rand1 / 3) % 5},
+          ${UPDATE @ctx SET cm:problem_water=1 WHERE SIN(@auto.rand1) &gt; 0.98},
+          ${UPDATE @ctx SET cm:problem_power=1 WHERE COS(@auto.rand1) &gt; 0.98},
+          ${UPDATE @ctx SET cm:problem_jam=1 WHERE SIN(@auto.rand1) &lt; 0.02}};");</div>
+      <div class='tutorial_step'>q("CREATE CONDITION cm:low_columbian AS cm:level_columbian &lt; 10.0;");</div>
+      <div class='tutorial_step'>q("CREATE CONDITION cm:low_tanzanian AS cm:level_tanzanian &lt; 10.0;");</div>
+      <div class='tutorial_step'>q("CREATE CONDITION cm:low_jamaican AS cm:level_jamaican &lt; 10.0;");</div>
+      <div class='tutorial_step'>q("CREATE CONDITION cm:low_coffee AS (cm:level_columbian &lt; 10.0 OR cm:level_tanzanian &lt; 10.0 OR cm:level_jamaican &lt; 10.0);");</div>
+      <div class='tutorial_step'>q("CREATE CONDITION cm:low_milk AS cm:level_milk &lt; 10.0;");</div>
+      <div class='tutorial_step'>q("CREATE CONDITION cm:low_sugar AS cm:level_sugar &lt; 10.0;");</div>
+      <div class='tutorial_step'>q("CREATE CONDITION cm:low_ingredients AS (cm:level_columbian &lt; 10.0 OR cm:level_tanzanian &lt; 10.0 OR cm:level_jamaican &lt; 10.0 OR cm:level_milk &lt; 10.0 OR cm:level_sugar &lt; 10.0);");</div>
+      <div class='tutorial_step'>q("CREATE CONDITION cm:low_coins25 AS cm:level_coins25 &lt; 10;");</div>
+      <div class='tutorial_step'>q("CREATE CONDITION cm:high_coins100 AS cm:level_coins100 &gt; 90;");</div>
+      <div class='tutorial_step'>q("CREATE CONDITION cm:alert_water AS cm:problem_water=1;");</div>
+      <div class='tutorial_step'>q("CREATE CONDITION cm:alert_power AS cm:problem_power=1;");</div>
+      <div class='tutorial_step'>q("CREATE CONDITION cm:alert_jam AS cm:problem_jam=1;");</div>
+      <div class='tutorial_step'>q("CREATE ACTION cm:log_lowsupplies AS INSERT cm:lowsupplies_at=CURRENT_TIMESTAMP, cm:levels={columbian=@self.cm:level_columbian, tanzanian=@self.cm:level_tanzanian, jamaican=@self.cm:level_jamaican, milk=@self.cm:level_milk, sugar=@self.cm:level_sugar};");</div>
+      <div class='tutorial_step'>q("CREATE ACTION cm:log_alert AS INSERT cm:alert_at=CURRENT_TIMESTAMP, cm:alerts={_water=@self.cm:problem_water, _power=@self.cm:problem_power, _jam=@self.cm:problem_jam};");</div>
+      <div class='tutorial_step'>q("CREATE ACTION cm:restock_coffee AS UPDATE @self SET cm:level_columbian=100.0, cm:level_tanzanian=100.0, cm:level_jamaican=100.0, cm:restocked_coffee_at=CURRENT_TIMESTAMP;");</div>
+      <div class='tutorial_step'>q("CREATE ACTION cm:restock_ingredients AS UPDATE @self SET cm:level_milk=100.0, cm:level_sugar=100.0, cm:restocked_ingredients_at=CURRENT_TIMESTAMP;");</div>
+      <div class='tutorial_step'>q("CREATE ACTION cm:manage_coins AS UPDATE @self SET cm:level_coins25=100.0, cm:level_coins100=10.0, cm:managed_at=CURRENT_TIMESTAMP;");</div>
+      <div class='tutorial_step'>q("CREATE ACTION cm:call_plumber AS INSERT cm:send_message_to_plumber=1, _at=CURRENT_TIMESTAMP;");</div>
+      <div class='tutorial_step'>q("CREATE ACTION cm:call_electrician AS INSERT cm:send_message_to_electrician=1, _at=CURRENT_TIMESTAMP;");</div>
+      <div class='tutorial_step'>q("RULE cm:money_maintenance : cm:low_coins25 AND cm:high_coins100 -> cm:manage_coins;");</div>
       <!-- making sure all actions work:
       <div class='tutorial_step'>
-        q("RULE tutcoffee_test_actions : tutcoffee_low_ingredients ->
-            tutcoffee_log_lowsupplies, tutcoffee_log_alert,
-            tutcoffee_restock_coffee, tutcoffee_restock_ingredients,
-            tutcoffee_manage_coins, tutcoffee_call_plumber;");
+        q("RULE cm:test_actions : cm:low_ingredients ->
+            cm:log_lowsupplies, cm:log_alert,
+            cm:restock_coffee, cm:restock_ingredients,
+            cm:manage_coins, cm:call_plumber;");
       </div>
       -->
+      <div class='tutorial_step'>unusePrefix('cm');</div>
     </div>
   </div>
   <div id='restart'>End of tutorial.<br>Type t to restart.<br>Or check out the 'Basic Console', 'Histogram' and '2D-Map' tabs, for more fun (watch out for tooltips!).<br>Or go and <a href='../doc/getting%20started.html'>install</a> Affinity!</div>
