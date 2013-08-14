@@ -691,10 +691,13 @@ function Histogram()
       'mousemove':function(p) { lPanZoom.onMouseMove({pageX:p.x, pageY:p.y}); if (lPanZoom.isButtonDown()) lDoDraw(); },
       'mouseup':function() { lPanZoom.onMouseUp(); }
     });
+  var lUpdateCanvasSize = function() { var _lA = $("#histo_area"); _lA.attr("width", _lA.width()); _lA.attr("height", _lA.height()); }
+  var lOnResize = function() { lVPHeight = $("#histo_area").height(); lPanZoom = new PanZoom($("#histo_area"), 1.0); lUpdateCanvasSize(); lDoRefresh(); }
   var lManageWindowEvents =
     function(_pOn)
     {
       var _lFunc = _pOn ? window.addEventListener : window.removeEventListener;
+      _lFunc('resize', lOnResize, true);
       _lFunc('mousewheel', lOnWheel, true);
       _lFunc('DOMMouseScroll', lOnWheel, true);
       _lFunc('keydown', lPanZoom.onKeyDown, true);
@@ -706,12 +709,11 @@ function Histogram()
   $("#histo_class").change(function() { lQClass = $("#histo_class option:selected").val(); lDoUpdateProperties(); });
   $("#histo_property").change(function() { lQProp = $("#histo_property option:selected").val(); lDoUpdateQuery(); });
   $("#histo_go").click(function() { lDoRefresh(); return false; });
-  $("#tab-histogram").bind("activate_tab", function() { lManageWindowEvents(true); populate_classes(function() { lDoUpdateClasses(); lDoDraw(); }); });
+  $("#tab-histogram").bind("activate_tab", function() { lManageWindowEvents(true); populate_classes(function() { lDoUpdateClasses(); lOnResize(); }); });
   $("#tab-histogram").bind("deactivate_tab", function() { lManageWindowEvents(false); });
 
   // Initialize the canvas's dimensions (critical for rendering quality).
-  $("#histo_area").attr("width", $("#histo_area").width());
-  $("#histo_area").attr("height", $("#histo_area").height());
+  lUpdateCanvasSize();
 }
 
 /**
