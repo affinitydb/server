@@ -39,33 +39,49 @@ function NavTabs()
       _lTab.css("display", "block");
       _lTab.trigger("activate_tab");
     }
-  // For each <li> of #nav, record it as a tab in lTabs, and bind lOnTab to the click event.
-  $("#nav li").each(
-    function(_pI, _pE)
+  this.clear =
+    function()
     {
-      var _lAnchor = $("a", _pE)[0];
-      var _lTab = {name:lTabNameFromA(_lAnchor), anchor:_lAnchor};
-      _lTab.content = lTabContentFromName(_lTab.name);
-      lTabs.push(_lTab);
-      $("img", _lAnchor).each(
-        function(__pI, __pE)
+      $("#nav li").each(
+        function(_pI, _pE)
         {
-          $(__pE).click(lOnTab);
-          $(__pE).hover(function() { $(this).addClass("tab-highlighted"); }, function() { $(this).removeClass("tab-highlighted"); });
-          bindTooltip($(__pE), $("#tooltip_" + _lTab.name).text());
+          var _lAnchor = $("a", _pE)[0];
+          lTabContentFromName(lTabNameFromA(_lAnchor)).css("display", "none");
         });
-    });
-  // Select the first tab initially (either from the url, if one is specified, or just by index, otherwise).
-  var lLoadedUrl = location.href.split('#');
-  var lDone = false;
-  while (lLoadedUrl.length > 1 && !lDone)
-  {
-    var lTf = lFindTab(lLoadedUrl.pop());
-    if (undefined != lTf && 'anchor' in lTf)
-      { lOnTab({target:$("img", lTf.anchor)}); lDone = true; }
-  }
-  if (!lDone)
-    lOnTab({target:$("#nav img")[0]});
+     $("#content").append($("<p id='_navtabs_loading'>Loading...</p>"));
+    };
+  this.start =
+    function()
+    {
+      // For each <li> of #nav, record it as a tab in lTabs, and bind lOnTab to the click event.
+      $("#_navtabs_loading").remove();
+      $("#nav li").each(
+        function(_pI, _pE)
+        {
+          var _lAnchor = $("a", _pE)[0];
+          var _lTab = {name:lTabNameFromA(_lAnchor), anchor:_lAnchor};
+          _lTab.content = lTabContentFromName(_lTab.name);
+          lTabs.push(_lTab);
+          $("img", _lAnchor).each(
+            function(__pI, __pE)
+            {
+              $(__pE).click(lOnTab);
+              $(__pE).hover(function() { $(this).addClass("tab-highlighted"); }, function() { $(this).removeClass("tab-highlighted"); });
+              bindTooltip($(__pE), $("#tooltip_" + _lTab.name).text());
+            });
+        });
+      // Select the first tab initially (either from the url, if one is specified, or just by index, otherwise).
+      var lLoadedUrl = location.href.split('#');
+      var lDone = false;
+      while (lLoadedUrl.length > 1 && !lDone)
+      {
+        var lTf = lFindTab(lLoadedUrl.pop());
+        if (undefined != lTf && 'anchor' in lTf)
+          { lOnTab({target:$("img", lTf.anchor)}); lDone = true; }
+      }
+      if (!lDone)
+        lOnTab({target:$("#nav img")[0]});
+    };
 }
 
 /**
@@ -732,11 +748,13 @@ function popDlgNewRule(pOnOk, pOnCancel)
       _pPopulateFunc(_lNew, true);
       _lNew.insertAfter(_lCur.last());
     };
+  $("#query_spec").css("visibility", "hidden"); /* Hack for android2.x: without this, some drop downs (overlaid on top of the query_spec area) refuse to operate. */
   var lUnbindButtons =
     function()
     {
       $("#dlg_newrule_condition_add").unbind('click');
       $("#dlg_newrule_action_add").unbind('click');
+      $("#query_spec").css("visibility", "visible"); /* Hack for android2.x: without this, some drop downs (overlaid on top of the query_spec area) refuse to operate. */
     };
   get_conditions_and_actions(
     function(_pConditions, _pActions)
@@ -781,176 +799,186 @@ function popDlgNewRule(pOnOk, pOnCancel)
 $(document).ready(
   function()
   {
-    // Determine if we're running the mobile version.
-    AFY_CONTEXT.mMobileVersion = (undefined != location.pathname.match(/^\/m\//));
-    // Home/logo button.
-    $("#gh_logo_img").hover(function() { $(this).addClass("logo-highlighted"); }, function() { $(this).removeClass("logo-highlighted"); });
-    $("#gh_logo_img").click(function() { window.location.href = 'http://' + location.hostname + ":" + location.port; });
-    // Setup a client-side persistent memory.
-    AFY_CONTEXT.mUIStore = new Persist.Store("Affinity Console Persistence");
-    if (undefined != AFY_CONTEXT.mUIStore)
+    try
     {
-      var lLastStoreIdent = AFY_CONTEXT.mUIStore.get('laststoreident');
-      if (undefined != lLastStoreIdent)
-        $("#storeident").val(lLastStoreIdent);
-      var lLastStorePw = AFY_CONTEXT.mUIStore.get('laststorepw');
-      if (undefined != lLastStorePw)
-        $("#storepw").val(lLastStorePw);
-    }
-    // Setup hard-coded / pre-configured / preferred prefixes.
-    afy_create_class(
-      "http://localhost/afy/preferredPrefixes",
-      "CREATE CLASS \"http://localhost/afy/preferredPrefixes\" AS SELECT * WHERE EXISTS(\"http://localhost/afy/preferredPrefix/name\") AND EXISTS(\"http://localhost/afy/preferredPrefix/value\") AND EXISTS(\"http://localhost/afy/preferredPrefix/scope\")",
-      function() { afy_setup_preferred_prefixes(false); });
-    // Determine if the 2D-Map tab should be disabled. 
-    if ("msie" in $.browser && $.browser["msie"])
-      { var lV = $.browser.version.match(/^([0-9]+)\./); if (undefined == lV || parseInt(lV[0]) < 9) { disableTab("#tab-map"); } }
-    // Setup the tutorial.
-    new Tutorial();
-    // Setup the histogram.
-    new Histogram();
-    // Setup the batching UI.
-    new BatchingSQL();
-    // Setup tab-dependent aspects of the basic console.
-    // Note:
-    //   For the moment, for simplicity, we refresh classes everytime we come back from another tab
-    //   (where classes may have been created).
-    // Note:
-    //   This also allows to land on the tutorial page without emitting any query to the store upfront,
-    //   which is nice in a setup where the front-end is hosted in a separate environment.
-    var lUpdateSuggestions =
-      function()
+      // Determine if we're running the mobile version.
+      AFY_CONTEXT.mMobileVersion = (undefined != location.pathname.match(/^\/m\//));
+      // Home/logo button.
+      $("#gh_logo_img").hover(function() { $(this).addClass("logo-highlighted"); }, function() { $(this).removeClass("logo-highlighted"); });
+      $("#gh_logo_img").click(function() { window.location.href = 'http://' + location.hostname + ":" + location.port; });
+      // Initially, hide all tabs, to avoid displaying garbage if for any reason we fail to reach actual tabs setup later on (in start()).
+      AFY_CONTEXT.mNavTabs = new NavTabs();
+      AFY_CONTEXT.mNavTabs.clear();
+      // Setup a client-side persistent memory.
+      AFY_CONTEXT.mUIStore = new Persist.Store("Affinity Console Persistence");
+      if (undefined != AFY_CONTEXT.mUIStore)
       {
-        if (!AFY_CONTEXT.mMobileVersion)
-          return;
-        var lQuerySuggest = $("#querysuggest");
-        lQuerySuggest.empty();
-        lQuerySuggest.append($("<option value='_suggest'>" + $("#menuitem_query_suggest").text() + "</option>"));
-        lQuerySuggest.append($("<option value='_newrule'>" + $("#menuitem_query_newrule").text() + "</option>"));
-        lQuerySuggest.append($("<option value='SELECT RAW *'>" + $("#menuitem_query_all").text() + "</option>"));
-        if (undefined == AFY_CONTEXT.mClasses)
-          return;
-        for (var _iC = 0; _iC < AFY_CONTEXT.mClasses.length; _iC++)
-        {
-          var _lCn = AFY_CONTEXT.mClasses[_iC]["afy:objectID"];
-          lQuerySuggest.append($("<option value='SELECT RAW * FROM " + _lCn + "'>" + _lCn + "</option>"));
-        }
-      };
-    $("#tab-basic").bind("activate_tab", function() { populate_classes(lUpdateSuggestions); if (undefined != AFY_CONTEXT.mLastQResult) { AFY_CONTEXT.mLastQResult.onActivateTab(); } if (!AFY_CONTEXT.mMobileVersion) { $("#query").focus(); } });
-    $("#tab-basic").bind("deactivate_tab", function() { if (undefined != AFY_CONTEXT.mLastQResult) { AFY_CONTEXT.mLastQResult.onDeactivateTab(); } });
-    // Setup the main navigational tab system.
-    // Note: We set this up after the actual tabs, in order for them to receive the initial 'activate_tab'.
-    AFY_CONTEXT.mNavTabs = new NavTabs();
-    // Setup tooltips/menus.
-    if (AFY_CONTEXT.mMobileVersion)
-    {
-      (new ScrollOnMobile("#result_pin")).activate();
-      $("#querysuggest").change(
+        var lLastStoreIdent = AFY_CONTEXT.mUIStore.get('laststoreident');
+        if (undefined != lLastStoreIdent)
+          $("#storeident").val(lLastStoreIdent);
+        var lLastStorePw = AFY_CONTEXT.mUIStore.get('laststorepw');
+        if (undefined != lLastStorePw)
+          $("#storepw").val(lLastStorePw);
+      }
+      // Setup hard-coded / pre-configured / preferred prefixes.
+      afy_create_class(
+        "http://localhost/afy/preferredPrefixes",
+        "CREATE CLASS \"http://localhost/afy/preferredPrefixes\" AS SELECT * WHERE EXISTS(\"http://localhost/afy/preferredPrefix/name\") AND EXISTS(\"http://localhost/afy/preferredPrefix/value\") AND EXISTS(\"http://localhost/afy/preferredPrefix/scope\")",
+        function() { afy_setup_preferred_prefixes(false); });
+      // Determine if the 2D-Map tab should be disabled. 
+      if ("msie" in $.browser && $.browser["msie"])
+        { var lV = $.browser.version.match(/^([0-9]+)\./); if (undefined == lV || parseInt(lV[0]) < 9) { disableTab("#tab-map"); } }
+      // Setup the tutorial.
+      new Tutorial();
+      // Setup the histogram.
+      new Histogram();
+      // Setup the batching UI.
+      new BatchingSQL();
+      // Setup tab-dependent aspects of the basic console.
+      // Note:
+      //   For the moment, for simplicity, we refresh classes everytime we come back from another tab
+      //   (where classes may have been created).
+      // Note:
+      //   This also allows to land on the tutorial page without emitting any query to the store upfront,
+      //   which is nice in a setup where the front-end is hosted in a separate environment.
+      var lUpdateSuggestions =
         function()
         {
-          // Get current suggestion.
-          var _lSuggestion = $("#querysuggest option:selected").val();
-          // Set it as the current query, if relevant.
-          if (_lSuggestion.charAt(0) != '_')
-            $("#query").val(_lSuggestion);
-          else if (_lSuggestion == "_newrule")
+          if (!AFY_CONTEXT.mMobileVersion)
+            return;
+          var lQuerySuggest = $("#querysuggest");
+          lQuerySuggest.empty();
+          lQuerySuggest.append($("<option value='_suggest'>" + $("#menuitem_query_suggest").text() + "</option>"));
+          lQuerySuggest.append($("<option value='_newrule'>" + $("#menuitem_query_newrule").text() + "</option>"));
+          lQuerySuggest.append($("<option value='SELECT RAW *'>" + $("#menuitem_query_all").text() + "</option>"));
+          if (undefined == AFY_CONTEXT.mClasses)
+            return;
+          for (var _iC = 0; _iC < AFY_CONTEXT.mClasses.length; _iC++)
           {
-            popDlgNewRule(
-              function(_pNr) { $("#query").val(_pNr); $("#querysuggest").val("_suggest"); },
-              function() { $("#querysuggest").val("_suggest"); });
-            // On iphone, this gets rid of the selection list... otherwise it stays there and must be closed manually;
-            // this behavior is actually nice for plain selections (allows to try in-place many options quickly),
-            // so I left it there, except in the case of a new rule, where it becomes undesirable.
-            $("#querysuggest").blur();
+            var _lCn = AFY_CONTEXT.mClasses[_iC]["afy:objectID"];
+            lQuerySuggest.append($("<option value='SELECT RAW * FROM " + _lCn + "'>" + _lCn + "</option>"));
           }
-        });
-    }
-    else
-    {
-      // Setup the basic tooltips.
-      bindAutomaticTooltips();
-      // Setup static context menus.
-      bindStaticCtxMenus();
-    }
-    // Setup the persistent cache for the query history.
-    AFY_CONTEXT.mQueryHistory = new QHistory($("#query_history"), AFY_CONTEXT.mUIStore);
-    // Unless the deployment is local, don't show the administration tab.
-    if (undefined == location.hostname.match(/(localhost|127\.0\.0\.1)/i))
-      disableTab("#tab-config");
-    // Setup the initial query string, if one was specified (used for links from doc to console).
-    var lInitialQ = location.href.match(/query\=(.*?)((&.*)|(#.*)|\0)?$/i);
-    if (undefined != lInitialQ && lInitialQ.length > 0)
-      $("#query").val(unescape(lInitialQ[1].replace(/\+/g, " ")));
-    var lInitialStoreId = location.href.match(/storeid\=(.*?)((&.*)|(#.*)|\0)?$/i);
-    if (undefined != lInitialStoreId && lInitialStoreId.length > 0)
-    {
-      $("#storeident").val(unescape(lInitialStoreId[1]));
-      $("#storepw").val("");
-    }
-    if (0 == AFY_CONTEXT.mStoreIdent.length)
-    {
-      AFY_CONTEXT.mStoreIdent = $("#storeident").val() || "";
-      AFY_CONTEXT.mStorePw = $("#storepw").val() || "";
-    }
-    // UI callback for query form.
-    $("#form").submit(function() {
+        };
+      $("#tab-basic").bind("activate_tab", function() { populate_classes(lUpdateSuggestions); if (undefined != AFY_CONTEXT.mLastQResult) { AFY_CONTEXT.mLastQResult.onActivateTab(); } if (!AFY_CONTEXT.mMobileVersion) { $("#query").focus(); } });
+      $("#tab-basic").bind("deactivate_tab", function() { if (undefined != AFY_CONTEXT.mLastQResult) { AFY_CONTEXT.mLastQResult.onDeactivateTab(); } });
+      // Start the main navigational tab system.
+      // Note: We set this up after the actual tabs, in order for them to receive the initial 'activate_tab'.
+      AFY_CONTEXT.mNavTabs.start();
+      // Setup tooltips/menus.
       if (AFY_CONTEXT.mMobileVersion)
-        $("#querysuggest").val("_suggest");
-      var lResultList = $("#result_table");
-      lResultList.html("loading...");
-      if ($("#result_pin pre").size() > 0) // If the contents of the #result_pin represent an error report from a previous query, clear it now; otherwise, let the contents stay there.
-        $("#result_pin").empty(); 
-      var lCurClassName = $("#classes option:selected").val();
-      var lQueryStr = afy_sanitize_semicolon($("#query").val());
-      var lClassName = (lQueryStr.indexOf(afy_without_qname(lCurClassName)) >= 0) ? lCurClassName : null;
-      if ($("#querytype option:selected").val() == "query" && null == lQueryStr.match(/select\s*count/i))
       {
-        if (null != AFY_CONTEXT.mLastQResult)
-          { AFY_CONTEXT.mLastQResult.mAborted = true; }
-        lResultList.empty();
-        AFY_CONTEXT.mLastQResult = new QResultTable(lResultList, lClassName, {onPinClick:on_pin_click});
-        AFY_CONTEXT.mLastQResult.populate(lQueryStr);
-        AFY_CONTEXT.mQueryHistory.recordQuery(lQueryStr);
+        (new ScrollOnMobile("#result_pin")).activate();
+        $("#querysuggest").change(
+          function()
+          {
+            // Get current suggestion.
+            var _lSuggestion = $("#querysuggest option:selected").val();
+            // Set it as the current query, if relevant.
+            if (_lSuggestion.charAt(0) != '_')
+              $("#query").val(_lSuggestion);
+            else if (_lSuggestion == "_newrule")
+            {
+              popDlgNewRule(
+                function(_pNr) { $("#query").val(_pNr); $("#querysuggest").val("_suggest"); },
+                function() { $("#querysuggest").val("_suggest"); });
+              // On iphone, this gets rid of the selection list... otherwise it stays there and must be closed manually;
+              // this behavior is actually nice for plain selections (allows to try in-place many options quickly),
+              // so I left it there, except in the case of a new rule, where it becomes undesirable.
+              $("#querysuggest").blur();
+            }
+          });
       }
       else
       {
-        var lQuery = "query=" + afy_escape_with_plus(afy_with_qname_prefixes(lQueryStr)) + "&type=" + $("#querytype option:selected").val();
-        $.ajax({
-          type: "POST",
-          url: DB_ROOT,
-          dataType: "text",
-          timeout: 10000,
-          cache: false,
-          global: false,
-          data: lQuery,
-          complete: function (e, xhr, s) {
-            $("#result_table").html(hqbr(lQueryStr + "\n\n" + e.responseText + "\n" + xhr));
-          },
-          beforeSend : function(req) {
-            req.setRequestHeader('Connection', 'Keep-Alive');
-            var lStoreIdent = $("#storeident").val();
-            var lStorePw = $("#storepw").val();
-            if (lStoreIdent.length > 0) { req.setRequestHeader('Authorization', "Basic " + base64_encode(lStoreIdent + ":" + lStorePw)); }
-          }
-        });
+        // Setup the basic tooltips.
+        bindAutomaticTooltips();
+        // Setup static context menus.
+        bindStaticCtxMenus();
       }
-      return false;
-    });
-    // UI callbacks for interactions.
-    $("#classes").change(on_class_change);
-    $("#classes").dblclick(on_class_dblclick);
-    $("#class_properties").change(on_cprop_change);
-    $("#class_properties").dblclick(on_cprop_dblclick);
-    // Review:
-    //   For non-existing (new) stores, the policy used below is not ideal
-    //   because if the user intends to create a password-protected store,
-    //   he will have to specify the password first (otherwise populate_classes()
-    //   will end up creating a store with whatever old [or nil] password was in #storepw).
-    //   However, the console is primarily intended for navigation, and password-protected
-    //   stores would be marginal in early exploratory experiments done in the console,
-    //   so for the moment I prefer not to invest any time improving this.
-    $("#storeident").change(function() { AFY_CONTEXT.mStoreIdent = $("#storeident").val(); populate_classes(); if (undefined != AFY_CONTEXT.mUIStore) { AFY_CONTEXT.mUIStore.set('laststoreident', $("#storeident").val()); } });
-    $("#storepw").change(function() { AFY_CONTEXT.mStorePw = $("#storepw").val(); populate_classes(); if (undefined != AFY_CONTEXT.mUIStore) { AFY_CONTEXT.mUIStore.set('laststorepw', $("#storepw").val()); } });
+      // Setup the persistent cache for the query history.
+      AFY_CONTEXT.mQueryHistory = new QHistory($("#query_history"), AFY_CONTEXT.mUIStore);
+      // Unless the deployment is local, don't show the administration tab.
+      if (undefined == location.hostname.match(/(localhost|127\.0\.0\.1)/i))
+        disableTab("#tab-config");
+      // Setup the initial query string, if one was specified (used for links from doc to console).
+      var lInitialQ = location.href.match(/query\=(.*?)((&.*)|(#.*)|\0)?$/i);
+      if (undefined != lInitialQ && lInitialQ.length > 0)
+        $("#query").val(unescape(lInitialQ[1].replace(/\+/g, " ")));
+      var lInitialStoreId = location.href.match(/storeid\=(.*?)((&.*)|(#.*)|\0)?$/i);
+      if (undefined != lInitialStoreId && lInitialStoreId.length > 0)
+      {
+        $("#storeident").val(unescape(lInitialStoreId[1]));
+        $("#storepw").val("");
+      }
+      if (0 == AFY_CONTEXT.mStoreIdent.length)
+      {
+        AFY_CONTEXT.mStoreIdent = $("#storeident").val() || "";
+        AFY_CONTEXT.mStorePw = $("#storepw").val() || "";
+      }
+      // UI callback for query form.
+      $("#form").submit(function() {
+        if (AFY_CONTEXT.mMobileVersion)
+          $("#querysuggest").val("_suggest");
+        var lResultList = $("#result_table");
+        lResultList.html("loading...");
+        if ($("#result_pin pre").size() > 0) // If the contents of the #result_pin represent an error report from a previous query, clear it now; otherwise, let the contents stay there.
+          $("#result_pin").empty(); 
+        var lCurClassName = $("#classes option:selected").val();
+        var lQueryStr = afy_sanitize_semicolon($("#query").val());
+        var lClassName = (lQueryStr.indexOf(afy_without_qname(lCurClassName)) >= 0) ? lCurClassName : null;
+        if ($("#querytype option:selected").val() == "query" && null == lQueryStr.match(/select\s*count/i))
+        {
+          if (null != AFY_CONTEXT.mLastQResult)
+            { AFY_CONTEXT.mLastQResult.mAborted = true; }
+          lResultList.empty();
+          AFY_CONTEXT.mLastQResult = new QResultTable(lResultList, lClassName, {onPinClick:on_pin_click});
+          AFY_CONTEXT.mLastQResult.populate(lQueryStr);
+          AFY_CONTEXT.mQueryHistory.recordQuery(lQueryStr);
+        }
+        else
+        {
+          var lQuery = "query=" + afy_escape_with_plus(afy_with_qname_prefixes(lQueryStr)) + "&type=" + $("#querytype option:selected").val();
+          $.ajax({
+            type: "POST",
+            url: DB_ROOT,
+            dataType: "text",
+            timeout: 10000,
+            cache: false,
+            global: false,
+            data: lQuery,
+            complete: function (e, xhr, s) {
+              $("#result_table").html(hqbr(lQueryStr + "\n\n" + e.responseText + "\n" + xhr));
+            },
+            beforeSend : function(req) {
+              req.setRequestHeader('Connection', 'Keep-Alive');
+              var lStoreIdent = $("#storeident").val();
+              var lStorePw = $("#storepw").val();
+              if (lStoreIdent.length > 0) { req.setRequestHeader('Authorization', "Basic " + base64_encode(lStoreIdent + ":" + lStorePw)); }
+            }
+          });
+        }
+        return false;
+      });
+      // UI callbacks for interactions.
+      $("#classes").change(on_class_change);
+      $("#classes").dblclick(on_class_dblclick);
+      $("#class_properties").change(on_cprop_change);
+      $("#class_properties").dblclick(on_cprop_dblclick);
+      // Review:
+      //   For non-existing (new) stores, the policy used below is not ideal
+      //   because if the user intends to create a password-protected store,
+      //   he will have to specify the password first (otherwise populate_classes()
+      //   will end up creating a store with whatever old [or nil] password was in #storepw).
+      //   However, the console is primarily intended for navigation, and password-protected
+      //   stores would be marginal in early exploratory experiments done in the console,
+      //   so for the moment I prefer not to invest any time improving this.
+      $("#storeident").change(function() { AFY_CONTEXT.mStoreIdent = $("#storeident").val(); populate_classes(); if (undefined != AFY_CONTEXT.mUIStore) { AFY_CONTEXT.mUIStore.set('laststoreident', $("#storeident").val()); } });
+      $("#storepw").change(function() { AFY_CONTEXT.mStorePw = $("#storepw").val(); populate_classes(); if (undefined != AFY_CONTEXT.mUIStore) { AFY_CONTEXT.mUIStore.set('laststorepw', $("#storepw").val()); } });
+    }
+    catch(e)
+    {
+      alert("Failed to start the console: " + e);
+    }
   });
 
 /**

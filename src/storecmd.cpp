@@ -112,12 +112,17 @@ public:
                     LOG_LINE(kLogError, "createStore: affinity error %d", res);
                 }
             }
+            else if ( res != RC_OK ) {
+                LOG_LINE(kLogError, "openStore: affinity error %d", res);
+            }
             #if ENABLE_AFY_TRACES
                 storeCtx->changeTraceMode( 0xff ); // Can't get pathsql/session equivalents to work at the moment.
             #endif
-            res = afy_regBuiltinServices( storeCtx );
-            if ( RC_OK != res ) {
-                LOG_LINE(kLogError, "afy_regBuiltinServices: affinity error %d", res);
+            if ( storeCtx ) {
+                res = afy_regBuiltinServices( storeCtx );
+                if ( RC_OK != res ) {
+                    LOG_LINE(kLogError, "afy_regBuiltinServices: affinity error %d", res);
+                }
             }
         }
         AffinityInstance( void * pStoreCtx ) : storeCtx( ( AfyCtx )pStoreCtx ), useCount( 0 ), bAfyEngine( 1 ) {}

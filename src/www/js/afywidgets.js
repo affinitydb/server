@@ -510,6 +510,17 @@ QResultTable.prototype._setNumRows = function(pNum)
   this.mNumRows = pNum;
   var lPhysH = this.mQrtContainer.height();
   var lTotH = lPhysH + this.mQrtVSNominalRowHeight * (pNum - 1);
+  // Note:
+  //   On mobile, the probability is high that all rows displayed at any given time
+  //   will have a height greater than mQrtVSNominalRowHeight. OTOH, once a row is out
+  //   of the visible scope, it's ok to attribute to it a nominal height. So as a cheap
+  //   solution, to let the user scroll over all rows of his query result, I add one extra
+  //   page worth of scrolling area. A neater solution could involve something like a
+  //   finer scrolling toward the end. All in all this is not a totally trivial issue
+  //   because of pagination, and because rows never have a final height in QResultTable
+  //   (their height depends on other visible rows and the selection of common columns).
+  if (AFY_CONTEXT.mMobileVersion)
+    lTotH += lPhysH;
   this.mQrtVScrollerContent.height(lTotH);
   this.mQrtVScroller.scrollTop(0);
 }

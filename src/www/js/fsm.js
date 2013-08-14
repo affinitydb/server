@@ -806,7 +806,7 @@ function FsmEditor()
   var lModel = null;
   var lLayoutCtx = null;
   var lBackground = new FsmBackground(l2dCtx); // Once a view is rendered, we immediately capture it to be able to draw/erase over it, quickly.
-  var lToolIndexes = {edit:0, connect:1, insert:2, delete:3};
+  var lToolIndexes = {edit:0, connect:1, insert:2, 'delete':3};
   var lToolNames = [$("#tool_edit").text(), $("#tool_connect").text(), $("#tool_insert").text(), $("#tool_delete").text()];
   var lInteractions = {selected:{state:null, tool:lToolIndexes.edit}, hovering:{state:null, insert:null}};
   var lDrawToolButton =
@@ -917,7 +917,7 @@ function FsmEditor()
             lInteractions.selected.state = lStateFromPoint().state;
             _lHandled = (undefined != lInteractions.selected.state);
             break;
-          case lToolIndexes.delete:
+          case lToolIndexes['delete']:
           {
             var _lToDelete = lStateFromPoint().state;
             if (undefined != _lToDelete)
@@ -971,7 +971,7 @@ function FsmEditor()
           switch (lInteractions.selected.tool)
           {
             case lToolIndexes.edit:
-            case lToolIndexes.delete:
+            case lToolIndexes['delete']:
             case lToolIndexes.connect:
             {
               lInteractions.hovering.state = lStateFromPoint().state;
