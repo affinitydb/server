@@ -75,7 +75,7 @@ SIMULCTX.createClasses = function(pCompletion)
     // -- the next statement removes all temporary variables
     "${UPDATE @self DELETE simul:\"ghost/tmpv1\", simul:\"ghost/tmpv2\", simul:\"ghost/tmpv3\", simul:\"ghost/tmpv4\", simul:\"ghost/tmprand\"}",
   ];
-  var lAction_GhostTurn_newatauto = // converted to @auto and almost working...
+  var lAction_GhostTurn_newatauto = // converted to @auto and working
   [
     // -- the 4 next statements update the ghost's logical position, making sure to repeat the WHERE clause due to async treatment of notifications (n.b. 4 separate statements due to lack of CASE...WHEN)
     "${UPDATE @self SET simul:\"moveable/x\"+=1 WHERE (CONTAINS(simul:\"moveable/direction\", 'R') AND (simul:\"moveable/entering\" >= 1.0))}",
@@ -91,13 +91,13 @@ SIMULCTX.createClasses = function(pCompletion)
     "${UPDATE @auto SET simul:\"ghost/tmpv3\"=REPLACE(simul:\"ghost/tmpv2\"[:LAST], SUBSTR(simul:\"ghost/tmpv1\"[:LAST], 0, 1), '')}",
     "${UPDATE @auto SET simul:\"ghost/tmpv4\"=REPLACE(simul:\"ghost/tmpv3\", SUBSTR(simul:\"ghost/tmpv1\"[:LAST], 1, 1), '')}",
     "${UPDATE @auto SET simul:\"ghost/tmprand\"=0}",
-// Note: #435 comment #10
-//    "${UPDATE @auto SET simul:\"ghost/tmprand\"=(EXTRACT(FRACTIONAL FROM CURRENT_TIMESTAMP) % 2) WHERE LENGTH(simul:\"ghost/tmpv4\") > 1}",
+    "${UPDATE @auto SET simul:\"ghost/tmprand\"=(EXTRACT(FRACTIONAL FROM CURRENT_TIMESTAMP) % 2) WHERE LENGTH(simul:\"ghost/tmpv4\") > 1}",
     // -- the next statement assigns the new direction, if necessary
     "${UPDATE @self SET simul:\"moveable/direction\"=SUBSTR(@auto.simul:\"ghost/tmpv4\", @auto.simul:\"ghost/tmprand\", 1) WHERE CONTAINS(@auto.simul:\"ghost/tmpv1\"[:LAST], simul:\"moveable/direction\") AND (simul:\"moveable/entering\" >= 1.0)}",
     // -- the next statement resets the inter-step progression counter
     "${UPDATE @self SET simul:\"moveable/entering\"=0.1 WHERE (simul:\"moveable/entering\" >= 1.0)}",
-    "${INSERT SELECT * FROM @auto}",
+    // -- for debugging
+    // -- "${INSERT SELECT * FROM @auto}",
   ];
   var lAction_PlayerTurnConstraint_oldatself =
   [
@@ -153,9 +153,34 @@ SIMULCTX.createClasses = function(pCompletion)
     // -- remove temporary variables.
     "${UPDATE @self DELETE simul:\"player/tmpv1\", simul:\"player/tmpv2\", simul:\"player/tmpv3\", simul:\"player/tmpv4\"}",
   ];
-  var lAction_GhostTurn = lAction_GhostTurn_oldatself;
-  var lAction_PlayerTurnConstraint = lAction_PlayerTurnConstraint_oldatself;
-  var lAction_PlayerTurn = lAction_PlayerTurn_oldatself;
+  var lAction_PlayerTurn_newatauto = // converted to @auto and working
+  [
+    // -- grab the direction constraints of the square on which the player is currently located.
+    "${UPDATE @auto ADD simul:\"player/tmpv1\"=(SELECT simul:\"square/constraints\" FROM simul:squares WHERE simul:\"square/x\"=@self.simul:\"moveable/x\" AND simul:\"square/y\"=@self.simul:\"moveable/y\")}",
+    // -- move to the next square, based on the current direction and constraints.
+    "${UPDATE @self SET simul:\"moveable/x\"+=1 WHERE (CONTAINS(simul:\"moveable/direction\", 'R') AND (simul:\"moveable/entering\" >= 1.0) AND NOT CONTAINS(@auto.simul:\"player/tmpv1\"[:LAST], simul:\"moveable/direction\"))}",
+    "${UPDATE @self SET simul:\"moveable/x\"-=1 WHERE (CONTAINS(simul:\"moveable/direction\", 'L') AND (simul:\"moveable/entering\" >= 1.0) AND NOT CONTAINS(@auto.simul:\"player/tmpv1\"[:LAST], simul:\"moveable/direction\"))}",
+    "${UPDATE @self SET simul:\"moveable/y\"+=1 WHERE (CONTAINS(simul:\"moveable/direction\", 'B') AND (simul:\"moveable/entering\" >= 1.0) AND NOT CONTAINS(@auto.simul:\"player/tmpv1\"[:LAST], simul:\"moveable/direction\"))}",
+    "${UPDATE @self SET simul:\"moveable/y\"-=1 WHERE (CONTAINS(simul:\"moveable/direction\", 'T') AND (simul:\"moveable/entering\" >= 1.0) AND NOT CONTAINS(@auto.simul:\"player/tmpv1\"[:LAST], simul:\"moveable/direction\"))}",
+    // -- grab the new direction constraints of the square we just landed on.
+    "${UPDATE @auto ADD simul:\"player/tmpv2\"=(SELECT simul:\"square/constraints\" FROM simul:squares WHERE simul:\"square/x\"=@self.simul:\"moveable/x\" AND simul:\"square/y\"=@self.simul:\"moveable/y\")}",
+    // -- eat the food, if any.
+    // TODO: count points etc.
+    // TODO: remove the collection from board/food, when it becomes possible...
+    "${UPDATE @auto ADD simul:\"player/tmpv3\"=(SELECT simul:\"board/width\" FROM simul:board)}",
+    "${UPDATE @auto SET simul:\"player/tmpv4\"=(@self.simul:\"moveable/x\" + simul:\"player/tmpv3\"[:LAST] * @self.simul:\"moveable/y\")}",
+    "${UPDATE simul:board ADD simul:\"board/food\"=SUBSTR(simul:\"board/food\"[:LAST], 0, @auto.simul:\"player/tmpv4\") || '0' || SUBSTR(simul:\"board/food\"[:LAST], @auto.simul:\"player/tmpv4\" + 1, simul:\"board/width\" * simul:\"board/height\" - @auto.simul:\"player/tmpv4\" - 1)}",
+    "${UPDATE simul:board DELETE simul:\"board/food\"[:FIRST]}",
+    // -- assign pending change of direction (player/direction/next), if any (and valid).
+    "${UPDATE @self SET simul:\"moveable/direction\"=simul:\"player/direction/next\" WHERE ((simul:\"moveable/entering\" >= 1.0) AND simul:\"player/direction/next\" <> '-' AND NOT CONTAINS(@auto.simul:\"player/tmpv2\"[:LAST], simul:\"player/direction/next\"))}",
+    // -- assign the stop (-) direction, if necessary.
+    "${UPDATE @self set simul:\"moveable/direction\"='-' WHERE ((simul:\"moveable/entering\" >= 1.0) AND CONTAINS(@auto.simul:\"player/tmpv2\"[:LAST], simul:\"moveable/direction\"))}",
+    // -- reset the inter-step progression counter, unless we stopped.
+    "${UPDATE @self SET simul:\"moveable/entering\"=0.1 WHERE ((simul:\"moveable/entering\" >= 1.0) AND NOT CONTAINS(@auto.simul:\"player/tmpv2\"[:LAST], simul:\"moveable/direction\"))}",
+  ];
+  var lAction_GhostTurn = lAction_GhostTurn_newatauto;
+  var lAction_PlayerTurnConstraint = lAction_PlayerTurnConstraint_newatauto;
+  var lAction_PlayerTurn = lAction_PlayerTurn_newatauto;
   var lClassDecl =
   [
     "CREATE CLASS simul:squares AS SELECT * WHERE simul:\"square/constraints\" IN :0;",

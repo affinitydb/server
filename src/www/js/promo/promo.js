@@ -2023,6 +2023,37 @@ function PrezTransition_Basic(pElements, pOnFinished, pOptions)
 }
 
 /**
+ * MouseGesture
+ * Helper for mouse gestures on mobile.
+ * TODO: Support more interactions/refinements, if justified...
+ */
+function MouseGesture(pTotalWidth, pOnLeft, pOnRight)
+{
+  var lStartAt;
+  var lStopAt;
+  var lClear = function() { lStartAt = [0,0]; lStopAt = [0,0]; };
+  var lProcess =
+    function()
+    {
+      var _lDx = lStopAt[0] - lStartAt[0];
+      var _lDy = lStopAt[1] - lStartAt[1];
+      var _lDxa = Math.abs(_lDx);
+      if (_lDxa < Math.abs(_lDy))
+        return;
+      if (_lDxa < 0.5 * pTotalWidth)
+        return;
+      if (_lDx > 0)
+        pOnLeft();
+      else
+        pOnRight();
+    };
+  this.startAt = function(p) { lStartAt = [p.x, p.y]; };
+  this.moveAt = function(p) { lStopAt = [p.x, p.y]; };
+  this.interpret = function() { lProcess(); lClear(); };
+  lClear();
+}
+
+/**
  * Prez.
  * A small slide presentation engine, for promotional/educational purposes,
  * to facilitate the presentation of comparisons with other technologies.
@@ -2060,6 +2091,15 @@ function Prez()
         default: break;
       }
     }
+  AFY_CONTEXT.mMobileVersion = 'ontouchstart' in window || navigator.msMaxTouchPoints; // Arguably a bit brutal, but affects nothing else anyway.
+  var lMouseGesture = new MouseGesture(lCanvas.width(), function() { lSlideDriver.prevSlide(); }, function() { lSlideDriver.nextSlide(); });
+  var lMouseOnMobile = AFY_CONTEXT.mMobileVersion ? new TrackMouseOnMobile(
+    "#thecanvas",
+    {
+      'mousedown':function(p) { lMouseGesture.startAt(p); },
+      'mousemove':function(p) { lMouseGesture.moveAt(p); },
+      'mouseup':function() { lMouseGesture.interpret(); }
+    }) : null;
   var lOnKeyUp = function(e) {}
   var lManageWindowEvents =
     function(_pOn)
@@ -2070,6 +2110,8 @@ function Prez()
       _lFunc('DOMMouseScroll', lOnWheel, true);
       _lFunc('keydown', lOnKeyDown, true);
       _lFunc('keyup', lOnKeyUp, true);
+      if (AFY_CONTEXT.mMobileVersion)
+        lMouseOnMobile.activation(_pOn);
     }
   var lTabPromo = (top === self) ? lCanvas : window.parent.$("#tab-promo");
   lTabPromo.bind("activate_tab", function() { lThis.active = true; lSlideDriver.start(); lManageWindowEvents(true); });

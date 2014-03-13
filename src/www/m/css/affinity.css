@@ -38,6 +38,7 @@ tr.selected { background-color:#a2a2a2; }
 /* main divs: #generic_header, #content, #generic_footer */
 #generic_header { position:fixed; top:3px; left:0; width:100%; height:40px; margin:0; }
 #content { position:fixed; top:40px; left:5px; right:5px; bottom:40px; margin:0; font-size:1.1em; padding:0; line-height:1.4em; border:none; white-space:nowrap; }
+#content > div[id^="tab-"] { display:none; } /* avoid visual glitches while loading: hide all tabs initially */
 #generic_footer { position:fixed; bottom:0; left:0; width:100%; height:35px; margin:0; text-align:center; }
 
 /* header */

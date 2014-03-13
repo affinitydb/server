@@ -120,7 +120,6 @@ ENDIF(CMAKE_SYSTEM_NAME MATCHES Windows)
 add_executable (${AFYCTEST_TARGET_NAME} ${AFYCTEST_SRCS})
 SET_TARGET_PROPERTIES(${AFYCTEST_TARGET_NAME} PROPERTIES LINKER_LANGUAGE C)
 
-# Note (maxw): When I build for online/demo server, I use instead: link_directories("../bin")
 	link_directories("${AFFINITY_PRJ}/lib")
 
 add_executable (${AFFINITYD_TARGET_NAME} ${AFFINITYD_SRCS})
@@ -150,6 +149,8 @@ target_link_libraries (${AFYCLIENT_TARGET_NAME} Ws2_32)
 ENDIF(CMAKE_SYSTEM_NAME MATCHES Windows)
 
 IF(CMAKE_SYSTEM_NAME MATCHES Darwin)
-target_link_libraries (${AFFINITYD_TARGET_NAME} affinity)
-target_link_libraries (${AFYDAEMON_TARGET_NAME} affinity)
+# Note: This is the easiest way to avoid http://openradar.appspot.com/7209349.
+FIND_LIBRARY(FOUNDATION_LIBRARY Foundation)
+target_link_libraries (${AFFINITYD_TARGET_NAME} affinity ${FOUNDATION_LIBRARY})
+target_link_libraries (${AFYDAEMON_TARGET_NAME} affinity ${FOUNDATION_LIBRARY})
 ENDIF(CMAKE_SYSTEM_NAME MATCHES Darwin)

@@ -725,12 +725,12 @@ extern "C"
     }
 
     /* Plumbing (may remove later). */
-    void afy_free( afy_connection_ctx_t* cctxp, void* ptr ) {
+    void afy_sesfree( afy_connection_ctx_t* cctxp, void* ptr ) {
         ISession* sess = (ISession*)cctxp->session;
         if ( !sess ) { return; }
         sess->free( ptr );
     }
-    void afy_freev( afy_connection_ctx_t* cctxp, void* v ) {
+    void afy_sesfreev( afy_connection_ctx_t* cctxp, void* v ) {
         ISession* sess = (ISession*)cctxp->session;
         if ( !sess ) { return; }
         sess->freeValue( *(Value*)v );

@@ -92,8 +92,8 @@ typedef ssize_t (*Twriter)(afy_stream_t*, const void*, size_t);
                        const char* notifparam, const char* clientid, 
                        int timeout, char **res );
 
-    void afy_free( afy_connection_ctx_t* cctxp, void* ptr );
-    void afy_freev( afy_connection_ctx_t* cctxp, void* v );
+    void afy_sesfree( afy_connection_ctx_t* cctxp, void* ptr );
+    void afy_sesfreev( afy_connection_ctx_t* cctxp, void* v );
     const char* afy_val2str( void* pValue );
     uint32_t afy_val2len( void* pValue );
                        

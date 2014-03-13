@@ -169,7 +169,7 @@ $(document).ready(
                 async: true,
                 cache: false,
                 global: false,
-                success: function(data) { if (data != '1') { window.location.href = 'http://' + location.hostname + ":" + location.port + "/registration.html"; } else { lRegisteredUser = true; lDoRequest(); } },
+                success: function(data) { if (data != '1') { window.location.href = 'http://' + location.hostname + ":" + location.port + "/registration.html?first_destination=" + location.pathname; } else { lRegisteredUser = true; lDoRequest(); } },
                 error: function() { alert("unexpected error during registration"); }
               });
             }

@@ -8,6 +8,8 @@
     $(document).ready(
       function()
       {
+        var lDstMatch = location.search.match(/\?first_destination=\/*(.*)/);
+        var lDst = '/' + (undefined == lDstMatch ? '' : lDstMatch[1]);
         $("#user_email").focus();
         $("#gh_logo").click(function() { window.location.href = 'http://' + location.hostname + ":" + location.port; });
         $("#eula_ok").click(
@@ -22,7 +24,7 @@
               async: true,
               cache: false,
               global: false,
-              success: function(data) { window.location.href = 'http://' + location.hostname + ":" + location.port + data; },
+              success: function(data) { window.location.href = 'http://' + location.hostname + ":" + location.port + lDst; },
               error: function() { alert("unexpected error during registration"); }
             });
           });

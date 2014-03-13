@@ -750,13 +750,21 @@ function popDlgNewRule(pOnOk, pOnCancel)
       _pPopulateFunc(_lNew, true);
       _lNew.insertAfter(_lCur.last());
     };
-  $("#query_spec").css("visibility", "hidden"); /* Hack for android2.x: without this, some drop downs (overlaid on top of the query_spec area) refuse to operate. */
+  // Hack for native browser on android2.x.
+  // Problem:
+  //   http://code.google.com/p/android/issues/detail?id=6721
+  //   z-index is not properly respected and lets controls underneath the dlg capture the input.
+  // Note:
+  //   I tried a lot of workarounds but none was great; for the time being, I prefer just hiding the background
+  //   for those devices+agents(browsers). Maybe something to learn from jquerytools.org.
+  var lAndroidHack = navigator.userAgent.match(/.*(android\s[0-9]+\.).*(applewebkit).*(mobile\ssafari)/i);
+  if (lAndroidHack) { $("#content_left").find('*').css("visibility", "hidden"); }
   var lUnbindButtons =
     function()
     {
       $("#dlg_newrule_condition_add").unbind('click');
       $("#dlg_newrule_action_add").unbind('click');
-      $("#query_spec").css("visibility", "visible"); /* Hack for android2.x: without this, some drop downs (overlaid on top of the query_spec area) refuse to operate. */
+      if (lAndroidHack) { $("#content_left").find('*').css("visibility", "visible"); }
     };
   get_conditions_and_actions(
     function(_pConditions, _pActions)

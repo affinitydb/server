@@ -773,8 +773,8 @@ int sock_cgi( int sock, int method, int action, char* path, char* body,
                        rc && ( !cgi.type || strcmp( cgi.type, "query" )==0 ) ? 
                        TYPE MIME_JSON CRLF : TYPE MIME_HTML CRLF,
                        numstr[0] ? numstr : (res?res:""), 0 );
-            if ( res && !val ) { afy_free( *cctxp, res ); }
-            if ( val ) { afy_freev( *cctxp, val ); }
+            if ( res && !val ) { afy_sesfree( *cctxp, res ); }
+            if ( val ) { afy_sesfreev( *cctxp, val ); }
             return 1;
         } else if ( strcmp( cgi.output, "proto" ) == 0 ) {
             ctx.sock = sock;
@@ -797,7 +797,7 @@ int sock_cgi( int sock, int method, int action, char* path, char* body,
                            TYPE MIME_PROTO CRLF,
                            res ? res : "", rd );
             }
-            afy_free( *cctxp, res );
+            afy_sesfree( *cctxp, res );
             return 1;
 #else
             return 0;
@@ -916,8 +916,8 @@ int sock_cgi( int sock, int method, int action, char* path, char* body,
                                       strlen( numstr[0] ? numstr : 
                                               (res?res:"") ) );
                 }
-                if ( res && !val ) { afy_free( *cctxp, res ); }
-                if ( val ) { afy_freev( *cctxp, val ); }
+                if ( res && !val ) { afy_sesfree( *cctxp, res ); }
+                if ( val ) { afy_sesfreev( *cctxp, val ); }
                 if ( alloc ) { free( body ); }
                 return isclose ? 0 : ret;
             } else if ( strcmp( cgi.output, "proto" ) == 0 ) {
@@ -941,7 +941,7 @@ int sock_cgi( int sock, int method, int action, char* path, char* body,
                                TYPE MIME_PROTO CRLF,
                                res ? res : "", rd );
                 }
-                afy_free( *cctxp, res );
+                afy_sesfree( *cctxp, res );
                 return 1;
 #else
                 return 0;
