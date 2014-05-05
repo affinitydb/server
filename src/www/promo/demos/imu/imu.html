@@ -1,0 +1,46 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html>
+<head>
+  <meta charset="UTF-8">
+  <link href='./css/imu.css' rel='stylesheet' type='text/css' />
+  <script src="../c3dl/c3dapi.js" ></script>
+  <script src='../../../js/jquery.js' type='text/javascript'></script>
+  <script src='../../../js/afycommon.js' type='text/javascript'></script>
+  <script src='./js/imu.js' type='text/javascript'></script>
+  <title>IMU Visualization</title>
+</head>
+<body>
+
+<div id='logo'><img src='./images/logo.png'></img><p id='logo_txt'><i>Click here to view the classes in a console</i></p></div>
+<div id='viewing_area'>
+  <canvas id='viewer'>
+  </canvas>
+</div>
+<div id='options'>
+  <span>Cameras:</span>
+  <button id='camera_top'>Top</button>
+  <button id='camera_fixed'>Fixed</button>
+	<br>
+	<span>Options:</span><br>
+  <input type='checkbox' id='use_accelerometer'></input><span>Accelerometer</span><br>
+  <input type='checkbox' id='use_compass'></input><span>Compass</span><br>
+  <input type='checkbox' id='use_gyro'></input><span>Gyro</span><br>
+  <input type='checkbox' id='use_distance'></input><span>Distance</span>
+</div>
+<div id='other_controls'>
+  <span id='info1'></span><br>
+  <span id='info2'></span><br>
+  <span id='info3'></span><br>
+  <span id='info4'></span>
+</div>
+<div id='mini_console'>
+  <p>
+    <span id='manual_step'>paused</span>
+    <button id='manual_step_button' style='display:none;'>Alarm The Duck</button>
+  </p>
+  <div id='manual_step_result'></div>
+</div>
+<div id='status_bar'>arrows: manual control (reorient the duck)&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;p: pause&amp;experiment</div>
+
+</body>
+</html>

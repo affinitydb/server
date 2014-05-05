@@ -33,39 +33,39 @@
 
 <span class="c1">// Errors are reported using the following codes.</span>
 <span class="kd">enum</span> <span class="n">ErrorCode</span> <span class="p">{</span>
-    <span class="na">RC_NOTFOUND</span>         <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// Resource (PIN, property, element, page etc.) not found.</span>
-    <span class="na">RC_ALREADYEXISTS</span>    <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// Resource (PIN, property, element, page etc.) already exists.</span>
-    <span class="na">RC_INTERNAL</span>         <span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// Internal error.</span>
-    <span class="na">RC_NOACCESS</span>         <span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// Access is denied (ACLs etc.).</span>
-    <span class="na">RC_NORESOURCES</span>      <span class="o">=</span> <span class="mi">5</span><span class="p">;</span> <span class="c1">// Impossible to allocate enough resources for the request (PIN too large, not enough memory etc.).</span>
-    <span class="na">RC_FULL</span>             <span class="o">=</span> <span class="mi">6</span><span class="p">;</span> <span class="c1">// Disk is full.</span>
-    <span class="na">RC_DEVICEERR</span>        <span class="o">=</span> <span class="mi">7</span><span class="p">;</span> <span class="c1">// i/o device error.</span>
-    <span class="na">RC_DATAERROR</span>        <span class="o">=</span> <span class="mi">8</span><span class="p">;</span> <span class="c1">// Data check (parity) error.</span>
-    <span class="na">RC_EOF</span>              <span class="o">=</span> <span class="mi">9</span><span class="p">;</span> <span class="c1">// [internal use only]</span>
-    <span class="na">RC_TIMEOUT</span>          <span class="o">=</span> <span class="mi">10</span><span class="p">;</span> <span class="c1">// Operation interrupted by timeout.</span>
-    <span class="na">RC_REPEAT</span>           <span class="o">=</span> <span class="mi">11</span><span class="p">;</span> <span class="c1">// [internal use only]</span>
-    <span class="na">RC_CORRUPTED</span>        <span class="o">=</span> <span class="mi">12</span><span class="p">;</span> <span class="c1">// Data element (PIN, page, collection element etc.) is corrupted.</span>
-    <span class="na">RC_CANCELED</span>         <span class="o">=</span> <span class="mi">13</span><span class="p">;</span> <span class="c1">// i/o operation was cancelled.</span>
-    <span class="na">RC_VERSION</span>          <span class="o">=</span> <span class="mi">14</span><span class="p">;</span> <span class="c1">// Incompatible version.</span>
-    <span class="na">RC_TRUE</span>             <span class="o">=</span> <span class="mi">15</span><span class="p">;</span> <span class="c1">// [internal use only]</span>
-    <span class="na">RC_FALSE</span>            <span class="o">=</span> <span class="mi">16</span><span class="p">;</span> <span class="c1">// [internal use only]</span>
-    <span class="na">RC_TYPE</span>             <span class="o">=</span> <span class="mi">17</span><span class="p">;</span> <span class="c1">// Invalid type or impossible type conversion.</span>
-    <span class="na">RC_DIV0</span>             <span class="o">=</span> <span class="mi">18</span><span class="p">;</span> <span class="c1">// Division by 0.</span>
-    <span class="na">RC_INVPARAM</span>         <span class="o">=</span> <span class="mi">19</span><span class="p">;</span> <span class="c1">// Invalid parameter value.</span>
-    <span class="na">RC_READTX</span>           <span class="o">=</span> <span class="mi">20</span><span class="p">;</span> <span class="c1">// Attempt to modify data inside of a read-only transaction.</span>
-    <span class="na">RC_OTHER</span>            <span class="o">=</span> <span class="mi">21</span><span class="p">;</span> <span class="c1">// Unspecified error.</span>
-    <span class="na">RC_DEADLOCK</span>         <span class="o">=</span> <span class="mi">22</span><span class="p">;</span> <span class="c1">// Transaction interrupted (and rolled-back) due to a deadlock.</span>
-    <span class="na">RC_QUOTA</span>            <span class="o">=</span> <span class="mi">23</span><span class="p">;</span> <span class="c1">// Store allocation quota exceeded.</span>
-    <span class="na">RC_SHUTDOWN</span>         <span class="o">=</span> <span class="mi">24</span><span class="p">;</span> <span class="c1">// The store is being shut - transaction aborted.</span>
-    <span class="na">RC_DELETED</span>          <span class="o">=</span> <span class="mi">25</span><span class="p">;</span> <span class="c1">// Attempt to modify a PIN that was deleted.</span>
-    <span class="na">RC_CLOSED</span>           <span class="o">=</span> <span class="mi">26</span><span class="p">;</span> <span class="c1">// Attempt to walk a cursor after it was closed by commit/rollback.</span>
-    <span class="na">RC_READONLY</span>         <span class="o">=</span> <span class="mi">27</span><span class="p">;</span> <span class="c1">// Store in read-only state (backup, logging error).</span>
-    <span class="na">RC_NOSESSION</span>        <span class="o">=</span> <span class="mi">28</span><span class="p">;</span> <span class="c1">// No session set for current thread.</span>
-    <span class="na">RC_INVOP</span>            <span class="o">=</span> <span class="mi">29</span><span class="p">;</span> <span class="c1">// Invalid operation for this object.</span>
-    <span class="na">RC_SYNTAX</span>           <span class="o">=</span> <span class="mi">30</span><span class="p">;</span> <span class="c1">// Syntactic error in query or expression.</span>
-    <span class="na">RC_TOOBIG</span>           <span class="o">=</span> <span class="mi">31</span><span class="p">;</span> <span class="c1">// Object (pin, property, collection) is too big.</span>
-    <span class="na">RC_PAGEFULL</span>         <span class="o">=</span> <span class="mi">32</span><span class="p">;</span> <span class="c1">// No space on page for the object (either pin or index entry).</span>
-    <span class="na">RC_CONSTRAINT</span>       <span class="o">=</span> <span class="mi">33</span><span class="p">;</span> <span class="c1">// PIN doesn&#39;t satisfy membership constraints or not unique, or transaction was aborted in a trigger.</span>
+	<span class="na">RC_NOTFOUND</span>			<span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// Resource (PIN, property, element, page etc.) not found.</span>
+	<span class="na">RC_ALREADYEXISTS</span>	<span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// Resource (PIN, property, element, page etc.) already exists.</span>
+	<span class="na">RC_INTERNAL</span>			<span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// Internal error.</span>
+	<span class="na">RC_NOACCESS</span>			<span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// Access is denied (ACLs etc.).</span>
+	<span class="na">RC_NOMEM</span>			<span class="o">=</span> <span class="mi">5</span><span class="p">;</span> <span class="c1">// Not enough memory.</span>
+	<span class="na">RC_FULL</span>				<span class="o">=</span> <span class="mi">6</span><span class="p">;</span> <span class="c1">// Disk is full.</span>
+	<span class="na">RC_DEVICEERR</span>		<span class="o">=</span> <span class="mi">7</span><span class="p">;</span> <span class="c1">// i/o device error.</span>
+	<span class="na">RC_DATAERROR</span>		<span class="o">=</span> <span class="mi">8</span><span class="p">;</span> <span class="c1">// Data check (parity) error.</span>
+	<span class="na">RC_EOF</span>				<span class="o">=</span> <span class="mi">9</span><span class="p">;</span> <span class="c1">// [internal use only]</span>
+	<span class="na">RC_TIMEOUT</span>			<span class="o">=</span> <span class="mi">10</span><span class="p">;</span> <span class="c1">// Operation interrupted by timeout.</span>
+	<span class="na">RC_REPEAT</span>			<span class="o">=</span> <span class="mi">11</span><span class="p">;</span> <span class="c1">// [internal use only]</span>
+	<span class="na">RC_CORRUPTED</span>		<span class="o">=</span> <span class="mi">12</span><span class="p">;</span> <span class="c1">// Data element (PIN, page, collection element etc.) is corrupted.</span>
+	<span class="na">RC_CANCELED</span>			<span class="o">=</span> <span class="mi">13</span><span class="p">;</span> <span class="c1">// i/o operation was cancelled.</span>
+	<span class="na">RC_VERSION</span>			<span class="o">=</span> <span class="mi">14</span><span class="p">;</span> <span class="c1">// Incompatible version.</span>
+	<span class="na">RC_TRUE</span>				<span class="o">=</span> <span class="mi">15</span><span class="p">;</span> <span class="c1">// [internal use only]</span>
+	<span class="na">RC_FALSE</span>			<span class="o">=</span> <span class="mi">16</span><span class="p">;</span> <span class="c1">// [internal use only]</span>
+	<span class="na">RC_TYPE</span>				<span class="o">=</span> <span class="mi">17</span><span class="p">;</span> <span class="c1">// Invalid type or impossible type conversion.</span>
+	<span class="na">RC_DIV0</span>				<span class="o">=</span> <span class="mi">18</span><span class="p">;</span> <span class="c1">// Division by 0.</span>
+	<span class="na">RC_INVPARAM</span>			<span class="o">=</span> <span class="mi">19</span><span class="p">;</span> <span class="c1">// Invalid parameter value.</span>
+	<span class="na">RC_READTX</span>			<span class="o">=</span> <span class="mi">20</span><span class="p">;</span> <span class="c1">// Attempt to modify data inside of a read-only transaction.</span>
+	<span class="na">RC_OTHER</span>			<span class="o">=</span> <span class="mi">21</span><span class="p">;</span> <span class="c1">// Unspecified error.</span>
+	<span class="na">RC_DEADLOCK</span>			<span class="o">=</span> <span class="mi">22</span><span class="p">;</span> <span class="c1">// Transaction interrupted (and rolled-back) due to a deadlock.</span>
+	<span class="na">RC_QUOTA</span>			<span class="o">=</span> <span class="mi">23</span><span class="p">;</span> <span class="c1">// Store allocation quota exceeded.</span>
+	<span class="na">RC_SHUTDOWN</span>			<span class="o">=</span> <span class="mi">24</span><span class="p">;</span> <span class="c1">// The store is being shut - transaction aborted.</span>
+	<span class="na">RC_DELETED</span>			<span class="o">=</span> <span class="mi">25</span><span class="p">;</span> <span class="c1">// Attempt to modify a PIN that was deleted.</span>
+	<span class="na">RC_CLOSED</span>			<span class="o">=</span> <span class="mi">26</span><span class="p">;</span> <span class="c1">// Attempt to walk a cursor after it was closed by commit/rollback.</span>
+	<span class="na">RC_READONLY</span>			<span class="o">=</span> <span class="mi">27</span><span class="p">;</span> <span class="c1">// Store in read-only state (backup, logging error).</span>
+	<span class="na">RC_NOSESSION</span>		<span class="o">=</span> <span class="mi">28</span><span class="p">;</span> <span class="c1">// No session set for current thread.</span>
+	<span class="na">RC_INVOP</span>			<span class="o">=</span> <span class="mi">29</span><span class="p">;</span> <span class="c1">// Invalid operation for this object.</span>
+	<span class="na">RC_SYNTAX</span>			<span class="o">=</span> <span class="mi">30</span><span class="p">;</span> <span class="c1">// Syntactic error in query or expression.</span>
+	<span class="na">RC_TOOBIG</span>			<span class="o">=</span> <span class="mi">31</span><span class="p">;</span> <span class="c1">// Object (pin, property, collection) is too big.</span>
+	<span class="na">RC_PAGEFULL</span>			<span class="o">=</span> <span class="mi">32</span><span class="p">;</span> <span class="c1">// No space on page for the object (either pin or index entry).</span>
+	<span class="na">RC_CONSTRAINT</span>		<span class="o">=</span> <span class="mi">33</span><span class="p">;</span> <span class="c1">// PIN doesn&#39;t satisfy membership constraints or not unique, or transaction was aborted in a trigger.</span>
 <span class="p">}</span>
 
 <span class="c1">// Affinity defines a few &#39;special&#39; properties (usable as Value::property).</span>
@@ -75,287 +75,315 @@
 <span class="c1">// Beware: properties that are automatically updated don&#39;t imply that the PIN that holds them is automatically reloaded.</span>
 <span class="c1">// Note that these properties correspond with the &quot;PROP_SPEC_*&quot; defined in the public c++ interface.</span>
 <span class="kd">enum</span> <span class="n">SpecProp</span> <span class="p">{</span>
-    <span class="na">SP_PINID</span>        <span class="o">=</span> <span class="mi">17</span><span class="p">;</span> <span class="c1">// PIN id as a property. Only used in queries, not directly on PINs. Immutable.</span>
-    <span class="na">SP_DOCUMENT</span>     <span class="o">=</span> <span class="mi">18</span><span class="p">;</span> <span class="c1">// A reference to the document this PIN belongs to. Must be set.</span>
-    <span class="na">SP_PARENT</span>       <span class="o">=</span> <span class="mi">19</span><span class="p">;</span> <span class="c1">// A reference to the parent PIN. Must be set.</span>
-    <span class="na">SP_VALUE</span>        <span class="o">=</span> <span class="mi">20</span><span class="p">;</span> <span class="c1">// The value of the PIN, when it&#39;s dereferenced by queries. Must be set (can be an expression, using other properties of the PIN).</span>
-    <span class="na">SP_CREATED</span>      <span class="o">=</span> <span class="mi">21</span><span class="p">;</span> <span class="c1">// PIN creation timestamp. Must be set at creation (to value 0). Immutable.</span>
-    <span class="na">SP_CREATEDBY</span>    <span class="o">=</span> <span class="mi">22</span><span class="p">;</span> <span class="c1">// ID of the identity that created this PIN. Must be set at creation (to value 0). Immutable.</span>
-    <span class="na">SP_UPDATED</span>      <span class="o">=</span> <span class="mi">23</span><span class="p">;</span> <span class="c1">// Timestamp of the last PIN modification. Updated automatically. Must be set initially (to value 0), otherwise should not be set.</span>
-    <span class="na">SP_UPDATEDBY</span>    <span class="o">=</span> <span class="mi">24</span><span class="p">;</span> <span class="c1">// ID of the identity that last modified this PIN. Updated automatically. Must be set initially (to value 0), otherwise should not be set.</span>
-    <span class="na">SP_ACL</span>          <span class="o">=</span> <span class="mi">25</span><span class="p">;</span> <span class="c1">// ACL. A collection of a) identity IDs with meta specifying the access privileges, or b) references to other PINs with an ACL (inheritance).</span>
-    <span class="na">SP_STAMP</span>        <span class="o">=</span> <span class="mi">26</span><span class="p">;</span> <span class="c1">// Stamp (unsigned integer) of the latest modification. Updated automatically. Only used in queries, not directly on PINs. Cannot be set.</span>
-    <span class="na">SP_OBJID</span>        <span class="o">=</span> <span class="mi">27</span><span class="p">;</span> <span class="c1">// ClassID of the class defined by this PIN. Immutable.</span>
-    <span class="na">SP_PREDICATE</span>    <span class="o">=</span> <span class="mi">28</span><span class="p">;</span> <span class="c1">// Predicate of the class defined by this PIN. Must be set at creation. Immutable.</span>
-    <span class="na">SP_COUNT</span>        <span class="o">=</span> <span class="mi">29</span><span class="p">;</span> <span class="c1">// [Not implemented yet.] Number of instances of the class defined by this PIN. Updated automatically. Cannot be set.</span>
-    <span class="na">SP_SUBCLASSES</span>   <span class="o">=</span> <span class="mi">30</span><span class="p">;</span> <span class="c1">// [Not implemented yet.] Collection of classes which are specializations of the class defined by this PIN. Updated automatically. Cannot be set.</span>
-    <span class="na">SP_SUPERCLASSES</span> <span class="o">=</span> <span class="mi">31</span><span class="p">;</span> <span class="c1">// [Not implemented yet.] Collection of classes which are abstractions of the class defined by this PIN. Updated automatically. Cannot be set.</span>
-    <span class="na">SP_INDEX_INFO</span>   <span class="o">=</span> <span class="mi">32</span><span class="p">;</span> <span class="c1">// Family index information (number of segments). Immutable.</span>
-    <span class="na">SP_PROPERTIES</span>   <span class="o">=</span> <span class="mi">33</span><span class="p">;</span> <span class="c1">// Properties refered by the class. Immutable.</span>
-    <span class="na">SP_ONENTER</span>      <span class="o">=</span> <span class="mi">34</span><span class="p">;</span> <span class="c1">// Actions associated with class events.</span>
-    <span class="na">SP_ONUPDATE</span>     <span class="o">=</span> <span class="mi">35</span><span class="p">;</span> <span class="c1">// Actions associated with class events.</span>
-    <span class="na">SP_ONLEAVE</span>      <span class="o">=</span> <span class="mi">36</span><span class="p">;</span> <span class="c1">// Actions associated with class events.</span>
-    <span class="na">SP_NAMESPACE</span>    <span class="o">=</span> <span class="mi">37</span><span class="p">;</span> <span class="c1">// Package namespace prefix.</span>
-    <span class="na">SP_REF</span>          <span class="o">=</span> <span class="mi">38</span><span class="p">;</span> <span class="c1">// Reference field in VT_STRUCT.</span>
-    <span class="na">SP_SERVICE</span>      <span class="o">=</span> <span class="mi">39</span><span class="p">;</span> <span class="c1">// Service URI.</span>
-    <span class="na">SP_VERSION</span>      <span class="o">=</span> <span class="mi">40</span><span class="p">;</span> <span class="c1">// Chain of versions.</span>
-    <span class="na">SP_WEIGHT</span>       <span class="o">=</span> <span class="mi">41</span><span class="p">;</span> <span class="c1">// Future implementation.</span>
-    <span class="na">SP_SELF</span>         <span class="o">=</span> <span class="mi">42</span><span class="p">;</span> <span class="c1">// Pseudo-property: the PIN itself.</span>
-    <span class="na">SP_PROTOTYPE</span>    <span class="o">=</span> <span class="mi">43</span><span class="p">;</span> <span class="c1">// JavaScript-like inheritance.</span>
-    <span class="na">SP_WINDOW</span>       <span class="o">=</span> <span class="mi">44</span><span class="p">;</span> <span class="c1">// Stream windowing control (size of class-related window).</span>
-    <span class="na">SP_INTERVAL</span>     <span class="o">=</span> <span class="mi">45</span><span class="p">;</span> <span class="c1">// Timer interval.</span>
-    <span class="na">SP_ACTION</span>       <span class="o">=</span> <span class="mi">46</span><span class="p">;</span> <span class="c1">// Timer action or listener action or set of actions in a package.</span>
-    <span class="na">SP_ADDRESS</span>      <span class="o">=</span> <span class="mi">47</span><span class="p">;</span> <span class="c1">// Address for communication pin.</span>
-    <span class="na">SP_COMMAND</span>      <span class="o">=</span> <span class="mi">48</span><span class="p">;</span> <span class="c1">// Command for communication pin.</span>
-    <span class="na">SP_UNDO</span>         <span class="o">=</span> <span class="mi">49</span><span class="p">;</span> <span class="c1">// Undo for communication pin.</span>
-    <span class="na">SP_LISTEN</span>       <span class="o">=</span> <span class="mi">50</span><span class="p">;</span> <span class="c1">// Address for listener PINs.</span>
-    <span class="na">SP_CONDITION</span>    <span class="o">=</span> <span class="mi">51</span><span class="p">;</span> <span class="c1">// Condition descriptor in a package.</span>
-    <span class="na">SP_SUBPACKAGE</span>   <span class="o">=</span> <span class="mi">52</span><span class="p">;</span> <span class="c1">// Sub-package(s) of this package.</span>
-    <span class="na">SP_ENUM</span>         <span class="o">=</span> <span class="mi">53</span><span class="p">;</span> <span class="c1">// Enumeration string collection.</span>
-    <span class="na">SP_BUFSIZE</span>      <span class="o">=</span> <span class="mi">54</span><span class="p">;</span> <span class="c1">// Buffer size for buffering services.</span>
-    <span class="na">SP_PATTERN</span>      <span class="o">=</span> <span class="mi">55</span><span class="p">;</span> <span class="c1">// Pattern for Regex service.</span>
-    <span class="na">SP_EXCEPTION</span>    <span class="o">=</span> <span class="mi">56</span><span class="p">;</span> <span class="c1">// Exception handler in service invocation.</span>
-    <span class="na">SP_IDENTITY</span>     <span class="o">=</span> <span class="mi">57</span><span class="p">;</span> <span class="c1">// Identity for access to remote store or encryption/decryption in communications.</span>
-    <span class="na">SP_REQUEST</span>      <span class="o">=</span> <span class="mi">58</span><span class="p">;</span> <span class="c1">// Communication request.</span>
-    <span class="na">SP_CONTENT</span>      <span class="o">=</span> <span class="mi">59</span><span class="p">;</span> <span class="c1">// Content of i/o operation.</span>
-    <span class="na">SP_POSITION</span>     <span class="o">=</span> <span class="mi">60</span><span class="p">;</span> <span class="c1">// Positioning before i/o (seek).</span>
-    <span class="na">SP_LOAD</span>         <span class="o">=</span> <span class="mi">61</span><span class="p">;</span> <span class="c1">// The name of a library to load.</span>
-    <span class="na">SP_RESOLVE</span>      <span class="o">=</span> <span class="mi">62</span><span class="p">;</span> <span class="c1">// Service ID to resolve the address.</span>
-    <span class="na">SP_TRANSITION</span>   <span class="o">=</span> <span class="mi">63</span><span class="p">;</span> <span class="c1">// In a workflow: transition(s) to other states.</span>
-    <span class="na">SP_STATE</span>        <span class="o">=</span> <span class="mi">64</span><span class="p">;</span> <span class="c1">// FSM state.</span>
+	<span class="na">SP_PINID</span>		<span class="o">=</span> <span class="mi">17</span><span class="p">;</span> <span class="c1">// PIN id as a property. Only used in queries, not directly on PINs. Immutable.</span>
+	<span class="na">SP_DOCUMENT</span>		<span class="o">=</span> <span class="mi">18</span><span class="p">;</span> <span class="c1">// A reference to the document this PIN belongs to. Must be set.</span>
+	<span class="na">SP_PARENT</span>		<span class="o">=</span> <span class="mi">19</span><span class="p">;</span> <span class="c1">// A reference to the parent PIN. Must be set.</span>
+	<span class="na">SP_VALUE</span>		<span class="o">=</span> <span class="mi">20</span><span class="p">;</span> <span class="c1">// The value of the PIN, when it&#39;s dereferenced by queries. Must be set (can be an expression, using other properties of the PIN).</span>
+	<span class="na">SP_CREATED</span>		<span class="o">=</span> <span class="mi">21</span><span class="p">;</span> <span class="c1">// PIN creation timestamp. Must be set at creation (to value 0). Immutable.</span>
+	<span class="na">SP_CREATEDBY</span>	<span class="o">=</span> <span class="mi">22</span><span class="p">;</span> <span class="c1">// ID of the identity that created this PIN. Must be set at creation (to value 0). Immutable.</span>
+	<span class="na">SP_UPDATED</span>		<span class="o">=</span> <span class="mi">23</span><span class="p">;</span> <span class="c1">// Timestamp of the last PIN modification. Updated automatically. Must be set initially (to value 0), otherwise should not be set.</span>
+	<span class="na">SP_UPDATEDBY</span>	<span class="o">=</span> <span class="mi">24</span><span class="p">;</span> <span class="c1">// ID of the identity that last modified this PIN. Updated automatically. Must be set initially (to value 0), otherwise should not be set.</span>
+	<span class="na">SP_ACL</span>			<span class="o">=</span> <span class="mi">25</span><span class="p">;</span> <span class="c1">// ACL. A collection of a) identity IDs with meta specifying the access privileges, or b) references to other PINs with an ACL (inheritance).</span>
+	<span class="na">SP_STAMP</span>		<span class="o">=</span> <span class="mi">26</span><span class="p">;</span> <span class="c1">// Stamp (unsigned integer) of the latest modification. Updated automatically. Only used in queries, not directly on PINs. Cannot be set.</span>
+	<span class="na">SP_OBJID</span>		<span class="o">=</span> <span class="mi">27</span><span class="p">;</span> <span class="c1">// ClassID of the class defined by this PIN. Immutable.</span>
+	<span class="na">SP_PREDICATE</span>	<span class="o">=</span> <span class="mi">28</span><span class="p">;</span> <span class="c1">// Predicate of the class defined by this PIN. Must be set at creation. Immutable.</span>
+	<span class="na">SP_COUNT</span>		<span class="o">=</span> <span class="mi">29</span><span class="p">;</span> <span class="c1">// [Not implemented yet.] Number of instances of the class defined by this PIN. Updated automatically. Cannot be set.</span>
+	<span class="na">SP_SUBCLASSES</span>	<span class="o">=</span> <span class="mi">30</span><span class="p">;</span> <span class="c1">// [Not implemented yet.] Collection of classes which are specializations of the class defined by this PIN. Updated automatically. Cannot be set.</span>
+	<span class="na">SP_SUPERCLASSES</span>	<span class="o">=</span> <span class="mi">31</span><span class="p">;</span> <span class="c1">// [Not implemented yet.] Collection of classes which are abstractions of the class defined by this PIN. Updated automatically. Cannot be set.</span>
+	<span class="na">SP_INDEX_INFO</span>	<span class="o">=</span> <span class="mi">32</span><span class="p">;</span> <span class="c1">// Family index information (number of segments). Immutable.</span>
+	<span class="na">SP_PROPERTIES</span>	<span class="o">=</span> <span class="mi">33</span><span class="p">;</span> <span class="c1">// Properties refered by the class. Immutable.</span>
+	<span class="na">SP_ONENTER</span>		<span class="o">=</span> <span class="mi">34</span><span class="p">;</span> <span class="c1">// Actions associated with class events.</span>
+	<span class="na">SP_ONUPDATE</span>		<span class="o">=</span> <span class="mi">35</span><span class="p">;</span> <span class="c1">// Actions associated with class events.</span>
+	<span class="na">SP_ONLEAVE</span>		<span class="o">=</span> <span class="mi">36</span><span class="p">;</span> <span class="c1">// Actions associated with class events.</span>
+	<span class="na">SP_WINDOW</span>		<span class="o">=</span> <span class="mi">37</span><span class="p">;</span> <span class="c1">// Stream windowing control (size of class-related window).</span>
+	<span class="na">SP_TRANSITION</span>	<span class="o">=</span> <span class="mi">38</span><span class="p">;</span> <span class="c1">// FSM: transition(s) to other states.</span>
+	<span class="na">SP_EVENT</span>		<span class="o">=</span> <span class="mi">39</span><span class="p">;</span> <span class="c1">// Event descriptor.</span>
+	<span class="na">SP_CONDITION</span>	<span class="o">=</span> <span class="mi">40</span><span class="p">;</span> <span class="c1">// Condition descriptor.</span>
+	<span class="na">SP_ACTION</span>		<span class="o">=</span> <span class="mi">41</span><span class="p">;</span> <span class="c1">// Timer, listener, FSM action or set of actions in a package.</span>
+	<span class="na">SP_REF</span>			<span class="o">=</span> <span class="mi">42</span><span class="p">;</span> <span class="c1">// Reference field in VT_STRUCT.</span>
+	<span class="na">SP_STATE</span>		<span class="o">=</span> <span class="mi">43</span><span class="p">;</span> <span class="c1">// FSM state.</span>
+	<span class="na">SP_INTERVAL</span>		<span class="o">=</span> <span class="mi">44</span><span class="p">;</span> <span class="c1">// Timer interval.</span>
+	<span class="na">SP_LOAD</span>			<span class="o">=</span> <span class="mi">45</span><span class="p">;</span> <span class="c1">// The name of a library to load.</span>
+	<span class="na">SP_SERVICE</span>		<span class="o">=</span> <span class="mi">46</span><span class="p">;</span> <span class="c1">// Service URI.</span>
+	<span class="na">SP_LISTEN</span>		<span class="o">=</span> <span class="mi">47</span><span class="p">;</span> <span class="c1">// Address for listener PINs.</span>
+	<span class="na">SP_ADDRESS</span>		<span class="o">=</span> <span class="mi">48</span><span class="p">;</span> <span class="c1">// Address for communication pin.</span>
+	<span class="na">SP_RESOLVE</span>		<span class="o">=</span> <span class="mi">49</span><span class="p">;</span> <span class="c1">// Service ID to resolve the address.</span>
+	<span class="na">SP_POSITION</span>		<span class="o">=</span> <span class="mi">50</span><span class="p">;</span> <span class="c1">// Positioning before i/o (seek).</span>
+	<span class="na">SP_REQUEST</span>		<span class="o">=</span> <span class="mi">51</span><span class="p">;</span> <span class="c1">// Communication request.</span>
+	<span class="na">SP_CONTENT</span>		<span class="o">=</span> <span class="mi">52</span><span class="p">;</span> <span class="c1">// Content of i/o operation.</span>
+	<span class="na">SP_BUFSIZE</span>		<span class="o">=</span> <span class="mi">53</span><span class="p">;</span> <span class="c1">// Buffer size for buffering services.</span>
+	<span class="na">SP_EXCEPTION</span>	<span class="o">=</span> <span class="mi">54</span><span class="p">;</span> <span class="c1">// Exception handler in service invocation.</span>
+	<span class="na">SP_VERSION</span>		<span class="o">=</span> <span class="mi">55</span><span class="p">;</span> <span class="c1">// Chain of versions.</span>
+	<span class="na">SP_WEIGHT</span>		<span class="o">=</span> <span class="mi">56</span><span class="p">;</span> <span class="c1">// Future implementation.</span>
+	<span class="na">SP_SELF</span>			<span class="o">=</span> <span class="mi">57</span><span class="p">;</span> <span class="c1">// Pseudo-property: the PIN itself.</span>
+	<span class="na">SP_PATTERN</span>		<span class="o">=</span> <span class="mi">58</span><span class="p">;</span> <span class="c1">// Pattern for Regex service.</span>
+	<span class="na">SP_PROTOTYPE</span>	<span class="o">=</span> <span class="mi">59</span><span class="p">;</span> <span class="c1">// JavaScript-like inheritance.</span>
+	<span class="na">SP_UNDO</span>			<span class="o">=</span> <span class="mi">60</span><span class="p">;</span> <span class="c1">// Undo for communication pin.</span>
+	<span class="na">SP_NAMESPACE</span>	<span class="o">=</span> <span class="mi">61</span><span class="p">;</span> <span class="c1">// Package namespace prefix.</span>
+	<span class="na">SP_SUBPACKAGE</span>	<span class="o">=</span> <span class="mi">62</span><span class="p">;</span> <span class="c1">// Sub-package(s) of this package.</span>
+	<span class="na">SP_ENUM</span>			<span class="o">=</span> <span class="mi">63</span><span class="p">;</span> <span class="c1">// Enumeration string collection.</span>
+	<span class="na">SP_IDENTITY</span>		<span class="o">=</span> <span class="mi">64</span><span class="p">;</span> <span class="c1">// Identity for access to remote store or encryption/decryption in communications.</span>
+	<span class="na">SP_CONTENTTYPE</span>	<span class="o">=</span> <span class="mi">65</span><span class="p">;</span> <span class="c1">// Communication content type.</span>
+	<span class="na">SP_CONTENTLENGTH</span><span class="o">=</span> <span class="mi">66</span><span class="p">;</span> <span class="c1">// Communication content length.</span>
+	<span class="na">SP_ACCEPT</span>		<span class="o">=</span> <span class="mi">67</span><span class="p">;</span> <span class="c1">// Acceptable encodings for communications.</span>
+	<span class="na">SP_TOKEN</span>		<span class="o">=</span> <span class="mi">68</span><span class="p">;</span> <span class="c1">// Token to match request/response in communications.</span>
 
-    <span class="na">SP_MAX</span>          <span class="o">=</span> <span class="mi">255</span><span class="p">;</span> <span class="c1">// Maximum reserved URIID for built-in properties and classes; &#39;id&#39; field in StringMap must be greater than SP_MAX.</span>
+	<span class="na">SP_MAX</span>			<span class="o">=</span> <span class="mi">255</span><span class="p">;</span> <span class="c1">// Maximum reserved URIID for built-in properties and classes; &#39;id&#39; field in StringMap must be greater than SP_MAX.</span>
 <span class="p">}</span>
 
 <span class="kd">enum</span> <span class="n">SpecClasses</span> <span class="p">{</span>
-    <span class="na">SC_CLASSES</span>      <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>  <span class="c1">// Class of classes.</span>
-    <span class="na">SC_TIMERS</span>       <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>  <span class="c1">// Class of timers.</span>
-    <span class="na">SC_LISTENERS</span>    <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>  <span class="c1">// Class of listeners.</span>
-    <span class="na">SC_LOADERS</span>      <span class="o">=</span> <span class="mi">3</span><span class="p">;</span>  <span class="c1">// Class of loaders for service libraries.</span>
-    <span class="na">SC_PACKAGES</span>     <span class="o">=</span> <span class="mi">4</span><span class="p">;</span>  <span class="c1">// Class of installed packages.</span>
-    <span class="na">SC_NAMED</span>        <span class="o">=</span> <span class="mi">5</span><span class="p">;</span>  <span class="c1">// Class of globally named PINs.</span>
-    <span class="na">SC_ENUMS</span>        <span class="o">=</span> <span class="mi">6</span><span class="p">;</span>  <span class="c1">// Class of enumerations.</span>
-    <span class="na">SC_STORES</span>       <span class="o">=</span> <span class="mi">7</span><span class="p">;</span>  <span class="c1">// Class of open stores.</span>
-    <span class="na">SC_SERVICES</span>     <span class="o">=</span> <span class="mi">8</span><span class="p">;</span>  <span class="c1">// Class of loaded services.</span>
-    <span class="na">SC_FSMCTX</span>       <span class="o">=</span> <span class="mi">9</span><span class="p">;</span>  <span class="c1">// Class of all persistent FSM contexts.</span>
+	<span class="na">SC_CLASSES</span>		<span class="o">=</span> <span class="mi">0</span><span class="p">;</span>	<span class="c1">// Class of classes.</span>
+	<span class="na">SC_TIMERS</span>		<span class="o">=</span> <span class="mi">1</span><span class="p">;</span>	<span class="c1">// Class of timers.</span>
+	<span class="na">SC_LISTENERS</span>	<span class="o">=</span> <span class="mi">2</span><span class="p">;</span>	<span class="c1">// Class of listeners.</span>
+	<span class="na">SC_LOADERS</span>		<span class="o">=</span> <span class="mi">3</span><span class="p">;</span>	<span class="c1">// Class of loaders for service libraries.</span>
+	<span class="na">SC_PACKAGES</span>		<span class="o">=</span> <span class="mi">4</span><span class="p">;</span>	<span class="c1">// Class of installed packages.</span>
+	<span class="na">SC_NAMED</span>		<span class="o">=</span> <span class="mi">5</span><span class="p">;</span>	<span class="c1">// Class of globally named PINs.</span>
+	<span class="na">SC_ENUMS</span>		<span class="o">=</span> <span class="mi">6</span><span class="p">;</span>	<span class="c1">// Class of enumerations.</span>
+	<span class="na">SC_STORES</span>		<span class="o">=</span> <span class="mi">7</span><span class="p">;</span>	<span class="c1">// Class of open stores.</span>
+	<span class="na">SC_SERVICES</span>		<span class="o">=</span> <span class="mi">8</span><span class="p">;</span>	<span class="c1">// Class of loaded services.</span>
+	<span class="na">SC_FSMCTX</span>		<span class="o">=</span> <span class="mi">9</span><span class="p">;</span>	<span class="c1">// Class of all persistent FSM contexts.</span>
+	<span class="na">SC_FSMS</span>			<span class="o">=</span> <span class="mi">10</span><span class="p">;</span>	<span class="c1">// Class of FSMs</span>
+	<span class="na">SC_HANDLERS</span>		<span class="o">=</span> <span class="mi">11</span><span class="p">;</span>	<span class="c1">// Class of event handlers</span>
 <span class="p">}</span>
 
 <span class="kd">enum</span> <span class="n">SpecEID</span> <span class="p">{</span>
-    <span class="na">EID_COLLECTION</span>      <span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>  <span class="c1">// Singleton value or operation applied to the whole collection.</span>
-    <span class="na">EID_LAST_ELEMENT</span>    <span class="o">=</span> <span class="o">-</span><span class="mi">2</span><span class="p">;</span>  <span class="c1">// Last element of a collection.</span>
-    <span class="na">EID_FIRST_ELEMENT</span>   <span class="o">=</span> <span class="o">-</span><span class="mi">3</span><span class="p">;</span>  <span class="c1">// First element of a collection.</span>
+	<span class="na">EID_COLLECTION</span>		<span class="o">=</span> <span class="o">-</span><span class="mi">1</span><span class="p">;</span>	<span class="c1">// Singleton value or operation applied to the whole collection.</span>
+	<span class="na">EID_LAST_ELEMENT</span>	<span class="o">=</span> <span class="o">-</span><span class="mi">2</span><span class="p">;</span>	<span class="c1">// Last element of a collection.</span>
+	<span class="na">EID_FIRST_ELEMENT</span>	<span class="o">=</span> <span class="o">-</span><span class="mi">3</span><span class="p">;</span>	<span class="c1">// First element of a collection.</span>
 <span class="p">}</span>
 
 <span class="kd">enum</span> <span class="n">OpMode</span> <span class="p">{</span>
-    <span class="na">OM_PURGE</span>            <span class="o">=</span> <span class="mi">262144</span><span class="p">;</span>     <span class="c1">// Purge pins rather than just delete.</span>
-    <span class="na">OM_CHECK_STAMP</span>      <span class="o">=</span> <span class="mi">2097152</span><span class="p">;</span>        <span class="c1">// Forces stamp check before modification; if stamp changed the op is aborted and RC_REPEAT is returned.</span>
-    <span class="na">OM_PURGE_IDS</span>        <span class="o">=</span> <span class="mi">1048576</span><span class="p">;</span>        <span class="c1">// Purge pins and reuse their IDs.</span>
-    <span class="na">OM_ALL_WORDS</span>        <span class="o">=</span> <span class="mi">4194304</span><span class="p">;</span>        <span class="c1">// All words must be present in FT condition.</span>
-    <span class="na">OM_DELETED</span>          <span class="o">=</span> <span class="mi">8388608</span><span class="p">;</span>        <span class="c1">// For query: return only (soft)deleted pins.</span>
-    <span class="na">OM_RAW</span>              <span class="o">=</span> <span class="mi">16777216</span><span class="p">;</span>       <span class="c1">// For query: return pins without communicaion/transformation.</span>
+	<span class="na">OM_PURGE</span>			<span class="o">=</span> <span class="mi">262144</span><span class="p">;</span>		<span class="c1">// Purge pins rather than just delete.</span>
+	<span class="na">OM_CHECK_STAMP</span>		<span class="o">=</span> <span class="mi">2097152</span><span class="p">;</span>		<span class="c1">// Forces stamp check before modification; if stamp changed the op is aborted and RC_REPEAT is returned.</span>
+	<span class="na">OM_PURGE_IDS</span>		<span class="o">=</span> <span class="mi">1048576</span><span class="p">;</span>		<span class="c1">// Purge pins and reuse their IDs.</span>
+	<span class="na">OM_ALL_WORDS</span>		<span class="o">=</span> <span class="mi">4194304</span><span class="p">;</span>		<span class="c1">// All words must be present in FT condition.</span>
+	<span class="na">OM_DELETED</span>			<span class="o">=</span> <span class="mi">8388608</span><span class="p">;</span>		<span class="c1">// For query: return only (soft)deleted pins.</span>
+	<span class="na">OM_RAW</span>				<span class="o">=</span> <span class="mi">16777216</span><span class="p">;</span>		<span class="c1">// For query: return pins without communicaion/transformation.</span>
 <span class="p">}</span>
 
 <span class="kd">enum</span> <span class="n">PINFlags</span> <span class="p">{</span>
-    <span class="na">PF_NO_REPLICATION</span>   <span class="o">=</span> <span class="mi">1073741824</span><span class="p">;</span> <span class="c1">// Marks a pin as one which shouldn&#39;t be replicated (only when the pin is committed).</span>
-    <span class="na">PF_NOTIFY</span>           <span class="o">=</span> <span class="mi">536870912</span><span class="p">;</span>  <span class="c1">// PIN generates notifications when modified.</span>
-    <span class="na">PF_REPLICATED</span>       <span class="o">=</span> <span class="mi">268435456</span><span class="p">;</span>  <span class="c1">// PIN is replicated to another store or is a replica.</span>
-    <span class="na">PF_HIDDEN</span>           <span class="o">=</span> <span class="mi">134217728</span><span class="p">;</span>  <span class="c1">// Special pin - totally hidden from search/replication - accessible only through its PID.</span>
-    <span class="na">PF_INMEM</span>            <span class="o">=</span> <span class="mi">67108864</span><span class="p">;</span>       <span class="c1">// PIN is not persisted - no PID generated.</span>
-    <span class="na">PF_TRANSIENT</span>        <span class="o">=</span> <span class="mi">33554432</span><span class="p">;</span>       <span class="c1">// PIN is discarded in commitPINs (used as a message).</span>
-    <span class="na">PF_IMMUTABLE</span>        <span class="o">=</span> <span class="mi">16777216</span><span class="p">;</span>       <span class="c1">// Immutable PIN.</span>
+	<span class="na">PF_NO_REPLICATION</span>	<span class="o">=</span> <span class="mi">1073741824</span><span class="p">;</span>	<span class="c1">// Marks a pin as one which shouldn&#39;t be replicated (only when the pin is committed).</span>
+	<span class="na">PF_NOTIFY</span>			<span class="o">=</span> <span class="mi">536870912</span><span class="p">;</span>	<span class="c1">// PIN generates notifications when modified.</span>
+	<span class="na">PF_REPLICATED</span>		<span class="o">=</span> <span class="mi">268435456</span><span class="p">;</span>	<span class="c1">// PIN is replicated to another store or is a replica.</span>
+	<span class="na">PF_HIDDEN</span>			<span class="o">=</span> <span class="mi">134217728</span><span class="p">;</span>	<span class="c1">// Special pin - totally hidden from search/replication - accessible only through its PID.</span>
+	<span class="na">PF_INMEM</span>			<span class="o">=</span> <span class="mi">67108864</span><span class="p">;</span>		<span class="c1">// PIN is not persisted - no PID generated.</span>
+	<span class="na">PF_TRANSIENT</span>		<span class="o">=</span> <span class="mi">33554432</span><span class="p">;</span>		<span class="c1">// PIN is discarded in commitPINs (used as a message).</span>
+	<span class="na">PF_IMMUTABLE</span>		<span class="o">=</span> <span class="mi">16777216</span><span class="p">;</span>		<span class="c1">// Immutable PIN.</span>
 <span class="p">}</span>
 
 <span class="kd">enum</span> <span class="n">MetaProps</span> <span class="p">{</span>
-    <span class="na">META_PART</span>           <span class="o">=</span> <span class="mi">128</span><span class="p">;</span>            <span class="c1">// Property is a reference to a PIN which is a part of this one.</span>
-    <span class="na">META_FTINDEX</span>        <span class="o">=</span> <span class="mi">128</span><span class="p">;</span>            <span class="c1">// The property has to be FT indexed.</span>
-    <span class="na">META_ALT</span>            <span class="o">=</span> <span class="mi">128</span><span class="p">;</span>            <span class="c1">// Alternative service format.</span>
-    <span class="na">META_SSTORAGE</span>       <span class="o">=</span> <span class="mi">64</span><span class="p">;</span>         <span class="c1">// Store this property separately from the PIN body (for string, stream and collection property types).</span>
-    <span class="na">META_SYNC</span>           <span class="o">=</span> <span class="mi">16</span><span class="p">;</span>         <span class="c1">// Sync call of an action, service or FSM.</span>
-    <span class="na">META_IMMUTABLE</span>      <span class="o">=</span> <span class="mi">8</span><span class="p">;</span>          <span class="c1">// Immutable property.</span>
-    <span class="na">META_CREATE</span>         <span class="o">=</span> <span class="mi">4</span><span class="p">;</span>          <span class="c1">// &#39;CREATE&#39; permission in communication PINs (with SP_ADDRESS)</span>
-    <span class="na">META_WRITE</span>          <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>          <span class="c1">// In ACLs: write access is granted.</span>
-    <span class="na">META_READ</span>           <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>          <span class="c1">// In ACLs: read access is granted.</span>
+	<span class="k">option</span> <span class="na">allow_alias</span>	<span class="o">=</span> <span class="kc">true</span><span class="p">;</span>
+	<span class="na">META_PART</span>			<span class="o">=</span> <span class="mi">128</span><span class="p">;</span>			<span class="c1">// Property is a reference to a PIN which is a part of this one.</span>
+	<span class="na">META_FTINDEX</span>		<span class="o">=</span> <span class="mi">128</span><span class="p">;</span>			<span class="c1">// The property has to be FT indexed.</span>
+	<span class="na">META_SSTORAGE</span>		<span class="o">=</span> <span class="mi">64</span><span class="p">;</span>			<span class="c1">// Store this property separately from the PIN body (for string, stream and collection property types).</span>
+	<span class="na">META_SYNC</span>			<span class="o">=</span> <span class="mi">16</span><span class="p">;</span>			<span class="c1">// Immediate call of an action or FSM; synchronous i/o operation.</span>
+	<span class="na">META_ASYNC</span>			<span class="o">=</span> <span class="mi">8</span><span class="p">;</span>			<span class="c1">// Async invocation of an action or FSM; asynchronous i/o operation.</span>
+	<span class="na">META_CREATE</span>			<span class="o">=</span> <span class="mi">4</span><span class="p">;</span>			<span class="c1">// &#39;CREATE&#39; permission in communication PINs (with SP_ADDRESS)</span>
+	<span class="na">META_WRITE</span>			<span class="o">=</span> <span class="mi">2</span><span class="p">;</span>			<span class="c1">// In ACLs: write access is granted.</span>
+	<span class="na">META_READ</span>			<span class="o">=</span> <span class="mi">1</span><span class="p">;</span>			<span class="c1">// In ACLs: read access is granted.</span>
+	<span class="na">META_ALT</span>			<span class="o">=</span> <span class="mi">1</span><span class="p">;</span>			<span class="c1">// Alternative service format (e.g. UDP).</span>
 <span class="p">}</span>
 
 <span class="kd">enum</span> <span class="n">ClassFlags</span> <span class="p">{</span>
-    <span class="na">CF_SDELETE</span>      <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>      <span class="c1">// Class supports soft-delete optimization.</span>
-    <span class="na">CF_VIEW</span>         <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>      <span class="c1">// Class membership is not to be indexed.</span>
-    <span class="na">CF_INDEXED</span>      <span class="o">=</span> <span class="mi">4</span><span class="p">;</span>      <span class="c1">// Class membership is indexed (set by the kernel).</span>
-    <span class="na">CF_INMEM</span>        <span class="o">=</span> <span class="mi">8</span><span class="p">;</span>      <span class="c1">// Class is not persisted.</span>
+	<span class="na">CF_SDELETE</span>		<span class="o">=</span> <span class="mi">1</span><span class="p">;</span>		<span class="c1">// Class supports soft-delete optimization.</span>
+	<span class="na">CF_VIEW</span>			<span class="o">=</span> <span class="mi">2</span><span class="p">;</span>		<span class="c1">// Class membership is not to be indexed.</span>
+	<span class="na">CF_INDEXED</span>		<span class="o">=</span> <span class="mi">4</span><span class="p">;</span>		<span class="c1">// Class membership is indexed (set by the kernel).</span>
+	<span class="na">CF_INMEM</span>		<span class="o">=</span> <span class="mi">8</span><span class="p">;</span>		<span class="c1">// Class is not persisted.</span>
 <span class="p">}</span>
 
 <span class="c1">// PathSQL statements (query,insert,update,delete) and individual PIN modification operations can return information with various level of details.</span>
 <span class="kd">enum</span> <span class="n">ReturnType</span> <span class="p">{</span>
-    <span class="na">RT_PINS</span>         <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// Specifies that a query will return entire AfyStream::PIN object(s) (see definition below).</span>
-    <span class="na">RT_COUNT</span>        <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// Specifies that a query will return a simple count.</span>
-    <span class="na">RT_PIDS</span>         <span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// Specifies that a query will return AfyStream::PIN object(s) containing only AfyStream::PIN::id field.</span>
-    <span class="na">RT_SRCPINS</span>      <span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// Like RT_PINS, but VT_EXPR and VT_QUERY are converted to string form.</span>
-    <span class="na">RT_VALUES</span>       <span class="o">=</span> <span class="mi">5</span><span class="p">;</span> <span class="c1">// Specifies that a query will return Value object(s).</span>
+	<span class="na">RT_PINS</span>			<span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// Specifies that a query will return entire AfyStream::PIN object(s) (see definition below).</span>
+	<span class="na">RT_COUNT</span>		<span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// Specifies that a query will return a simple count.</span>
+	<span class="na">RT_PIDS</span>			<span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// Specifies that a query will return AfyStream::PIN object(s) containing only AfyStream::PIN::id field.</span>
+	<span class="na">RT_SRCPINS</span>		<span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// Like RT_PINS, but VT_EXPR and VT_QUERY are converted to string form.</span>
+	<span class="na">RT_VALUES</span>		<span class="o">=</span> <span class="mi">5</span><span class="p">;</span> <span class="c1">// Specifies that a query will return Value object(s).</span>
 <span class="p">}</span>
 
 <span class="c1">// Every PIN holds a globally unique ID.</span>
 <span class="kd">message</span> <span class="nc">PID</span> <span class="p">{</span>
-    <span class="k">optional</span> <span class="kt">uint64</span>  <span class="na">id</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// The unique identifier of a AfyStream::PIN, in the scope of PID::ident&#39;s store (and replicas).</span>
-    <span class="k">optional</span> <span class="kt">uint32</span>  <span class="na">ident</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// The numeric identity ID of the owner of that PIN. The combination of ident and id is globally unique.</span>
+	<span class="k">optional</span> <span class="kt">uint64</span>	<span class="na">id</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// The unique identifier of a AfyStream::PIN, in the scope of PID::ident&#39;s store (and replicas).</span>
+	<span class="k">optional</span> <span class="kt">uint32</span>	<span class="na">ident</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// The numeric identity ID of the owner of that PIN. The combination of ident and id is globally unique.</span>
 <span class="p">}</span>
 
 <span class="c1">// Every PIN and every entity of a PIN can be referenced.</span>
 <span class="kd">message</span> <span class="nc">Ref</span> <span class="p">{</span>
-    <span class="k">required</span> <span class="n">PID</span>  <span class="na">id</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// Specifies the PIN being referred to.</span>
-    <span class="k">required</span> <span class="kt">uint32</span> <span class="na">property</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// Specifies the id of the property of the PIN being referred to.</span>
-    <span class="k">optional</span> <span class="kt">uint32</span>  <span class="na">eid</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// Specifies the collection element being referred to.</span>
-    <span class="k">optional</span> <span class="kt">uint32</span>  <span class="na">vid</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// [Future.] Specifies the version of the object being referred to.</span>
+	<span class="k">required</span> <span class="n">PID</span>	<span class="na">id</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// Specifies the PIN being referred to.</span>
+	<span class="k">required</span> <span class="kt">uint32</span> <span class="na">property</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// Specifies the id of the property of the PIN being referred to.</span>
+	<span class="k">optional</span> <span class="kt">uint32</span>	<span class="na">eid</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// Specifies the collection element being referred to.</span>
+	<span class="k">optional</span> <span class="kt">uint32</span>	<span class="na">vid</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// [Future.] Specifies the version of the object being referred to.</span>
 <span class="p">}</span>
 
 <span class="c1">// The Value structure can describe the value of a PIN property, or one logical update, or even a whole collection.</span>
 <span class="c1">// Please refer to the documentation for context on Affinity&#39;s data model: PINs, properties, values, collections and elements.</span>
 <span class="kd">message</span> <span class="nc">Value</span> <span class="p">{</span>
-    <span class="c1">// Every value has a type. Value::type is a required field.</span>
-    <span class="c1">// Even though the &quot;union&quot; fields of Value (str, bstr, i, ui etc.) already</span>
-    <span class="c1">// define a type implicitly via the protocol buffer&#39;s descriptor,</span>
-    <span class="c1">// Value::type must always be set explicitly. This is partly</span>
-    <span class="c1">// to disambiguate some overlapping types (e.g. VT_UINT vs VT_URIID).</span>
-    <span class="c1">// Please refer to the documentation for more information on Affinity&#39;s data types.</span>
-    <span class="kd">enum</span> <span class="n">ValueType</span> <span class="p">{</span>
-        <span class="na">VT_ANY</span>          <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="c1">// To specify open-ended ranges</span>
+	<span class="c1">// Every value has a type. Value::type is a required field.</span>
+	<span class="c1">// Even though the &quot;union&quot; fields of Value (str, bstr, i, ui etc.) already</span>
+	<span class="c1">// define a type implicitly via the protocol buffer&#39;s descriptor,</span>
+	<span class="c1">// Value::type must always be set explicitly. This is partly</span>
+	<span class="c1">// to disambiguate some overlapping types (e.g. VT_UINT vs VT_URIID).</span>
+	<span class="c1">// Please refer to the documentation for more information on Affinity&#39;s data types.</span>
+	<span class="kd">enum</span> <span class="n">ValueType</span> <span class="p">{</span>
+		<span class="na">VT_ANY</span>			<span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="c1">// To specify open-ended ranges</span>
 
-        <span class="na">VT_INT</span>          <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// A 32-bit signed integer.</span>
-        <span class="na">VT_UINT</span>         <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// A 32-bit unsigned integer.</span>
-        <span class="na">VT_INT64</span>        <span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// A 64-bit signed integer.</span>
-        <span class="na">VT_UINT64</span>       <span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// A 64-bit unsigned integer.</span>
-        <span class="na">VT_FLOAT</span>        <span class="o">=</span> <span class="mi">5</span><span class="p">;</span> <span class="c1">// A single-precision IEEE 754 floating-point number.</span>
-        <span class="na">VT_DOUBLE</span>       <span class="o">=</span> <span class="mi">6</span><span class="p">;</span> <span class="c1">// A double-precision IEEE 754 floating-point number.</span>
+		<span class="na">VT_INT</span>			<span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// A 32-bit signed integer.</span>
+		<span class="na">VT_UINT</span>			<span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// A 32-bit unsigned integer.</span>
+		<span class="na">VT_INT64</span>		<span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// A 64-bit signed integer.</span>
+		<span class="na">VT_UINT64</span>		<span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// A 64-bit unsigned integer.</span>
+		<span class="na">VT_FLOAT</span>		<span class="o">=</span> <span class="mi">5</span><span class="p">;</span> <span class="c1">// A single-precision IEEE 754 floating-point number.</span>
+		<span class="na">VT_DOUBLE</span>		<span class="o">=</span> <span class="mi">6</span><span class="p">;</span> <span class="c1">// A double-precision IEEE 754 floating-point number.</span>
 
-        <span class="na">VT_BOOL</span>         <span class="o">=</span> <span class="mi">7</span><span class="p">;</span> <span class="c1">// A boolean.</span>
+		<span class="na">VT_BOOL</span>			<span class="o">=</span> <span class="mi">7</span><span class="p">;</span> <span class="c1">// A boolean.</span>
 
-        <span class="na">VT_DATETIME</span>     <span class="o">=</span> <span class="mi">8</span><span class="p">;</span> <span class="c1">// A high-precision timestamp, internally stored as a 64-bit unsigned number of microseconds since epoch. Use Value::datetime, not Value::ui64.</span>
-        <span class="na">VT_INTERVAL</span>     <span class="o">=</span> <span class="mi">9</span><span class="p">;</span> <span class="c1">// A high-precision time interval, internally stored as a 64-bit signed number of microseconds. Use Value::interval, not Value::i64.</span>
+		<span class="na">VT_DATETIME</span>		<span class="o">=</span> <span class="mi">8</span><span class="p">;</span> <span class="c1">// A high-precision timestamp, internally stored as a 64-bit unsigned number of microseconds since epoch. Use Value::datetime, not Value::ui64.</span>
+		<span class="na">VT_INTERVAL</span>		<span class="o">=</span> <span class="mi">9</span><span class="p">;</span> <span class="c1">// A high-precision time interval, internally stored as a 64-bit signed number of microseconds. Use Value::interval, not Value::i64.</span>
 
-        <span class="na">VT_URIID</span>        <span class="o">=</span> <span class="mi">10</span><span class="p">;</span> <span class="c1">// A 32-bit unsigned URI ID (via Value::ui).</span>
-        <span class="na">VT_IDENTITY</span>     <span class="o">=</span> <span class="mi">11</span><span class="p">;</span> <span class="c1">// A 32-bit unsigned identity ID (via Value::ui).</span>
+		<span class="na">VT_URIID</span>		<span class="o">=</span> <span class="mi">10</span><span class="p">;</span> <span class="c1">// A 32-bit unsigned URI ID (via Value::ui).</span>
+		<span class="na">VT_IDENTITY</span>		<span class="o">=</span> <span class="mi">11</span><span class="p">;</span> <span class="c1">// A 32-bit unsigned identity ID (via Value::ui).</span>
 
-        <span class="na">VT_ENUM</span>         <span class="o">=</span> <span class="mi">12</span><span class="p">;</span> <span class="c1">// An element of a enumeration.</span>
+		<span class="na">VT_ENUM</span>			<span class="o">=</span> <span class="mi">12</span><span class="p">;</span> <span class="c1">// An element of a enumeration.</span>
 
-        <span class="na">VT_STRING</span>       <span class="o">=</span> <span class="mi">13</span><span class="p">;</span> <span class="c1">// A standard text string.</span>
-        <span class="na">VT_BSTR</span>         <span class="o">=</span> <span class="mi">14</span><span class="p">;</span> <span class="c1">// A binary string.</span>
-        <span class="na">VT_URL</span>          <span class="o">=</span> <span class="mi">15</span><span class="p">;</span> <span class="c1">// A text string representing a URL.</span>
+		<span class="na">VT_STRING</span>		<span class="o">=</span> <span class="mi">13</span><span class="p">;</span> <span class="c1">// A standard text string.</span>
+		<span class="na">VT_BSTR</span>			<span class="o">=</span> <span class="mi">14</span><span class="p">;</span> <span class="c1">// A binary string.</span>
 
-        <span class="na">VT_REFID</span>        <span class="o">=</span> <span class="mi">17</span><span class="p">;</span> <span class="c1">// A reference (Ref) to a PIN.</span>
-        <span class="na">VT_REFIDPROP</span>    <span class="o">=</span> <span class="mi">19</span><span class="p">;</span> <span class="c1">// A reference (Ref) to a property of a PIN.</span>
-        <span class="na">VT_REFIDELT</span>     <span class="o">=</span> <span class="mi">21</span><span class="p">;</span> <span class="c1">// A reference (Ref) to a collection element of a property of a PIN.</span>
+		<span class="na">VT_REFID</span>		<span class="o">=</span> <span class="mi">16</span><span class="p">;</span> <span class="c1">// A reference (Ref) to a PIN.</span>
+		<span class="na">VT_REFIDPROP</span>	<span class="o">=</span> <span class="mi">18</span><span class="p">;</span> <span class="c1">// A reference (Ref) to a property of a PIN.</span>
+		<span class="na">VT_REFIDELT</span>		<span class="o">=</span> <span class="mi">20</span><span class="p">;</span> <span class="c1">// A reference (Ref) to a collection element of a property of a PIN.</span>
 
-        <span class="na">VT_EXPR</span>         <span class="o">=</span> <span class="mi">22</span><span class="p">;</span> <span class="c1">// A stored expression, expressed in PathSQL or BLOB.</span>
-        <span class="na">VT_QUERY</span>        <span class="o">=</span> <span class="mi">23</span><span class="p">;</span> <span class="c1">// A stored statement, expressed in PathSQL or BLOB.</span>
+		<span class="na">VT_EXPR</span>			<span class="o">=</span> <span class="mi">21</span><span class="p">;</span> <span class="c1">// A stored expression, expressed in PathSQL or BLOB.</span>
+		<span class="na">VT_QUERY</span>		<span class="o">=</span> <span class="mi">22</span><span class="p">;</span> <span class="c1">// A stored statement, expressed in PathSQL or BLOB.</span>
 
-        <span class="na">VT_ARRAY</span>        <span class="o">=</span> <span class="mi">24</span><span class="p">;</span> <span class="c1">// A collection (array of values).</span>
-        <span class="na">VT_STRUCT</span>       <span class="o">=</span> <span class="mi">26</span><span class="p">;</span> <span class="c1">// A composite value.</span>
-        <span class="na">VT_MAP</span>          <span class="o">=</span> <span class="mi">27</span><span class="p">;</span> <span class="c1">// A map (dictionary).</span>
-        <span class="na">VT_RANGE</span>        <span class="o">=</span> <span class="mi">28</span><span class="p">;</span> <span class="c1">// A range of values, equivalent to VT_ARRAY with length=2.</span>
-        <span class="na">VT_CURRENT</span>      <span class="o">=</span> <span class="mi">30</span><span class="p">;</span> <span class="c1">// An automatically-computed value, depending on the actual property (e.g. current moment in time, current user etc.).</span>
-    <span class="p">}</span>
-    <span class="c1">// The Value structure can represent a logical update on a value,</span>
-    <span class="c1">// in which case Value::op must be specified.</span>
-    <span class="kd">enum</span> <span class="n">ModOp</span> <span class="p">{</span>
-        <span class="na">OP_SET</span>          <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="c1">// Add a new property, or set a new value on an already existing property. If no eid is specified, might imply overwriting a whole collection.</span>
-        <span class="na">OP_ADD</span>          <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// Add an element to a property. If the property was not already a collection, it will become one. The eid field can be specified with FIRST_ELEMENT, LAST_ELEMENT or the eid of an already committed element of this collection, to control after which other element the new element is added.</span>
-        <span class="na">OP_ADD_BEFORE</span>   <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// Same as OP_ADD, but the element is added before the point specified with the eid field.</span>
-        <span class="na">OP_MOVE</span>         <span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// Move the element specified by Value::eid after the element specified by Value::ui (an eid in this case).</span>
-        <span class="na">OP_MOVE_BEFORE</span>  <span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// Move the element specified by Value::eid before the element specified by Value::ui (an eid in this case).</span>
-        <span class="na">OP_DELETE</span>       <span class="o">=</span> <span class="mi">5</span><span class="p">;</span> <span class="c1">// Delete the whole property, or a single collection element if Value::ui (an eid in this case) is specified.</span>
-        <span class="na">OP_EDIT</span>         <span class="o">=</span> <span class="mi">6</span><span class="p">;</span> <span class="c1">// Edit a string (VT_STRING, VT_BSTR or VT_URL), using the specification in Value::edit.</span>
-        <span class="na">OP_RENAME</span>       <span class="o">=</span> <span class="mi">7</span><span class="p">;</span> <span class="c1">// Rename the property, i.e. replace the Value::property itself (with the number specified in Value::ui). Value::type must be VT_URIID.</span>
-        <span class="na">OP_PLUS</span>         <span class="o">=</span> <span class="mi">8</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = (v1 + this instance).</span>
-        <span class="na">OP_MINUS</span>        <span class="o">=</span> <span class="mi">9</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = (v1 - this instance).</span>
-        <span class="na">OP_MUL</span>          <span class="o">=</span> <span class="mi">10</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = (v1 * this instance).</span>
-        <span class="na">OP_DIV</span>          <span class="o">=</span> <span class="mi">11</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = (v1 / this instance).</span>
-        <span class="na">OP_MOD</span>          <span class="o">=</span> <span class="mi">12</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = v1 % this instance (remainder of division).</span>
-        <span class="na">OP_NEG</span>          <span class="o">=</span> <span class="mi">13</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with -v1. The value specified in this instance is ignored.</span>
-        <span class="na">OP_NOT</span>          <span class="o">=</span> <span class="mi">14</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with ~v1 or !v1 or -v1, depending on the type.</span>
-        <span class="na">OP_AND</span>          <span class="o">=</span> <span class="mi">15</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = (v1 bitand this instance).</span>
-        <span class="na">OP_OR</span>           <span class="o">=</span> <span class="mi">16</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = (v1 bitor this instance).</span>
-        <span class="na">OP_XOR</span>          <span class="o">=</span> <span class="mi">17</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = (v1 xor this instance).</span>
-        <span class="na">OP_LSHIFT</span>       <span class="o">=</span> <span class="mi">18</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = (v1 &lt;&lt; this instance).</span>
-        <span class="na">OP_RSHIFT</span>       <span class="o">=</span> <span class="mi">19</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = (v1 &gt;&gt; this instance).</span>
-        <span class="na">OP_MIN</span>          <span class="o">=</span> <span class="mi">20</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = min(v1, this instance).</span>
-        <span class="na">OP_MAX</span>          <span class="o">=</span> <span class="mi">21</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = max(v1, this instance).</span>
-        <span class="na">OP_ABS</span>          <span class="o">=</span> <span class="mi">22</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = abs(v1). The value specified in this instance is ignored.</span>
-        <span class="na">OP_LN</span>           <span class="o">=</span> <span class="mi">23</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = ln(v1). The value specified in this instance is ignored.</span>
-        <span class="na">OP_EXP</span>          <span class="o">=</span> <span class="mi">24</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = exp(v1). The value specified in this instance is ignored.</span>
-        <span class="na">OP_POW</span>          <span class="o">=</span> <span class="mi">25</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = pow(v1,this instance).</span>
-        <span class="na">OP_SQRT</span>         <span class="o">=</span> <span class="mi">26</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = sqrt(v1). The value specified in this instance is ignored.</span>
-        <span class="na">OP_SIN</span>          <span class="o">=</span> <span class="mi">27</span><span class="p">;</span> <span class="c1">// Sine.</span>
-        <span class="na">OP_COS</span>          <span class="o">=</span> <span class="mi">28</span><span class="p">;</span> <span class="c1">// Cosine.</span>
-        <span class="na">OP_TAN</span>          <span class="o">=</span> <span class="mi">29</span><span class="p">;</span> <span class="c1">// Tangent.</span>
-        <span class="na">OP_ASIN</span>         <span class="o">=</span> <span class="mi">30</span><span class="p">;</span> <span class="c1">// Arcsine.</span>
-        <span class="na">OP_ACOS</span>         <span class="o">=</span> <span class="mi">31</span><span class="p">;</span> <span class="c1">// Arccosine.</span>
-        <span class="na">OP_ATAN</span>         <span class="o">=</span> <span class="mi">32</span><span class="p">;</span> <span class="c1">// Arctangent.</span>
-        <span class="na">OP_FLOOR</span>        <span class="o">=</span> <span class="mi">33</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = floor(v1). The value specified in this instance is ignored.</span>
-        <span class="na">OP_CEIL</span>         <span class="o">=</span> <span class="mi">34</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = ceil(v1). The value specified in this instance is ignored.</span>
-        <span class="na">OP_CONCAT</span>       <span class="o">=</span> <span class="mi">35</span><span class="p">;</span> <span class="c1">// Concatenate this value to the stored value.</span>
-        <span class="na">OP_LOWER</span>        <span class="o">=</span> <span class="mi">36</span><span class="p">;</span> <span class="c1">// Replace the stored value with its lower-case equivalent. The value specified in this instance is ignored.</span>
-        <span class="na">OP_UPPER</span>        <span class="o">=</span> <span class="mi">37</span><span class="p">;</span> <span class="c1">// Replace the stored value with its upper-case equivalent. The value specified in this instance is ignored.</span>
-        <span class="na">OP_TONUM</span>        <span class="o">=</span> <span class="mi">38</span><span class="p">;</span> <span class="c1">// Coerce the stored value to any of numeric types (VT_INT - VT_DOUBLE).</span>
-        <span class="na">OP_TOINUM</span>       <span class="o">=</span> <span class="mi">39</span><span class="p">;</span> <span class="c1">// Coerce the stored value to an integer numeric type (VT_INT - VT_UINT64).</span>
-        <span class="na">OP_CAST</span>         <span class="o">=</span> <span class="mi">40</span><span class="p">;</span> <span class="c1">// Coerce the stored value to the type defined by tghe second argument.</span>
-    <span class="p">}</span>
-    <span class="c1">// For string/stream value editing (Value::op == OP_EDIT).</span>
-    <span class="c1">// Allows to insert, delete and replace ranges.</span>
-    <span class="kd">message</span> <span class="nc">StrEdit</span> <span class="p">{</span>
-        <span class="k">optional</span> <span class="kt">string</span> <span class="na">str</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// For Value::type == VT_STRING or VT_URL. Specifies the characters to be inserted in the existing string. Can be empty.</span>
-        <span class="k">optional</span> <span class="kt">bytes</span>   <span class="na">bstr</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// For Value::type == VT_BSTR. Specifies the bytes to be inserted in the existing string. Can be empty.</span>
-        <span class="k">required</span> <span class="kt">uint32</span> <span class="na">length</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// Specifies how many characters/bytes should be deleted from the original string, before insertion. Can be 0.</span>
-        <span class="k">optional</span> <span class="kt">uint64</span> <span class="na">offset</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// Specifies the offset at which StrEdit::length should be deleted, and StrEdit::str/StrEdit::bstr should be inserted.</span>
-    <span class="p">}</span>
-    <span class="c1">// For structs, collections and ranges.</span>
-    <span class="kd">message</span> <span class="nc">VArray</span> <span class="p">{</span>
-        <span class="k">optional</span> <span class="kt">uint32</span>  <span class="na">l</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// Specifies the number of elements in the collection.</span>
-        <span class="k">repeated</span> <span class="n">Value</span>    <span class="na">v</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// Each element is a Value.</span>
-    <span class="p">}</span>
-    <span class="c1">// Enumeration element</span>
-    <span class="kd">message</span> <span class="nc">VEnum</span> <span class="p">{</span>
-        <span class="k">required</span> <span class="kt">uint32</span> <span class="na">enuid</span>  <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// Enumeration identifier.</span>
-        <span class="k">required</span> <span class="kt">uint32</span> <span class="na">enuelt</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// Enumeration element id.</span>
-    <span class="p">}</span>
-    <span class="c1">// Map element</span>
-    <span class="kd">message</span> <span class="nc">VMapElt</span> <span class="p">{</span>
-        <span class="k">required</span> <span class="n">Value</span>    <span class="na">key</span>   <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// Map element key.</span>
-        <span class="k">required</span> <span class="n">Value</span>    <span class="na">value</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// Map element value.</span>
-    <span class="p">}</span>
-    <span class="c1">// Maps</span>
-    <span class="kd">message</span> <span class="nc">VMap</span> <span class="p">{</span>
-        <span class="k">optional</span> <span class="kt">uint32</span>  <span class="na">l</span>   <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// Number of keys.</span>
-        <span class="k">repeated</span> <span class="n">VMapElt</span> <span class="na">v</span>    <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// Key-value pairs.     </span>
-    <span class="p">}</span>
-    
-    <span class="k">optional</span> <span class="n">ValueType</span>    <span class="na">type</span>        <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// The type of the value.</span>
-    <span class="k">optional</span> <span class="kt">uint32</span>      <span class="na">property</span>    <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// The numeric ID of the property that this value belongs to, as defined by the relevant AfyStream::StringMap.</span>
+		<span class="na">VT_COLLECTION</span>	<span class="o">=</span> <span class="mi">23</span><span class="p">;</span> <span class="c1">// A collection of values.</span>
+		<span class="na">VT_STRUCT</span>		<span class="o">=</span> <span class="mi">24</span><span class="p">;</span> <span class="c1">// A composite value.</span>
+		<span class="na">VT_MAP</span>			<span class="o">=</span> <span class="mi">25</span><span class="p">;</span> <span class="c1">// A map (dictionary).</span>
+		<span class="na">VT_RANGE</span>		<span class="o">=</span> <span class="mi">26</span><span class="p">;</span> <span class="c1">// A range of values, represented as a VT_COLLECTION with length=2.</span>
+		<span class="na">VT_ARRAY</span>		<span class="o">=</span> <span class="mi">27</span><span class="p">;</span> <span class="c1">// A fixed size array of values of the same type.</span>
+		<span class="na">VT_CURRENT</span>		<span class="o">=</span> <span class="mi">29</span><span class="p">;</span> <span class="c1">// An automatically-computed value, depending on the actual property (e.g. current moment in time, current user etc.).</span>
+	<span class="p">}</span>
+	<span class="c1">// The Value structure can represent a logical update on a value,</span>
+	<span class="c1">// in which case Value::op must be specified.</span>
+	<span class="kd">enum</span> <span class="n">ModOp</span> <span class="p">{</span>
+		<span class="na">OP_SET</span>			<span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="c1">// Add a new property, or set a new value on an already existing property. If no eid is specified, might imply overwriting a whole collection.</span>
+		<span class="na">OP_ADD</span>			<span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// Add an element to a property. If the property was not already a collection, it will become one. The eid field can be specified with FIRST_ELEMENT, LAST_ELEMENT or the eid of an already committed element of this collection, to control after which other element the new element is added.</span>
+		<span class="na">OP_ADD_BEFORE</span>	<span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// Same as OP_ADD, but the element is added before the point specified with the eid field.</span>
+		<span class="na">OP_MOVE</span>			<span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// Move the element specified by Value::eid after the element specified by Value::ui (an eid in this case).</span>
+		<span class="na">OP_MOVE_BEFORE</span>	<span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// Move the element specified by Value::eid before the element specified by Value::ui (an eid in this case).</span>
+		<span class="na">OP_DELETE</span>		<span class="o">=</span> <span class="mi">5</span><span class="p">;</span> <span class="c1">// Delete the whole property, or a single collection element if Value::ui (an eid in this case) is specified.</span>
+		<span class="na">OP_EDIT</span>			<span class="o">=</span> <span class="mi">6</span><span class="p">;</span> <span class="c1">// Edit a string (VT_STRING or VT_BSTR) or bits (VT_UINT, VT_UINT64).</span>
+		<span class="na">OP_RENAME</span>		<span class="o">=</span> <span class="mi">7</span><span class="p">;</span> <span class="c1">// Rename the property, i.e. replace the Value::property itself (with the number specified in Value::ui). Value::type must be VT_URIID.</span>
+		<span class="na">OP_PLUS</span>			<span class="o">=</span> <span class="mi">8</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = (v1 + this instance).</span>
+		<span class="na">OP_MINUS</span>		<span class="o">=</span> <span class="mi">9</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = (v1 - this instance).</span>
+		<span class="na">OP_MUL</span>			<span class="o">=</span> <span class="mi">10</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = (v1 * this instance).</span>
+		<span class="na">OP_DIV</span>			<span class="o">=</span> <span class="mi">11</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = (v1 / this instance).</span>
+		<span class="na">OP_MOD</span>			<span class="o">=</span> <span class="mi">12</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = v1 % this instance (remainder of division).</span>
+		<span class="na">OP_NEG</span>			<span class="o">=</span> <span class="mi">13</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with -v1. The value specified in this instance is ignored.</span>
+		<span class="na">OP_NOT</span>			<span class="o">=</span> <span class="mi">14</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with ~v1 or !v1 or -v1, depending on the type.</span>
+		<span class="na">OP_AND</span>			<span class="o">=</span> <span class="mi">15</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = (v1 bitand this instance).</span>
+		<span class="na">OP_OR</span>			<span class="o">=</span> <span class="mi">16</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = (v1 bitor this instance).</span>
+		<span class="na">OP_XOR</span>			<span class="o">=</span> <span class="mi">17</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = (v1 xor this instance).</span>
+		<span class="na">OP_LSHIFT</span>		<span class="o">=</span> <span class="mi">18</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = (v1 &lt;&lt; this instance).</span>
+		<span class="na">OP_RSHIFT</span>		<span class="o">=</span> <span class="mi">19</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = (v1 &gt;&gt; this instance).</span>
+		<span class="na">OP_MIN</span>			<span class="o">=</span> <span class="mi">20</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = min(v1, this instance).</span>
+		<span class="na">OP_MAX</span>			<span class="o">=</span> <span class="mi">21</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = max(v1, this instance).</span>
+		<span class="na">OP_ABS</span>			<span class="o">=</span> <span class="mi">22</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = abs(v1). The value specified in this instance is ignored.</span>
+		<span class="na">OP_LN</span>			<span class="o">=</span> <span class="mi">23</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = ln(v1). The value specified in this instance is ignored.</span>
+		<span class="na">OP_EXP</span>			<span class="o">=</span> <span class="mi">24</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = exp(v1). The value specified in this instance is ignored.</span>
+		<span class="na">OP_POW</span>			<span class="o">=</span> <span class="mi">25</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = pow(v1,this instance).</span>
+		<span class="na">OP_SQRT</span>			<span class="o">=</span> <span class="mi">26</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = sqrt(v1). The value specified in this instance is ignored.</span>
+		<span class="na">OP_SIN</span>			<span class="o">=</span> <span class="mi">27</span><span class="p">;</span> <span class="c1">// Sine.</span>
+		<span class="na">OP_COS</span>			<span class="o">=</span> <span class="mi">28</span><span class="p">;</span> <span class="c1">// Cosine.</span>
+		<span class="na">OP_TAN</span>			<span class="o">=</span> <span class="mi">29</span><span class="p">;</span> <span class="c1">// Tangent.</span>
+		<span class="na">OP_ASIN</span>			<span class="o">=</span> <span class="mi">30</span><span class="p">;</span> <span class="c1">// Arcsine.</span>
+		<span class="na">OP_ACOS</span>			<span class="o">=</span> <span class="mi">31</span><span class="p">;</span> <span class="c1">// Arccosine.</span>
+		<span class="na">OP_ATAN</span>			<span class="o">=</span> <span class="mi">32</span><span class="p">;</span> <span class="c1">// Arctangent.</span>
+		<span class="na">OP_FLOOR</span>		<span class="o">=</span> <span class="mi">33</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = floor(v1). The value specified in this instance is ignored.</span>
+		<span class="na">OP_CEIL</span>			<span class="o">=</span> <span class="mi">34</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = ceil(v1). The value specified in this instance is ignored.</span>
+		<span class="na">OP_CONCAT</span>		<span class="o">=</span> <span class="mi">35</span><span class="p">;</span> <span class="c1">// Concatenate this value to the stored value.</span>
+		<span class="na">OP_LOWER</span>		<span class="o">=</span> <span class="mi">36</span><span class="p">;</span> <span class="c1">// Replace the stored value with its lower-case equivalent. The value specified in this instance is ignored.</span>
+		<span class="na">OP_UPPER</span>		<span class="o">=</span> <span class="mi">37</span><span class="p">;</span> <span class="c1">// Replace the stored value with its upper-case equivalent. The value specified in this instance is ignored.</span>
+		<span class="na">OP_TONUM</span>		<span class="o">=</span> <span class="mi">38</span><span class="p">;</span> <span class="c1">// Coerce the stored value to any of numeric types (VT_INT - VT_DOUBLE).</span>
+		<span class="na">OP_TOINUM</span>		<span class="o">=</span> <span class="mi">39</span><span class="p">;</span> <span class="c1">// Coerce the stored value to an integer numeric type (VT_INT - VT_UINT64).</span>
+		<span class="na">OP_CAST</span>			<span class="o">=</span> <span class="mi">40</span><span class="p">;</span> <span class="c1">// Coerce the stored value to the type defined by tghe second argument.</span>
+	<span class="p">}</span>
+	<span class="c1">// For string/stream value editing (Value::op == OP_EDIT).</span>
+	<span class="c1">// Allows to insert, delete and replace ranges.</span>
+	<span class="kd">message</span> <span class="nc">StrEdit</span> <span class="p">{</span>
+		<span class="k">optional</span> <span class="kt">string</span> <span class="na">str</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// For Value::type == VT_STRING. Specifies the characters to be inserted in the existing string. Can be empty.</span>
+		<span class="k">optional</span> <span class="kt">bytes</span>	<span class="na">bstr</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// For Value::type == VT_BSTR. Specifies the bytes to be inserted in the existing string. Can be empty.</span>
+		<span class="k">required</span> <span class="kt">uint32</span> <span class="na">length</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// Specifies how many characters/bytes should be deleted from the original string, before insertion. Can be 0.</span>
+		<span class="k">optional</span> <span class="kt">uint64</span> <span class="na">offset</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// Specifies the offset at which StrEdit::length should be deleted, and StrEdit::str/StrEdit::bstr should be inserted.</span>
+	<span class="p">}</span>
+	<span class="c1">// To change multiple bits in an integer (Value::op == OP_EDIT).</span>
+	<span class="kd">message</span> <span class="nc">BitEdit</span> <span class="p">{</span>
+		<span class="k">required</span> <span class="kt">uint32</span> <span class="na">bits</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+		<span class="k">required</span> <span class="kt">uint32</span> <span class="na">mask</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+	<span class="p">}</span>
+	<span class="c1">// To change multiple bits in an 64-bit integer (Value::op == OP_EDIT).</span>
+	<span class="kd">message</span> <span class="nc">BitEdit64</span> <span class="p">{</span>
+		<span class="k">required</span> <span class="kt">uint64</span> <span class="na">bits</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
+		<span class="k">required</span> <span class="kt">uint64</span> <span class="na">mask</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+	<span class="p">}</span>
+	<span class="c1">// For structs, collections and ranges.</span>
+	<span class="kd">message</span> <span class="nc">VArray</span> <span class="p">{</span>
+		<span class="k">optional</span> <span class="kt">uint32</span>	<span class="na">l</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// Specifies the number of elements in the collection.</span>
+		<span class="k">repeated</span> <span class="n">Value</span>	<span class="na">v</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// Each element is a Value.</span>
+	<span class="p">}</span>
+	<span class="c1">// Enumeration element</span>
+	<span class="kd">message</span> <span class="nc">VEnum</span> <span class="p">{</span>
+		<span class="k">required</span> <span class="kt">uint32</span> <span class="na">enuid</span>  <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// Enumeration identifier.</span>
+		<span class="k">required</span> <span class="kt">uint32</span> <span class="na">enuelt</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// Enumeration element id.</span>
+	<span class="p">}</span>
+	<span class="c1">// Map element</span>
+	<span class="kd">message</span> <span class="nc">VMapElt</span> <span class="p">{</span>
+		<span class="k">required</span> <span class="n">Value</span>	<span class="na">key</span>	  <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// Map element key.</span>
+		<span class="k">required</span> <span class="n">Value</span>	<span class="na">value</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// Map element value.</span>
+	<span class="p">}</span>
+	<span class="c1">// Map</span>
+	<span class="kd">message</span> <span class="nc">VMap</span> <span class="p">{</span>
+		<span class="k">optional</span> <span class="kt">uint32</span>	<span class="na">l</span>	<span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// Number of keys.</span>
+		<span class="k">repeated</span> <span class="n">VMapElt</span> <span class="na">v</span>	<span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// Key-value pairs.		</span>
+	<span class="p">}</span>
+	<span class="c1">// Array</span>
+	<span class="kd">message</span> <span class="nc">AArray</span> <span class="p">{</span>
+		<span class="k">optional</span> <span class="kt">uint32</span>		<span class="na">xdim</span>	<span class="o">=</span> <span class="mi">1</span><span class="p">;</span>	<span class="c1">// Vector size or matrix X-dimension.</span>
+		<span class="k">optional</span> <span class="kt">uint32</span>		<span class="na">ydim</span>	<span class="o">=</span> <span class="mi">2</span><span class="p">;</span>	<span class="c1">// Matrix Y-dimension, 0 for vectors.</span>
+		<span class="k">optional</span> <span class="kt">uint32</span>		<span class="na">start</span>	<span class="o">=</span> <span class="mi">3</span><span class="p">;</span>	<span class="c1">// Index of the first element for circular 1-dimensional arrays.</span>
+		<span class="k">optional</span> <span class="n">ValueType</span>	<span class="na">type</span>	<span class="o">=</span> <span class="mi">4</span><span class="p">;</span>	<span class="c1">// Data type of element arrays (VT_INT-VT_DOUBLE,VT_DATETIME,VT_INTERVAL,VT_REFID,VT_STRUCT).</span>
+		<span class="k">optional</span> <span class="kt">uint32</span>		<span class="na">flags</span>	<span class="o">=</span> <span class="mi">5</span><span class="p">;</span>
+	<span class="p">}</span>
+	
+	<span class="k">optional</span> <span class="n">ValueType</span>	<span class="na">type</span>		<span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// The type of the value.</span>
+	<span class="k">optional</span> <span class="kt">uint32</span>		<span class="na">property</span>	<span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// The numeric ID of the property that this value belongs to, as defined by the relevant AfyStream::StringMap.</span>
 
-    <span class="c1">// The following fields are meant to be used as a union, based on Value::type.</span>
-    <span class="k">optional</span> <span class="kt">string</span>      <span class="na">str</span>         <span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// The VT_STRING or VT_URL value, or string form of VT_EXPR or VT_QUERY.</span>
-    <span class="k">optional</span> <span class="kt">bytes</span>       <span class="na">bstr</span>        <span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// The VT_BSTR value.</span>
-    <span class="k">optional</span> <span class="kt">sint32</span>      <span class="na">i</span>           <span class="o">=</span> <span class="mi">5</span><span class="p">;</span> <span class="c1">// The VT_INT value.</span>
-    <span class="k">optional</span> <span class="kt">uint32</span>      <span class="na">ui</span>          <span class="o">=</span> <span class="mi">6</span><span class="p">;</span> <span class="c1">// The VT_UINT or VT_URIID or VT_IDENTITY value.</span>
-    <span class="k">optional</span> <span class="kt">sint64</span>      <span class="na">i64</span>         <span class="o">=</span> <span class="mi">7</span><span class="p">;</span> <span class="c1">// The VT_INT64 value.</span>
-    <span class="k">optional</span> <span class="kt">uint64</span>      <span class="na">ui64</span>        <span class="o">=</span> <span class="mi">8</span><span class="p">;</span> <span class="c1">// The VT_UINT64 value.</span>
-    <span class="k">optional</span> <span class="kt">float</span>       <span class="na">f</span>           <span class="o">=</span> <span class="mi">9</span><span class="p">;</span> <span class="c1">// The VT_FLOAT value.</span>
-    <span class="k">optional</span> <span class="kt">double</span>      <span class="na">d</span>           <span class="o">=</span> <span class="mi">10</span><span class="p">;</span> <span class="c1">// The VT_DOUBLE value.</span>
-    <span class="k">optional</span> <span class="kt">fixed64</span> <span class="na">datetime</span>    <span class="o">=</span> <span class="mi">11</span><span class="p">;</span> <span class="c1">// The VT_DATETIME value.</span>
-    <span class="k">optional</span> <span class="kt">sfixed64</span>    <span class="na">interval</span>    <span class="o">=</span> <span class="mi">12</span><span class="p">;</span> <span class="c1">// The VT_INTERVAL value.</span>
-    <span class="k">optional</span> <span class="n">PID</span>      <span class="na">id</span>          <span class="o">=</span> <span class="mi">13</span><span class="p">;</span> <span class="c1">// The VT_REFID value.</span>
-    <span class="k">optional</span> <span class="n">VArray</span>       <span class="na">varray</span>      <span class="o">=</span> <span class="mi">14</span><span class="p">;</span> <span class="c1">// The VT_ARRAY value.</span>
-    <span class="k">optional</span> <span class="n">Ref</span>      <span class="na">ref</span>         <span class="o">=</span> <span class="mi">15</span><span class="p">;</span> <span class="c1">// The VT_REFIDPROP or VT_REFIDELT value.</span>
-    <span class="k">optional</span> <span class="kt">bool</span>        <span class="na">b</span>           <span class="o">=</span> <span class="mi">16</span><span class="p">;</span> <span class="c1">// The VT_BOOL value.</span>
+	<span class="c1">// The following fields are meant to be used as a union, based on Value::type.</span>
+	<span class="k">optional</span> <span class="kt">string</span>		<span class="na">str</span>			<span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// The VT_STRING or string form of VT_EXPR or VT_QUERY.</span>
+	<span class="k">optional</span> <span class="kt">bytes</span>		<span class="na">bstr</span>		<span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// The VT_BSTR value.</span>
+	<span class="k">optional</span> <span class="kt">sint32</span>		<span class="na">i</span>			<span class="o">=</span> <span class="mi">5</span><span class="p">;</span> <span class="c1">// The VT_INT value.</span>
+	<span class="k">optional</span> <span class="kt">uint32</span>		<span class="na">ui</span>			<span class="o">=</span> <span class="mi">6</span><span class="p">;</span> <span class="c1">// The VT_UINT or VT_URIID or VT_IDENTITY value.</span>
+	<span class="k">optional</span> <span class="kt">sint64</span>		<span class="na">i64</span>			<span class="o">=</span> <span class="mi">7</span><span class="p">;</span> <span class="c1">// The VT_INT64 value.</span>
+	<span class="k">optional</span> <span class="kt">uint64</span>		<span class="na">ui64</span>		<span class="o">=</span> <span class="mi">8</span><span class="p">;</span> <span class="c1">// The VT_UINT64 value.</span>
+	<span class="k">optional</span> <span class="kt">float</span>		<span class="na">f</span>			<span class="o">=</span> <span class="mi">9</span><span class="p">;</span> <span class="c1">// The VT_FLOAT value.</span>
+	<span class="k">optional</span> <span class="kt">double</span>		<span class="na">d</span>			<span class="o">=</span> <span class="mi">10</span><span class="p">;</span> <span class="c1">// The VT_DOUBLE value.</span>
+	<span class="k">optional</span> <span class="kt">fixed64</span>	<span class="na">datetime</span>	<span class="o">=</span> <span class="mi">11</span><span class="p">;</span> <span class="c1">// The VT_DATETIME value.</span>
+	<span class="k">optional</span> <span class="kt">sfixed64</span>	<span class="na">interval</span>	<span class="o">=</span> <span class="mi">12</span><span class="p">;</span> <span class="c1">// The VT_INTERVAL value.</span>
+	<span class="k">optional</span> <span class="n">PID</span>		<span class="na">id</span>			<span class="o">=</span> <span class="mi">13</span><span class="p">;</span> <span class="c1">// The VT_REFID value.</span>
+	<span class="k">optional</span> <span class="n">VArray</span>		<span class="na">varray</span>		<span class="o">=</span> <span class="mi">14</span><span class="p">;</span> <span class="c1">// The VT_ARRAY value.</span>
+	<span class="k">optional</span> <span class="n">Ref</span>		<span class="na">ref</span>			<span class="o">=</span> <span class="mi">15</span><span class="p">;</span> <span class="c1">// The VT_REFIDPROP or VT_REFIDELT value.</span>
+	<span class="k">optional</span> <span class="kt">bool</span>		<span class="na">b</span>			<span class="o">=</span> <span class="mi">16</span><span class="p">;</span> <span class="c1">// The VT_BOOL value.</span>
 
-    <span class="k">optional</span> <span class="n">ModOp</span>        <span class="na">op</span>          <span class="o">=</span> <span class="mi">17</span> <span class="p">[</span><span class="k">default</span> <span class="o">=</span> <span class="n">OP_SET</span><span class="p">];</span> <span class="c1">// The kind of update that this Value may represent.</span>
-    <span class="k">optional</span> <span class="kt">uint32</span>      <span class="na">eid</span>         <span class="o">=</span> <span class="mi">18</span> <span class="p">[</span><span class="k">default</span> <span class="o">=</span> <span class="mi">4294967295</span><span class="p">];</span> <span class="c1">// The pivot around which Value::op == OP_ADD* or OP_MOVE* operate.</span>
-    <span class="k">optional</span> <span class="kt">uint32</span>      <span class="na">meta</span>        <span class="o">=</span> <span class="mi">19</span><span class="p">;</span> <span class="c1">// Specialized additional specifiers, combination of MetaProps elements.</span>
+	<span class="k">optional</span> <span class="n">ModOp</span>		<span class="na">op</span>			<span class="o">=</span> <span class="mi">17</span> <span class="p">[</span><span class="k">default</span> <span class="o">=</span> <span class="n">OP_SET</span><span class="p">];</span> <span class="c1">// The kind of update that this Value may represent.</span>
+	<span class="k">optional</span> <span class="kt">uint32</span>		<span class="na">eid</span>			<span class="o">=</span> <span class="mi">18</span> <span class="p">[</span><span class="k">default</span> <span class="o">=</span> <span class="mi">4294967295</span><span class="p">];</span> <span class="c1">// The pivot around which Value::op == OP_ADD* or OP_MOVE* operate.</span>
+	<span class="k">optional</span> <span class="kt">uint32</span>		<span class="na">meta</span>		<span class="o">=</span> <span class="mi">19</span><span class="p">;</span> <span class="c1">// Specialized additional specifiers, combination of MetaProps elements.</span>
 
-    <span class="k">optional</span> <span class="n">StrEdit</span>  <span class="na">edit</span>        <span class="o">=</span> <span class="mi">20</span><span class="p">;</span> <span class="c1">// String editing specification, required when Value::op == OP_EDIT.</span>
-    <span class="k">optional</span> <span class="kt">uint32</span>      <span class="na">units</span>       <span class="o">=</span> <span class="mi">21</span><span class="p">;</span> <span class="c1">// [Enum to be provided soon.] Unit of measurement. Can be used with Value::type == VT_FLOAT or VT_DOUBLE.</span>
-    <span class="k">optional</span> <span class="n">VEnum</span>        <span class="na">enu</span>         <span class="o">=</span> <span class="mi">22</span><span class="p">;</span> <span class="c1">// The VT_ENUM value.</span>
-    <span class="k">optional</span> <span class="n">VMap</span>     <span class="na">map</span>         <span class="o">=</span> <span class="mi">23</span><span class="p">;</span> <span class="c1">// The VT_MAP value.</span>
+	<span class="k">optional</span> <span class="n">StrEdit</span>	<span class="na">edit</span>		<span class="o">=</span> <span class="mi">20</span><span class="p">;</span> <span class="c1">// String editing specification, Value::op == OP_EDIT.</span>
+	<span class="k">optional</span> <span class="kt">uint32</span>		<span class="na">units</span>		<span class="o">=</span> <span class="mi">21</span><span class="p">;</span> <span class="c1">// [Enum to be provided soon.] Unit of measurement. Can be used with Value::type == VT_FLOAT or VT_DOUBLE.</span>
+	<span class="k">optional</span> <span class="n">VEnum</span>		<span class="na">enu</span>			<span class="o">=</span> <span class="mi">22</span><span class="p">;</span> <span class="c1">// The VT_ENUM value.</span>
+	<span class="k">optional</span> <span class="n">VMap</span>		<span class="na">map</span>			<span class="o">=</span> <span class="mi">23</span><span class="p">;</span> <span class="c1">// The VT_MAP value.</span>
+	<span class="k">optional</span> <span class="n">BitEdit</span>	<span class="na">bedt</span>		<span class="o">=</span> <span class="mi">24</span><span class="p">;</span> <span class="c1">// Bit editing operation, Value::op == OP_EDIT.</span>
+	<span class="k">optional</span> <span class="n">BitEdit64</span>	<span class="na">bedt64</span>		<span class="o">=</span> <span class="mi">25</span><span class="p">;</span> <span class="c1">// Bit editing operation for 64-bit integers, Value::op == OP_EDIT.</span>
+	<span class="k">optional</span> <span class="n">AArray</span>		<span class="na">arr</span>			<span class="o">=</span> <span class="mi">26</span><span class="p">;</span> <span class="c1">// Fixed size array.</span>
 
-    <span class="k">optional</span> <span class="kt">uint64</span>      <span class="na">cid</span>         <span class="o">=</span> <span class="mi">128</span><span class="p">;</span> <span class="c1">// Client-side ID. Allows identifying the statement generated this result.</span>
+	<span class="k">optional</span> <span class="kt">uint64</span>		<span class="na">cid</span>			<span class="o">=</span> <span class="mi">128</span><span class="p">;</span> <span class="c1">// Client-side ID. Allows identifying the statement generated this result.</span>
 <span class="p">}</span>
 
 <span class="c1">// AfyStream encapsulates all the elements that can be inserted/retrieved in a</span>
@@ -366,91 +394,92 @@
 <span class="c1">// Incorrect usage will simply be reported as errors by Affinity.</span>
 <span class="kd">message</span> <span class="nc">AfyStream</span>
 <span class="p">{</span>
-    <span class="c1">// In an input stream sent to Affinity, specifies how a PIN message</span>
-    <span class="c1">// is meant to be interpreted by the store.</span>
-    <span class="kd">enum</span> <span class="n">MODOP</span> <span class="p">{</span>
-        <span class="na">OP_INSERT</span>   <span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="c1">// A PIN insert.</span>
-        <span class="na">OP_UPDATE</span>   <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// A PIN update.</span>
-        <span class="na">OP_DELETE</span>   <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// A PIN delete.</span>
-        <span class="na">OP_COPY</span>     <span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// A PIN copy.</span>
-        <span class="na">OP_UNDELETE</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// A PIN undelete.</span>
-    <span class="p">}</span>
-    <span class="c1">// Allows to define transaction boundaries (see the big comment for AfyStream, above).</span>
-    <span class="kd">enum</span> <span class="n">TXOP</span> <span class="p">{</span>
-        <span class="na">TX_START</span>            <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// Start a transaction, or if a transaction is already active, a nested sub-transaction.</span>
-        <span class="na">TX_COMMIT</span>           <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// Commit the innermost nested transaction, for the current stream.</span>
-        <span class="na">TX_COMMIT_ALL</span>       <span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// Commit all nested transactions (including the topmost), for the current stream.</span>
-        <span class="na">TX_ROLLBACK</span>         <span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// Rollback the innermost nested transaction, for the current stream.</span>
-        <span class="na">TX_ROLLBACK_ALL</span>     <span class="o">=</span> <span class="mi">5</span><span class="p">;</span> <span class="c1">// Rollback all nested transactions (including the topmost), for the current stream.</span>
-        <span class="na">TX_START_READONLY</span>   <span class="o">=</span> <span class="mi">6</span><span class="p">;</span> <span class="c1">// Start a read-only transaction.</span>
-        <span class="na">TX_START_CLASSMODIFY</span> <span class="o">=</span> <span class="mi">7</span><span class="p">;</span> <span class="c1">// Start a transaction, which can modify class pins.</span>
-    <span class="p">}</span>
-    <span class="c1">// Allows to specify name and identity mappings, to avoid repeating names.</span>
-    <span class="c1">// In an input stream sent to Affinity, the mapping is purely logical (the IDs are not persistent).</span>
-    <span class="c1">// In an output stream returned by Affinity, the mapping is the store&#39;s persistent mapping; it can be cached and reused by the client.</span>
-    <span class="kd">message</span> <span class="nc">StringMap</span> <span class="p">{</span>
-        <span class="k">required</span> <span class="kt">string</span>  <span class="na">str</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// The name (URI or Identity).</span>
-        <span class="k">required</span> <span class="kt">uint32</span> <span class="na">id</span>   <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// The corresponding ID.</span>
-    <span class="p">}</span>
-    <span class="c1">// Query result meta-data, returned by Affinity in an output stream.</span>
-    <span class="kd">message</span> <span class="nc">Result</span> <span class="p">{</span>
-        <span class="k">optional</span> <span class="kt">uint64</span>      <span class="na">cid</span>     <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// Client-side ID of corresponding PathSQL or PIN message.</span>
-        <span class="k">optional</span> <span class="n">ErrorCode</span>    <span class="na">error</span>   <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// Error code. If success - this field is omitted.</span>
-        <span class="k">optional</span> <span class="kt">uint64</span>      <span class="na">count</span>   <span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// Result count (only in case of success).</span>
-        <span class="k">optional</span> <span class="n">MODOP</span>        <span class="na">op</span>      <span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// The operation performed.</span>
-    <span class="p">}</span>
-    <span class="c1">// Specifies a PathSQL statement, in an input stream.</span>
-    <span class="kd">message</span> <span class="nc">PathSQL</span> <span class="p">{</span>
-        <span class="k">required</span> <span class="kt">string</span>      <span class="na">sq</span>      <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// Specifies the PathSQL statement as a string.</span>
-        <span class="k">optional</span> <span class="kt">uint64</span>      <span class="na">cid</span>     <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// Client-side ID. Allows identifying results that relate to this statement.</span>
-        <span class="k">optional</span> <span class="n">ReturnType</span>   <span class="na">rtt</span>     <span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// Specifies what level of details is expected in the result.</span>
-        <span class="k">repeated</span> <span class="kt">uint32</span>      <span class="na">uids</span>    <span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// Specifies the property ids referred to by the PathSQL statement, if any.</span>
-        <span class="k">repeated</span> <span class="n">Value</span>        <span class="na">params</span>  <span class="o">=</span> <span class="mi">5</span><span class="p">;</span> <span class="c1">// Specifies the values of the parameters in the PathSQL statement, if any.</span>
-        <span class="k">optional</span> <span class="kt">uint32</span>      <span class="na">limit</span>   <span class="o">=</span> <span class="mi">6</span><span class="p">;</span> <span class="c1">// For pagination (standard).</span>
-        <span class="k">optional</span> <span class="kt">uint32</span>      <span class="na">offset</span>  <span class="o">=</span> <span class="mi">7</span><span class="p">;</span> <span class="c1">// For pagination (standard).</span>
-        <span class="k">optional</span> <span class="kt">uint32</span>      <span class="na">mode</span>    <span class="o">=</span> <span class="mi">8</span><span class="p">;</span> <span class="c1">// Special modifiers.</span>
-        <span class="k">optional</span> <span class="kt">bool</span>    <span class="na">abortOnError</span><span class="o">=</span> <span class="mi">9</span><span class="p">;</span> <span class="c1">// Stop executing input stream if an error happened in this query</span>
-    <span class="p">}</span>
-    <span class="c1">// In an input stream, specifies data for PIN insertion/modification/deletion.</span>
-    <span class="c1">// In an output stream, specifies returned data.</span>
-    <span class="kd">message</span> <span class="nc">PIN</span> <span class="p">{</span>
-        <span class="k">optional</span> <span class="n">MODOP</span>        <span class="na">op</span>      <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// Operation to perform on this PIN. If missing insert is implied.</span>
-        <span class="k">optional</span> <span class="n">PID</span>      <span class="na">id</span>      <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// PIN ID (for existing PINs and update/delete/copy/undelete operations).</span>
-        <span class="k">optional</span> <span class="kt">uint32</span>      <span class="na">mode</span>    <span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// Special modifiers.</span>
-        <span class="k">optional</span> <span class="kt">uint32</span>      <span class="na">nValues</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// Optional specifier for the number of values of properties. Optimization.</span>
-        <span class="k">repeated</span> <span class="n">Value</span>        <span class="na">values</span>  <span class="o">=</span> <span class="mi">5</span><span class="p">;</span> <span class="c1">// Values of properties of the PIN.</span>
-        <span class="k">optional</span> <span class="kt">uint64</span>      <span class="na">cid</span>     <span class="o">=</span> <span class="mi">6</span><span class="p">;</span> <span class="c1">// Client-side ID. Used for references between uncommitted PINs and to relate results to the request.</span>
-        <span class="k">optional</span> <span class="n">ReturnType</span>   <span class="na">rtt</span>     <span class="o">=</span> <span class="mi">7</span><span class="p">;</span> <span class="c1">// Return level of details specification.</span>
-    <span class="p">}</span>
-    <span class="c1">// Will describe sets of PINs (e.g. a result of processing a join query).</span>
-    <span class="kd">message</span> <span class="nc">Compound</span> <span class="p">{</span>
-        <span class="k">optional</span> <span class="kt">uint32</span>  <span class="na">nPINs</span>       <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// Number of PINs in the set.</span>
-        <span class="k">repeated</span> <span class="n">PIN</span>  <span class="na">pins</span>        <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// Actual PINs in this set.</span>
-        <span class="k">optional</span> <span class="kt">uint64</span>  <span class="na">cid</span>         <span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// Client-side ID. Used to relate results to the request.</span>
-    <span class="p">}</span>
-    <span class="c1">// Will provide the asynchronous status of a query run in server mode.</span>
-    <span class="kd">message</span> <span class="nc">Status</span> <span class="p">{</span>
-        <span class="k">optional</span> <span class="kt">uint32</span>  <span class="na">code</span>        <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// [Future.]</span>
-        <span class="k">optional</span> <span class="kt">uint64</span>  <span class="na">cid</span>         <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// Client-side ID. Used to relate results to the request.</span>
-    <span class="p">}</span>
-    <span class="c1">// For dump &amp; load, to retain internal page layout and integrity of IDs.</span>
-    <span class="kd">message</span> <span class="nc">ReservedPages</span> <span class="p">{</span>
-        <span class="k">optional</span> <span class="kt">uint32</span>  <span class="na">nPages</span>      <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// Number of pages to reserve.</span>
-        <span class="k">repeated</span> <span class="kt">uint32</span>  <span class="na">pageID</span>      <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// A page ID.</span>
-    <span class="p">}</span>
-    <span class="k">optional</span> <span class="n">StringMap</span>    <span class="na">owner</span>       <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// Owner of the store returning results (output stream only).</span>
-    <span class="k">optional</span> <span class="kt">uint32</span>      <span class="na">storeID</span>     <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// Store ID of the store returning results (output stream only).</span>
-    <span class="k">repeated</span> <span class="n">PIN</span>      <span class="na">pins</span>        <span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// A set of PIN descriptions. In input streams, can be used to insert or update PINs. In output streams, describes the query result.</span>
-    <span class="k">repeated</span> <span class="n">StringMap</span>    <span class="na">properties</span>  <span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// A map of property IDs vs names (URIs). In input streams sent to Affinity, the mapping is purely logical (note: by convention property IDs start at 64). In output streams returned by mvStore, the mapping is mvStore&#39;s persistent internal mapping.</span>
-    <span class="k">repeated</span> <span class="n">StringMap</span>    <span class="na">identities</span>  <span class="o">=</span> <span class="mi">5</span><span class="p">;</span> <span class="c1">// A map of identity IDs vs names (URIs). In input streams sent to Affinity, the mapping is purely logical. In output streams, the mapping is mvStore&#39;s persistent internal mapping.</span>
-    <span class="k">repeated</span> <span class="n">PathSQL</span>  <span class="na">stmt</span>        <span class="o">=</span> <span class="mi">6</span><span class="p">;</span> <span class="c1">// Query to be executed. Only relevant in input streams sent to Affinity.</span>
-    <span class="k">repeated</span> <span class="n">TXOP</span>     <span class="na">txop</span>        <span class="o">=</span> <span class="mi">7</span><span class="p">;</span> <span class="c1">// A transaction operation. In practice, this will only ever contain one element.</span>
-    <span class="k">repeated</span> <span class="n">Result</span>       <span class="na">result</span>      <span class="o">=</span> <span class="mi">8</span><span class="p">;</span> <span class="c1">// Query result meta-data. Only relevant in streams output by Affinity. Matches the specified ReturnType.</span>
-    <span class="k">repeated</span> <span class="n">Compound</span> <span class="na">compound</span>    <span class="o">=</span> <span class="mi">9</span><span class="p">;</span> <span class="c1">// A few PINs returned as a set.</span>
-    <span class="k">repeated</span> <span class="n">Status</span>       <span class="na">status</span>      <span class="o">=</span> <span class="mi">10</span><span class="p">;</span> <span class="c1">// [Not available yet.] To obtain status of a transaction running asynchronously in the server. Applies to &quot;server mode&quot; only.</span>
-    <span class="k">repeated</span> <span class="kt">uint32</span>      <span class="na">flush</span>       <span class="o">=</span> <span class="mi">11</span><span class="p">;</span> <span class="c1">// To request immediate partial output at any known point in the stream (e.g. to obtain PIDs during a transaction).</span>
-    <span class="k">repeated</span> <span class="n">ReservedPages</span> <span class="na">resPages</span>   <span class="o">=</span> <span class="mi">12</span><span class="p">;</span> <span class="c1">// For dump &amp; load.</span>
-    <span class="k">repeated</span> <span class="n">Value</span>        <span class="na">values</span>      <span class="o">=</span> <span class="mi">13</span><span class="p">;</span> <span class="c1">// Query result as a stream of values (RT_VALUES).</span>
+	<span class="c1">// In an input stream sent to Affinity, specifies how a PIN message</span>
+	<span class="c1">// is meant to be interpreted by the store.</span>
+	<span class="kd">enum</span> <span class="n">MODOP</span> <span class="p">{</span>
+		<span class="na">OP_INSERT</span>	<span class="o">=</span> <span class="mi">0</span><span class="p">;</span> <span class="c1">// A PIN insert.</span>
+		<span class="na">OP_UPDATE</span>	<span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// A PIN update.</span>
+		<span class="na">OP_DELETE</span>	<span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// A PIN delete.</span>
+		<span class="na">OP_COPY</span>		<span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// A PIN copy.</span>
+		<span class="na">OP_UNDELETE</span>	<span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// A PIN undelete.</span>
+	<span class="p">}</span>
+	<span class="c1">// Allows to define transaction boundaries (see the big comment for AfyStream, above).</span>
+	<span class="kd">enum</span> <span class="n">TXOP</span> <span class="p">{</span>
+		<span class="na">TX_START</span>			<span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// Start a transaction, or if a transaction is already active, a nested sub-transaction.</span>
+		<span class="na">TX_COMMIT</span>			<span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// Commit the innermost nested transaction, for the current stream.</span>
+		<span class="na">TX_COMMIT_ALL</span>		<span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// Commit all nested transactions (including the topmost), for the current stream.</span>
+		<span class="na">TX_ROLLBACK</span>			<span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// Rollback the innermost nested transaction, for the current stream.</span>
+		<span class="na">TX_ROLLBACK_ALL</span>		<span class="o">=</span> <span class="mi">5</span><span class="p">;</span> <span class="c1">// Rollback all nested transactions (including the topmost), for the current stream.</span>
+		<span class="na">TX_START_READONLY</span>	<span class="o">=</span> <span class="mi">6</span><span class="p">;</span> <span class="c1">// Start a read-only transaction.</span>
+		<span class="na">TX_START_CLASSMODIFY</span> <span class="o">=</span> <span class="mi">7</span><span class="p">;</span> <span class="c1">// Start a transaction, which can modify class pins.</span>
+	<span class="p">}</span>
+	<span class="c1">// Allows to specify name and identity mappings, to avoid repeating names.</span>
+	<span class="c1">// In an input stream sent to Affinity, the mapping is purely logical (the IDs are not persistent).</span>
+	<span class="c1">// In an output stream returned by Affinity, the mapping is the store&#39;s persistent mapping; it can be cached and reused by the client.</span>
+	<span class="kd">message</span> <span class="nc">StringMap</span> <span class="p">{</span>
+		<span class="k">required</span> <span class="kt">string</span>	<span class="na">str</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// The name (URI or Identity).</span>
+		<span class="k">required</span> <span class="kt">uint32</span> <span class="na">id</span>	<span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// The corresponding ID.</span>
+	<span class="p">}</span>
+	<span class="c1">// Query result meta-data, returned by Affinity in an output stream.</span>
+	<span class="kd">message</span> <span class="nc">Result</span> <span class="p">{</span>
+		<span class="k">optional</span> <span class="kt">uint64</span>		<span class="na">cid</span>		<span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// Client-side ID of corresponding PathSQL or PIN message.</span>
+		<span class="k">optional</span> <span class="n">ErrorCode</span>	<span class="na">error</span>	<span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// Error code. If success - this field is omitted.</span>
+		<span class="k">optional</span> <span class="kt">uint64</span>		<span class="na">count</span>	<span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// Result count (only in case of success).</span>
+		<span class="k">optional</span> <span class="n">MODOP</span>		<span class="na">op</span>		<span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// The operation performed.</span>
+	<span class="p">}</span>
+	<span class="c1">// Specifies a PathSQL statement, in an input stream.</span>
+	<span class="kd">message</span> <span class="nc">PathSQL</span> <span class="p">{</span>
+		<span class="k">required</span> <span class="kt">string</span>		<span class="na">sq</span>		<span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// Specifies the PathSQL statement as a string.</span>
+		<span class="k">optional</span> <span class="kt">uint64</span>		<span class="na">cid</span>		<span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// Client-side ID. Allows identifying results that relate to this statement.</span>
+		<span class="k">optional</span> <span class="n">ReturnType</span>	<span class="na">rtt</span>		<span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// Specifies what level of details is expected in the result.</span>
+		<span class="k">repeated</span> <span class="kt">uint32</span>		<span class="na">uids</span>	<span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// Specifies the property ids referred to by the PathSQL statement, if any.</span>
+		<span class="k">repeated</span> <span class="n">Value</span>		<span class="na">params</span>	<span class="o">=</span> <span class="mi">5</span><span class="p">;</span> <span class="c1">// Specifies the values of the parameters in the PathSQL statement, if any.</span>
+		<span class="k">optional</span> <span class="kt">uint32</span>		<span class="na">limit</span>	<span class="o">=</span> <span class="mi">6</span><span class="p">;</span> <span class="c1">// For pagination (standard).</span>
+		<span class="k">optional</span> <span class="kt">uint32</span>		<span class="na">offset</span>	<span class="o">=</span> <span class="mi">7</span><span class="p">;</span> <span class="c1">// For pagination (standard).</span>
+		<span class="k">optional</span> <span class="kt">uint32</span>		<span class="na">mode</span>	<span class="o">=</span> <span class="mi">8</span><span class="p">;</span> <span class="c1">// Special modifiers.</span>
+		<span class="k">optional</span> <span class="kt">bool</span>	<span class="na">abortOnError</span><span class="o">=</span> <span class="mi">9</span><span class="p">;</span> <span class="c1">// Stop executing input stream if an error happened in this query</span>
+	<span class="p">}</span>
+	<span class="c1">// In an input stream, specifies data for PIN insertion/modification/deletion.</span>
+	<span class="c1">// In an output stream, specifies returned data.</span>
+	<span class="kd">message</span> <span class="nc">PIN</span> <span class="p">{</span>
+		<span class="k">optional</span> <span class="n">MODOP</span>		<span class="na">op</span>		<span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// Operation to perform on this PIN. If missing insert is implied.</span>
+		<span class="k">optional</span> <span class="n">PID</span>		<span class="na">id</span>		<span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// PIN ID (for existing PINs and update/delete/copy/undelete operations).</span>
+		<span class="k">optional</span> <span class="kt">uint32</span>		<span class="na">mode</span>	<span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// Special modifiers.</span>
+		<span class="k">optional</span> <span class="kt">uint32</span>		<span class="na">nValues</span>	<span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// Optional specifier for the number of values of properties. Optimization.</span>
+		<span class="k">repeated</span> <span class="n">Value</span>		<span class="na">values</span>	<span class="o">=</span> <span class="mi">5</span><span class="p">;</span> <span class="c1">// Values of properties of the PIN.</span>
+		<span class="k">optional</span> <span class="kt">uint64</span>		<span class="na">cid</span>		<span class="o">=</span> <span class="mi">6</span><span class="p">;</span> <span class="c1">// Client-side ID. Used for references between uncommitted PINs and to relate results to the request.</span>
+		<span class="k">optional</span> <span class="n">ReturnType</span>	<span class="na">rtt</span>		<span class="o">=</span> <span class="mi">7</span><span class="p">;</span> <span class="c1">// Return level of details specification.</span>
+	<span class="p">}</span>
+	<span class="c1">// Will describe sets of PINs (e.g. a result of processing a join query).</span>
+	<span class="kd">message</span> <span class="nc">Compound</span> <span class="p">{</span>
+		<span class="k">optional</span> <span class="kt">uint32</span>	<span class="na">nPINs</span>		<span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// Number of PINs in the set.</span>
+		<span class="k">repeated</span> <span class="n">PIN</span>	<span class="na">pins</span>		<span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// Actual PINs in this set.</span>
+		<span class="k">optional</span> <span class="kt">uint64</span>	<span class="na">cid</span>			<span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// Client-side ID. Used to relate results to the request.</span>
+	<span class="p">}</span>
+	<span class="c1">// Will provide the asynchronous status of a query run in server mode.</span>
+	<span class="kd">message</span> <span class="nc">Status</span> <span class="p">{</span>
+		<span class="k">optional</span> <span class="kt">uint32</span>	<span class="na">code</span>		<span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// [Future.]</span>
+		<span class="k">optional</span> <span class="kt">uint64</span>	<span class="na">cid</span>			<span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// Client-side ID. Used to relate results to the request.</span>
+	<span class="p">}</span>
+	<span class="c1">// For dump &amp; load, to retain internal page layout and integrity of IDs.</span>
+	<span class="kd">message</span> <span class="nc">ReservedPages</span> <span class="p">{</span>
+		<span class="k">optional</span> <span class="kt">uint32</span>	<span class="na">nPages</span>		<span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// Number of pages to reserve.</span>
+		<span class="k">repeated</span> <span class="kt">uint32</span>	<span class="na">pageID</span>		<span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// A page ID.</span>
+	<span class="p">}</span>
+	<span class="k">optional</span> <span class="n">StringMap</span>	<span class="na">owner</span>		<span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// Owner of the store returning results (output stream only).</span>
+	<span class="k">optional</span> <span class="kt">uint32</span>		<span class="na">storeID</span>		<span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// Store ID of the store returning results (output stream only).</span>
+	<span class="k">repeated</span> <span class="n">PIN</span>		<span class="na">pins</span>		<span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// A set of PIN descriptions. In input streams, can be used to insert or update PINs. In output streams, describes the query result.</span>
+	<span class="k">repeated</span> <span class="n">StringMap</span>	<span class="na">properties</span>	<span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// A map of property IDs vs names (URIs). In input streams sent to Affinity, the mapping is purely logical (note: by convention property IDs start at 64). In output streams returned by mvStore, the mapping is mvStore&#39;s persistent internal mapping.</span>
+	<span class="k">repeated</span> <span class="n">StringMap</span>	<span class="na">identities</span>	<span class="o">=</span> <span class="mi">5</span><span class="p">;</span> <span class="c1">// A map of identity IDs vs names (URIs). In input streams sent to Affinity, the mapping is purely logical. In output streams, the mapping is mvStore&#39;s persistent internal mapping.</span>
+	<span class="k">repeated</span> <span class="n">PathSQL</span>	<span class="na">stmt</span>		<span class="o">=</span> <span class="mi">6</span><span class="p">;</span> <span class="c1">// Query to be executed. Only relevant in input streams sent to Affinity.</span>
+	<span class="k">repeated</span> <span class="n">TXOP</span>		<span class="na">txop</span>		<span class="o">=</span> <span class="mi">7</span><span class="p">;</span> <span class="c1">// A transaction operation. In practice, this will only ever contain one element.</span>
+	<span class="k">repeated</span> <span class="n">Result</span>		<span class="na">result</span>		<span class="o">=</span> <span class="mi">8</span><span class="p">;</span> <span class="c1">// Query result meta-data. Only relevant in streams output by Affinity. Matches the specified ReturnType.</span>
+	<span class="k">repeated</span> <span class="n">Compound</span>	<span class="na">compound</span>	<span class="o">=</span> <span class="mi">9</span><span class="p">;</span> <span class="c1">// A few PINs returned as a set.</span>
+	<span class="k">repeated</span> <span class="n">Status</span>		<span class="na">status</span>		<span class="o">=</span> <span class="mi">10</span><span class="p">;</span> <span class="c1">// [Not available yet.] To obtain status of a transaction running asynchronously in the server. Applies to &quot;server mode&quot; only.</span>
+	<span class="k">repeated</span> <span class="kt">uint32</span>		<span class="na">flush</span>		<span class="o">=</span> <span class="mi">11</span><span class="p">;</span> <span class="c1">// To request immediate partial output at any known point in the stream (e.g. to obtain PIDs during a transaction).</span>
+	<span class="k">repeated</span> <span class="n">ReservedPages</span> <span class="na">resPages</span>	<span class="o">=</span> <span class="mi">12</span><span class="p">;</span> <span class="c1">// For dump &amp; load.</span>
+	<span class="k">repeated</span> <span class="n">Value</span>		<span class="na">values</span>		<span class="o">=</span> <span class="mi">13</span><span class="p">;</span> <span class="c1">// Query result as a stream of values (RT_VALUES).</span>
+	<span class="k">optional</span> <span class="kt">bool</span>		<span class="na">EOS</span>			<span class="o">=</span> <span class="mi">14</span><span class="p">;</span> <span class="c1">// End-of-stream marker.</span>
 <span class="p">}</span>
 </pre></div>
 <!-- end highlighted code -->

@@ -57,8 +57,8 @@ function defaultMachineSetup(pCompletion)
   //   I couldn't integrate sensor_spread to the sin version, here (would neet to apply to t...).
   var lJitterShift = "dsms:sensor_jitter * :0 + dsms:sensor_shifts * :1";
   var lFuncConst = "$(MAX(dsms:sensor_min, MIN(dsms:sensor_max, (dsms:sensor_min + dsms:sensor_max) * 0.5 + " + lJitterShift + ")))";
-  var lFuncLinUp = "$(MAX(dsms:sensor_min, MIN(dsms:sensor_max, (dsms:sensor_min + (0.01 * (:2 - dsms:sensor_resetts[:LAST]) / dsms:sensor_spread) * (dsms:sensor_max - dsms:sensor_min)) + " + lJitterShift + ")))";
-  var lFuncLinDn = "$(MAX(dsms:sensor_min, MIN(dsms:sensor_max, (dsms:sensor_max - (0.01 * (:2 - dsms:sensor_resetts[:LAST]) / dsms:sensor_spread) * (dsms:sensor_max - dsms:sensor_min)) + " + lJitterShift + ")))";
+  var lFuncLinUp = "$(MAX(dsms:sensor_min, MIN(dsms:sensor_max, (dsms:sensor_min + (0.01 * (:2 - dsms:sensor_resetts) / dsms:sensor_spread) * (dsms:sensor_max - dsms:sensor_min)) + " + lJitterShift + ")))";
+  var lFuncLinDn = "$(MAX(dsms:sensor_min, MIN(dsms:sensor_max, (dsms:sensor_max - (0.01 * (:2 - dsms:sensor_resetts) / dsms:sensor_spread) * (dsms:sensor_max - dsms:sensor_min)) + " + lJitterShift + ")))";
   var lFuncSinus = "$(MAX(dsms:sensor_min, MIN(dsms:sensor_max, (dsms:sensor_min + ((0.5 + :3 * 0.5) * (dsms:sensor_max - dsms:sensor_min))) + " + lJitterShift + ")))";
   var lTriggerMaintenance =
     [
@@ -68,31 +68,36 @@ function defaultMachineSetup(pCompletion)
       // TODO: shifts... (requires a bit more state management...)
       // REVIEW (bugs to investigate and log):
       //  Some bug, when specifying the machine, both as argument to the family, or as extra WHERE (dsms:machine=@self.dsms:machine)...
-      //  Also SET ...=resetts[:FIRST/:LAST] doesn't work here... forced me to pretent that sensor_resetts is a coll...
       //  Also a redundant @self in the WHERE of the last statement caused it to do nothing...
       //  If I remove dsms:resetts from @self, the execution becomes unpredictable (e.g. money curve not always reset).
       "${INSERT dsms:maintenance_at=CURRENT_TIMESTAMP}",
-      "${UPDATE dsms:sensors SET dsms:sensor_resetts=@self.dsms:resetts[:LAST], dsms:maintenance_at=CURRENT_TIMESTAMP}", // WHERE (MAX(@self.dsms:warning_coffee[:FIRST], @self.dsms:warning_money[:FIRST]) + INTERVAL '00:00:03' < CURRENT_TIMESTAMP)
+      "${UPDATE dsms:sensors SET dsms:sensor_resetts=@self.dsms:resetts, dsms:maintenance_at=CURRENT_TIMESTAMP}", // WHERE (MAX(@self.dsms:warning_coffee[:FIRST], @self.dsms:warning_money[:FIRST]) + INTERVAL '00:00:03' < CURRENT_TIMESTAMP)
       "${UPDATE @self DELETE dsms:warning_money, dsms:warning_coffee, dsms:resetts}", // WHERE (MAX(dsms:warning_coffee[:FIRST], dsms:warning_money[:FIRST]) + INTERVAL '00:00:03' < CURRENT_TIMESTAMP)
     ]
-  var lGo =
+  var lFirstSetup =
     function()
     {
       // Note: I mix 'CREATE CLASS' with 'INSERT afy:objectID=..., afy:predicate=...' syntaxes for educational purposes only.
       DSMS_CONTEXT.query("INSERT @:1 dsms:machine_name='coffee_dispenser',\
         dsms:sensors={\
-        (INSERT dsms:sensor_id='coffee_level', dsms:machine=@:1, dsms:sensor_type='st_level', dsms:sensor_curve='sc_linear_down', dsms:sensor_shifts=0, dsms:sensor_jitter=5, dsms:sensor_min=0, dsms:sensor_max=100, dsms:sensor_spread=1.0, dsms:sensor_func=" + lFuncLinDn + ", dsms:sensor_resetts={0}),\
-        (INSERT dsms:sensor_id='water_alcalinity', dsms:machine=@:1, dsms:sensor_type='st_level', dsms:sensor_curve='sc_sine', dsms:sensor_shifts=0, dsms:sensor_jitter=5, dsms:sensor_min=0, dsms:sensor_max=100, dsms:sensor_spread=0.1, dsms:sensor_func=" + lFuncSinus + ", dsms:sensor_resetts={0}),\
-        (INSERT dsms:sensor_id='internal_temperature', dsms:machine=@:1, dsms:sensor_type='st_temperature', dsms:sensor_curve='sc_sine', dsms:sensor_shifts=0, dsms:sensor_jitter=5, dsms:sensor_min=0, dsms:sensor_max=100, dsms:sensor_spread=0.5, dsms:sensor_func=" + lFuncSinus + ", dsms:sensor_resetts={0}),\
-        (INSERT dsms:sensor_id='coins_amount', dsms:machine=@:1, dsms:sensor_type='st_money', dsms:sensor_curve='sc_linear_up', dsms:sensor_shifts=0, dsms:sensor_jitter=5, dsms:sensor_min=0, dsms:sensor_max=100, dsms:sensor_spread=0.9, dsms:sensor_func=" + lFuncLinUp + ", dsms:sensor_resetts={0})},\
+        (INSERT dsms:sensor_id='coffee_level', dsms:machine=@:1, dsms:sensor_type='st_level', dsms:sensor_curve='sc_linear_down', dsms:sensor_shifts=0, dsms:sensor_jitter=5, dsms:sensor_min=0, dsms:sensor_max=100, dsms:sensor_spread=1.0, dsms:sensor_func=" + lFuncLinDn + ", dsms:sensor_resetts=0),\
+        (INSERT dsms:sensor_id='water_alcalinity', dsms:machine=@:1, dsms:sensor_type='st_level', dsms:sensor_curve='sc_sine', dsms:sensor_shifts=0, dsms:sensor_jitter=5, dsms:sensor_min=0, dsms:sensor_max=100, dsms:sensor_spread=0.1, dsms:sensor_func=" + lFuncSinus + ", dsms:sensor_resetts=0),\
+        (INSERT dsms:sensor_id='internal_temperature', dsms:machine=@:1, dsms:sensor_type='st_temperature', dsms:sensor_curve='sc_sine', dsms:sensor_shifts=0, dsms:sensor_jitter=5, dsms:sensor_min=0, dsms:sensor_max=100, dsms:sensor_spread=0.5, dsms:sensor_func=" + lFuncSinus + ", dsms:sensor_resetts=0),\
+        (INSERT dsms:sensor_id='coins_amount', dsms:machine=@:1, dsms:sensor_type='st_money', dsms:sensor_curve='sc_linear_up', dsms:sensor_shifts=0, dsms:sensor_jitter=5, dsms:sensor_min=0, dsms:sensor_max=100, dsms:sensor_spread=0.9, dsms:sensor_func=" + lFuncLinUp + ", dsms:sensor_resetts=0)},\
         dsms:rules={\
-        (INSERT dsms:rule_id='warn_coffee', dsms:machine=@:1, afy:objectID=.\"" + DSMS_CONTEXT.mNs + "/coffee_dispenser/warn_coffee\", afy:predicate=${SELECT * FROM dsms:basic_rule('coffee_dispenser') WHERE (dsms:sensor_id_cpy='coffee_level' AND dsms:\"sample/X\" < 20)}, afy:onEnter=${UPDATE @self.dsms:machine_rt ADD dsms:warning_coffee=CURRENT_TIMESTAMP, dsms:resetts=@self.dsms:time_step}, dsms:rule_description='Emit a warning when the coffee level goes below 20%'),\
-        (INSERT dsms:rule_id='warn_money', dsms:machine=@:1, afy:objectID=.\"" + DSMS_CONTEXT.mNs + "/coffee_dispenser/warn_money\", afy:predicate=${SELECT * FROM dsms:basic_rule('coffee_dispenser') WHERE (dsms:sensor_id_cpy='coins_amount' AND dsms:\"sample/X\" > 80)}, afy:onEnter=${UPDATE @self.dsms:machine_rt ADD dsms:warning_money=CURRENT_TIMESTAMP, dsms:resetts=@self.dsms:time_step}, dsms:rule_description='Emit a warning when the accumulated cash in the box goes beyond 80% capacity'),\
+        (INSERT dsms:rule_id='warn_coffee', dsms:machine=@:1, afy:objectID=.\"" + DSMS_CONTEXT.mNs + "/coffee_dispenser/warn_coffee\", afy:predicate=${SELECT * FROM dsms:basic_rule('coffee_dispenser') WHERE (dsms:sensor_id_cpy='coffee_level' AND dsms:\"sample/X\" < 20)}, afy:onEnter={${UPDATE @self.dsms:machine_rt ADD dsms:warning_coffee=CURRENT_TIMESTAMP}, ${UPDATE @self.dsms:machine_rt SET dsms:resetts=@self.dsms:time_step}}, dsms:rule_description='Emit a warning when the coffee level goes below 20%'),\
+        (INSERT dsms:rule_id='warn_money', dsms:machine=@:1, afy:objectID=.\"" + DSMS_CONTEXT.mNs + "/coffee_dispenser/warn_money\", afy:predicate=${SELECT * FROM dsms:basic_rule('coffee_dispenser') WHERE (dsms:sensor_id_cpy='coins_amount' AND dsms:\"sample/X\" > 80)}, afy:onEnter={${UPDATE @self.dsms:machine_rt ADD dsms:warning_money=CURRENT_TIMESTAMP}, ${UPDATE @self.dsms:machine_rt SET dsms:resetts=@self.dsms:time_step}}, dsms:rule_description='Emit a warning when the accumulated cash in the box goes beyond 80% capacity'),\
         (CREATE CLASS dsms:\"coffee_dispenser/maintenance\" AS SELECT * WHERE EXISTS(dsms:warning_money) AND EXISTS(dsms:warning_coffee) SET dsms:rule_id='maintenance', dsms:machine=@:1, afy:onEnter={" + lTriggerMaintenance.join(",") + "}, afy:onUpdate={" + lTriggerMaintenance.join(",") + "}, dsms:rule_description='Order immediate maintenance when both coffee and money warnings are pending')}",
         new QResultHandler(function(_pJson) { pCompletion(); }, null, null));
     }
-  var lOnMachines = function(_pJson) { if (undefined == _pJson || parseInt(_pJson) == 0) lGo(); else pCompletion(); }
-  DSMS_CONTEXT.query("SELECT * FROM dsms:machines;", new QResultHandler(lOnMachines, null, null), {countonly:true});
+	var lReinitialize =
+		function()
+		{
+      DSMS_CONTEXT.query("UPDATE dsms:sensors SET dsms:sensor_resetts=0",
+        new QResultHandler(function(_pJson) { pCompletion(); }, null, null));
+		}
+  var lOnMachines = function(_pJson) { if (undefined == _pJson || parseInt(_pJson) == 0) lFirstSetup(); else lReinitialize(); }
+  DSMS_CONTEXT.query("SET TRACE ALL ACTIONS; SELECT * FROM dsms:machines;", new QResultHandler(lOnMachines, null, null), {countonly:true});
 }
 
 /**
@@ -203,9 +208,9 @@ function DsmsViewer(pCreateDefaultSetup)
   $("#logo").click(function() { window.location.href = 'http://' + location.hostname + ":" + location.port + "/console.html#tab-basic"; });
 
   // Allow to stop the simulation (for debugging).
-  if (false)
+  if (true)
   {
-    $("#rule_descriptions").append("<button id='stop_simulation'>stop!</button>");
+    $("#rules_descriptions").append("<button id='stop_simulation'>stop!</button>");
     $("#stop_simulation").click(function() { myLog("=======\n======= End of Simulation\n=======\n"); clearInterval(lRunCtx.timer); lRunCtx.stopped_simulation = 1; });
   }
 

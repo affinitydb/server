@@ -8,7 +8,7 @@
 <!-- begin highlighted code -->
 <div class="highlight"><pre><span class="cm">/**************************************************************************************</span>
 
-<span class="cm">Copyright © 2004-2013 GoPivotal, Inc. All rights reserved.</span>
+<span class="cm">Copyright © 2004-2014 GoPivotal, Inc. All rights reserved.</span>
 
 <span class="cm">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
 <span class="cm">you may not use this file except in compliance with the License.</span>
@@ -22,7 +22,7 @@
 <span class="cm">License for the specific language governing permissions and limitations</span>
 <span class="cm">under the License.</span>
 
-<span class="cm">Written by Mark Venguerov 2004-2012</span>
+<span class="cm">Written by Mark Venguerov 2004-2014</span>
 
 <span class="cm">**************************************************************************************/</span>
 
@@ -35,115 +35,115 @@
 
 <span class="n">namespace</span> <span class="n">Afy</span>
 <span class="p">{</span>
-    <span class="k">enum</span> <span class="n">Units</span> 
-    <span class="p">{</span>
-        <span class="n">Un_NDIM</span><span class="p">,</span>
-        <span class="c1">// base SI units</span>
-        <span class="n">Un_m</span><span class="p">,</span>                 <span class="c1">// distance - meter</span>
-        <span class="n">Un_kg</span><span class="p">,</span>                    <span class="c1">// mass    - kilogram</span>
-        <span class="n">Un_s</span><span class="p">,</span>                 <span class="c1">// duration - second</span>
-        <span class="n">Un_A</span><span class="p">,</span>                 <span class="c1">// current - Ampere</span>
-        <span class="n">Un_K</span><span class="p">,</span>                 <span class="c1">// temperature - Kelvin</span>
-        <span class="n">Un_mol</span><span class="p">,</span>                   <span class="c1">// amount of matter - mole</span>
-        <span class="n">Un_cd</span><span class="p">,</span>                    <span class="c1">// intensity of light - candela</span>
-        <span class="n">Un_Base</span><span class="p">,</span>
+	<span class="k">enum</span> <span class="n">Units</span> 
+	<span class="p">{</span>
+		<span class="n">Un_NDIM</span><span class="p">,</span>
+		<span class="c1">// base SI units</span>
+		<span class="n">Un_m</span><span class="p">,</span>					<span class="c1">// distance - meter</span>
+		<span class="n">Un_kg</span><span class="p">,</span>					<span class="c1">// mass	- kilogram</span>
+		<span class="n">Un_s</span><span class="p">,</span>					<span class="c1">// duration - second</span>
+		<span class="n">Un_A</span><span class="p">,</span>					<span class="c1">// current - Ampere</span>
+		<span class="n">Un_K</span><span class="p">,</span>					<span class="c1">// temperature - Kelvin</span>
+		<span class="n">Un_mol</span><span class="p">,</span>					<span class="c1">// amount of matter - mole</span>
+		<span class="n">Un_cd</span><span class="p">,</span>					<span class="c1">// intensity of light - candela</span>
+		<span class="n">Un_Base</span><span class="p">,</span>
 
-        <span class="c1">// derived SI units</span>
-        <span class="n">Un_Hz</span><span class="o">=</span><span class="n">Un_Base</span><span class="p">,</span>          <span class="c1">// frequency - Hertz</span>
-        <span class="n">Un_N</span><span class="p">,</span>                 <span class="c1">// force - Newton</span>
-        <span class="n">Un_Pa</span><span class="p">,</span>                    <span class="c1">// pressure - Pascal</span>
-        <span class="n">Un_J</span><span class="p">,</span>                 <span class="c1">// energy or work - Joule</span>
-        <span class="n">Un_W</span><span class="p">,</span>                 <span class="c1">// power - Watt</span>
-        <span class="n">Un_C</span><span class="p">,</span>                 <span class="c1">// electric charge - Coulomb</span>
-        <span class="n">Un_V</span><span class="p">,</span>                 <span class="c1">// electric potential - Volt</span>
-        <span class="n">Un_F</span><span class="p">,</span>                 <span class="c1">// electric capacitance - Farad</span>
-        <span class="n">Un_Ohm</span><span class="p">,</span>                   <span class="c1">// electric resistance - Ohm</span>
-        <span class="n">Un_S</span><span class="p">,</span>                 <span class="c1">// electric conductance - Siemens</span>
-        <span class="n">Un_Wb</span><span class="p">,</span>                    <span class="c1">// magnetic flux - Weber</span>
-        <span class="n">Un_T</span><span class="p">,</span>                 <span class="c1">// magnetic flux density - Tesla</span>
-        <span class="n">Un_H</span><span class="p">,</span>                 <span class="c1">// inductance - Henry</span>
-        <span class="n">Un_dC</span><span class="p">,</span>                    <span class="c1">// temperature - degree Celsius (°C)</span>
-        <span class="n">Un_rad</span><span class="p">,</span>                   <span class="c1">// plane angle - radian</span>
-        <span class="n">Un_sr</span><span class="p">,</span>                    <span class="c1">// solid angle - steradian</span>
-        <span class="n">Un_lm</span><span class="p">,</span>                    <span class="c1">// luminous - lumen</span>
-        <span class="n">Un_lx</span><span class="p">,</span>                    <span class="c1">// illuminance - lux</span>
-        <span class="n">Un_Bq</span><span class="p">,</span>                    <span class="c1">// activity /s - Becquerel</span>
-        <span class="n">Un_Gy</span><span class="p">,</span>                    <span class="c1">// absorbed dose - Gray</span>
-        <span class="n">Un_Sv</span><span class="p">,</span>                    <span class="c1">// dose equivalent - Sievert</span>
-        <span class="n">Un_kat</span><span class="p">,</span>                   <span class="c1">// catalytic activity - katal</span>
-        <span class="n">Un_Derived</span><span class="p">,</span>
+		<span class="c1">// derived SI units</span>
+		<span class="n">Un_Hz</span><span class="o">=</span><span class="n">Un_Base</span><span class="p">,</span>			<span class="c1">// frequency - Hertz</span>
+		<span class="n">Un_N</span><span class="p">,</span>					<span class="c1">// force - Newton</span>
+		<span class="n">Un_Pa</span><span class="p">,</span>					<span class="c1">// pressure - Pascal</span>
+		<span class="n">Un_J</span><span class="p">,</span>					<span class="c1">// energy or work - Joule</span>
+		<span class="n">Un_W</span><span class="p">,</span>					<span class="c1">// power - Watt</span>
+		<span class="n">Un_C</span><span class="p">,</span>					<span class="c1">// electric charge - Coulomb</span>
+		<span class="n">Un_V</span><span class="p">,</span>					<span class="c1">// electric potential - Volt</span>
+		<span class="n">Un_F</span><span class="p">,</span>					<span class="c1">// electric capacitance - Farad</span>
+		<span class="n">Un_Ohm</span><span class="p">,</span>					<span class="c1">// electric resistance - Ohm</span>
+		<span class="n">Un_S</span><span class="p">,</span>					<span class="c1">// electric conductance - Siemens</span>
+		<span class="n">Un_Wb</span><span class="p">,</span>					<span class="c1">// magnetic flux - Weber</span>
+		<span class="n">Un_T</span><span class="p">,</span>					<span class="c1">// magnetic flux density - Tesla</span>
+		<span class="n">Un_H</span><span class="p">,</span>					<span class="c1">// inductance - Henry</span>
+		<span class="n">Un_dC</span><span class="p">,</span>					<span class="c1">// temperature - degree Celsius (°C)</span>
+		<span class="n">Un_rad</span><span class="p">,</span>					<span class="c1">// plane angle - radian</span>
+		<span class="n">Un_sr</span><span class="p">,</span>					<span class="c1">// solid angle - steradian</span>
+		<span class="n">Un_lm</span><span class="p">,</span>					<span class="c1">// luminous - lumen</span>
+		<span class="n">Un_lx</span><span class="p">,</span>					<span class="c1">// illuminance - lux</span>
+		<span class="n">Un_Bq</span><span class="p">,</span>					<span class="c1">// activity /s - Becquerel</span>
+		<span class="n">Un_Gy</span><span class="p">,</span>					<span class="c1">// absorbed dose - Gray</span>
+		<span class="n">Un_Sv</span><span class="p">,</span>					<span class="c1">// dose equivalent - Sievert</span>
+		<span class="n">Un_kat</span><span class="p">,</span>					<span class="c1">// catalytic activity - katal</span>
+		<span class="n">Un_Derived</span><span class="p">,</span>
 
-        <span class="c1">// metric length</span>
-        <span class="n">Un_dm</span><span class="o">=</span><span class="n">Un_Derived</span><span class="p">,</span>       <span class="c1">// decimeter</span>
-        <span class="n">Un_cm</span><span class="p">,</span>                    <span class="c1">// centimeter</span>
-        <span class="n">Un_mm</span><span class="p">,</span>                    <span class="c1">// millimeter</span>
-        <span class="n">Un_mkm</span><span class="p">,</span>                   <span class="c1">// micrometer</span>
-        <span class="n">Un_nm</span><span class="p">,</span>                    <span class="c1">// nanometer</span>
-        <span class="n">Un_km</span><span class="p">,</span>                    <span class="c1">// kilometer</span>
+		<span class="c1">// metric length</span>
+		<span class="n">Un_dm</span><span class="o">=</span><span class="n">Un_Derived</span><span class="p">,</span>		<span class="c1">// decimeter</span>
+		<span class="n">Un_cm</span><span class="p">,</span>					<span class="c1">// centimeter</span>
+		<span class="n">Un_mm</span><span class="p">,</span>					<span class="c1">// millimeter</span>
+		<span class="n">Un_mkm</span><span class="p">,</span>					<span class="c1">// micrometer</span>
+		<span class="n">Un_nm</span><span class="p">,</span>					<span class="c1">// nanometer</span>
+		<span class="n">Un_km</span><span class="p">,</span>					<span class="c1">// kilometer</span>
 
-        <span class="c1">// English length</span>
-        <span class="n">Un_in</span><span class="p">,</span>                    <span class="c1">// inch</span>
-        <span class="n">Un_ft</span><span class="p">,</span>                    <span class="c1">// foot</span>
-        <span class="n">Un_yd</span><span class="p">,</span>                    <span class="c1">// yard</span>
-        <span class="n">Un_mi</span><span class="p">,</span>                    <span class="c1">// stature mile</span>
-        <span class="n">Un_nmi</span><span class="p">,</span>                   <span class="c1">// nautical mile</span>
+		<span class="c1">// English length</span>
+		<span class="n">Un_in</span><span class="p">,</span>					<span class="c1">// inch</span>
+		<span class="n">Un_ft</span><span class="p">,</span>					<span class="c1">// foot</span>
+		<span class="n">Un_yd</span><span class="p">,</span>					<span class="c1">// yard</span>
+		<span class="n">Un_mi</span><span class="p">,</span>					<span class="c1">// stature mile</span>
+		<span class="n">Un_nmi</span><span class="p">,</span>					<span class="c1">// nautical mile</span>
 
-        <span class="c1">// astronomical distance</span>
-        <span class="n">Un_au</span><span class="p">,</span>                    <span class="c1">// astronomical unit</span>
-        <span class="n">Un_pc</span><span class="p">,</span>                    <span class="c1">// parsec</span>
-        <span class="n">Un_ly</span><span class="p">,</span>                    <span class="c1">// light year</span>
+		<span class="c1">// astronomical distance</span>
+		<span class="n">Un_au</span><span class="p">,</span>					<span class="c1">// astronomical unit</span>
+		<span class="n">Un_pc</span><span class="p">,</span>					<span class="c1">// parsec</span>
+		<span class="n">Un_ly</span><span class="p">,</span>					<span class="c1">// light year</span>
 
-        <span class="c1">// speed</span>
-        <span class="n">Un_mps</span><span class="p">,</span>                   <span class="c1">// meters per second</span>
-        <span class="n">Un_kph</span><span class="p">,</span>                   <span class="c1">// kilometers per hour</span>
-        <span class="n">Un_fpm</span><span class="p">,</span>                   <span class="c1">// feet per minute</span>
-        <span class="n">Un_mph</span><span class="p">,</span>                   <span class="c1">// miles per hour</span>
-        <span class="n">Un_kt</span><span class="p">,</span>                    <span class="c1">// knot (nautical miles per hour)</span>
+		<span class="c1">// speed</span>
+		<span class="n">Un_mps</span><span class="p">,</span>					<span class="c1">// meters per second</span>
+		<span class="n">Un_kph</span><span class="p">,</span>					<span class="c1">// kilometers per hour</span>
+		<span class="n">Un_fpm</span><span class="p">,</span>					<span class="c1">// feet per minute</span>
+		<span class="n">Un_mph</span><span class="p">,</span>					<span class="c1">// miles per hour</span>
+		<span class="n">Un_kt</span><span class="p">,</span>					<span class="c1">// knot (nautical miles per hour)</span>
 
-        <span class="c1">// weight</span>
-        <span class="n">Un_g</span><span class="p">,</span>                 <span class="c1">// gram</span>
-        <span class="n">Un_mg</span><span class="p">,</span>                    <span class="c1">// milligram</span>
-        <span class="n">Un_mkg</span><span class="p">,</span>                   <span class="c1">// microgram</span>
-        <span class="n">Un_t</span><span class="p">,</span>                 <span class="c1">// metric ton</span>
-        <span class="n">Un_lb</span><span class="p">,</span>                    <span class="c1">// pound</span>
-        <span class="n">Un_oz</span><span class="p">,</span>                    <span class="c1">// once</span>
-        <span class="n">Un_st</span><span class="p">,</span>                    <span class="c1">// stone</span>
+		<span class="c1">// weight</span>
+		<span class="n">Un_g</span><span class="p">,</span>					<span class="c1">// gram</span>
+		<span class="n">Un_mg</span><span class="p">,</span>					<span class="c1">// milligram</span>
+		<span class="n">Un_mkg</span><span class="p">,</span>					<span class="c1">// microgram</span>
+		<span class="n">Un_t</span><span class="p">,</span>					<span class="c1">// metric ton</span>
+		<span class="n">Un_lb</span><span class="p">,</span>					<span class="c1">// pound</span>
+		<span class="n">Un_oz</span><span class="p">,</span>					<span class="c1">// once</span>
+		<span class="n">Un_st</span><span class="p">,</span>					<span class="c1">// stone</span>
 
-        <span class="c1">// area</span>
-        <span class="n">Un_m2</span><span class="p">,</span>                    <span class="c1">// square meter</span>
-        <span class="n">Un_cm2</span><span class="p">,</span>                   <span class="c1">// square centimeter</span>
-        <span class="n">Un_sq_in</span><span class="p">,</span>             <span class="c1">// square inch</span>
-        <span class="n">Un_sq_ft</span><span class="p">,</span>             <span class="c1">// square foot</span>
-        <span class="n">Un_ac</span><span class="p">,</span>                    <span class="c1">// acre</span>
-        <span class="n">Un_ha</span><span class="p">,</span>                    <span class="c1">// hectare</span>
+		<span class="c1">// area</span>
+		<span class="n">Un_m2</span><span class="p">,</span>					<span class="c1">// square meter</span>
+		<span class="n">Un_cm2</span><span class="p">,</span>					<span class="c1">// square centimeter</span>
+		<span class="n">Un_sq_in</span><span class="p">,</span>				<span class="c1">// square inch</span>
+		<span class="n">Un_sq_ft</span><span class="p">,</span>				<span class="c1">// square foot</span>
+		<span class="n">Un_ac</span><span class="p">,</span>					<span class="c1">// acre</span>
+		<span class="n">Un_ha</span><span class="p">,</span>					<span class="c1">// hectare</span>
 
-        <span class="c1">// volume</span>
-        <span class="n">Un_m3</span><span class="p">,</span>                    <span class="c1">// cubic meter</span>
-        <span class="n">Un_L</span><span class="p">,</span>                 <span class="c1">// liter</span>
-        <span class="n">Un_cl</span><span class="p">,</span>                    <span class="c1">// centiliter</span>
-        <span class="n">Un_cm3</span><span class="p">,</span>                   <span class="c1">// cubic centimeter</span>
-        <span class="n">Un_cf</span><span class="p">,</span>                    <span class="c1">// cubic foot</span>
-        <span class="n">Un_ci</span><span class="p">,</span>                    <span class="c1">// cubic inch</span>
-        <span class="n">Un_fl_oz</span><span class="p">,</span>             <span class="c1">// fluid once</span>
-        <span class="n">Un_bbl</span><span class="p">,</span>                   <span class="c1">// barrel</span>
-        <span class="n">Un_bu</span><span class="p">,</span>                    <span class="c1">// bushel</span>
-        <span class="n">Un_gal</span><span class="p">,</span>                   <span class="c1">// gallon</span>
-        <span class="n">Un_qt</span><span class="p">,</span>                    <span class="c1">// quarter</span>
-        <span class="n">Un_pt</span><span class="p">,</span>                    <span class="c1">// pint</span>
+		<span class="c1">// volume</span>
+		<span class="n">Un_m3</span><span class="p">,</span>					<span class="c1">// cubic meter</span>
+		<span class="n">Un_L</span><span class="p">,</span>					<span class="c1">// liter</span>
+		<span class="n">Un_cl</span><span class="p">,</span>					<span class="c1">// centiliter</span>
+		<span class="n">Un_cm3</span><span class="p">,</span>					<span class="c1">// cubic centimeter</span>
+		<span class="n">Un_cf</span><span class="p">,</span>					<span class="c1">// cubic foot</span>
+		<span class="n">Un_ci</span><span class="p">,</span>					<span class="c1">// cubic inch</span>
+		<span class="n">Un_fl_oz</span><span class="p">,</span>				<span class="c1">// fluid once</span>
+		<span class="n">Un_bbl</span><span class="p">,</span>					<span class="c1">// barrel</span>
+		<span class="n">Un_bu</span><span class="p">,</span>					<span class="c1">// bushel</span>
+		<span class="n">Un_gal</span><span class="p">,</span>					<span class="c1">// gallon</span>
+		<span class="n">Un_qt</span><span class="p">,</span>					<span class="c1">// quarter</span>
+		<span class="n">Un_pt</span><span class="p">,</span>					<span class="c1">// pint</span>
 
-        <span class="c1">// pressure</span>
-        <span class="n">Un_b</span><span class="p">,</span>                 <span class="c1">// bar</span>
-        <span class="n">Un_mmHg</span><span class="p">,</span>              <span class="c1">// millimeters of mercury</span>
-        <span class="n">Un_inHg</span><span class="p">,</span>              <span class="c1">// inches of mercury</span>
+		<span class="c1">// pressure</span>
+		<span class="n">Un_b</span><span class="p">,</span>					<span class="c1">// bar</span>
+		<span class="n">Un_mmHg</span><span class="p">,</span>				<span class="c1">// millimeters of mercury</span>
+		<span class="n">Un_inHg</span><span class="p">,</span>				<span class="c1">// inches of mercury</span>
 
-        <span class="c1">// various</span>
-        <span class="n">Un_cal</span><span class="p">,</span>                   <span class="c1">// calorie</span>
-        <span class="n">Un_kcal</span><span class="p">,</span>              <span class="c1">// Calorie</span>
-        <span class="n">Un_ct</span><span class="p">,</span>                    <span class="c1">// carat</span>
-        <span class="n">Un_dF</span><span class="p">,</span>                    <span class="c1">// degrees Fahrenheit (°F)</span>
+		<span class="c1">// various</span>
+		<span class="n">Un_cal</span><span class="p">,</span>					<span class="c1">// calorie</span>
+		<span class="n">Un_kcal</span><span class="p">,</span>				<span class="c1">// Calorie</span>
+		<span class="n">Un_ct</span><span class="p">,</span>					<span class="c1">// carat</span>
+		<span class="n">Un_dF</span><span class="p">,</span>					<span class="c1">// degrees Fahrenheit (°F)</span>
 
-        <span class="n">Un_ALL</span>
-    <span class="p">};</span>
+		<span class="n">Un_ALL</span>
+	<span class="p">};</span>
 <span class="p">};</span>
 
 <span class="cp">#endif</span>

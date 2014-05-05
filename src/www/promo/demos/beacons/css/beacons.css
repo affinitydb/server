@@ -1,0 +1,15 @@
+body { font-family:Helvetica; margin:0; font-size:0.85em; background-color:#e4e4e4; }
+a { text-decoration:none; color:#0645ad; }
+a:hover { text-decoration:underline; }
+p { margin:0.4em 0 0 0; padding:0; }
+ul { margin:0.4em 0 0.5em 0; padding:0; }
+ol { margin:0.4em 0 0.5em 0; padding-left:2.5em; }
+ul li { list-style:none; padding-left:12px; }
+
+#logo { float:right; cursor:pointer; font:8pt Helvetica; text-align:right; margin-right:18px; }
+#logo_txt { margin-top:-5px; }
+#viewing_area { display:block; margin-left:auto; margin-right:auto; width:500px; height:500px; }
+#viewer { width:100%; height:100%; }
+#mini_console { display:none; width:1000px; margin-left:auto; margin-right:auto; }
+#other_controls { position:fixed; right:0; width:200px; }
+#status_bar { position:fixed; bottom:0; left:0; width:100%; height:20px; margin:0; text-align:center; color:#000044; }

@@ -111,6 +111,16 @@
 	>SELECT afy:pinID FROM ...</code
 	>.</li
       ><li
+      >all ranges (<code
+	>VT_RANGE</code
+	>), used for example in class family declarations, or other conditions, are now expressed in pathSQL as <code
+	>@[x, y]</code
+	> (as opposed to the previous syntax: <code
+	>[x, y]</code
+	>, which is now reserved for literals of the new <code
+	>VT_ARRAY</code
+	>).</li
+      ><li
       ><code
 	>afy:ClassOfClasses</code
 	>: This special class was renamed to <code
@@ -311,6 +321,14 @@
 	>srv</code
 	> URI prefix, defined as <code
 	>http://affinityng.org/service/</code
+	>.</li
+      ><li
+      >There is now native pathSQL support for <a href="./pathSQL%20basics%20[data].html#linear-algebra"
+	>linear algebra</a
+	> primitives (computations involving vectors &amp; matrices).</li
+      ><li
+      >It is now possible to use bitwise operations on <a href="./pathSQL%20reference.html#bitwise-operations-on-extendable-bit-arrays"
+	>extendable bit arrays</a
 	>.</li
       ><li
       ><a href="./pathSQL%20basics%20[data].html#named-pins"

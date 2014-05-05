@@ -62,14 +62,14 @@ SIMULCTX.createClasses = function(pCompletion)
     "${UPDATE @self ADD simul:\"ghost/tmpv1\"=(SELECT simul:\"square/constraints\" FROM simul:squares WHERE simul:\"square/x\"=@self.simul:\"moveable/x\" AND simul:\"square/y\"=@self.simul:\"moveable/y\")}",
     // -- the next statements calculate a temporary variable corresponding to the next direction to take, if necessary; string manipulations are made because intersections/differences on collections don't seem to work...
     // -- I avoid returning the inverse direction, and use some pseudo randomness (based on CURRENT_TIMESTAMP's ms).
-    // -- REVIEW: now that bug 320 is fixed, reinsert 'WHERE LENGTH(simul:\"ghost/tmpv1\"[:LAST]) > 1' when assigning tmpv4, after pre-assigning a default (n.b. I tried quickly but noticed strange side-effects, to be investigated...)
+    // -- REVIEW: now that bug 320 is fixed, reinsert 'WHERE LENGTH(simul:\"ghost/tmpv1\") > 1' when assigning tmpv4, after pre-assigning a default (n.b. I tried quickly but noticed strange side-effects, to be investigated...)
     "${UPDATE @self SET simul:\"ghost/tmpv2\"=REPLACE('TBLR', SUBSTR(simul:invdir, POSITION(simul:dir, simul:\"moveable/direction\"), 1), '')}",
-    "${UPDATE @self SET simul:\"ghost/tmpv3\"=REPLACE(simul:\"ghost/tmpv2\", SUBSTR(simul:\"ghost/tmpv1\"[:LAST], 0, 1), '')}",
-    "${UPDATE @self SET simul:\"ghost/tmpv4\"=REPLACE(simul:\"ghost/tmpv3\", SUBSTR(simul:\"ghost/tmpv1\"[:LAST], 1, 1), '')}",
+    "${UPDATE @self SET simul:\"ghost/tmpv3\"=REPLACE(simul:\"ghost/tmpv2\", SUBSTR(simul:\"ghost/tmpv1\", 0, 1), '')}",
+    "${UPDATE @self SET simul:\"ghost/tmpv4\"=REPLACE(simul:\"ghost/tmpv3\", SUBSTR(simul:\"ghost/tmpv1\", 1, 1), '')}",
     "${UPDATE @self SET simul:\"ghost/tmprand\"=0}",
     "${UPDATE @self SET simul:\"ghost/tmprand\"=(EXTRACT(FRACTIONAL FROM CURRENT_TIMESTAMP) % 2) WHERE LENGTH(simul:\"ghost/tmpv4\") > 1}",
     // -- the next statement assigns the new direction, if necessary
-    "${UPDATE @self SET simul:\"moveable/direction\"=SUBSTR(simul:\"ghost/tmpv4\", simul:\"ghost/tmprand\", 1) WHERE CONTAINS(simul:\"ghost/tmpv1\"[:LAST], simul:\"moveable/direction\") AND (simul:\"moveable/entering\" >= 1.0)}",
+    "${UPDATE @self SET simul:\"moveable/direction\"=SUBSTR(simul:\"ghost/tmpv4\", simul:\"ghost/tmprand\", 1) WHERE CONTAINS(simul:\"ghost/tmpv1\", simul:\"moveable/direction\") AND (simul:\"moveable/entering\" >= 1.0)}",
     // -- the next statement resets the inter-step progression counter
     "${UPDATE @self SET simul:\"moveable/entering\"=0.1 WHERE (simul:\"moveable/entering\" >= 1.0)}",
     // -- the next statement removes all temporary variables
@@ -86,14 +86,14 @@ SIMULCTX.createClasses = function(pCompletion)
     "${UPDATE @auto ADD simul:\"ghost/tmpv1\"=(SELECT simul:\"square/constraints\" FROM simul:squares WHERE simul:\"square/x\"=@self.simul:\"moveable/x\" AND simul:\"square/y\"=@self.simul:\"moveable/y\")}",
     // -- the next statements calculate a temporary variable corresponding to the next direction to take, if necessary; string manipulations are made because intersections/differences on collections don't seem to work...
     // -- I avoid returning the inverse direction, and use some pseudo randomness (based on CURRENT_TIMESTAMP's ms).
-    // -- REVIEW: now that bug 320 is fixed, reinsert 'WHERE LENGTH(simul:\"ghost/tmpv1\"[:LAST]) > 1' when assigning tmpv4, after pre-assigning a default (n.b. I tried quickly but noticed strange side-effects, to be investigated...)
+    // -- REVIEW: now that bug 320 is fixed, reinsert 'WHERE LENGTH(simul:\"ghost/tmpv1\") > 1' when assigning tmpv4, after pre-assigning a default (n.b. I tried quickly but noticed strange side-effects, to be investigated...)
     "${UPDATE @auto SET simul:\"ghost/tmpv2\"=(SELECT REPLACE('TBLR', SUBSTR(simul:invdir, POSITION(simul:dir, simul:\"moveable/direction\"), 1), '') FROM @self)}",
-    "${UPDATE @auto SET simul:\"ghost/tmpv3\"=REPLACE(simul:\"ghost/tmpv2\"[:LAST], SUBSTR(simul:\"ghost/tmpv1\"[:LAST], 0, 1), '')}",
-    "${UPDATE @auto SET simul:\"ghost/tmpv4\"=REPLACE(simul:\"ghost/tmpv3\", SUBSTR(simul:\"ghost/tmpv1\"[:LAST], 1, 1), '')}",
+    "${UPDATE @auto SET simul:\"ghost/tmpv3\"=REPLACE(simul:\"ghost/tmpv2\"[:LAST], SUBSTR(simul:\"ghost/tmpv1\", 0, 1), '')}",
+    "${UPDATE @auto SET simul:\"ghost/tmpv4\"=REPLACE(simul:\"ghost/tmpv3\", SUBSTR(simul:\"ghost/tmpv1\", 1, 1), '')}",
     "${UPDATE @auto SET simul:\"ghost/tmprand\"=0}",
     "${UPDATE @auto SET simul:\"ghost/tmprand\"=(EXTRACT(FRACTIONAL FROM CURRENT_TIMESTAMP) % 2) WHERE LENGTH(simul:\"ghost/tmpv4\") > 1}",
     // -- the next statement assigns the new direction, if necessary
-    "${UPDATE @self SET simul:\"moveable/direction\"=SUBSTR(@auto.simul:\"ghost/tmpv4\", @auto.simul:\"ghost/tmprand\", 1) WHERE CONTAINS(@auto.simul:\"ghost/tmpv1\"[:LAST], simul:\"moveable/direction\") AND (simul:\"moveable/entering\" >= 1.0)}",
+    "${UPDATE @self SET simul:\"moveable/direction\"=SUBSTR(@auto.simul:\"ghost/tmpv4\", @auto.simul:\"ghost/tmprand\", 1) WHERE CONTAINS(@auto.simul:\"ghost/tmpv1\", simul:\"moveable/direction\") AND (simul:\"moveable/entering\" >= 1.0)}",
     // -- the next statement resets the inter-step progression counter
     "${UPDATE @self SET simul:\"moveable/entering\"=0.1 WHERE (simul:\"moveable/entering\" >= 1.0)}",
     // -- for debugging
@@ -110,7 +110,7 @@ SIMULCTX.createClasses = function(pCompletion)
     "${UPDATE @self ADD simul:\"player/tmpv\"=(SELECT simul:\"square/constraints\" FROM simul:squares WHERE simul:\"square/x\"=@self.simul:\"moveable/x\" AND simul:\"square/y\"=@self.simul:\"moveable/y\")}",
     // "${INSERT didit=CURRENT_TIMESTAMP, tmpv=@self.simul:\"player/tmpv\", next=@self.simul:\"player/direction/next\"}",
     "${UPDATE @self SET simul:\"player/direction/next\"=simul:\"player/direction/tentative\"}",
-    "${UPDATE @self SET simul:\"moveable/direction\"=simul:\"player/direction/next\" WHERE simul:\"moveable/direction\"='-' AND NOT CONTAINS(simul:\"player/tmpv\"[:LAST], simul:\"player/direction/tentative\")}",
+    "${UPDATE @self SET simul:\"moveable/direction\"=simul:\"player/direction/next\" WHERE simul:\"moveable/direction\"='-' AND NOT CONTAINS(simul:\"player/tmpv\", simul:\"player/direction/tentative\")}",
     "${UPDATE @self DELETE simul:\"player/tmpv\", simul:\"player/direction/tentative\"}",
   ];
   var lAction_PlayerTurnConstraint_newatauto = // converted to @auto and working
@@ -123,7 +123,7 @@ SIMULCTX.createClasses = function(pCompletion)
     // TODO: I think we might need to further investigate potential inherent difficulties in onUpdate...
     "${UPDATE @auto ADD simul:\"player/tmpv\"=(SELECT simul:\"square/constraints\" FROM simul:squares WHERE simul:\"square/x\"=@self.simul:\"moveable/x\" AND simul:\"square/y\"=@self.simul:\"moveable/y\")}",
     "${UPDATE @self SET simul:\"player/direction/next\"=simul:\"player/direction/tentative\"}",
-    "${UPDATE @self SET simul:\"moveable/direction\"=simul:\"player/direction/next\" WHERE simul:\"moveable/direction\"='-' AND NOT CONTAINS(@auto.simul:\"player/tmpv\"[:LAST], simul:\"player/direction/tentative\")}",
+    "${UPDATE @self SET simul:\"moveable/direction\"=simul:\"player/direction/next\" WHERE simul:\"moveable/direction\"='-' AND NOT CONTAINS(@auto.simul:\"player/tmpv\", simul:\"player/direction/tentative\")}",
     "${UPDATE @self DELETE simul:\"player/direction/tentative\"}",
   ];
   var lAction_PlayerTurn_oldatself =
@@ -131,25 +131,25 @@ SIMULCTX.createClasses = function(pCompletion)
     // -- grab the direction constraints of the square on which the player is currently located.
     "${UPDATE @self ADD simul:\"player/tmpv1\"=(SELECT simul:\"square/constraints\" FROM simul:squares WHERE simul:\"square/x\"=@self.simul:\"moveable/x\" AND simul:\"square/y\"=@self.simul:\"moveable/y\")}",
     // -- move to the next square, based on the current direction and constraints.
-    "${UPDATE @self SET simul:\"moveable/x\"+=1 WHERE (CONTAINS(simul:\"moveable/direction\", 'R') AND (simul:\"moveable/entering\" >= 1.0) AND NOT CONTAINS(simul:\"player/tmpv1\"[:LAST], simul:\"moveable/direction\"))}",
-    "${UPDATE @self SET simul:\"moveable/x\"-=1 WHERE (CONTAINS(simul:\"moveable/direction\", 'L') AND (simul:\"moveable/entering\" >= 1.0) AND NOT CONTAINS(simul:\"player/tmpv1\"[:LAST], simul:\"moveable/direction\"))}",
-    "${UPDATE @self SET simul:\"moveable/y\"+=1 WHERE (CONTAINS(simul:\"moveable/direction\", 'B') AND (simul:\"moveable/entering\" >= 1.0) AND NOT CONTAINS(simul:\"player/tmpv1\"[:LAST], simul:\"moveable/direction\"))}",
-    "${UPDATE @self SET simul:\"moveable/y\"-=1 WHERE (CONTAINS(simul:\"moveable/direction\", 'T') AND (simul:\"moveable/entering\" >= 1.0) AND NOT CONTAINS(simul:\"player/tmpv1\"[:LAST], simul:\"moveable/direction\"))}",
+    "${UPDATE @self SET simul:\"moveable/x\"+=1 WHERE (CONTAINS(simul:\"moveable/direction\", 'R') AND (simul:\"moveable/entering\" >= 1.0) AND NOT CONTAINS(simul:\"player/tmpv1\", simul:\"moveable/direction\"))}",
+    "${UPDATE @self SET simul:\"moveable/x\"-=1 WHERE (CONTAINS(simul:\"moveable/direction\", 'L') AND (simul:\"moveable/entering\" >= 1.0) AND NOT CONTAINS(simul:\"player/tmpv1\", simul:\"moveable/direction\"))}",
+    "${UPDATE @self SET simul:\"moveable/y\"+=1 WHERE (CONTAINS(simul:\"moveable/direction\", 'B') AND (simul:\"moveable/entering\" >= 1.0) AND NOT CONTAINS(simul:\"player/tmpv1\", simul:\"moveable/direction\"))}",
+    "${UPDATE @self SET simul:\"moveable/y\"-=1 WHERE (CONTAINS(simul:\"moveable/direction\", 'T') AND (simul:\"moveable/entering\" >= 1.0) AND NOT CONTAINS(simul:\"player/tmpv1\", simul:\"moveable/direction\"))}",
     // -- grab the new direction constraints of the square we just landed on.
     "${UPDATE @self ADD simul:\"player/tmpv2\"=(SELECT simul:\"square/constraints\" FROM simul:squares WHERE simul:\"square/x\"=@self.simul:\"moveable/x\" AND simul:\"square/y\"=@self.simul:\"moveable/y\")}",
     // -- eat the food, if any.
     // TODO: count points etc.
     // TODO: remove the collection from board/food, when it becomes possible...
     "${UPDATE @self ADD simul:\"player/tmpv3\"=(SELECT simul:\"board/width\" FROM simul:board)}",
-    "${UPDATE @self SET simul:\"player/tmpv4\"=(simul:\"moveable/x\" + simul:\"player/tmpv3\"[:LAST] * simul:\"moveable/y\")}",
-    "${UPDATE simul:board ADD simul:\"board/food\"=SUBSTR(simul:\"board/food\"[:LAST], 0, @self.simul:\"player/tmpv4\") || '0' || SUBSTR(simul:\"board/food\"[:LAST], @self.simul:\"player/tmpv4\" + 1, simul:\"board/width\" * simul:\"board/height\" - @self.simul:\"player/tmpv4\" - 1)}",
+    "${UPDATE @self SET simul:\"player/tmpv4\"=(simul:\"moveable/x\" + simul:\"player/tmpv3\" * simul:\"moveable/y\")}",
+    "${UPDATE simul:board ADD simul:\"board/food\"=SUBSTR(simul:\"board/food\", 0, @self.simul:\"player/tmpv4\") || '0' || SUBSTR(simul:\"board/food\", @self.simul:\"player/tmpv4\" + 1, simul:\"board/width\" * simul:\"board/height\" - @self.simul:\"player/tmpv4\" - 1)}",
     "${UPDATE simul:board DELETE simul:\"board/food\"[:FIRST]}",
     // -- assign pending change of direction (player/direction/next), if any (and valid).
-    "${UPDATE @self SET simul:\"moveable/direction\"=simul:\"player/direction/next\" WHERE ((simul:\"moveable/entering\" >= 1.0) AND simul:\"player/direction/next\" <> '-' AND NOT CONTAINS(simul:\"player/tmpv2\"[:LAST], simul:\"player/direction/next\"))}",
+    "${UPDATE @self SET simul:\"moveable/direction\"=simul:\"player/direction/next\" WHERE ((simul:\"moveable/entering\" >= 1.0) AND simul:\"player/direction/next\" <> '-' AND NOT CONTAINS(simul:\"player/tmpv2\", simul:\"player/direction/next\"))}",
     // -- assign the stop (-) direction, if necessary.
-    "${UPDATE @self set simul:\"moveable/direction\"='-' WHERE ((simul:\"moveable/entering\" >= 1.0) AND CONTAINS(simul:\"player/tmpv2\"[:LAST], simul:\"moveable/direction\"))}",
+    "${UPDATE @self set simul:\"moveable/direction\"='-' WHERE ((simul:\"moveable/entering\" >= 1.0) AND CONTAINS(simul:\"player/tmpv2\", simul:\"moveable/direction\"))}",
     // -- reset the inter-step progression counter, unless we stopped.
-    "${UPDATE @self SET simul:\"moveable/entering\"=0.1 WHERE ((simul:\"moveable/entering\" >= 1.0) AND NOT CONTAINS(simul:\"player/tmpv2\"[:LAST], simul:\"moveable/direction\"))}",
+    "${UPDATE @self SET simul:\"moveable/entering\"=0.1 WHERE ((simul:\"moveable/entering\" >= 1.0) AND NOT CONTAINS(simul:\"player/tmpv2\", simul:\"moveable/direction\"))}",
     // -- remove temporary variables.
     "${UPDATE @self DELETE simul:\"player/tmpv1\", simul:\"player/tmpv2\", simul:\"player/tmpv3\", simul:\"player/tmpv4\"}",
   ];
@@ -158,25 +158,25 @@ SIMULCTX.createClasses = function(pCompletion)
     // -- grab the direction constraints of the square on which the player is currently located.
     "${UPDATE @auto ADD simul:\"player/tmpv1\"=(SELECT simul:\"square/constraints\" FROM simul:squares WHERE simul:\"square/x\"=@self.simul:\"moveable/x\" AND simul:\"square/y\"=@self.simul:\"moveable/y\")}",
     // -- move to the next square, based on the current direction and constraints.
-    "${UPDATE @self SET simul:\"moveable/x\"+=1 WHERE (CONTAINS(simul:\"moveable/direction\", 'R') AND (simul:\"moveable/entering\" >= 1.0) AND NOT CONTAINS(@auto.simul:\"player/tmpv1\"[:LAST], simul:\"moveable/direction\"))}",
-    "${UPDATE @self SET simul:\"moveable/x\"-=1 WHERE (CONTAINS(simul:\"moveable/direction\", 'L') AND (simul:\"moveable/entering\" >= 1.0) AND NOT CONTAINS(@auto.simul:\"player/tmpv1\"[:LAST], simul:\"moveable/direction\"))}",
-    "${UPDATE @self SET simul:\"moveable/y\"+=1 WHERE (CONTAINS(simul:\"moveable/direction\", 'B') AND (simul:\"moveable/entering\" >= 1.0) AND NOT CONTAINS(@auto.simul:\"player/tmpv1\"[:LAST], simul:\"moveable/direction\"))}",
-    "${UPDATE @self SET simul:\"moveable/y\"-=1 WHERE (CONTAINS(simul:\"moveable/direction\", 'T') AND (simul:\"moveable/entering\" >= 1.0) AND NOT CONTAINS(@auto.simul:\"player/tmpv1\"[:LAST], simul:\"moveable/direction\"))}",
+    "${UPDATE @self SET simul:\"moveable/x\"+=1 WHERE (CONTAINS(simul:\"moveable/direction\", 'R') AND (simul:\"moveable/entering\" >= 1.0) AND NOT CONTAINS(@auto.simul:\"player/tmpv1\", simul:\"moveable/direction\"))}",
+    "${UPDATE @self SET simul:\"moveable/x\"-=1 WHERE (CONTAINS(simul:\"moveable/direction\", 'L') AND (simul:\"moveable/entering\" >= 1.0) AND NOT CONTAINS(@auto.simul:\"player/tmpv1\", simul:\"moveable/direction\"))}",
+    "${UPDATE @self SET simul:\"moveable/y\"+=1 WHERE (CONTAINS(simul:\"moveable/direction\", 'B') AND (simul:\"moveable/entering\" >= 1.0) AND NOT CONTAINS(@auto.simul:\"player/tmpv1\", simul:\"moveable/direction\"))}",
+    "${UPDATE @self SET simul:\"moveable/y\"-=1 WHERE (CONTAINS(simul:\"moveable/direction\", 'T') AND (simul:\"moveable/entering\" >= 1.0) AND NOT CONTAINS(@auto.simul:\"player/tmpv1\", simul:\"moveable/direction\"))}",
     // -- grab the new direction constraints of the square we just landed on.
     "${UPDATE @auto ADD simul:\"player/tmpv2\"=(SELECT simul:\"square/constraints\" FROM simul:squares WHERE simul:\"square/x\"=@self.simul:\"moveable/x\" AND simul:\"square/y\"=@self.simul:\"moveable/y\")}",
     // -- eat the food, if any.
     // TODO: count points etc.
     // TODO: remove the collection from board/food, when it becomes possible...
     "${UPDATE @auto ADD simul:\"player/tmpv3\"=(SELECT simul:\"board/width\" FROM simul:board)}",
-    "${UPDATE @auto SET simul:\"player/tmpv4\"=(@self.simul:\"moveable/x\" + simul:\"player/tmpv3\"[:LAST] * @self.simul:\"moveable/y\")}",
-    "${UPDATE simul:board ADD simul:\"board/food\"=SUBSTR(simul:\"board/food\"[:LAST], 0, @auto.simul:\"player/tmpv4\") || '0' || SUBSTR(simul:\"board/food\"[:LAST], @auto.simul:\"player/tmpv4\" + 1, simul:\"board/width\" * simul:\"board/height\" - @auto.simul:\"player/tmpv4\" - 1)}",
+    "${UPDATE @auto SET simul:\"player/tmpv4\"=(@self.simul:\"moveable/x\" + simul:\"player/tmpv3\" * @self.simul:\"moveable/y\")}",
+    "${UPDATE simul:board ADD simul:\"board/food\"=SUBSTR(simul:\"board/food\", 0, @auto.simul:\"player/tmpv4\") || '0' || SUBSTR(simul:\"board/food\", @auto.simul:\"player/tmpv4\" + 1, simul:\"board/width\" * simul:\"board/height\" - @auto.simul:\"player/tmpv4\" - 1)}",
     "${UPDATE simul:board DELETE simul:\"board/food\"[:FIRST]}",
     // -- assign pending change of direction (player/direction/next), if any (and valid).
-    "${UPDATE @self SET simul:\"moveable/direction\"=simul:\"player/direction/next\" WHERE ((simul:\"moveable/entering\" >= 1.0) AND simul:\"player/direction/next\" <> '-' AND NOT CONTAINS(@auto.simul:\"player/tmpv2\"[:LAST], simul:\"player/direction/next\"))}",
+    "${UPDATE @self SET simul:\"moveable/direction\"=simul:\"player/direction/next\" WHERE ((simul:\"moveable/entering\" >= 1.0) AND simul:\"player/direction/next\" <> '-' AND NOT CONTAINS(@auto.simul:\"player/tmpv2\", simul:\"player/direction/next\"))}",
     // -- assign the stop (-) direction, if necessary.
-    "${UPDATE @self set simul:\"moveable/direction\"='-' WHERE ((simul:\"moveable/entering\" >= 1.0) AND CONTAINS(@auto.simul:\"player/tmpv2\"[:LAST], simul:\"moveable/direction\"))}",
+    "${UPDATE @self set simul:\"moveable/direction\"='-' WHERE ((simul:\"moveable/entering\" >= 1.0) AND CONTAINS(@auto.simul:\"player/tmpv2\", simul:\"moveable/direction\"))}",
     // -- reset the inter-step progression counter, unless we stopped.
-    "${UPDATE @self SET simul:\"moveable/entering\"=0.1 WHERE ((simul:\"moveable/entering\" >= 1.0) AND NOT CONTAINS(@auto.simul:\"player/tmpv2\"[:LAST], simul:\"moveable/direction\"))}",
+    "${UPDATE @self SET simul:\"moveable/entering\"=0.1 WHERE ((simul:\"moveable/entering\" >= 1.0) AND NOT CONTAINS(@auto.simul:\"player/tmpv2\", simul:\"moveable/direction\"))}",
   ];
   var lAction_GhostTurn = lAction_GhostTurn_newatauto;
   var lAction_PlayerTurnConstraint = lAction_PlayerTurnConstraint_newatauto;

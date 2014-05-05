@@ -358,9 +358,9 @@
       <div class='tutorial_step'>q("CREATE CLASS workers AS SELECT * WHERE EXISTS(name) AND profession IN :0;"); print("&lt;br&gt;");</div>
       <div class='tutorial_step'>q("SELECT * FROM workers;"); print("&lt;br&gt;");</div>
       <div class='tutorial_step'>q("SELECT * FROM workers('musician');"); print("&lt;br&gt;");</div>
-      <div class='tutorial_step'>q("SELECT * FROM workers(['l', 'n']);"); print("&lt;br&gt;");</div>
+      <div class='tutorial_step'>q("SELECT * FROM workers(@['l', 'n']);"); print("&lt;br&gt;");</div>
       <div class='tutorial_step'>q("CREATE CLASS people AS SELECT * WHERE name IN :0;"); print("&lt;br&gt;");</div>
-      <div class='tutorial_step'>q("SELECT * FROM people(['A', 'G']);");</div>
+      <div class='tutorial_step'>q("SELECT * FROM people(@['A', 'G']);");</div>
     </div>
     <div id='step8'>
       <div>Step 8</div>
@@ -395,18 +395,18 @@
       <div class='tutorial_step'>friends = q("SELECT * FROM workers.friends;");</div>
       <div class='tutorial_step'>for (i = 0; i &lt; friends.length; i++) print("friend of a worker: " + friends[i].name + " (" + friends[i].id + ")");</div>
       <div class='tutorial_step'>q("SELECT * FROM workers('mathematician').friends.friends.friends;"); print("&lt;br&gt;");</div>
-      <div class='tutorial_step'>q("SELECT name, profession FROM workers(['d', 'n']).friends[age &gt; 10 AND age &lt; 50].friends;"); print("&lt;br&gt;");</div>
-      <div class='tutorial_step'>q("SELECT * FROM people(['A', 'J']).friends[SUBSTR(name, 0, 1) IN ['A', 'J']];"); print("&lt;br&gt;");</div>
-      <div class='tutorial_step'>q("SELECT * FROM workers(['d', 'n']).friends{+}[age &lt; 50];"); print("&lt;br&gt;");</div>
-      <div class='tutorial_step'>q("SELECT * FROM workers(['d', 'n']).friends{*}.cars[year IN [1980, 2000]];");</div>
+      <div class='tutorial_step'>q("SELECT name, profession FROM workers(@['d', 'n']).friends[age &gt; 10 AND age &lt; 50].friends;"); print("&lt;br&gt;");</div>
+      <div class='tutorial_step'>q("SELECT * FROM people(@['A', 'J']).friends[SUBSTR(name, 0, 1) IN @['A', 'J']];"); print("&lt;br&gt;");</div>
+      <div class='tutorial_step'>q("SELECT * FROM workers(@['d', 'n']).friends{+}[age &lt; 50];"); print("&lt;br&gt;");</div>
+      <div class='tutorial_step'>q("SELECT * FROM workers(@['d', 'n']).friends{*}.cars[year IN @[1980, 2000]];");</div>
     </div>
     <div id='step11'>
       <div>Step 11</div>
       <div>Good old JOINs are also available.</div>
       <div>They can be useful to connect relational schema with graphs.</div>
       <div>&nbsp;</div>
-      <div class='tutorial_step'>q("SELECT * FROM cars AS c JOIN workers(['d', 'n']) AS w ON (c.afy:pinID = w.cars) WHERE (c.year IN [1980, 2000]);");</div>
-      <div class='tutorial_step'>q("SELECT c.car_make, c.color, c.year, w.name, w.profession FROM cars AS c JOIN workers(['d', 'n']) AS w ON (c.afy:pinID = w.cars) WHERE (c.year IN [1980, 2000]);");</div>
+      <div class='tutorial_step'>q("SELECT * FROM cars AS c JOIN workers(@['d', 'n']) AS w ON (c.afy:pinID = w.cars) WHERE (c.year IN @[1980, 2000]);");</div>
+      <div class='tutorial_step'>q("SELECT c.car_make, c.color, c.year, w.name, w.profession FROM cars AS c JOIN workers(@['d', 'n']) AS w ON (c.afy:pinID = w.cars) WHERE (c.year IN @[1980, 2000]);");</div>
     </div>
     <div id='step12'>
       <div>Step 12</div>

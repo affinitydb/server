@@ -130,12 +130,15 @@ $(document).ready(
       function(_pI, _pE)
       {
         var lCode = $(_pE).clone();
+        var lPathsqlDependencies = lCode.attr("dependencies"); // Allows to run 'invisible' preparatory pathSQL steps (useful to de-clutter some presentations; can always reveal those steps later in the presentation flow).
         lCode.html(lColorComments(lCode.html()));
         var lPre = lCode.wrap('<pre>').parent();
         var lWidget = $('<div class="pathsql_container">');
         var lButton = $('<div class="pathsql_button_runinplace">v</div>');
         var lResult= $('<div class="pathsql_inplace_result">');
-        var lEscapeCode = function() { return escape(lWithoutComments(lCode.text().replace(/\+/g, "\+"), false).text).replace(/\+/g, "%2B").replace(/%A0/ig, "%20"); } // escape lCode.text(), allow C-style comments, and preserve '+' signs (e.g. for {+} in path expressions; by default '+' is automatically interpreted as a space).
+        var lDoEscape = function(_pWhat) { return escape(_pWhat.replace(/\+/g, "\+")).replace(/\+/g, "%2B").replace(/%A0/ig, "%20"); } // escape _pWhat, and preserve '+' signs (e.g. for {+} in path expressions; by default '+' is automatically interpreted as a space).
+        var lEscapeDeps = function() { return lDoEscape(lPathsqlDependencies); }
+        var lEscapeCode = function() { return lDoEscape(lWithoutComments(lCode.text()).text); }
         lWidget.append(lButton);
         lWidget.append(lPre);
         lWidget.append(lResult);
@@ -143,20 +146,22 @@ $(document).ready(
         lCode.click(function() { window.open('http://' + location.hostname + ":" + location.port + "/console.html?query=" + lEscapeCode() + "&storeid=docsample#tab-basic"); });
         lCode.hover(function() { lCode.addClass("pathsql_snippet_highlighted"); lCode.css('cursor', 'pointer'); }, function() { lCode.removeClass("pathsql_snippet_highlighted"); });
         var lDoRequest =
-          function()
+          function(_pWhat, _pOnSuccess, _pOnError)
           {
             $.ajax({
               type: "GET",
-              url: "/db/?q=" + lEscapeCode() + "&i=pathsql&o=json",
+              url: "/db/?q=" + _pWhat + "&i=pathsql&o=json",
               dataType: "text",
               async: true,
               cache: false,
               global: false,
-              success: function(data) { lResult.text(data); },
-              error: function() { lResult.text("error"); },
+              success: _pOnSuccess,
+              error: _pOnError,
               beforeSend : function(req) { req.setRequestHeader('Authorization', "Basic ZG9jc2FtcGxlOg=="/*docsample:*/); }
             });
           };
+        var lDoRequestCode = function() { lDoRequest(lEscapeCode(), function(_pData) { lResult.text(_pData); }, function() { lResult.text("error"); }); };
+        var lDoRequestAll = function() { if (undefined != lPathsqlDependencies) { lDoRequest(lEscapeDeps(), lDoRequestCode, lDoRequestCode); } else lDoRequestCode(); }; // Note: the dependencies may fail, since they will typically attempt to re-declare singletons... on purpose, we ignore this.
         lButton.click(
           function()
           {
@@ -169,12 +174,12 @@ $(document).ready(
                 async: true,
                 cache: false,
                 global: false,
-                success: function(data) { if (data != '1') { window.location.href = 'http://' + location.hostname + ":" + location.port + "/registration.html?first_destination=" + location.pathname; } else { lRegisteredUser = true; lDoRequest(); } },
+                success: function(data) { if (data != '1') { window.location.href = 'http://' + location.hostname + ":" + location.port + "/registration.html?first_destination=" + location.pathname; } else { lRegisteredUser = true; lDoRequestAll(); } },
                 error: function() { alert("unexpected error during registration"); }
               });
             }
             if (lRegisteredUser)
-              lDoRequest();
+              lDoRequestAll();
           });
       });
     $(".pathsql_inert").each(

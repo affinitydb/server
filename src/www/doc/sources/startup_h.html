@@ -8,7 +8,7 @@
 <!-- begin highlighted code -->
 <div class="highlight"><pre><span class="cm">/**************************************************************************************</span>
 
-<span class="cm">Copyright © 2004-2013 GoPivotal, Inc. All rights reserved.</span>
+<span class="cm">Copyright © 2004-2014 GoPivotal, Inc. All rights reserved.</span>
 
 <span class="cm">Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
 <span class="cm">you may not use this file except in compliance with the License.</span>
@@ -22,7 +22,7 @@
 <span class="cm">License for the specific language governing permissions and limitations</span>
 <span class="cm">under the License.</span>
 
-<span class="cm">Written by Mark Venguerov 2004-2012</span>
+<span class="cm">Written by Mark Venguerov 2004-2014</span>
 
 <span class="cm">**************************************************************************************/</span>
 
@@ -33,53 +33,55 @@
 
 <span class="n">using</span> <span class="n">namespace</span> <span class="n">Afy</span><span class="p">;</span>
 
-<span class="cp">#define    STOREPREFIX                 &quot;affinity&quot;                                        </span><span class="cm">/**&lt; data file prefix */</span><span class="cp"></span>
-<span class="cp">#define    LOGPREFIX                   &quot;afy&quot;                                         </span><span class="cm">/**&lt; log file prefix */</span><span class="cp"></span>
-<span class="cp">#define STOREDIR                   &quot;affinity&quot;                                        </span><span class="cm">/**&lt; default store file directory */</span><span class="cp"></span>
-<span class="cp">#define    DATAFILESUFFIX              &quot;.store&quot;                                      </span><span class="cm">/**&lt; data file extension */</span><span class="cp"></span>
-<span class="cp">#define    LOGFILESUFFIX               &quot;.txlog&quot;                                      </span><span class="cm">/**&lt; log file extension */</span><span class="cp"></span>
-<span class="cp">#define    MASTERFILESUFFIX            &quot;.master&quot;                                     </span><span class="cm">/**&lt; master record file extension */</span><span class="cp"></span>
-<span class="cp">#define    HOME_ENV                    &quot;AFFINITY_HOME&quot;                                   </span><span class="cm">/**&lt; environment variable for affinity directory */</span><span class="cp"></span>
+<span class="cp">#define	STOREPREFIX					&quot;affinity&quot;										</span><span class="cm">/**&lt; data file prefix */</span><span class="cp"></span>
+<span class="cp">#define	LOGPREFIX					&quot;afy&quot;											</span><span class="cm">/**&lt; log file prefix */</span><span class="cp"></span>
+<span class="cp">#define STOREDIR					&quot;affinity&quot;										</span><span class="cm">/**&lt; default store file directory */</span><span class="cp"></span>
+<span class="cp">#define	DATAFILESUFFIX				&quot;.store&quot;										</span><span class="cm">/**&lt; data file extension */</span><span class="cp"></span>
+<span class="cp">#define	LOGFILESUFFIX				&quot;.txlog&quot;										</span><span class="cm">/**&lt; log file extension */</span><span class="cp"></span>
+<span class="cp">#define	MASTERFILESUFFIX			&quot;.master&quot;										</span><span class="cm">/**&lt; master record file extension */</span><span class="cp"></span>
+<span class="cp">#define	HOME_ENV					&quot;AFFINITY_HOME&quot;									</span><span class="cm">/**&lt; environment variable for affinity directory */</span><span class="cp"></span>
 
-<span class="cp">#define    DEFAULT_MAX_FILES           300                                             </span><span class="cm">/**&lt; maximum number of simultaneously open files */</span><span class="cp"></span>
-<span class="cp">#define    DEFAULT_BLOCK_NUM           ~0u                         </span>
-<span class="cp">#define DEFAULT_PAGE_SIZE          0x8000                                          </span><span class="cm">/**&lt; default page size in bytes */</span><span class="cp"></span>
-<span class="cp">#define DEFAULT_EXTENT_SIZE            0x400                                           </span><span class="cm">/**&lt; default extent size in pages */</span><span class="cp"></span>
-<span class="cp">#define    DEFAULT_ASYNC_TIMEOUT       30000                                           </span><span class="cm">/**&lt; default timeout for asynchronous operations */</span><span class="cp"></span>
-<span class="cp">#define    DEFAULT_LOGSEG_SIZE         0x1000000                                       </span><span class="cm">/**&lt; log segment size in bytes (16Mb) */</span><span class="cp"></span>
-<span class="cp">#define    DEFAULT_LOGBUF_SIZE         0x40000                                         </span><span class="cm">/**&lt; log buffer size in bytes (256Kb) */</span><span class="cp"></span>
-<span class="cp">#define    DEFAULT_MAX_SYNC_ACTION     16                                              </span><span class="cm">/**&lt; default maximum depth of synchronous actions evaluation stack */</span><span class="cp"></span>
-<span class="cp">#define    DEFAULT_MAX_ON_COMMIT       1024                                            </span><span class="cm">/**&lt; default maximum number of actions evaluated at transaction commit */</span><span class="cp"></span>
-<span class="cp">#define    DEFAULT_MAX_OBJ_SESSION     256                                             </span><span class="cm">/**&lt; default maximum number of objects per session */</span><span class="cp"></span>
+<span class="cp">#define	DEFAULT_MAX_FILES			300												</span><span class="cm">/**&lt; maximum number of simultaneously open files */</span><span class="cp"></span>
+<span class="cp">#define	DEFAULT_BLOCK_NUM			~0u												</span><span class="cm">/**&lt; 80% of physical memory available */</span><span class="cp"></span>
+<span class="cp">#define DEFAULT_PAGE_SIZE			0x8000											</span><span class="cm">/**&lt; default page size in bytes */</span><span class="cp"></span>
+<span class="cp">#define DEFAULT_EXTENT_SIZE			0x400											</span><span class="cm">/**&lt; default extent size in pages */</span><span class="cp"></span>
+<span class="cp">#define	DEFAULT_ASYNC_TIMEOUT		30000											</span><span class="cm">/**&lt; default timeout for asynchronous operations */</span><span class="cp"></span>
+<span class="cp">#define	DEFAULT_LOGSEG_SIZE			0x1000000										</span><span class="cm">/**&lt; log segment size in bytes (16Mb) */</span><span class="cp"></span>
+<span class="cp">#define	DEFAULT_LOGBUF_SIZE			0x40000											</span><span class="cm">/**&lt; log buffer size in bytes (256Kb) */</span><span class="cp"></span>
+<span class="cp">#define	DEFAULT_MAX_SYNC_ACTION		16												</span><span class="cm">/**&lt; default maximum depth of synchronous actions evaluation stack */</span><span class="cp"></span>
+<span class="cp">#define	DEFAULT_MAX_ON_COMMIT		1024											</span><span class="cm">/**&lt; default maximum number of actions evaluated at transaction commit */</span><span class="cp"></span>
+<span class="cp">#define	DEFAULT_MAX_OBJ_SESSION		256												</span><span class="cm">/**&lt; default maximum number of objects per session */</span><span class="cp"></span>
+<span class="cp">#define	DEFAULT_INMEM_SIZE			0x20000000										</span><span class="cm">/**&lt; inmem default memory size = 512Mb */</span><span class="cp"></span>
 
 <span class="cm">/**</span>
 <span class="cm"> * startup flags</span>
 <span class="cm"> * @see StartupParameters::mode</span>
 <span class="cm"> */</span>
-<span class="cp">#define    STARTUP_FORCE_NEW           0x0001                                          </span><span class="cm">/**&lt; force new store, will delete old one if exists */</span><span class="cp"></span>
-<span class="cp">#define    STARTUP_ARCHIVE_LOGS        0x0002                                          </span><span class="cm">/**&lt; don&#39;t delete logs until there are marked as archived */</span><span class="cp"></span>
-<span class="cp">#define    STARTUP_ROLLFORWARD         0x0004                                          </span><span class="cm">/**&lt; create a new store and roll it forward based on existing log files */</span><span class="cp"></span>
-<span class="cp">#define    STARTUP_FORCE_OPEN          0x0008                                          </span><span class="cm">/**&lt; force store open if even recovery fails (for salvaging information) */</span><span class="cp"></span>
-<span class="cp">#define    STARTUP_PRINT_STATS         0x0010                                          </span><span class="cm">/**&lt; print index statistics on store shutdown */</span><span class="cp"></span>
-<span class="cp">#define    STARTUP_SINGLE_SESSION      0x0020                                          </span><span class="cm">/**&lt; force single session for the store, synchronisation is turned off */</span><span class="cp"></span>
-<span class="cp">#define    STARTUP_NO_RECOVERY         0x0040                                          </span><span class="cm">/**&lt; force no-recovery mode: no logs are created */</span><span class="cp"></span>
-<span class="cp">#define    STARTUP_IN_MEMORY           0x0080                                          </span><span class="cm">/**&lt; pure &#39;in-memory&#39; mode, no disk opeartions */</span><span class="cp"></span>
-<span class="cp">#define    STARTUP_REDUCED_DURABILITY  0x0100                                          </span><span class="cm">/**&lt; no log flush on transaction commit for improved performance */</span><span class="cp"></span>
-<span class="cp">#define    STARTUP_LOG_PREALLOC        0x0200                                          </span><span class="cm">/**&lt; pre-allocate log files */</span><span class="cp"></span>
-<span class="cp">#define    STARTUP_TOUCH_FILE          0x0400                                          </span><span class="cm">/**&lt; change file access date if even only read access */</span><span class="cp"></span>
-<span class="cp">#define STARTUP_NO_LOAD                0x0800                                          </span><span class="cm">/**&lt; don&#39;t load classes/timers/listeners until the first session is created */</span><span class="cp"></span>
+<span class="cp">#define	STARTUP_FORCE_NEW			0x0001											</span><span class="cm">/**&lt; force new store, will delete old one if exists */</span><span class="cp"></span>
+<span class="cp">#define	STARTUP_ARCHIVE_LOGS		0x0002											</span><span class="cm">/**&lt; don&#39;t delete logs until there are marked as archived */</span><span class="cp"></span>
+<span class="cp">#define	STARTUP_ROLLFORWARD			0x0004											</span><span class="cm">/**&lt; create a new store and roll it forward based on existing log files */</span><span class="cp"></span>
+<span class="cp">#define	STARTUP_FORCE_OPEN			0x0008											</span><span class="cm">/**&lt; force store open if even recovery fails (for salvaging information) */</span><span class="cp"></span>
+<span class="cp">#define	STARTUP_PRINT_STATS			0x0010											</span><span class="cm">/**&lt; print index statistics on store shutdown */</span><span class="cp"></span>
+<span class="cp">#define	STARTUP_RT					0x0020											</span><span class="cm">/**&lt; RT mode; one thread/one session only */</span><span class="cp"></span>
+<span class="cp">#define	STARTUP_NO_RECOVERY			0x0040											</span><span class="cm">/**&lt; force no-recovery mode: no logs are created */</span><span class="cp"></span>
+<span class="cp">#define	STARTUP_WARM				0x0080											</span><span class="cm">/**&lt; warm re-start, use passed IAffinity reference */</span><span class="cp"></span>
+<span class="cp">#define	STARTUP_REDUCED_DURABILITY	0x0100											</span><span class="cm">/**&lt; no log flush on transaction commit for improved performance */</span><span class="cp"></span>
+<span class="cp">#define	STARTUP_LOG_PREALLOC		0x0200											</span><span class="cm">/**&lt; pre-allocate log files */</span><span class="cp"></span>
+<span class="cp">#define	STARTUP_TOUCH_FILE			0x0400											</span><span class="cm">/**&lt; change file access date if even only read access */</span><span class="cp"></span>
+<span class="cp">#define STARTUP_NO_LOAD				0x0800											</span><span class="cm">/**&lt; don&#39;t load classes/timers/listeners until the first session is created */</span><span class="cp"></span>
+<span class="cp">#define STARTUP_SAFE				0x1000											</span><span class="cm">/**&lt; disable classes/timers/listeners actions */</span><span class="cp"></span>
 
-<span class="cp">#define    STARTUP_MODE_DESKTOP        0x0000                                          </span><span class="cm">/**&lt; database is running as a part of a desktop application */</span><span class="cp"></span>
-<span class="cp">#define    STARTUP_MODE_SERVER         0x8000                                          </span><span class="cm">/**&lt; database is opened on a server */</span><span class="cp"></span>
-<span class="cp">#define    STARTUP_MODE_CLOUD          0x4000                                          </span><span class="cm">/**&lt; in a cloud */</span><span class="cp"></span>
+<span class="cp">#define	STARTUP_MODE_DESKTOP		0x0000											</span><span class="cm">/**&lt; database is running as a part of a desktop application */</span><span class="cp"></span>
+<span class="cp">#define	STARTUP_MODE_SERVER			0x8000											</span><span class="cm">/**&lt; database is opened on a server */</span><span class="cp"></span>
+<span class="cp">#define	STARTUP_MODE_CLOUD			0x4000											</span><span class="cm">/**&lt; in a cloud */</span><span class="cp"></span>
 
 <span class="cm">/**</span>
 <span class="cm"> * store creation flags</span>
 <span class="cm"> * @see StoreCreationParameters::mode</span>
 <span class="cm"> */</span>
-<span class="cp">#define    STORE_CREATE_ENCRYPTED      0x0001                                          </span><span class="cm">/**&lt; created store to be encrypted */</span><span class="cp"></span>
-<span class="cp">#define    STORE_CREATE_PAGE_INTEGRITY 0x0002                                          </span><span class="cm">/**&lt; check integrity of store pages by calculating HMAC */</span><span class="cp"></span>
-<span class="cp">#define    STORE_CREATE_NO_PREFIX      0x0004                                          </span><span class="cm">/**&lt; don&#39;t augment #names with a store specific prefix */</span><span class="cp"></span>
+<span class="cp">#define	STORE_CREATE_ENCRYPTED		0x0001											</span><span class="cm">/**&lt; created store to be encrypted */</span><span class="cp"></span>
+<span class="cp">#define	STORE_CREATE_PAGE_INTEGRITY	0x0002											</span><span class="cm">/**&lt; check integrity of store pages by calculating HMAC */</span><span class="cp"></span>
+<span class="cp">#define	STORE_CREATE_NO_PREFIX		0x0004											</span><span class="cm">/**&lt; don&#39;t augment #names with a store specific prefix */</span><span class="cp"></span>
 
 <span class="cm">/**</span>
 <span class="cm"> * error/debug information report interface; if not set platform-specific standard report channel is used (e.g. STDERR)</span>
@@ -87,8 +89,8 @@
 <span class="n">class</span> <span class="n">IReport</span>
 <span class="p">{</span>
 <span class="nl">public:</span>
-    <span class="k">virtual</span>  <span class="kt">void</span>    <span class="n">report</span><span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="n">ns</span><span class="p">,</span><span class="kt">int</span> <span class="n">level</span><span class="p">,</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">str</span><span class="p">,</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">file</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="kt">int</span> <span class="n">lineno</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-    <span class="k">virtual</span>  <span class="kt">void</span><span class="o">*</span>    <span class="n">declareNamespace</span><span class="p">(</span><span class="kt">char</span> <span class="k">const</span> <span class="o">*</span><span class="p">)</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+	<span class="k">virtual</span>	<span class="kt">void</span>	<span class="n">report</span><span class="p">(</span><span class="kt">void</span> <span class="o">*</span><span class="n">ns</span><span class="p">,</span><span class="kt">int</span> <span class="n">level</span><span class="p">,</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">str</span><span class="p">,</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">file</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="kt">int</span> <span class="n">lineno</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+	<span class="k">virtual</span>	<span class="kt">void</span><span class="o">*</span>	<span class="n">declareNamespace</span><span class="p">(</span><span class="kt">char</span> <span class="k">const</span> <span class="o">*</span><span class="p">)</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
 <span class="p">};</span>
 
 <span class="cm">/**</span>
@@ -97,44 +99,44 @@
 <span class="n">class</span> <span class="n">IStoreNotification</span>
 <span class="p">{</span>
 <span class="nl">public:</span>
-    <span class="cm">/**</span>
-<span class="cm">    * type of event</span>
-<span class="cm">    */</span>
-    <span class="k">enum</span> <span class="n">NotificationEventType</span> <span class="p">{</span>
-        <span class="n">NE_PIN_CREATED</span><span class="p">,</span> <span class="n">NE_PIN_UPDATED</span><span class="p">,</span> <span class="n">NE_PIN_DELETED</span><span class="p">,</span> <span class="n">NE_CLASS_INSTANCE_ADDED</span><span class="p">,</span> <span class="n">NE_CLASS_INSTANCE_REMOVED</span><span class="p">,</span> <span class="n">NE_CLASS_INSTANCE_CHANGED</span><span class="p">,</span> <span class="n">NE_PIN_UNDELETE</span>
-    <span class="p">};</span>
-    <span class="cm">/**</span>
-<span class="cm">    * associated transaction state</span>
-<span class="cm">    */</span>
-    <span class="k">enum</span> <span class="n">TxEventType</span> <span class="p">{</span>
-        <span class="n">NTX_START</span><span class="p">,</span> <span class="n">NTX_SAVEPOINT</span><span class="p">,</span> <span class="n">NTX_COMMIT</span><span class="p">,</span> <span class="n">NTX_ABORT</span><span class="p">,</span> <span class="n">NTX_COMMIT_SP</span><span class="p">,</span> <span class="n">NTX_ABORT_SP</span>
-    <span class="p">};</span>
-    <span class="cm">/**</span>
-<span class="cm">    * event associated data</span>
-<span class="cm">    */</span>
-    <span class="k">struct</span> <span class="n">NotificationData</span> <span class="p">{</span>
-        <span class="n">PropertyID</span>           <span class="n">propID</span><span class="p">;</span>
-        <span class="n">ElementID</span>            <span class="n">eid</span><span class="p">;</span>
-        <span class="n">ElementID</span>            <span class="n">epos</span><span class="p">;</span>
-        <span class="k">const</span>    <span class="n">Value</span>        <span class="o">*</span><span class="n">oldValue</span><span class="p">;</span>
-        <span class="k">const</span>    <span class="n">Value</span>        <span class="o">*</span><span class="n">newValue</span><span class="p">;</span>
-    <span class="p">};</span>
-    <span class="k">struct</span> <span class="n">EventData</span> <span class="p">{</span>
-        <span class="n">NotificationEventType</span>        <span class="n">type</span><span class="p">;</span>
-        <span class="n">ClassID</span>              <span class="n">cid</span><span class="p">;</span>
-    <span class="p">};</span>
-    <span class="cm">/**</span>
-<span class="cm">    * event descriptor</span>
-<span class="cm">    */</span>
-    <span class="k">struct</span> <span class="n">NotificationEvent</span> <span class="p">{</span>
-        <span class="n">PID</span>                  <span class="n">pin</span><span class="p">;</span>
-        <span class="k">const</span>    <span class="n">EventData</span>            <span class="o">*</span><span class="n">events</span><span class="p">;</span>
-        <span class="kt">unsigned</span>                    <span class="n">nEvents</span><span class="p">;</span>
-        <span class="k">const</span>    <span class="n">NotificationData</span> <span class="o">*</span><span class="n">data</span><span class="p">;</span>
-        <span class="kt">unsigned</span>                    <span class="n">nData</span><span class="p">;</span>
-        <span class="n">bool</span>                     <span class="n">fReplication</span><span class="p">;</span>
-    <span class="p">};</span>
-    <span class="k">virtual</span>  <span class="kt">void</span>    <span class="n">notify</span><span class="p">(</span><span class="n">NotificationEvent</span> <span class="o">*</span><span class="n">events</span><span class="p">,</span><span class="kt">unsigned</span> <span class="n">nEvents</span><span class="p">,</span><span class="kt">uint64_t</span> <span class="n">txid</span><span class="p">)</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
+	<span class="cm">/**</span>
+<span class="cm">	 * type of event</span>
+<span class="cm">	 */</span>
+	<span class="k">enum</span> <span class="n">NotificationEventType</span> <span class="p">{</span>
+		<span class="n">NE_PIN_CREATED</span><span class="p">,</span> <span class="n">NE_PIN_UPDATED</span><span class="p">,</span> <span class="n">NE_PIN_DELETED</span><span class="p">,</span> <span class="n">NE_CLASS_INSTANCE_ADDED</span><span class="p">,</span> <span class="n">NE_CLASS_INSTANCE_REMOVED</span><span class="p">,</span> <span class="n">NE_CLASS_INSTANCE_CHANGED</span><span class="p">,</span> <span class="n">NE_PIN_UNDELETE</span>
+	<span class="p">};</span>
+	<span class="cm">/**</span>
+<span class="cm">	 * associated transaction state</span>
+<span class="cm">	 */</span>
+	<span class="k">enum</span> <span class="n">TxEventType</span> <span class="p">{</span>
+		<span class="n">NTX_START</span><span class="p">,</span> <span class="n">NTX_SAVEPOINT</span><span class="p">,</span> <span class="n">NTX_COMMIT</span><span class="p">,</span> <span class="n">NTX_ABORT</span><span class="p">,</span> <span class="n">NTX_COMMIT_SP</span><span class="p">,</span> <span class="n">NTX_ABORT_SP</span>
+	<span class="p">};</span>
+	<span class="cm">/**</span>
+<span class="cm">	 * event associated data</span>
+<span class="cm">	 */</span>
+	<span class="k">struct</span> <span class="n">NotificationData</span> <span class="p">{</span>
+		<span class="n">PropertyID</span>			<span class="n">propID</span><span class="p">;</span>
+		<span class="n">ElementID</span>			<span class="n">eid</span><span class="p">;</span>
+		<span class="n">ElementID</span>			<span class="n">epos</span><span class="p">;</span>
+		<span class="k">const</span>	<span class="n">Value</span>		<span class="o">*</span><span class="n">oldValue</span><span class="p">;</span>
+		<span class="k">const</span>	<span class="n">Value</span>		<span class="o">*</span><span class="n">newValue</span><span class="p">;</span>
+	<span class="p">};</span>
+	<span class="k">struct</span> <span class="n">EventData</span> <span class="p">{</span>
+		<span class="n">NotificationEventType</span>		<span class="n">type</span><span class="p">;</span>
+		<span class="n">ClassID</span>				<span class="n">cid</span><span class="p">;</span>
+	<span class="p">};</span>
+	<span class="cm">/**</span>
+<span class="cm">	 * event descriptor</span>
+<span class="cm">	 */</span>
+	<span class="k">struct</span> <span class="n">NotificationEvent</span> <span class="p">{</span>
+		<span class="n">PID</span>					<span class="n">pin</span><span class="p">;</span>
+		<span class="k">const</span>	<span class="n">EventData</span>			<span class="o">*</span><span class="n">events</span><span class="p">;</span>
+		<span class="kt">unsigned</span>					<span class="n">nEvents</span><span class="p">;</span>
+		<span class="k">const</span>	<span class="n">NotificationData</span>	<span class="o">*</span><span class="n">data</span><span class="p">;</span>
+		<span class="kt">unsigned</span>					<span class="n">nData</span><span class="p">;</span>
+		<span class="n">bool</span>						<span class="n">fReplication</span><span class="p">;</span>
+	<span class="p">};</span>
+	<span class="k">virtual</span>	<span class="kt">void</span>	<span class="n">notify</span><span class="p">(</span><span class="n">NotificationEvent</span> <span class="o">*</span><span class="n">events</span><span class="p">,</span><span class="kt">unsigned</span> <span class="n">nEvents</span><span class="p">,</span><span class="kt">uint64_t</span> <span class="n">txid</span><span class="p">)</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
 <span class="p">};</span>
 
 <span class="cm">/**</span>
@@ -143,22 +145,24 @@
 <span class="cm"> */</span>
 <span class="k">struct</span> <span class="n">StartupParameters</span>
 <span class="p">{</span>
-    <span class="kt">unsigned</span>            <span class="n">mode</span><span class="p">;</span>                             <span class="cm">/**&lt; open flags */</span>
-    <span class="k">const</span> <span class="kt">char</span>           <span class="o">*</span><span class="n">directory</span><span class="p">;</span>                            <span class="cm">/**&lt; db file directory */</span>
-    <span class="kt">unsigned</span>            <span class="n">maxFiles</span><span class="p">;</span>                         <span class="cm">/**&lt; maximum number of files which can be simultaneously open */</span>
-    <span class="kt">unsigned</span>            <span class="n">nBuffers</span><span class="p">;</span>                         <span class="cm">/**&lt; number of memory buffers for pages to allocate */</span>
-    <span class="kt">unsigned</span>            <span class="n">shutdownAsyncTimeout</span><span class="p">;</span>             <span class="cm">/**&lt; shutdown wait timeout */</span>
-    <span class="n">IService</span>         <span class="o">*</span><span class="n">service</span><span class="p">;</span>                          <span class="cm">/**&lt; default external service handler */</span>
-    <span class="n">IStoreNotification</span>   <span class="o">*</span><span class="n">notification</span><span class="p">;</span>                     <span class="cm">/**&lt; event notification interface */</span>
-    <span class="k">const</span> <span class="kt">char</span>           <span class="o">*</span><span class="n">password</span><span class="p">;</span>                         <span class="cm">/**&lt; store password */</span>
-    <span class="k">const</span> <span class="kt">char</span>           <span class="o">*</span><span class="n">logDirectory</span><span class="p">;</span>                     <span class="cm">/**&lt; optional directory for log files */</span>
-    <span class="kt">size_t</span>              <span class="n">logBufSize</span><span class="p">;</span>                           <span class="cm">/**&lt; size of log buffer in memory */</span>
-    <span class="k">const</span> <span class="kt">char</span>           <span class="o">*</span><span class="n">serviceDirectory</span><span class="p">;</span>                 <span class="cm">/**&lt; optional directory for service libraries */</span>
-    <span class="n">StartupParameters</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">md</span><span class="o">=</span><span class="n">STARTUP_MODE_DESKTOP</span><span class="p">,</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">dir</span><span class="o">=</span><span class="nb">NULL</span><span class="p">,</span><span class="kt">unsigned</span> <span class="n">xFiles</span><span class="o">=</span><span class="n">DEFAULT_MAX_FILES</span><span class="p">,</span><span class="kt">unsigned</span> <span class="n">nBuf</span><span class="o">=</span><span class="n">DEFAULT_BLOCK_NUM</span><span class="p">,</span>
-                        <span class="kt">unsigned</span> <span class="n">asyncTimeout</span><span class="o">=</span><span class="n">DEFAULT_ASYNC_TIMEOUT</span><span class="p">,</span><span class="n">IService</span> <span class="o">*</span><span class="n">srv</span><span class="o">=</span><span class="nb">NULL</span><span class="p">,</span><span class="n">IStoreNotification</span> <span class="o">*</span><span class="n">notItf</span><span class="o">=</span><span class="nb">NULL</span><span class="p">,</span>
-                        <span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">pwd</span><span class="o">=</span><span class="nb">NULL</span><span class="p">,</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">logDir</span><span class="o">=</span><span class="nb">NULL</span><span class="p">,</span><span class="kt">size_t</span> <span class="n">lbs</span><span class="o">=</span><span class="n">DEFAULT_LOGBUF_SIZE</span><span class="p">,</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">srvDir</span><span class="o">=</span><span class="nb">NULL</span><span class="p">)</span> 
-        <span class="o">:</span> <span class="n">mode</span><span class="p">(</span><span class="n">md</span><span class="p">),</span><span class="n">directory</span><span class="p">(</span><span class="n">dir</span><span class="p">),</span><span class="n">maxFiles</span><span class="p">(</span><span class="n">xFiles</span><span class="p">),</span><span class="n">nBuffers</span><span class="p">(</span><span class="n">nBuf</span><span class="p">),</span><span class="n">shutdownAsyncTimeout</span><span class="p">(</span><span class="n">asyncTimeout</span><span class="p">),</span>
-        <span class="n">service</span><span class="p">(</span><span class="n">srv</span><span class="p">),</span><span class="n">notification</span><span class="p">(</span><span class="n">notItf</span><span class="p">),</span><span class="n">password</span><span class="p">(</span><span class="n">pwd</span><span class="p">),</span><span class="n">logDirectory</span><span class="p">(</span><span class="n">logDir</span><span class="p">),</span><span class="n">logBufSize</span><span class="p">(</span><span class="n">lbs</span><span class="p">),</span><span class="n">serviceDirectory</span><span class="p">(</span><span class="n">srvDir</span><span class="p">)</span> <span class="p">{}</span>
+	<span class="kt">unsigned</span>			<span class="n">mode</span><span class="p">;</span>								<span class="cm">/**&lt; open flags */</span>
+	<span class="k">const</span> <span class="kt">char</span>			<span class="o">*</span><span class="n">directory</span><span class="p">;</span>							<span class="cm">/**&lt; db file directory */</span>
+	<span class="kt">unsigned</span>			<span class="n">maxFiles</span><span class="p">;</span>							<span class="cm">/**&lt; maximum number of files which can be simultaneously open */</span>
+	<span class="kt">unsigned</span>			<span class="n">nBuffers</span><span class="p">;</span>							<span class="cm">/**&lt; number of memory buffers for pages to allocate */</span>
+	<span class="kt">unsigned</span>			<span class="n">shutdownAsyncTimeout</span><span class="p">;</span>				<span class="cm">/**&lt; shutdown wait timeout */</span>
+	<span class="n">IService</span>			<span class="o">*</span><span class="n">service</span><span class="p">;</span>							<span class="cm">/**&lt; default external service handler */</span>
+	<span class="n">IStoreNotification</span>	<span class="o">*</span><span class="n">notification</span><span class="p">;</span>						<span class="cm">/**&lt; event notification interface */</span>
+	<span class="k">const</span> <span class="kt">char</span>			<span class="o">*</span><span class="n">password</span><span class="p">;</span>							<span class="cm">/**&lt; store password */</span>
+	<span class="k">const</span> <span class="kt">char</span>			<span class="o">*</span><span class="n">logDirectory</span><span class="p">;</span>						<span class="cm">/**&lt; optional directory for log files */</span>
+	<span class="kt">size_t</span>				<span class="n">logBufSize</span><span class="p">;</span>							<span class="cm">/**&lt; size of log buffer in memory */</span>
+	<span class="k">const</span> <span class="kt">char</span>			<span class="o">*</span><span class="n">serviceDirectory</span><span class="p">;</span>					<span class="cm">/**&lt; optional directory for service libraries */</span>
+	<span class="kt">void</span>				<span class="o">*</span><span class="n">memory</span><span class="p">;</span>							<span class="cm">/**&lt; start of memory for in-memory store */</span>
+	<span class="kt">uint64_t</span>			<span class="n">lMemory</span><span class="p">;</span>							<span class="cm">/**&lt; length of memory for in-memory store */</span>
+	<span class="n">StartupParameters</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">md</span><span class="o">=</span><span class="n">STARTUP_MODE_DESKTOP</span><span class="p">,</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">dir</span><span class="o">=</span><span class="nb">NULL</span><span class="p">,</span><span class="kt">unsigned</span> <span class="n">xFiles</span><span class="o">=</span><span class="n">DEFAULT_MAX_FILES</span><span class="p">,</span><span class="kt">unsigned</span> <span class="n">nBuf</span><span class="o">=</span><span class="n">DEFAULT_BLOCK_NUM</span><span class="p">,</span>
+						<span class="kt">unsigned</span> <span class="n">asyncTimeout</span><span class="o">=</span><span class="n">DEFAULT_ASYNC_TIMEOUT</span><span class="p">,</span><span class="n">IService</span> <span class="o">*</span><span class="n">srv</span><span class="o">=</span><span class="nb">NULL</span><span class="p">,</span><span class="n">IStoreNotification</span> <span class="o">*</span><span class="n">notItf</span><span class="o">=</span><span class="nb">NULL</span><span class="p">,</span>
+						<span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">pwd</span><span class="o">=</span><span class="nb">NULL</span><span class="p">,</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">logDir</span><span class="o">=</span><span class="nb">NULL</span><span class="p">,</span><span class="kt">size_t</span> <span class="n">lbs</span><span class="o">=</span><span class="n">DEFAULT_LOGBUF_SIZE</span><span class="p">,</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">srvDir</span><span class="o">=</span><span class="nb">NULL</span><span class="p">,</span><span class="kt">void</span> <span class="o">*</span><span class="n">mem</span><span class="o">=</span><span class="nb">NULL</span><span class="p">,</span><span class="kt">uint64_t</span> <span class="n">lMem</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> 
+		<span class="o">:</span> <span class="n">mode</span><span class="p">(</span><span class="n">md</span><span class="p">),</span><span class="n">directory</span><span class="p">(</span><span class="n">dir</span><span class="p">),</span><span class="n">maxFiles</span><span class="p">(</span><span class="n">xFiles</span><span class="p">),</span><span class="n">nBuffers</span><span class="p">(</span><span class="n">nBuf</span><span class="p">),</span><span class="n">shutdownAsyncTimeout</span><span class="p">(</span><span class="n">asyncTimeout</span><span class="p">),</span><span class="n">service</span><span class="p">(</span><span class="n">srv</span><span class="p">),</span><span class="n">notification</span><span class="p">(</span><span class="n">notItf</span><span class="p">),</span><span class="n">password</span><span class="p">(</span><span class="n">pwd</span><span class="p">),</span>
+		<span class="n">logDirectory</span><span class="p">(</span><span class="n">logDir</span><span class="p">),</span><span class="n">logBufSize</span><span class="p">(</span><span class="n">lbs</span><span class="p">),</span><span class="n">serviceDirectory</span><span class="p">(</span><span class="n">srvDir</span><span class="p">),</span><span class="n">memory</span><span class="p">(</span><span class="n">mem</span><span class="p">),</span><span class="n">lMemory</span><span class="p">(</span><span class="n">lMem</span><span class="p">)</span> <span class="p">{}</span>
 <span class="p">};</span>
 
 <span class="cm">/**</span>
@@ -167,55 +171,43 @@
 <span class="cm"> */</span>
 <span class="k">struct</span> <span class="n">StoreCreationParameters</span>
 <span class="p">{</span>
-    <span class="kt">unsigned</span>        <span class="n">nControlRecords</span><span class="p">;</span>                          <span class="cm">/**&lt; number of duplicated control records; must be 0 at the moment */</span>
-    <span class="kt">unsigned</span>        <span class="n">pageSize</span><span class="p">;</span>                                 <span class="cm">/**&lt; page size in bytes, aligned to 2**N, from 0x1000 to 0x10000 */</span>
-    <span class="kt">unsigned</span>        <span class="n">fileExtentSize</span><span class="p">;</span>                               <span class="cm">/**&lt; file extent size - number of pages to allocate when data file is extended */</span>
-    <span class="k">const</span>    <span class="kt">char</span>    <span class="o">*</span><span class="n">identity</span><span class="p">;</span>                                 <span class="cm">/**&lt; store owner identity */</span>
-    <span class="kt">unsigned</span> <span class="kt">short</span>  <span class="n">storeId</span><span class="p">;</span>                                  <span class="cm">/**&lt; store ID for this identity; 0-65535, must be unique for this identity */</span>
-    <span class="k">const</span>    <span class="kt">char</span>    <span class="o">*</span><span class="n">password</span><span class="p">;</span>                                 <span class="cm">/**&lt; store owner password */</span>
-    <span class="kt">uint64_t</span>        <span class="n">maxSize</span><span class="p">;</span>                                  <span class="cm">/**&lt; maximum store size in bytes; for quotas in multi-tenant environments */</span>
-    <span class="kt">float</span>           <span class="n">pctFree</span><span class="p">;</span>                                  <span class="cm">/**&lt; percentage of free space on pages when new PINs are allocated */</span>
-    <span class="kt">size_t</span>          <span class="n">logSegSize</span><span class="p">;</span>                                   <span class="cm">/**&lt; size of log segment */</span>
-    <span class="kt">unsigned</span>        <span class="n">mode</span><span class="p">;</span>                                     <span class="cm">/**&lt; store creation flags */</span>
-    <span class="kt">unsigned</span>        <span class="n">xSyncStack</span><span class="p">;</span>                                   <span class="cm">/**&lt; maximum depth of synchronous action invocations */</span>
-    <span class="kt">unsigned</span>        <span class="n">xOnCommit</span><span class="p">;</span>                                    <span class="cm">/**&lt; maximum number of OnCommit actions */</span>
-    <span class="kt">unsigned</span>        <span class="n">xObjSession</span><span class="p">;</span>                              <span class="cm">/**&lt; maximum number of objects per session */</span>
-<span class="cp">#define    DEAFULT_MAX_OBJ_SESSION     256                                             </span>
-    <span class="n">StoreCreationParameters</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">nCtl</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="kt">unsigned</span> <span class="n">lPage</span><span class="o">=</span><span class="n">DEFAULT_PAGE_SIZE</span><span class="p">,</span>
-        <span class="kt">unsigned</span> <span class="n">extSize</span><span class="o">=</span><span class="n">DEFAULT_EXTENT_SIZE</span><span class="p">,</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">ident</span><span class="o">=</span><span class="nb">NULL</span><span class="p">,</span><span class="kt">unsigned</span> <span class="kt">short</span> <span class="n">stId</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">pwd</span><span class="o">=</span><span class="nb">NULL</span><span class="p">,</span><span class="kt">unsigned</span> <span class="n">md</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="kt">uint64_t</span> <span class="n">xSize</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
-        <span class="kt">float</span> <span class="n">pctF</span><span class="o">=-</span><span class="mf">1.f</span><span class="p">,</span><span class="kt">size_t</span> <span class="n">lss</span><span class="o">=</span><span class="n">DEFAULT_LOGSEG_SIZE</span><span class="p">,</span><span class="kt">unsigned</span> <span class="n">xSync</span><span class="o">=</span><span class="n">DEFAULT_MAX_SYNC_ACTION</span><span class="p">,</span><span class="kt">unsigned</span> <span class="n">xoc</span><span class="o">=</span><span class="n">DEFAULT_MAX_ON_COMMIT</span><span class="p">,</span><span class="kt">unsigned</span> <span class="n">xoses</span><span class="o">=</span><span class="n">DEFAULT_MAX_OBJ_SESSION</span><span class="p">)</span>
-        <span class="o">:</span> <span class="n">nControlRecords</span><span class="p">(</span><span class="n">nCtl</span><span class="p">),</span><span class="n">pageSize</span><span class="p">(</span><span class="n">lPage</span><span class="p">),</span><span class="n">fileExtentSize</span><span class="p">(</span><span class="n">extSize</span><span class="p">),</span><span class="n">identity</span><span class="p">(</span><span class="n">ident</span><span class="p">),</span>
-        <span class="n">storeId</span><span class="p">(</span><span class="n">stId</span><span class="p">),</span><span class="n">password</span><span class="p">(</span><span class="n">pwd</span><span class="p">),</span><span class="n">maxSize</span><span class="p">(</span><span class="n">xSize</span><span class="p">),</span><span class="n">pctFree</span><span class="p">(</span><span class="n">pctF</span><span class="p">),</span><span class="n">logSegSize</span><span class="p">(</span><span class="n">lss</span><span class="p">),</span><span class="n">mode</span><span class="p">(</span><span class="n">md</span><span class="p">),</span><span class="n">xSyncStack</span><span class="p">(</span><span class="n">xSync</span><span class="p">),</span><span class="n">xOnCommit</span><span class="p">(</span><span class="n">xoc</span><span class="p">),</span><span class="n">xObjSession</span><span class="p">(</span><span class="n">xoses</span><span class="p">)</span> <span class="p">{}</span>
+	<span class="kt">unsigned</span>		<span class="n">nControlRecords</span><span class="p">;</span>							<span class="cm">/**&lt; number of duplicated control records; must be 0 at the moment */</span>
+	<span class="kt">unsigned</span>		<span class="n">pageSize</span><span class="p">;</span>									<span class="cm">/**&lt; page size in bytes, aligned to 2**N, between 0x1000 and 0x10000 */</span>
+	<span class="kt">unsigned</span>		<span class="n">fileExtentSize</span><span class="p">;</span>								<span class="cm">/**&lt; file extent size - number of pages to allocate when data file is extended */</span>
+	<span class="k">const</span>	<span class="kt">char</span>	<span class="o">*</span><span class="n">identity</span><span class="p">;</span>									<span class="cm">/**&lt; store owner identity */</span>
+	<span class="kt">unsigned</span> <span class="kt">short</span>	<span class="n">storeId</span><span class="p">;</span>									<span class="cm">/**&lt; store ID for this identity; 0-65535, must be unique for this identity */</span>
+	<span class="k">const</span>	<span class="kt">char</span>	<span class="o">*</span><span class="n">password</span><span class="p">;</span>									<span class="cm">/**&lt; store owner password */</span>
+	<span class="kt">uint64_t</span>		<span class="n">maxSize</span><span class="p">;</span>									<span class="cm">/**&lt; maximum store size in bytes; for quotas in multi-tenant environments */</span>
+	<span class="kt">float</span>			<span class="n">pctFree</span><span class="p">;</span>									<span class="cm">/**&lt; percentage of free space on pages when new PINs are allocated */</span>
+	<span class="kt">size_t</span>			<span class="n">logSegSize</span><span class="p">;</span>									<span class="cm">/**&lt; size of log segment */</span>
+	<span class="kt">unsigned</span>		<span class="n">mode</span><span class="p">;</span>										<span class="cm">/**&lt; store creation flags */</span>
+	<span class="kt">unsigned</span>		<span class="n">xSyncStack</span><span class="p">;</span>									<span class="cm">/**&lt; maximum depth of synchronous action invocations */</span>
+	<span class="kt">unsigned</span>		<span class="n">xOnCommit</span><span class="p">;</span>									<span class="cm">/**&lt; maximum number of OnCommit actions */</span>
+	<span class="kt">unsigned</span>		<span class="n">xObjSession</span><span class="p">;</span>								<span class="cm">/**&lt; maximum number of objects per session */</span>
+	<span class="n">StoreCreationParameters</span><span class="p">(</span><span class="kt">unsigned</span> <span class="n">nCtl</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="kt">unsigned</span> <span class="n">lPage</span><span class="o">=</span><span class="n">DEFAULT_PAGE_SIZE</span><span class="p">,</span>
+		<span class="kt">unsigned</span> <span class="n">extSize</span><span class="o">=</span><span class="n">DEFAULT_EXTENT_SIZE</span><span class="p">,</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">ident</span><span class="o">=</span><span class="nb">NULL</span><span class="p">,</span><span class="kt">unsigned</span> <span class="kt">short</span> <span class="n">stId</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">pwd</span><span class="o">=</span><span class="nb">NULL</span><span class="p">,</span><span class="kt">unsigned</span> <span class="n">md</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span><span class="kt">uint64_t</span> <span class="n">xSize</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span>
+		<span class="kt">float</span> <span class="n">pctF</span><span class="o">=-</span><span class="mf">1.f</span><span class="p">,</span><span class="kt">size_t</span> <span class="n">lss</span><span class="o">=</span><span class="n">DEFAULT_LOGSEG_SIZE</span><span class="p">,</span><span class="kt">unsigned</span> <span class="n">xSync</span><span class="o">=</span><span class="n">DEFAULT_MAX_SYNC_ACTION</span><span class="p">,</span><span class="kt">unsigned</span> <span class="n">xoc</span><span class="o">=</span><span class="n">DEFAULT_MAX_ON_COMMIT</span><span class="p">,</span><span class="kt">unsigned</span> <span class="n">xoses</span><span class="o">=</span><span class="n">DEFAULT_MAX_OBJ_SESSION</span><span class="p">)</span>
+		<span class="o">:</span> <span class="n">nControlRecords</span><span class="p">(</span><span class="n">nCtl</span><span class="p">),</span><span class="n">pageSize</span><span class="p">(</span><span class="n">lPage</span><span class="p">),</span><span class="n">fileExtentSize</span><span class="p">(</span><span class="n">extSize</span><span class="p">),</span><span class="n">identity</span><span class="p">(</span><span class="n">ident</span><span class="p">),</span>
+		<span class="n">storeId</span><span class="p">(</span><span class="n">stId</span><span class="p">),</span><span class="n">password</span><span class="p">(</span><span class="n">pwd</span><span class="p">),</span><span class="n">maxSize</span><span class="p">(</span><span class="n">xSize</span><span class="p">),</span><span class="n">pctFree</span><span class="p">(</span><span class="n">pctF</span><span class="p">),</span><span class="n">logSegSize</span><span class="p">(</span><span class="n">lss</span><span class="p">),</span><span class="n">mode</span><span class="p">(</span><span class="n">md</span><span class="p">),</span><span class="n">xSyncStack</span><span class="p">(</span><span class="n">xSync</span><span class="p">),</span><span class="n">xOnCommit</span><span class="p">(</span><span class="n">xoc</span><span class="p">),</span><span class="n">xObjSession</span><span class="p">(</span><span class="n">xoses</span><span class="p">)</span> <span class="p">{}</span>
 <span class="p">};</span>
 
-<span class="cm">/**</span>
-<span class="cm"> * directory mapping interface</span>
-<span class="cm"> * @see manageStores()</span>
-<span class="cm"> */</span>
-<span class="n">class</span> <span class="n">IMapDir</span>
-<span class="p">{</span>
-<span class="nl">public:</span>
-    <span class="k">enum</span> <span class="n">StoreOp</span> <span class="p">{</span><span class="n">SO_CREATE</span><span class="p">,</span> <span class="n">SO_OPEN</span><span class="p">,</span> <span class="n">SO_DELETE</span><span class="p">,</span> <span class="n">SO_MOVE</span><span class="p">,</span> <span class="n">SO_LOG</span><span class="p">};</span>
-    <span class="k">virtual</span>  <span class="n">RC</span>   <span class="n">map</span><span class="p">(</span><span class="n">StoreOp</span> <span class="n">op</span><span class="p">,</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">dir</span><span class="p">,</span><span class="kt">size_t</span> <span class="n">ldir</span><span class="p">,</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*&amp;</span><span class="n">mdir</span><span class="p">,</span><span class="k">const</span> <span class="kt">char</span> <span class="o">**</span><span class="n">pwd</span><span class="p">)</span> <span class="o">=</span> <span class="mi">0</span><span class="p">;</span>
-<span class="p">};</span>
+<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="n">AFY_EXP</span> <span class="n">RC</span>			<span class="n">manageStores</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">cmd</span><span class="p">,</span><span class="kt">size_t</span> <span class="n">lcmd</span><span class="p">,</span><span class="n">IAffinity</span> <span class="o">*&amp;</span><span class="n">store</span><span class="p">,</span><span class="k">const</span> <span class="n">StartupParameters</span> <span class="o">*</span><span class="n">sp</span><span class="o">=</span><span class="nb">NULL</span><span class="p">,</span><span class="n">CompilationError</span> <span class="o">*</span><span class="n">ce</span><span class="o">=</span><span class="nb">NULL</span><span class="p">);</span>		<span class="cm">/**&lt; store management using PathSQL strings */</span>
+<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="n">AFY_EXP</span> <span class="n">RC</span>			<span class="n">openStore</span><span class="p">(</span><span class="k">const</span> <span class="n">StartupParameters</span><span class="o">&amp;</span> <span class="n">params</span><span class="p">,</span><span class="n">IAffinity</span> <span class="o">*&amp;</span><span class="n">store</span><span class="p">);</span>																<span class="cm">/**&lt; opens an existing store, returns store context handle */</span>
+<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="n">AFY_EXP</span> <span class="n">RC</span>			<span class="n">createStore</span><span class="p">(</span><span class="k">const</span> <span class="n">StoreCreationParameters</span><span class="o">&amp;</span> <span class="n">create</span><span class="p">,</span><span class="k">const</span> <span class="n">StartupParameters</span><span class="o">&amp;</span> <span class="n">params</span><span class="p">,</span><span class="n">IAffinity</span> <span class="o">*&amp;</span><span class="n">store</span><span class="p">,</span><span class="n">ISession</span> <span class="o">**</span><span class="n">pLoad</span><span class="o">=</span><span class="nb">NULL</span><span class="p">);</span>	<span class="cm">/**&lt; creates a new store, returns store context handle */</span>
+<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="n">AFY_EXP</span> <span class="n">RC</span>			<span class="n">getStoreCreationParameters</span><span class="p">(</span><span class="n">StoreCreationParameters</span><span class="o">&amp;</span> <span class="n">params</span><span class="p">,</span><span class="n">IAffinity</span> <span class="o">*</span><span class="n">store</span><span class="o">=</span><span class="nb">NULL</span><span class="p">);</span>											<span class="cm">/**&lt; retrives parameters used to create this store */</span>
+<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="n">AFY_EXP</span> <span class="kt">unsigned</span>		<span class="n">getVersion</span><span class="p">();</span>																												<span class="cm">/**&lt; get Affinity kernel version */</span>
+<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="n">AFY_EXP</span> <span class="kt">void</span>			<span class="n">setReport</span><span class="p">(</span><span class="n">IReport</span> <span class="o">*</span><span class="p">);</span>																										<span class="cm">/**&lt; set (kernel-wide) error/debug info interface */</span>
 
-<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="n">AFY_EXP</span> <span class="n">RC</span>         <span class="n">manageStores</span><span class="p">(</span><span class="k">const</span> <span class="kt">char</span> <span class="o">*</span><span class="n">cmd</span><span class="p">,</span><span class="kt">size_t</span> <span class="n">lcmd</span><span class="p">,</span><span class="n">IAffinity</span> <span class="o">*&amp;</span><span class="n">store</span><span class="p">,</span><span class="n">IMapDir</span> <span class="o">*</span><span class="n">id</span><span class="p">,</span><span class="k">const</span> <span class="n">StartupParameters</span> <span class="o">*</span><span class="n">sp</span><span class="o">=</span><span class="nb">NULL</span><span class="p">,</span><span class="n">CompilationError</span> <span class="o">*</span><span class="n">ce</span><span class="o">=</span><span class="nb">NULL</span><span class="p">);</span>    <span class="cm">/**&lt; store management using PathSQL strings */</span>
-<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="n">AFY_EXP</span> <span class="n">RC</span>         <span class="n">openStore</span><span class="p">(</span><span class="k">const</span> <span class="n">StartupParameters</span><span class="o">&amp;</span> <span class="n">params</span><span class="p">,</span><span class="n">IAffinity</span> <span class="o">*&amp;</span><span class="n">store</span><span class="p">);</span>                                                                      <span class="cm">/**&lt; opens an existing store, returns store context handle */</span>
-<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="n">AFY_EXP</span> <span class="n">RC</span>         <span class="n">createStore</span><span class="p">(</span><span class="k">const</span> <span class="n">StoreCreationParameters</span><span class="o">&amp;</span> <span class="n">create</span><span class="p">,</span><span class="k">const</span> <span class="n">StartupParameters</span><span class="o">&amp;</span> <span class="n">params</span><span class="p">,</span><span class="n">IAffinity</span> <span class="o">*&amp;</span><span class="n">store</span><span class="p">,</span><span class="n">ISession</span> <span class="o">**</span><span class="n">pLoad</span><span class="o">=</span><span class="nb">NULL</span><span class="p">);</span>          <span class="cm">/**&lt; creates a new store, returns store context handle */</span>
-<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="n">AFY_EXP</span> <span class="n">RC</span>         <span class="n">getStoreCreationParameters</span><span class="p">(</span><span class="n">StoreCreationParameters</span><span class="o">&amp;</span> <span class="n">params</span><span class="p">,</span><span class="n">IAffinity</span> <span class="o">*</span><span class="n">store</span><span class="o">=</span><span class="nb">NULL</span><span class="p">);</span>                                                 <span class="cm">/**&lt; retrives parameters used to create this store */</span>
-<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="n">AFY_EXP</span> <span class="kt">unsigned</span>      <span class="n">getVersion</span><span class="p">();</span>                                                                                                                     <span class="cm">/**&lt; get Affinity kernel version */</span>
-<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="n">AFY_EXP</span> <span class="kt">void</span>          <span class="n">setReport</span><span class="p">(</span><span class="n">IReport</span> <span class="o">*</span><span class="p">);</span>                                                                                                                <span class="cm">/**&lt; set (kernel-wide) error/debug info interface */</span>
-
-<span class="cp">#define    INIT_ENTRY_NAME         &quot;initService&quot;</span>
-<span class="cp">#ifdef AFFINITY_STATIC_LINK</span>
-<span class="cp">#define    SERVICE_INIT(A)         A##_initService</span>
+<span class="cp">#define	INIT_ENTRY_NAME			&quot;initService&quot;</span>
+<span class="cp">#ifdef	AFFINITY_STATIC_LINK</span>
+<span class="cp">#define	SERVICE_INIT(A)			A##_initService</span>
 <span class="cp">#else</span>
-<span class="cp">#define    SERVICE_INIT(A)         initService</span>
+<span class="cp">#define	SERVICE_INIT(A)			initService</span>
 <span class="cp">#endif</span>
-<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="n">AFY_EXP</span>   <span class="n">bool</span>     <span class="n">initService</span><span class="p">(</span><span class="n">ISession</span> <span class="o">*</span><span class="n">ses</span><span class="p">,</span><span class="k">const</span> <span class="n">Value</span> <span class="o">*</span><span class="n">pars</span><span class="p">,</span><span class="kt">unsigned</span> <span class="n">nPars</span><span class="p">,</span><span class="n">bool</span> <span class="n">fNew</span><span class="p">);</span>                                                              <span class="cm">/**&lt; prototype of the service initializatio function; called when the service library is loaded by a store */</span>
+<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="n">AFY_EXP</span>	<span class="n">bool</span>		<span class="n">initService</span><span class="p">(</span><span class="n">ISession</span> <span class="o">*</span><span class="n">ses</span><span class="p">,</span><span class="k">const</span> <span class="n">Value</span> <span class="o">*</span><span class="n">pars</span><span class="p">,</span><span class="kt">unsigned</span> <span class="n">nPars</span><span class="p">,</span><span class="n">bool</span> <span class="n">fNew</span><span class="p">);</span>														<span class="cm">/**&lt; prototype of the service initializatio function; called when the service library is loaded by a store */</span>
 
-<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="n">AFY_EXP</span> <span class="kt">void</span>          <span class="n">stopThreads</span><span class="p">();</span>                                                                                                                        <span class="cm">/**&lt; stops all threads started by Affinity kernel */</span>
-<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="n">AFY_EXP</span> <span class="n">RC</span>         <span class="n">shutdownStore</span><span class="p">();</span>                                                                                                                  <span class="cm">/**&lt; shutdown &quot;current&quot; store */</span> 
+<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="n">AFY_EXP</span> <span class="kt">void</span>			<span class="n">stopThreads</span><span class="p">();</span>																												<span class="cm">/**&lt; stops all threads started by Affinity kernel */</span>
+<span class="k">extern</span> <span class="s">&quot;C&quot;</span> <span class="n">AFY_EXP</span> <span class="n">RC</span>			<span class="n">shutdownStore</span><span class="p">();</span>																											<span class="cm">/**&lt; shutdown &quot;current&quot; store */</span> 
 
 <span class="cp">#endif</span>
 </pre></div>

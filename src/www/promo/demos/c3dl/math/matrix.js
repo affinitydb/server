@@ -41,10 +41,10 @@ var a=mat[0]*vec[0]+mat[4]*vec[1]+mat[8]*vec[2];var b=mat[1]*vec[0]+mat[5]*vec[1
 c3dl.multiplyMatrixByVector=function(mat,vec,dest){var len=vec.length;var w=(len==3?1:vec[3]);if(dest==undefined){dest=new C3DL_FLOAT_ARRAY(len);}
 var a=mat[0]*vec[0]+mat[4]*vec[1]+mat[8]*vec[2]+mat[12]*w;var b=mat[1]*vec[0]+mat[5]*vec[1]+mat[9]*vec[2]+mat[13]*w;var c=mat[2]*vec[0]+mat[6]*vec[1]+mat[10]*vec[2]+mat[14]*w;var d=mat[3]*vec[0]+mat[7]*vec[1]+mat[11]*vec[2]+mat[15]*w;dest[0]=a;dest[1]=b;dest[2]=c;if(len===4){dest[3]=d;}
 return dest;}
-c3dl.addMatrices=function(matOne,matTwo){if(dest==undefined){dest=new C3DL_FLOAT_ARRAY(16);}
+c3dl.addMatrices=function(matOne,matTwo,dest){if(dest==undefined){dest=new C3DL_FLOAT_ARRAY(16);}
 for(var i=0;i<16;i++){dest[i]=matOne[i]+matTwo[i];}
 return dest;}
-c3dl.subtractMatrices=function(matOne,matTwo){if(dest==undefined){dest=new C3DL_FLOAT_ARRAY(16);}
+c3dl.subtractMatrices=function(matOne,matTwo,dest){if(dest==undefined){dest=new C3DL_FLOAT_ARRAY(16);}
 for(var i=0;i<16;i++){dest[i]=matOne[i]-matTwo[i];}
 return dest;}
 c3dl.copyMatrix=function(srcMat,dest){if(dest==undefined){return M4x4.clone(srcMat);}

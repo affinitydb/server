@@ -187,8 +187,8 @@
 	    ><pre
 	    ><code
 	      >/* multiline comment
-* with nesting: /* nested block comment */
-*/  
+ * with nesting: /* nested block comment */
+ */  
 </code
 	      ></pre
 	    ></li
@@ -285,33 +285,33 @@
 	><tbody
 	><tr class="odd"
 	  ><td align="left"
-	    >{value}</td
+	    >{value} Navi</td
 	    ><td align="left"
-	    >Navigate along this segment for a number of &quot;value&quot; times (e.g. prop1{3} means &quot;prop1.prop1.prop1&quot;).</td
+	    >gate along this segment for a number of &quot;value&quot; times (e.g. prop1{3} means &quot;prop1.prop1.prop1&quot;).</td
 	    ></tr
 	  ><tr class="even"
 	  ><td align="left"
-	    >{min, max}</td
+	    >{min, max} Navi</td
 	    ><td align="left"
-	    >Navigate along this segment, starting at the &quot;min&quot;-th instance and up to the &quot;max&quot;-th instance.</td
+	    >gate along this segment, starting at the &quot;min&quot;-th instance and up to the &quot;max&quot;-th instance.</td
 	    ></tr
 	  ><tr class="odd"
 	  ><td align="left"
-	    >{*}</td
+	    >{*} Same</td
 	    ><td align="left"
-	    >Same as {0, infinity}.</td
+	    >as {0, infinity}.</td
 	    ></tr
 	  ><tr class="even"
 	  ><td align="left"
-	    >{?}</td
+	    >{?} Same</td
 	    ><td align="left"
-	    >Same as {0, 1}.</td
+	    >as {0, 1}.</td
 	    ></tr
 	  ><tr class="odd"
 	  ><td align="left"
-	    >{+}</td
+	    >{+} Same</td
 	    ><td align="left"
-	    >Same as {1, infinity}.</td
+	    >as {1, infinity}.</td
 	    ></tr
 	  ></tbody
 	></table
@@ -380,7 +380,7 @@
 	><p
 	>The colon (:) followed by digits is used to represent a positional parameter in the body of a statement or class definition. E.g.</p
 	><p
-	><code class='pathsql_snippet'>INSERT (PROP_I, PROP_S) VALUES (23, 'str');</code> <code class='pathsql_snippet'>CREATE CLASS hasPropI AS SELECT * WHERE PROP_I IN :0(INT);</code></p
+	><code class='pathsql_snippet'>INSERT (PROP_I, PROP_S) VALUES (23, 'str1');</code> <code class='pathsql_snippet'>INSERT (PROP_I, PROP_S) VALUES (24, 'str2'), (25, 'str3'), (26, 'str4');</code> <code class='pathsql_snippet'>CREATE CLASS hasPropI AS SELECT * WHERE PROP_I IN :0(INT);</code></p
 	><p
 	>Here, :0 designates the first parameter defining class <code
 	  >hasPropI</code
@@ -392,7 +392,7 @@
 	  >IN</code
 	  > in the class definition:</p
 	><p
-	><code class='pathsql_snippet'>SELECT * FROM hasPropI([20, 30]);</code></p
+	><code class='pathsql_snippet'>SELECT * FROM hasPropI(@[20, 25]);</code></p
 	></div
       ><div id="refid"
       ><h4
@@ -486,13 +486,7 @@
     ><h3
       >BSTR(Binary String)</h3
       ><p
-      >pathSQL supports hexadecimal values, written X'val' or x'val' (with explicit quotes), where val contains hexadecimal digits (0..9, A..F, a..f), and is expected to contain an even number of digits (a leading 0 must be inserted manually for odd number of hexadecimal digits).</p
-      ></div
-    ><div id="url"
-    ><h3
-      >URL</h3
-      ><p
-      >Format: U'url_addr'</p
+      >pathSQL supports hexadecimal values, written X'val' (with explicit quotes and uppercase leading X), where val contains hexadecimal digits (0..9, A..F, a..f), and is expected to contain an even number of digits (a leading 0 must be inserted manually for odd number of hexadecimal digits).</p
       ></div
     ><div id="numeric-types"
     ><h3
@@ -630,28 +624,13 @@
       >EXPR is the compiled form of an EXPRTREE, which is mostly used internally by the database engine. An EXPR can be stored as a <a href="./terminology.html#value"
 	>value</a
 	>, but it is not evaluated automatically at INSERT/UPDATE execution time (the value of that property will always be the EXPR itself, never its evaluation). However, properties with type EXPR are evaluated automatically when they're used in expressions. E.g.</p
-      ><pre>
-  afycommand>INSERT prop1=3;
-  PIN@0000000000050001(1):(<prop1|VT_INT>:3)
-  1 PINs INSERTED.
-
-  afycommand> UPDATE @50001 ADD prop2=prop1-1, prop3=$(prop1-1);  
-  PIN@0000000000050001(3):(<prop1|VT_INT>:3       <prop2|VT_INT>:2       <prop3|VT_EXPR>:$(prop1 - 1))
-  1 PINs INSERTED.
-
-  afycommand> SELECT * FROM {@50001} WHERE prop3=prop2; 
-  PIN@0000000000050001(3):(<prop1|VT_INT>:3       <prop2|VT_INT>:2       <prop3|VT_EXPR>:$(prop1 - 1))
-  1 PINs INSERTED.
-
-  afycommand> UPDATE @50001 SET prop1=2;  
-  PIN@0000000000050001(3):(<prop1|VT_INT>:2       <prop2|VT_INT>:2       <prop3|VT_EXPR>:$(prop1 - 1))
-  1 PINs INSERTED.
-
-  afycommand> SELECT * FROM {@50001} WHERE prop3<>prop2; 
-  PIN@0000000000050001(3):(<prop1|VT_INT>:2       <prop2|VT_INT>:2       <prop3|VT_EXPR>:$(prop1 - 1))
-  1 PINs INSERTED.
-</pre>
-<p
+      ><p
+      ><code class='pathsql_snippet'> INSERT afy:objectID='expr_sample', prop1=3;<br> UPDATE #expr_sample ADD prop2=prop1-1, prop3=$(prop1-1); </code></p
+      ><p
+      ><code class='pathsql_snippet'> SELECT * FROM #expr_sample WHERE prop3=prop2; </code></p
+      ><p
+      ><code class='pathsql_snippet'> UPDATE #expr_sample SET prop1=2;<br> SELECT * FROM #expr_sample WHERE prop3&lt;&gt;prop2; </code></p
+      ><p
       >In the example just above, <code
 	>prop2</code
 	> is stored directly with the result of the evaluation (at UPDATE execution time), while <code
@@ -659,18 +638,9 @@
 	> is stored as type EXPR, which is only evaluated when queried.</p
       ><p
       >It's also possible to invoke such a EXPR property with parameters (up to 254). E.g.</p
-      ><pre>
-  afycommand>
-  INSERT prop1=3, prop2=$(prop1-:0);
-  PIN@0000000000050001(2):(<prop1|VT_INT>:3       <prop2|VT_EXPR>:$(prop1 - :0))
-  1 PINs INSERTED.
-
-  afycommand>
-  SELECT * WHERE prop2(1) = 2;
-  PIN@0000000000050001(2):(<prop1|VT_INT>:3       <prop2|VT_EXPR>:$(prop1 - :0))
-  1 PINs SELECTED.
-</pre>
-<p
+      ><p
+      ><code class='pathsql_snippet'> UPDATE #expr_sample SET prop4=$(prop1-:0);<br> SELECT * WHERE prop4(1)=1; </code></p
+      ><p
       >Note that Affinity can support missing or extraneous parameters.</p
       ></div
     ><div id="exprtree"
@@ -687,9 +657,34 @@
       ><p
       >QUERY is similar to EXPR, but for a whole statement.</p
       ></div
-    ><div id="arraycnavigator-collection"
+    ><div id="array"
     ><h3
-      >ARRAY/CNAVIGATOR (<a href="./terminology.html#collection"
+      >ARRAY</h3
+      ><p
+      >Format: 1-dimension array (vector): [elem1, ..., elemN]<br
+	 />2-dimensions array (matrix): [[elem1, ..., elemN], ..., [elem1, ..., elemN]]</p
+      ><p
+      >where all <em
+	>elem</em
+	> of an array should be numbers with identical data type (i.e. either INT*, FLOAT, or DOUBLE).</p
+      ><p
+      >This type is similar to the array concept in C/C++ language. It is stored in a contiguous address space, for fast processing. Additional notes: - There is no automatic conversion/coercion, even between otherwise compatible data types. - All data of one array are stored on one page, hence the maximal size of any one array is the store's <a href="./terminology.html#page"
+	>page size</a
+	>.</p
+      ><p
+      >Some <a href="#array-operators"
+	>array-specific operators</a
+	> were introduced, for mathematics computing (<a href="./pathSQL%20basics%20[data].html#linear-algebra"
+	>linear algebra</a
+	>).</p
+      ><p
+      >Sample: <a href="./sources/pathsql/array.html"
+	>array.sql</a
+	>.</p
+      ></div
+    ><div id="cnavigator-collection"
+    ><h3
+      >CNAVIGATOR (<a href="./terminology.html#collection"
 	>Collection</a
 	>)</h3
       ><p
@@ -712,7 +707,7 @@
       ><p
       ><code class='pathsql_snippet'>INSERT (prop2,prop3) VALUES(123 ,{123, 'test', 120, 534});</code> <code class='pathsql_snippet'>SELECT * WHERE prop3[3] = 534;</code></p
       ><p
-      >Internally, smaller collections are stored with a representation similar to an array (the type is ARRAY). Larger collections are stored in the B-tree (the type becomes CNAVIGATOR), enabling enormous collections with fast retrieval of known eids. The transition between those two states is transparent, and applications should not assume that a collection will be stored as an ARRAY.</p
+      >Internally, smaller collections are stored with a representation similar to an array in one page. Larger collections are stored in multiple pages with the B-tree, enabling enormous collections with fast retrieval of known eids. The transition between those two states is transparent, and applications should not assume in which internal format a collection will be stored.</p
       ><p
       >The transition between a scalar value and a collection is also designed to be relatively transparent (with a core query syntax that applies to both cases indifferently).</p
       ><p
@@ -728,11 +723,19 @@
 	>Note</em
 	>: although Affinity doesn't support nested collections yet, it is possible to implement similar functionality by combining multiple PINs (or properties), e.g. by adding collection references to a collection.</p
       ></div
+    ><div id="map-.terminology.mdmap"
+    ><h3
+      >[Map] (./terminology.html#map))</h3
+      ><p
+      >Format: {element_key1 -&gt; element_value1, element_key2 -&gt; element_value2, ...} Where the element_key* and element_value* can be any data type.</p
+      ><p
+      ><code class='pathsql_snippet'>INSERT my_map=<br>  {'string' -&gt; X'DEF5', 'http://test/' -&gt; 128,<br>  3.40282f -&gt; 3.40282, true -&gt; TIMESTAMP '2010-12-31 23:59:59',  'nested' -&gt; {'k1' -&gt; 1, 'k2' -&gt; 2}}; </code></p
+      ></div
     ><div id="range"
     ><h3
       >Range</h3
       ><p
-      >Format: [number1, number2]<br
+      >Format: @[number1, number2]<br
 	 />it can be used with keywork IN. The meaning is the same as BETWEEN number1 AND number2.<br
 	 /><em
 	>Note</em
@@ -1614,6 +1617,56 @@
 	  ></tbody
 	></table
       ></div
+    ><div id="bitwise-operations-on-extendable-bit-arrays"
+    ><h3
+      >Bitwise Operations on Extendable Bit Arrays</h3
+      ><table
+      ><thead
+	><tr class="header"
+	  ><th align="left"
+	    >Function</th
+	    ><th align="left"
+	    >Description</th
+	    ></tr
+	  ></thead
+	><tbody
+	><tr class="odd"
+	  ><td align="left"
+	    >TESTBIT(property, bitIndex)</td
+	    ><td align="left"
+	    >return true if the bit specified by bitIndex is set in the value of the specified property</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >SETBIT(property, bitIndex)</td
+	    ><td align="left"
+	    >return the value of property after setting the bit specified by bitIndex; works on integer types as well as VT_BSTR</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >RESETBIT(property, bitIndex)</td
+	    ><td align="left"
+	    >return the value of property after resetting the bit specified by bitIndex; works on integer types as well as VT_BSTR</td
+	    ></tr
+	  ></tbody
+	></table
+      ><p
+      >In binary strings (VT_BSTR), the bitIndex refers to a string of bits where byte 0 is the leftmost byte in the string, and bit 0 of each byte has absolute value 1. In other words, the bitIndex progresses along this:</p
+      ><pre
+      ><code
+	>    {bitIndex: 0, value: X'010000'},  
+    {bitIndex: 1, value: X'020000'},  
+    ...,  
+    {bitIndex:10, value: X'000400'},  
+    {bitIndex:11, value: X'000800'},  
+    etc.  
+</code
+	></pre
+      ><p
+      >Examples:</p
+      ><p
+      ><code class='pathsql_snippet'>INSERT afy:objectID='testbits1', x=X'FFFFFFFF', y=0;</code> <code class='pathsql_snippet'>UPDATE #testbits1 SET x=RESETBIT(x, 0), y=SETBIT(y, 7);</code> <code class='pathsql_snippet'>SELECT * FROM #testbits1 WHERE TESTBIT(x, 3);</code> <code class='pathsql_snippet'>SELECT TESTBIT(y, 3) FROM #testbits1;</code> <code class='pathsql_snippet'>INSERT SELECT SETBIT(X'0000000000000000', afy:value) AS bytestring FROM @[0, 40]; SELECT * WHERE EXISTS(bytestring);</code></p
+      ></div
     ><div id="mathematical-functions-scalar"
     ><h3
       >Mathematical Functions (scalar)</h3
@@ -1745,12 +1798,78 @@
 	    ><td align="left"
 	    >Returns the sample standard deviation (/n-1) of a set of numbers. The formula used to calculate the sample standard deviation is: STDDEV_SAMP = SQRT(VAR_SAMP)</td
 	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >ARGMIN(expression)</td
+	    ><td align="left"
+	    >Returns the 0-based index of the element with the minimal value in the set.</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >ARGMAX(expression)</td
+	    ><td align="left"
+	    >Returns the 0-based index of the element with the maximal value in the set.</td
+	    ></tr
 	  ></tbody
 	></table
       ><p
       >The 'expression' can be a list of values or a collection. If a collection is specified, the function will include all its elements in the calculation. These functions can also support <a href="#distinctall-qualifier"
 	>DISTINCT/ALL qualifier</a
 	> to indicate whether or not duplicate values should be included in the expression, e.g. AVG(DISTINCT expression).</p
+      ></div
+    ><div id="array-operators"
+    ><h3
+      >Array operators</h3
+      ><table
+      ><thead
+	><tr class="header"
+	  ><th align="left"
+	    >Function</th
+	    ><th align="left"
+	    >Description</th
+	    ></tr
+	  ></thead
+	><tbody
+	><tr class="odd"
+	  ><td align="left"
+	    >TRANSPOSE(array)</td
+	    ><td align="left"
+	    >Returns the transpose of a matrix, which flips the rows and columns.</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >Norm(array)</td
+	    ><td align="left"
+	    >Returns the norm of a vector, which is informally a measure of the length of the vector.</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >Trace(array)</td
+	    ><td align="left"
+	    >Returns the trace of a square matrix, which is the sum of diagonal elements in the matrix.</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >Det(array)</td
+	    ><td align="left"
+	    >Returns the determinant of a square matrix.</td
+	    ></tr
+	  ><tr class="odd"
+	  ><td align="left"
+	    >Inv(array)</td
+	    ><td align="left"
+	    >Returns the inverse of a square matrix.</td
+	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >Rank(array)</td
+	    ><td align="left"
+	    >Returns the rank of a matrix, which is the number of linearly independent row or column vectors.</td
+	    ></tr
+	  ></tbody
+	></table
+      ><p
+      >You can refer to Linear Algebra for more details about these operators.</p
       ></div
     ><div id="string-operators"
     ><h3
@@ -2550,7 +2669,10 @@
 	>PASSWORD='string'<br
 	   /></li
 	><li
-	>LOGDIRECTORY='directory' (mapped using call to IMapDir::map(SO_LOG...) if provided)</li
+	>LOGDIRECTORY='directory' (mapped using call to IMapDir::map(SO_LOG...) if provided)<br
+	   /></li
+	><li
+	>SERVICEDIRECTORY='directory'</li
 	></ul
       ><p
       >Additional option names for CREATE:</p

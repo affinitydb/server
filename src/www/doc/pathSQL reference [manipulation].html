@@ -236,7 +236,7 @@
   >Synopsis:</p
   ><ul
   ><li
-    >SELECT [ * | {property_name [AS new_name] } [, ...] ]<br
+    >SELECT [ FIRST ] [ * | {property_name [AS new_name] } [, ...] ]<br
        /> [ FROM from_item [, ...] ]<br
        /> [ WHERE conditions ]<br
        /> [ GROUP BY {property_name | expression | position} [ASC | DESC][ NULLS { FIRST | LAST } ] [, ...] ]<br
@@ -280,6 +280,8 @@
     ><li
     >CROSS JOIN</li
     ></ul
+  ><p
+  >SELECT FIRST allows to extract only the first result of a set, respecting its ordering. This is equivalent to a LIMIT 1 OFFSET 0 specification, in other DBMSs. It is especially useful when processing sets in an afy:action, for example.</p
   ><div id="alias-name-in-from-clause"
   ><h4
     >Alias name in FROM clause</h4

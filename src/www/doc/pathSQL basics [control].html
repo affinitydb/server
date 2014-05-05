@@ -37,7 +37,7 @@
 ><h1
   >pathSQL Basics: Control</h1
   ><!-- TODO: review to make sure conventional terminology is used for each section (event handling, rules, CEP, FSM etc.) -->
-<!-- TODO: review examples with singletons, when possible -->
+<!-- TODO: review examples with singletons, when possible (to avoir errors on reruns, without extra code...) -->
 <!-- TODO: augment with more examples, more services etc.; reduce to the most expressive examples -->
 <!-- TODO: make sure to start with simple examples (ease in to the topic) -->
 <p
@@ -77,7 +77,7 @@
       >example:&quot;signal/previous&quot;</code
       >).</p
     ><p
-    ><code class='pathsql_snippet'> SET PREFIX example: 'http://example';<br> CREATE CLASS example:reaction AS SELECT * WHERE EXISTS(example:signal)<br>  SET afy:onEnter={<br>   ${UPDATE @self ADD example:&quot;occurred/at&quot;=CURRENT_TIMESTAMP},<br>   ${INSERT example:&quot;occurred/at&quot;=@self.example:&quot;occurred/at&quot;, example:what=@self,<br>    example:previous=@ctx.example:&quot;signal/previous&quot;},<br>   ${UPDATE @ctx SET example:&quot;signal/previous&quot;=@self}},<br>  example:&quot;signal/previous&quot;=0;<br> INSERT example:signal=1;<br> INSERT example:signal=2;<br> INSERT example:signal=3;<br> SELECT * WHERE EXISTS(example:&quot;occurred/at&quot;); </code></p
+    ><code class='pathsql_snippet'> SET PREFIX example: 'http://example';<br> CREATE CLASS example:reaction AS SELECT * WHERE EXISTS(example:signal)<br>  /* Whenever a PIN containing the property 'example:signal' appears, it will trigger the action defined here. */<br>  SET afy:onEnter={<br>   /* Mark the PIN with a timestamp (of when it was classified). */<br>   ${UPDATE @self ADD example:&quot;occurred/at&quot;=CURRENT_TIMESTAMP},<br>   /* Maintain a snapshot log of the chain of events. */<br>   ${INSERT example:&quot;occurred/at&quot;=@self.example:&quot;occurred/at&quot;, example:what=@self,<br>    example:previous=@ctx.example:&quot;signal/previous&quot;},<br>   /* Keep track of the last created event. */<br>   ${UPDATE @ctx SET example:&quot;signal/previous&quot;=@self}},<br>  example:&quot;signal/previous&quot;=0;<br> /* Generate a few events, for demonstration purposes. */<br> INSERT example:signal=1;<br> INSERT example:signal=2;<br> INSERT example:signal=3;<br> /* Show the results. */<br> SELECT * WHERE EXISTS(example:&quot;occurred/at&quot;); </code></p
     ><p
     >A more substantial code example can be studied via the <a href="../promo/demos/pacman/pacman.html"
       >pacman</a
@@ -117,7 +117,7 @@
     ><p
     >A small example:</p
     ><p
-    ><code class='pathsql_snippet'> /* Internal implementation provided by the system programmer. */<br> SET PREFIX model: 'http://example/model/';<br> CREATE CONDITION model:OutsideTmpChk AS model:OutsideTemp &gt; :0;<br> CREATE CONDITION model:InsideTmpChk AS (SELECT ABS(AVG(model:InsideTempReadings) - :0)) &gt; 5dC;<br> CREATE ACTION model:Pause AS UPDATE @self SET model:PauseUntil=CURRENT_TIMESTAMP + :0,<br>  model:PausedAt=CURRENT_TIMESTAMP;<br> CREATE ACTION model:Report AS INSERT model:GlobalMessage=:0, model:FromSample=@self;<br>  <br> /* Actual rule, visible to the non-programmer professional. */<br> RULE model:HeatAlarm :<br>  model:OutsideTmpChk(25dC) AND model:InsideTmpChk(20dC) -&gt;<br>  model:Pause(INTERVAL'00:15:00'), model:Report('HeatAlarm');<br>  <br> /* Demonstrating the behavior... */<br> INSERT model:sample=1, model:OutsideTemp=20dC, model:InsideTempReadings={18dC, 20dC, 21dC, 20.5dC};<br> INSERT model:sample=2, model:OutsideTemp=40dC, model:InsideTempReadings={18dC, 20dC, 21dC, 20.5dC};<br> INSERT model:sample=3, model:OutsideTemp=20dC, model:InsideTempReadings={48dC, 40dC, 21dC, 20.5dC};<br> INSERT model:sample=4, model:OutsideTemp=40dC, model:InsideTempReadings={48dC, 40dC, 21dC, 20.5dC};<br> </code></p
+    ><code class='pathsql_snippet'> /* Internal implementation provided by the system programmer. */<br> SET PREFIX model: 'http://example/model/';<br> CREATE CONDITION model:OutsideTmpChk AS model:OutsideTemp &gt; :0;<br> CREATE CONDITION model:InsideTmpChk AS (SELECT ABS(AVG(model:InsideTempReadings) - :0)) &gt; 5dC;<br> CREATE ACTION model:Pause AS UPDATE @self SET model:PauseUntil=CURRENT_TIMESTAMP + :0,<br>  model:PausedAt=CURRENT_TIMESTAMP;<br> CREATE ACTION model:Report AS INSERT model:GlobalMessage=:0, model:FromSample=@self;<br>  <br> /* Actual rule, visible to the non-programmer professional. */<br> RULE model:HeatAlarm :<br>  model:OutsideTmpChk(25dC) AND model:InsideTmpChk(20dC) -&gt;<br>  model:Pause(INTERVAL'00:15:00'), model:Report('HeatAlarm');<br>  <br> /* Demonstrating the behavior... */<br> INSERT model:sample=1, model:OutsideTemp=20dC, model:InsideTempReadings={18dC, 20dC, 21dC, 20.5dC};<br> INSERT model:sample=2, model:OutsideTemp=40dC, model:InsideTempReadings={18dC, 20dC, 21dC, 20.5dC};<br> INSERT model:sample=3, model:OutsideTemp=20dC, model:InsideTempReadings={48dC, 40dC, 21dC, 20.5dC};<br> INSERT model:sample=4, model:OutsideTemp=40dC, model:InsideTempReadings={48dC, 40dC, 21dC, 20.5dC}; </code></p
     ><!-- TODO: provide a live link to visual editor -->
 </div
   ><div id="timers"
@@ -128,73 +128,149 @@
     ><p
     ><code class='pathsql_snippet'>CREATE TIMER _mytimer INTERVAL '00:00:20' AS INSERT _at=CURRENT_TIMESTAMP</code></p
     ><p
-    ><code class='pathsql_snippet'> SET PREFIX control: 'http://example/control';<br> SET PREFIX simulation: 'http://example/simulation';<br> /* Declare a base class of signalable entities, triggered by a single timer, below */<br> CREATE CLASS control:&quot;rt/signalable&quot; AS SELECT * WHERE EXISTS(control:&quot;rt/time/signal&quot;);<br> /* Declare a sub-class with a specific event handler */<br> CREATE CLASS control:&quot;step/handler/on.off.572ef13c&quot; AS SELECT * FROM control:&quot;rt/signalable&quot;<br>  WHERE control:&quot;sensor/model&quot;=.simulation:&quot;sensor/on.off.572ef13c&quot;<br>  SET afy:onUpdate={<br>   ${UPDATE @auto SET simulation:tmp1=(SELECT control:&quot;rt/time/signal&quot; FROM @self)},<br>   ${INSERT<br>    simulation:&quot;rt/value&quot;=(SELECT simulation:&quot;offset/value&quot; FROM @self) + SIN(@auto.simulation:tmp1),<br>    control:&quot;sensor/model&quot;=(SELECT control:&quot;sensor/model&quot; FROM @self),<br>    control:handler=(SELECT afy:objectID FROM @ctx),<br>    control:at=CURRENT_TIMESTAMP}};<br> /* Declare a few signalable entities */<br> INSERT control:&quot;rt/time/signal&quot;=0, control:&quot;sensor/name&quot;='sensor A',<br>  control:&quot;sensor/model&quot;=.simulation:&quot;sensor/on.off.572ef13c&quot;, simulation:&quot;offset/value&quot;=100;<br> INSERT control:&quot;rt/time/signal&quot;=0, control:&quot;sensor/name&quot;='sensor B',<br>  control:&quot;sensor/model&quot;=.simulation:&quot;sensor/on.off.572ef13c&quot;, simulation:&quot;offset/value&quot;=1000;<br> /* Trigger all signalable entities */<br> CREATE TIMER control:&quot;rt/source/timer&quot; INTERVAL '00:00:01' AS UPDATE control:&quot;rt/signalable&quot; SET<br>  control:&quot;rt/time/signal&quot;=EXTRACT(SECOND FROM CURRENT_TIMESTAMP), control:&quot;rt/time&quot;=CURRENT_TIMESTAMP;<br> </code></p
+    ><code class='pathsql_snippet'> SET PREFIX control: 'http://example/control';<br> SET PREFIX simulation: 'http://example/simulation';<br> /* Declare a base class of signalable entities, triggered by a single timer, below. */<br> CREATE CLASS control:&quot;rt/signalable&quot; AS SELECT * WHERE EXISTS(control:&quot;rt/time/signal&quot;);<br> /* Declare a sub-class with a specific event handler. */<br> CREATE CLASS control:&quot;step/handler/on.off.572ef13c&quot; AS SELECT * FROM control:&quot;rt/signalable&quot;<br>  WHERE control:&quot;sensor/model&quot;=.simulation:&quot;sensor/on.off.572ef13c&quot;<br>  SET afy:onUpdate={<br>   ${UPDATE @auto SET simulation:tmp1=(SELECT control:&quot;rt/time/signal&quot; FROM @self)},<br>   ${INSERT<br>    simulation:&quot;rt/value&quot;=(SELECT simulation:&quot;offset/value&quot; FROM @self) + SIN(@auto.simulation:tmp1),<br>    control:&quot;sensor/model&quot;=(SELECT control:&quot;sensor/model&quot; FROM @self),<br>    control:handler=(SELECT afy:objectID FROM @ctx),<br>    control:at=CURRENT_TIMESTAMP}};<br> /* Declare a few signalable entities. */<br> INSERT control:&quot;rt/time/signal&quot;=0, control:&quot;sensor/name&quot;='sensor A',<br>  control:&quot;sensor/model&quot;=.simulation:&quot;sensor/on.off.572ef13c&quot;, simulation:&quot;offset/value&quot;=100;<br> INSERT control:&quot;rt/time/signal&quot;=0, control:&quot;sensor/name&quot;='sensor B',<br>  control:&quot;sensor/model&quot;=.simulation:&quot;sensor/on.off.572ef13c&quot;, simulation:&quot;offset/value&quot;=1000;<br> /* Trigger all signalable entities. */<br> CREATE TIMER control:&quot;rt/source/timer&quot; INTERVAL '00:00:01' AS UPDATE control:&quot;rt/signalable&quot; SET<br>  control:&quot;rt/time/signal&quot;=EXTRACT(SECOND FROM CURRENT_TIMESTAMP), control:&quot;rt/time&quot;=CURRENT_TIMESTAMP; </code></p
     ></div
-  ><div id="external-services"
+  ><div id="external-services-communications"
   ><h2
-    >External Services</h2
-    ><!-- Note: here, emphasize specific purpose of services, and configurability; leave service stack and global purpose to 'communication' below -->
-<!-- TODO: pre-seed the joyent server with just enough services and demo files for this to actually work online :) -->
-<!-- TODO: use PIN URI when fully available -->
-<!-- TODO: more examples; either cover all existing services here as a mini-ref, or add a real ref for services... need to cover things like mDNS, HTTP, NFC etc. at least to a usable state; need to document what's not working or unfinished also -->
-<p
-    ><code class='pathsql_snippet'> /* Make sure the required services are loaded. */<br> INSERT afy:objectID=.srv:XML, afy:load='xmlservice';<br> </code></p
-    ><p
-    ><code class='pathsql_snippet'> /* Demonstrate a reader. */<br> INSERT afy:objectID='myxmlreader1', afy:service={.srv:IO, .srv:XML}, srv:&quot;XML/config/roots&quot;={'item'},<br>  afy:address(READ_PERM)='/tmp/mrss.xml';<br> INSERT SELECT * FROM #myxmlreader1;<br> UPDATE #myxmlreader1 SET afy:position=0u;<br> </code></p
-    ><p
-    ><code class='pathsql_snippet'> /* Demonstrate a writer. */<br> INSERT afy:objectID='myxmlwriter1', afy:service={.srv:XML, .srv:IO},<br>  srv:&quot;XML/config/output/qname/prefixes&quot;={'http://purl.org/dc/terms'-&gt;'dcterms'}, afy:address=2;<br> UPDATE #myxmlwriter1 SET afy:content=(SELECT *);<br> </code></p
-    ><p
-    ><code class='pathsql_inert'> /* Demonstrate a web server. */<br> INSERT afy:objectID=.srv:http, afy:load='http';<br> INSERT afy:objectID=.srv:webapp, afy:load='webapp';<br> INSERT afy:objectID=.mywebapp, afy:address='127.0.0.1:4040',<br>  afy:listen={.srv:sockets, .srv:HTTPRequest, .srv:webapp, .srv:HTTPResponse, .srv:sockets},<br>  srv:&quot;webapp/config/paths&quot;={'/media/truecrypt1/src/server/src/www/'},<br>  srv:&quot;webapp/config/modes&quot;=WEBAPPMODES#FILE;<br> </code></p
-    ></div
-  ><div id="communication"
-  ><h2
-    >Communication</h2
+    >External Services &amp; Communications</h2
     ><p
     ><a href="./pathSQL%20reference%20[definition].html#communication-pins"
       >Communication PINs</a
-      > are primarily defined by their &quot;service stack&quot;, i.e. a permutation of <a href="./terminology.html#service"
+      >, aka CPINs, are primarily defined by their &quot;service stack&quot;, i.e. a permutation of <a href="./terminology.html#service"
       >services</a
-      > with their configuration. Services are either endpoints (e.g. sockets, file IO, serial, zigbee), servers (e.g. REST, p2p) or transformations. Higher-level communication patterns can be built on top of the four basic types of service stacks:</p
+      > with their configurations, stored as properties of the CPIN. Services can play a role of source or sink (e.g. sockets, file IO, MODBUS, BLE, serial, zigbee etc.), of request-response server (e.g. webapp, affinity) or of transformation (e.g. HTTP request/response, XML, JSON, protobuf etc.). Higher-level communication patterns can be built on top of the four basic types of service stacks described below.</p
+    ><p
+    >Individual services and their configurations will be described in detail <a href="./pathSQL%20reference%20[definition].html#services"
+      >here</a
+      >.<br
+       /> </p
+    ><!-- TODO: more examples, especially with VDEV and emergent GUI (i.e. a 'real' interaction with device and program); either cover all existing services here as a mini-ref, or add a real ref for services... need to cover things like mDNS, HTTP, NFC etc. at least to a usable state; need to document what's not working or unfinished also -->
+<!-- TODO: more complex/varied stacks (refs/structs, more config, more services, server without response etc.) -->
+<!-- TODO: FSM integration (e.g. security nego) -->
+<ol start="0" style="list-style-type: decimal;"
+    ><li
+      >Let's start with a common setup for all subsequent examples. Note that these examples are inter-dependent; to avoid unexpected results, please execute them in their natural top-down sequence.</li
+      ></ol
+    ><p
+    ><code class='pathsql_snippet'> /* Make sure the required services are loaded. */<br> CREATE LOADER _xml AS 'XML';<br> CREATE LOADER _http AS 'http';<br> CREATE LOADER _webapp AS 'webapp';<br> /* Produce debugging traces in stdout (for demonstration purposes, when running locally). */<br> SET TRACE ALL COMMUNICATIONS;<br> /* Gather some of the examples below together, to set a better example. */<br> CREATE CLASS docsamples AS SELECT * WHERE docsample_key IN :0; </code></p
     ><ol style="list-style-type: decimal;"
     ><li
-      ><p
-	>write stack, e.g.</p
-	><p
-	><code class='pathsql_snippet'> /* Load the XML external service. */<br> INSERT afy:objectID=.srv:XML, afy:load='xmlservice';<br> /* Service stack converting to protobuf and sending to file /tmp/output.proto. */<br> INSERT afy:service={.srv:protobuf, .srv:IO},<br>  afy:address(CREATE_PERM,WRITE_PERM,READ_PERM)='/tmp/output.proto',<br>  docsample_key=1000;<br> /* Service stack converting to xml and sending to file /tmp/output.xml. */<br> INSERT afy:service={.srv:XML, .srv:IO},<br>  afy:address(CREATE_PERM,WRITE_PERM,READ_PERM)='/tmp/output.xml',<br>  docsample_key=1001;<br> /* Some example data. */<br> INSERT x=10, y=20, somename='Fred';<br> INSERT x=11, y=21, somename='Tony';<br> /* Send data to the two communication PINs defined in this example. */<br> UPDATE * SET afy:content=(SELECT * WHERE EXISTS(somename)) WHERE docsample_key={1000, 1001};<br> </code></p
-	></li
-      ><li
-      ><p
-	>read stack, e.g</p
-	><p
-	><code class='pathsql_snippet'> /* Service stack reading protobuf from file /tmp/output.proto. */<br> INSERT afy:service={.srv:IO, .srv:protobuf},<br>  afy:address(READ_PERM)='/tmp/output.proto',<br>  docsample_key=1010;<br> /* Service stack reading xml from file /tmp/output.xml. */<br> INSERT afy:service={.srv:IO, .srv:XML},<br>  afy:address(READ_PERM)='/tmp/output.xml',<br>  docsample_key=1011;<br> /* Just in case, reset seek pointer at the beginning. */<br> UPDATE * SET afy:position=0u WHERE docsample_key={1010, 1011};<br> /* Read from both communication PINs (protobuf and xml). */<br> SELECT * WHERE docsample_key={1010, 1011};<br> </code></p
-	></li
-      ><li
-      ><p
-	>server stack, e.g.</p
-	><p
-	><code class='pathsql_snippet'> /* Service stack for a server/listener interpreting a pathSQL request and returning the result as protobuf. */<br> INSERT x=12, y=22, somename='Jack';<br> INSERT x=13, y=23, somename='Ann';<br> CREATE LISTENER docsample_listener_protobuf ON '127.0.0.1:8090'<br>  AS {.srv:sockets, .srv:pathSQL, .srv:affinity, .srv:protobuf, .srv:sockets};<br> </code></p
-	><p
-	><code class='pathsql_snippet'> /* Service stack for a server/listener interpreting a pathSQL request and returning the result as xml. */<br> INSERT afy:objectID=.srv:XML, afy:load='xmlservice';<br> CREATE LISTENER docsample_listener_xml ON '127.0.0.1:8091'<br>  AS {.srv:sockets, .srv:pathSQL, .srv:affinity, .srv:XML, .srv:sockets};<br> </code></p
-	><p
-	><code class='pathsql_snippet'> INSERT afy:objectID=.srv:webapp, afy:load='webapp';<br> INSERT afy:objectID=.srv:http, afy:load='http';<br> INSERT afy:objectID=.docsample_webapp, afy:address='127.0.0.1:8092',<br>  afy:listen={.srv:sockets, .srv:HTTPRequest, .srv:webapp, .srv:HTTPResponse, .srv:sockets},<br>  srv:&quot;webapp/config/paths&quot;={'/tmp/www'}, srv:&quot;webapp/config/modes&quot;=WEBAPPMODES#FILE;<br> </code></p
-	></li
-      ><li
-      ><p
-	>request stack, e.g.</p
-	><p
-	><code class='pathsql_snippet'> /* Service stack for a client request in pathSQL returning the server's result as protobuf. */<br> INSERT afy:service={.srv:pathSQL, .srv:sockets, .srv:protobuf}, afy:address='127.0.0.1:8090',<br>  afy:request=${SELECT * WHERE EXISTS(somename)}, docsample_key=1020;<br> </code></p
-	><p
-	><code class='pathsql_snippet'> INSERT afy:objectID=.srv:XML, afy:load='xmlservice';<br> /* Service stack for a client request in pathSQL returning the server's result as xml. */<br> INSERT afy:service={.srv:pathSQL, .srv:sockets, .srv:XML}, afy:address='127.0.0.1:8091',<br>  afy:request=${SELECT * WHERE EXISTS(somename)}, docsample_key=1021;<br> </code></p
-	><p
-	><code class='pathsql_snippet'> /* Read the server via our client request. */<br> SELECT * WHERE docsample_key={1020 /*,1021*/ };<br> </code></p
-	></li
+      >request stack</li
       ></ol
-    ><!-- TODO: more complex/varied stacks (refs/structs, more config, more services, server without response etc.) -->
-<!-- TODO: more detail / more specific references to complete doc -->
-<!-- TODO: FSM integration (e.g. security nego) -->
-<!-- TODO: review all existing material (test4mvsql, tests, ...) - make sure all is coverered -->
-
-<!--
+    ><p
+    ><code class='pathsql_snippet'> /* Request example: setup a XML fetcher via HTTP client. */<br> /* Here we read a CD catalog example from w3schools. */<br> /* (Could be anything: RSS feed, accessing the REST interface of an online database, etc.). */<br> INSERT afy:objectID='my_xml_reader1', afy:service={.srv:HTTP, .srv:sockets, .srv:HTTP, .srv:XML},<br>  afy:address='www.w3schools.com', http:url='/xml/cd_catalog.xml',<br>  http:&quot;request/fields&quot;={'Accept'-&gt;'application/xml', 'Host'-&gt;'www.w3schools.com'}, XML:&quot;config/roots&quot;={'CD'}; </code></p
+    ><code class='pathsql_snippet'> /* Run the request example. */<br> SELECT * FROM #my_xml_reader1; </code><!-- TODO: show INSERT SELECT, when it will be fixed (pending issue of cross references over output stream)... -->
+<p
+    ><code class='pathsql_snippet'> /* Modify the URL fetched by the reader example. */<br> UPDATE RAW #my_xml_reader1 SET http:url='/xml/simple.xml', XML:&quot;config/roots&quot;={'food'};<br> /* Fetch again. */<br> SELECT * FROM #my_xml_reader1; </code></p
+    ><ol start="2" style="list-style-type: decimal;"
+    ><li
+      >simple write stacks</li
+      ></ol
+    ><p
+    ><code class='pathsql_snippet'> /* Writer example: transform PINs into a XML document and save to disk as a file, into /tmp. */<br> SET PREFIX testxml: 'http://test/xml';<br> INSERT afy:objectID='my_xml_writer1', afy:service={.srv:XML, .srv:IO},<br>  afy:address(CREATE_PERM, WRITE_PERM)='/tmp/mytest.xml',<br>  XML:&quot;config/output/qname/prefixes&quot;={'http://test/xml'-&gt;'testxml'},<br>  docsample_key=1000; </code></p
+    ><p
+    ><code class='pathsql_snippet'> /* Create a few PINs and demonstrate, i.e. produce /tmp/mytest.xml. */<br> SET PREFIX testxml: 'http://test/xml';<br> INSERT (testxml:x, testxml:y, testxml:name) VALUES <br>  (10,10,'Fred'), (20,20,'Jack'), (30,30,'Alicia'), (40,40,'Jane');<br> UPDATE #my_xml_writer1 SET afy:content=(SELECT * WHERE EXISTS(testxml:name)); </code></p
+    ><p
+    ><code class='pathsql_snippet'> /* Another example: transform PINs into protobuf this time. */<br> INSERT afy:service={.srv:protobuf, .srv:IO},<br>  afy:address(CREATE_PERM, WRITE_PERM)='/tmp/mytest.proto',<br>  docsample_key=1001; </code></p
+    ><p
+    ><code class='pathsql_snippet'> /* Demonstrate, i.e. produce /tmp/mytest.proto. */<br> /* Note: By changing to 'FROM docsamples(@[1000, 1001]), */<br> /* one would simultaneously produce both mytest.xml and mytest.proto files. */<br> SET PREFIX testxml: 'http://test/xml';<br> UPDATE docsamples(1001) SET afy:content=(SELECT * WHERE EXISTS(testxml:name)); </code></p
+    ><ol start="3" style="list-style-type: decimal;"
+    ><li
+      >server stacks</li
+      ></ol
+    ><p
+    ><code class='pathsql_snippet'> /* Server example 1: a small web server serving files under /tmp, such as the one we just produced above. */<br> CREATE LISTENER my_http_server1 ON 4040 AS {.srv:sockets, .srv:HTTP, .srv:webapp, .srv:HTTP, .srv:sockets} SET<br>  srv:&quot;webapp/config/paths&quot;={'/tmp/'},<br>  srv:&quot;webapp/config/modes&quot;=WEBAPPMODES#FILE;<br> /* A corresponding client, fetching and parsing the xml document we had produced in the previous example. */<br> INSERT afy:objectID='my_http_client1', afy:service={.srv:HTTP, .srv:sockets, .srv:HTTP, .srv:XML},<br>  afy:address='127.0.0.1:4040', http:url='/mytest.xml',<br>  http:&quot;request/fields&quot;={'Accept'-&gt;'*/*'}, http:method='GET'; </code></p
+    ><p
+    ><code class='pathsql_snippet'> /* Demonstrate, i.e. fetch the document served by our server. */<br> SELECT * FROM #my_http_client1; </code></p
+    ><p
+    ><code class='pathsql_snippet'> /* Server example 2: a server/listener interpreting a pathSQL request and returning the result as XML. */<br> CREATE LISTENER docsample_listener_protobuf ON 4041<br>  AS {.srv:sockets, .srv:pathSQL, .srv:affinity, .srv:XML, .srv:sockets};<br> <br> /* Server example 3: same as 2, but in protobuf. */<br> CREATE LISTENER docsample_listener_xml ON 4042<br>  AS {.srv:sockets, .srv:pathSQL, .srv:affinity, .srv:protobuf, .srv:sockets};<br> <br> /* Setup corresponding fetchers. */<br> SET PREFIX testxml: 'http://test/xml';<br> INSERT afy:service={.srv:pathSQL, .srv:sockets, .srv:XML}, afy:address='127.0.0.1:4041',<br>  afy:request=${SELECT * WHERE EXISTS(testxml:name)},<br>  docsample_key=1010;<br> INSERT afy:service={.srv:pathSQL, .srv:sockets, .srv:protobuf}, afy:address=4042,<br>  afy:request=${SELECT * WHERE EXISTS(testxml:name)},<br>  docsample_key=1011; </code></p
+    ><p
+    ><code class='pathsql_snippet'> /* Demonstrate server examples 2 and 3. */<br> SELECT * FROM docsamples(@[1010, 1011]); </code></p
+    ><ol start="4" style="list-style-type: decimal;"
+    ><li
+      >simple read stacks</li
+      ></ol
+    ><p
+    ><code class='pathsql_snippet'> /* Reader example 1: to read mytest.xml, produced above. */<br> INSERT afy:service={.srv:IO, .srv:XML},<br>  afy:address(READ_PERM)='/tmp/mytest.xml',<br>  docsample_key=1020;<br> <br> /* Reader example 2: to read mytest.proto, produced above. */<br> /* Note: We could also reuse the same reader; here, we also want to demonstrate */<br> /* simultaneous reading of various formats. */<br> INSERT afy:service={.srv:IO, .srv:protobuf},<br>  afy:address(READ_PERM)='/tmp/mytest.proto',<br>  docsample_key=1021; </code></p
+    ><p
+    ><code class='pathsql_snippet'> /* Just in case, reset seek pointers at the beginning of the files. */<br> UPDATE docsamples(@[1020, 1021]) SET afy:position=0u;<br> /* Demonstrate, i.e. read and parse those files, and produce corresponding PINs. */<br> SELECT * FROM docsamples(@[1020, 1021]);<br> /* Variation: actually insert the parsed result back into the database (producing clones here). */<br> -- INSERT SELECT * FROM docsamples(@[1020, 1021]); </code></p
+    ></div
+  ><div id="sensors-actuators"
+  ><h2
+    >Sensors &amp; Actuators</h2
+    ><p
+    >There are several <a href="#external-services-communications"
+      >services</a
+      > developed for Affinity, that enable direct interactions with sensors and actuators (e.g. MODBUS, CoAP, BLE, Zigbee etc.), following the same simple pattern where SELECT reads the latest state available from those sensors, and where UPDATE writes (be it to trigger actuators, or to modify a sensor's internal state, e.g. to enable/disable/configure the on-chip sample collection [e.g. turn on&amp;off the sample collection of a more power-hungry feature or component, on a battery-powered sensor unit]).</p
+    ><p
+    >In this section, we'll be using the VDEV virtual device service, a service that emulates typical interactions with sensors and actuators, to illustrate some of the possibilities and idioms. Note: a similar scenario could be developed with real sensors, using something like BLE instead of VDEV; the main changes would be in terms of configuration of those CPINs.</p
+    ><!-- TODO: could develop a number of representative stories here, e.g. typical PID stuff, robotics, motion, etc. -->
+<!-- TODO: somewhere later in the flow, show a comparison with say BLE/MODBUS, to highlight similarities and differences with VDEV;
+           emphasize that afy:address + evaluator is all it takes to get started -->
+<p
+    >The first story-line we'll be using as an example is an alarm system.</p
+    ><p
+    >Let's imagine a contact sensor on a door, informing us of whether the door is closed:</p
+    ><p
+    ><code class='pathsql_snippet' dependencies='SET PREFIX alrm: &#39;http://example/alarm-system&#39;; SET PREFIX simul: &#39;http://example/alarm-system/simulation&#39;; CREATE LOADER _vdev AS &#39;VDEV&#39;; CREATE ENUMERATION alrm:OUTPUT_TYPES AS {&#39;BOOLEAN&#39;, &#39;REAL&#39;}; CREATE ENUMERATION alrm:DOOR_STATES AS {&#39;OPEN&#39;, &#39;CLOSED&#39;, &#39;LOCKED&#39;}; CREATE CLASS alrm:components AS SELECT &#42; WHERE alrm:"component/id" IN :0; CREATE CLASS simul:homes AS SELECT &#42; WHERE simul:"home/id" IN :0; INSERT simul:"home/id"=&#39;147C&#39;, simul:comment=&#39;Our home state&#39;;'> SET PREFIX alrm: 'http://example/alarm-system';<br> SET PREFIX simul: 'http://example/alarm-system/simulation';<br> <br> /* Create and configure our first VDEV sensor, which will report the OPEN/CLOSED state of door 1. */<br> INSERT afy:service={.srv:VDEV}, afy:objectID=.alrm:my_first_sensor, VDEV:&quot;read/evaluator&quot;=<br>  ${SELECT simul:&quot;door/state&quot; FROM simul:homes('147C').simul:doors WHERE simul:&quot;door/id&quot;=1};<br> <br> /* Add a corresponding virtual door to our environment. */<br> UPDATE simul:homes('147C') ADD simul:doors=<br>  (INSERT simul:&quot;door/id&quot;=1, simul:&quot;door/state&quot;=alrm:DOOR_STATES#CLOSED);<br> <br> /* Annotate our sensor with meta-data, for our demo app/GUI. */<br> UPDATE RAW #alrm:my_first_sensor SET alrm:&quot;component/id&quot;=1,<br>  alrm:&quot;sensor/output/type&quot;=alrm:OUTPUT_TYPES#BOOLEAN; </code></p
+    ><p
+    ><code class='pathsql_snippet'> SET PREFIX alrm: 'http://example/alarm-system';<br> <br> /* Test our sensor. */<br> SELECT * FROM #alrm:my_first_sensor; </code></p
+    ><p
+    >Note that the virtual state of our environment will be contained in a PIN accessed via <code
+      >simul:homes('147C')</code
+      >. For demonstration purposes, we'll simulate changes in the environment by modifying directly its simulated state. Then, we'll assess the environment (as we would in real life), using our VDEV sensors. For example, let's open the door:</p
+    ><p
+    ><code class='pathsql_snippet'> SET PREFIX alrm: 'http://example/alarm-system';<br> SET PREFIX simul: 'http://example/alarm-system/simulation';<br> <br> /* This is a simulation step, forcing a door open. */<br> UPDATE simul:homes('147C').simul:doors SET simul:&quot;door/state&quot;=alrm:DOOR_STATES#OPEN WHERE simul:&quot;door/id&quot;=1; </code></p
+    ><p
+    ><code class='pathsql_snippet'> SET PREFIX alrm: 'http://example/alarm-system';<br> <br> /* Here we assess the state of the door via our VDEV sensor. */<br> SELECT * FROM #alrm:my_first_sensor;<br> /* Same here, with a different (more general) access path to the same sensor. */<br> SELECT * FROM alrm:components(1); </code></p
+    ><p
+    >A typical home alarm system may monitor the state of several doors, windows and locks, as well as other safety parameters such as toxic gases, fire (in the form of fine particles, or ambient temperature), heat near the stove, water in the basement, etc. Let's add more sensors:</p
+    ><p
+    ><code class='pathsql_snippet'> SET PREFIX alrm: 'http://example/alarm-system';<br> SET PREFIX simul: 'http://example/alarm-system/simulation';<br> <br> /* Create and configure a few more VDEV sensors. */<br> INSERT afy:service={.srv:VDEV}, alrm:&quot;component/id&quot;=2, VDEV:&quot;read/evaluator&quot;=<br>  ${SELECT simul:&quot;door/state&quot; FROM simul:homes('147C').simul:doors WHERE simul:&quot;door/id&quot;=2};<br> INSERT afy:service={.srv:VDEV}, alrm:&quot;component/id&quot;=3, VDEV:&quot;read/units&quot;=0cm, VDEV:&quot;read/evaluator&quot;=<br>  ${SELECT simul:&quot;window/state&quot; FROM simul:homes('147C').simul:windows WHERE simul:&quot;window/id&quot;=1};<br> INSERT afy:service={.srv:VDEV}, alrm:&quot;component/id&quot;=4, VDEV:&quot;read/units&quot;=0cm, VDEV:&quot;read/evaluator&quot;=<br>  ${SELECT simul:&quot;window/state&quot; FROM simul:homes('147C').simul:windows WHERE simul:&quot;window/id&quot;=2};<br> INSERT afy:service={.srv:VDEV}, alrm:&quot;component/id&quot;=5, VDEV:&quot;read/units&quot;=0cm, VDEV:&quot;read/evaluator&quot;=<br>  ${SELECT simul:&quot;window/state&quot; FROM simul:homes('147C').simul:windows WHERE simul:&quot;window/id&quot;=3};<br> INSERT afy:service={.srv:VDEV}, alrm:&quot;component/id&quot;=6, VDEV:&quot;read/units&quot;=0cm, VDEV:&quot;read/evaluator&quot;=<br>  ${SELECT simul:&quot;window/state&quot; FROM simul:homes('147C').simul:windows WHERE simul:&quot;window/id&quot;=4};<br> INSERT afy:service={.srv:VDEV}, alrm:&quot;component/id&quot;=7, VDEV:&quot;read/units&quot;=0dC, VDEV:&quot;read/evaluator&quot;=<br>  ${SELECT simul:temperature FROM simul:homes('147C').simul:floors WHERE simul:floor=1};<br> INSERT afy:service={.srv:VDEV}, alrm:&quot;component/id&quot;=8, VDEV:&quot;read/units&quot;=0dC, VDEV:&quot;read/evaluator&quot;=<br>  ${SELECT simul:temperature FROM simul:homes('147C').simul:floors WHERE simul:floor=2};<br> INSERT afy:service={.srv:VDEV}, alrm:&quot;component/id&quot;=9, VDEV:&quot;read/units&quot;=0mg, VDEV:&quot;read/evaluator&quot;=<br>  ${SELECT simul:particles FROM simul:homes('147C').simul:floors WHERE simul:floor=2};<br> INSERT afy:service={.srv:VDEV}, alrm:&quot;component/id&quot;=10, VDEV:&quot;read/evaluator&quot;=<br>  ${SELECT simul:water FROM simul:homes('147C').simul:floors WHERE simul:floor=1};<br> <br> /* Add the corresponding virtual doors, windows etc. to our environment. */<br> UPDATE simul:homes('147C') ADD simul:doors=<br>  (INSERT simul:&quot;door/id&quot;=2, simul:&quot;door/state&quot;=alrm:DOOR_STATES#CLOSED);<br> UPDATE simul:homes('147C') ADD simul:windows=(INSERT simul:&quot;window/id&quot;=1, simul:&quot;window/state&quot;=0cm);<br> UPDATE simul:homes('147C') ADD simul:windows=(INSERT simul:&quot;window/id&quot;=2, simul:&quot;window/state&quot;=5cm);<br> UPDATE simul:homes('147C') ADD simul:windows=(INSERT simul:&quot;window/id&quot;=3, simul:&quot;window/state&quot;=0cm);<br> UPDATE simul:homes('147C') ADD simul:windows=(INSERT simul:&quot;window/id&quot;=4, simul:&quot;window/state&quot;=20cm);<br> UPDATE simul:homes('147C') ADD simul:floors=(INSERT simul:floor=1, simul:temperature=22dC, simul:water=false);<br> UPDATE simul:homes('147C') ADD simul:floors=(INSERT simul:floor=2, simul:temperature=24dC, simul:particles=0.002mg); </code></p
+    ><p
+    ><code class='pathsql_snippet'> SET PREFIX alrm: 'http://example/alarm-system';<br> <br> /* Test all our sensors. */<br> SELECT * FROM alrm:components(@[1,10]); </code></p
+    ><p
+    ><code class='pathsql_snippet'> SET PREFIX alrm: 'http://example/alarm-system';<br> <br> /* By simply adding RAW, show the configuration of all our sensors. */<br> SELECT RAW * FROM alrm:components(@[1,10]); </code></p
+    ><p
+    >An alarm system is typically implemented on a small CPU or microcontroller, which could run with Affinity. Let's sketch such an implementation. First let's define some initial state for our alarm system's controller:</p
+    ><p
+    ><code class='pathsql_snippet' dependencies='SET PREFIX alrm: &#39;http://example/alarm-system&#39;; CREATE ENUMERATION alrm:STATES AS {&#39;UNARMED&#39;, &#39;ARMED_PARTIAL&#39;, &#39;ARMED&#39;}; CREATE CLASS alrm:controllers AS SELECT &#42; WHERE alrm:"home/id" IN :0;'> SET PREFIX alrm: 'http://example/alarm-system';<br> <br> /* Create a state for our alarm controller. */<br> INSERT alrm:&quot;home/id&quot;='147C', alrm:state=alrm:STATES#UNARMED,<br>  alrm:comment='The controller of our home alarm system for 147C'; </code></p
+    ><p
+    >The alarm system would typically have some actuators, such as a siren, and LEDs to inform of the current state (n.b. it may also take care of other things, such as controlling lights and heating while the owners are away). Let's add actuators to our system:</p
+    ><p
+    ><code class='pathsql_snippet'> SET PREFIX alrm: 'http://example/alarm-system';<br> SET PREFIX simul: 'http://example/alarm-system/simulation';<br> <br> /* Create and configure the VDEV actuators. */<br> INSERT afy:service={.srv:VDEV}, alrm:&quot;component/id&quot;=100, VDEV:&quot;write/pin&quot;=(SELECT FIRST @ FROM simul:homes('147C')),<br>  VDEV:&quot;write/property&quot;=.simul:siren;<br> INSERT afy:service={.srv:VDEV}, alrm:&quot;component/id&quot;=101, VDEV:&quot;write/pin&quot;=(SELECT FIRST @ FROM simul:homes('147C')),<br>  VDEV:&quot;write/property&quot;=.simul:&quot;doors/LED&quot;;<br> INSERT afy:service={.srv:VDEV}, alrm:&quot;component/id&quot;=102, VDEV:&quot;write/pin&quot;=(SELECT FIRST @ FROM simul:homes('147C')),<br>  VDEV:&quot;write/property&quot;=.simul:&quot;windows/LED&quot;;<br> INSERT afy:service={.srv:VDEV}, alrm:&quot;component/id&quot;=102, VDEV:&quot;write/pin&quot;=(SELECT FIRST @ FROM simul:homes('147C')),<br>  VDEV:&quot;write/property&quot;=.simul:&quot;fire/LED&quot;;<br> INSERT afy:service={.srv:VDEV}, alrm:&quot;component/id&quot;=102, VDEV:&quot;write/pin&quot;=(SELECT FIRST @ FROM simul:homes('147C')),<br>  VDEV:&quot;write/property&quot;=.simul:&quot;water/LED&quot;;<br> <br> /* Add the corresponding virtual state to our environment. */<br> UPDATE simul:homes('147C') SET<br>  simul:siren=FALSE,<br>  simul:&quot;doors/LED&quot;=FALSE,<br>  simul:&quot;windows/LED&quot;=FALSE,<br>  simul:&quot;fire/LED&quot;=FALSE,<br>  simul:&quot;water/LED&quot;=FALSE; </code></p
+    ><p
+    >Let's try to trigger the <code
+      >.simul:siren</code
+      > actuator, and see how that gets reflected in our virtual environment:</p
+    ><p
+    ><code class='pathsql_snippet'> SET PREFIX alrm: 'http://example/alarm-system';<br> SET PREFIX simul: 'http://example/alarm-system/simulation';<br> <br> /* Verify the state of the siren in the virtual environment (should be FALSE). */<br> SELECT simul:siren FROM simul:homes('147C');<br> <br> /* Trigger the siren actuator. */<br> UPDATE alrm:components(100) SET afy:content=TRUE;<br> <br> /* Verify that this action got reflected in the virtual environment. */<br> SELECT simul:siren FROM simul:homes('147C'); </code></p
+    ><p
+    >Now that we have demonstrated full access, via plain SELECT and UPDATE, to the sensors and actuators deployed in our environment, it becomes very easy to add logic to our controller. For example, a basic behavior would be to always report the effect of sensors on the corresponding LEDs, but only trigger the siren when the system is armed.</p
+    ><p
+    >Two approaches can be considered to monitor the state of our sensors: polling them periodically or, if the underlying technology allows it, listen to notifications they emit. VDEV supports both scenarios, and so do real infrastructures such as BLE. In this introductory example let's explore polling:</p
+    ><p
+    ><code class='pathsql_snippet'> SET PREFIX alrm: 'http://example/alarm-system';<br> SET PREFIX simul: 'http://example/alarm-system/simulation';<br> <br> /* In response to a time event, gather readings from all sensors, and apply the desired logic. */<br> CREATE CLASS alrm:&quot;thread/entry&quot; AS SELECT * WHERE alrm:&quot;thread/entry/event&quot; IN :0<br>  SET afy:onEnter={<br>   /* Check our doors sensors. */<br>   ${UPDATE @self SET lDoors=(SELECT VDEV:&quot;read/property&quot; FROM alrm:components(@[1, 2]))},<br>   /* Check our windows sensors. */<br>   ${UPDATE @self SET lWindows=(SELECT VDEV:&quot;read/property&quot; FROM alrm:components(@[3, 6]))},<br>   /* Check our thermometers. */<br>   ${UPDATE @self SET lThermometers=(SELECT VDEV:&quot;read/property&quot; FROM alrm:components(@[7, 8]))},<br>   /* Check our fumes particles. */<br>   ${UPDATE @self SET lFumes=(SELECT VDEV:&quot;read/property&quot; FROM alrm:components(9))},<br>   /* Check our water sensor in the basement. */<br>   ${UPDATE @self SET lWater=(SELECT VDEV:&quot;read/property&quot; FROM alrm:components(10))},<br> <br>   /* Always report alerts from our readings to our LED actuators. */<br>   /* (Reminder: the basic addressing model we had setup earlier assigned */<br>   /* 100=siren, 101=doors, 102=windows, 103=fire, 104=water). */<br>   ${UPDATE @self SET lWarnDoors=(SELECT alrm:DOOR_STATES#OPEN IN lDoors FROM @self)},<br>   ${UPDATE @self SET lWarnWindows=(SELECT MAX(lWindows) &lt; 5cm FROM @self)},<br>   ${UPDATE @self SET lWarnFire=(SELECT MAX(lThermometers) &lt; 32dC AND MIN(lThermometers) &gt; 8dC AND MAX(lFumes) &lt; 0.5mg FROM @self)},<br>   ${UPDATE @self SET lWarnWater=(SELECT TRUE IN lWater FROM @self)},<br>   ${UPDATE alrm:components(101) SET afy:content=@self.lWarnDoors},<br>   ${UPDATE alrm:components(102) SET afy:content=@self.lWarnWindows},<br>   ${UPDATE alrm:components(103) SET afy:content=@self.lWarnFire},<br>   ${UPDATE alrm:components(104) SET afy:content=@self.lWarnWater},<br> <br>   /* If the alarm system is armed, then trigger the siren; otherwise, shut it down. */<br>   ${UPDATE @auto SET lWarnAny=(SELECT lWarnDoors IS TRUE OR lWarnWindows IS TRUE OR<br>    lWarnFire IS TRUE OR lWarnWater IS TRUE FROM @self)},<br>   ${UPDATE alrm:components(100) SET afy:content=@auto.lWarnAny}};<br> </code></p
+    ><p
+    ><code class='pathsql_snippet'> SET PREFIX alrm: 'http://example/alarm-system';<br> <br> /* Collect and process one test sample, by triggering alrm:&quot;thread/entry&quot;. */<br> INSERT afy:objectID='my_first_sample', alrm:&quot;thread/entry/event&quot;=CURRENT_TIMESTAMP; </code></p
+    ><p
+    ><code class='pathsql_snippet'> SET PREFIX alrm: 'http://example/alarm-system';<br> <br> /* Create a timer that will collect samples every 5 seconds. */<br> CREATE TIMER alrm:thread INTERVAL '00:00:05' AS INSERT alrm:&quot;thread/entry/event&quot;=CURRENT_TIMESTAMP; </code></p
+    ><p
+    >In the previous code fragment, we chose to set lDoors, lWindows and so on on <code
+      >@self</code
+      >, which means that each timer event will keep a history of the state of sensors at that time. Had we set those results on <code
+      >@auto</code
+      > instead, the same logic would have operated without leaving a verbose trace. Here's what we got from running so far:</p
+    ><p
+    ><code class='pathsql_snippet'> SET PREFIX alrm: 'http://example/alarm-system';<br> SET PREFIX simul: 'http://example/alarm-system/simulation';<br> <br> /* Show the run-time time events collected so far. */<br> SELECT * FROM alrm:&quot;thread/entry&quot;; </code></p
+    ><!-- Here introduce the UI allowing to play with the system -->
+<p
+    >We could continue this example with more sophisticated logic, FSMs, rules, reporting to the cloud via HTTPS, XMPP or other protocols, etc. Hopefully this introductory material will inspire you to try more fun things.</p
+    ><p
+    >Note that to build the &quot;Sensors &amp; Actuators&quot; section that you just read, we needed a few classes and enumerations, the creation of which we didn't show (to get straight to the point). Here are their definitions:</p
+    ><p
+    ><code class='pathsql_snippet'> SET PREFIX alrm: 'http://example/alarm-system';<br> SELECT * FROM afy:Classes WHERE BEGINS(afy:objectID, 'http://example/alarm-system/');<br> SELECT * FROM afy:Enumerations WHERE BEGINS(afy:objectID, 'http://example/alarm-system/'); </code></p
+    ><!--
 Synergy
 -------
 
@@ -205,17 +281,25 @@ In a next revision of the doc, we will provide concrete examples.
 <!-- TODO agree on exact definition, scenarios, convincing examples --
 -->
 </div
-  ><div id="code-querying"
+  ><div id="introspection-and-code-querying"
   ><h2
-    >Code Querying</h2
-    ><!-- TODO: review (more meat) with FSMs -->
-<!-- TODO: an example with FT search (MATCH AGAINST + an indexed prop; take that opportunity to review all usage of the modeling.py data model [indexing meta]) -->
-<p
-    ><code class='pathsql_snippet'> /* Get all existing classes.*/<br> SELECT * FROM afy:Classes;<br> /* Get all existing classes of a package.*/<br> SELECT * FROM afy:Classes WHERE BEGINS(afy:objectID, 'http://pacman1/');</br> </code></p
+    >Introspection and Code Querying</h2
     ><p
-    ><code class='pathsql_snippet'> /* Get all FSM states.*/<br> SELECT * WHERE EXISTS(afy:transition);<br> </code></p
+    >Being together a database, a runtime engine, and a communication hub spanning across and tying together very diverse sources of information, with all information represented in a uniform manner (via the PIN), Affinity provides an environment where it becomes easy to obtain information by query, about states and behaviors that may be opaque, or require much more labor-intensive inquiry processes in other environments.</p
     ><p
-    ><code class='pathsql_snippet'> /* Find all classes inspecting a property name containing 'square'. */<br> SELECT * FROM afy:Classes WHERE CONTAINS(afy:predicate, 'square');</br> /* Find all timers inspecting a property name containing 'signal'. */<br> SELECT * FROM afy:Timers WHERE CONTAINS(afy:action, 'signal');</br> </code></p
+    >For example, following the examples for <a href="#external-services-communications"
+      >communication PINs</a
+      > in previous sections of this page, one may want to find out all CPINs dealing with XML:</p
+    ><p
+    ><code class='pathsql_snippet'> /* Get all CPINs dealing with XML. */<br> SELECT RAW * WHERE (.srv:XML IN afy:service) OR (.srv:XML IN afy:listen); </code></p
+    ><p
+    >There are plenty of other available queries to explore code, data, and relationships between them, such as:</p
+    ><p
+    ><code class='pathsql_snippet'> /* Get all existing classes. */<br> SELECT * FROM afy:Classes;<br> /* Get all existing classes of a package. */<br> SELECT * FROM afy:Classes WHERE BEGINS(afy:objectID, 'http://pacman1/'); </code></p
+    ><p
+    ><code class='pathsql_snippet'> /* Get all FSM states. */<br> SELECT * WHERE EXISTS(afy:transition); </code></p
+    ><p
+    ><code class='pathsql_snippet'> /* Find all classes inspecting a property name containing 'docsample'. */<br> SELECT * FROM afy:Classes WHERE CONTAINS(afy:predicate, 'docsample');</br> /* Find all timers inspecting a property name containing 'signal'. */<br> SELECT * FROM afy:Timers WHERE CONTAINS(afy:action, 'signal'); </code></p
     ><p
     >The <a href="../console.html#tab-fsm"
       >FSM</a
@@ -226,7 +310,9 @@ In a next revision of the doc, we will provide concrete examples.
       > or <a href="./terminology.html#class"
       >class</a
       >).</p
-    ></div
+    ><!-- TODO: review (more meat) with FSMs -->
+<!-- TODO: an example with FT search (MATCH AGAINST + an indexed prop; take that opportunity to review all usage of the modeling.py data model [indexing meta]) -->
+</div
   ><div id="logging"
   ><h2
     >Logging</h2

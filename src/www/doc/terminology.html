@@ -275,11 +275,11 @@
 	>property</a
 	>. The values of a collection can be heterogeneous (they can have different types). Internally, each element of a collection is uniquely identified by an immutable <a href="#element-id-eid"
 	>Element ID (eid)</a
-	>. This design enables consistent interactions in concurrent access scenarios. Note that collections cannot directly contain nested collections, in the current version. Small collections (VT_ARRAY) can be represented as arrays internally, and allow random access, whereas very large collections (VT_COLLECTION) must be traversed with an iterator (with the option of seeking to any known <a href="#element-id-eid"
+	>. This design enables consistent interactions in concurrent access scenarios. Note that collections cannot directly contain nested collections, in the current version. Small collections can be represented as arrays internally, and allow random access, whereas very large collections must be traversed with an iterator (with the option of seeking to any known <a href="#element-id-eid"
 	>eid</a
 	>). A collection can hold up to 32-bit worth of distinct addressable elements. Collections can be queried just like plain values (additional control is provided). Collections also play a key role in other aspects of the data model, such as <a href="#acl"
 	>ACLs</a
-	>. Collections are represented by either VT_COLLECTION or VT_ARRAY in <a href="./sources/affinity_h.html"
+	>. Collections are represented by VT_COLLECTION in <a href="./sources/affinity_h.html"
 	>affinity.h</a
 	>.</p
       ></div
@@ -388,7 +388,8 @@
 	>. Actions can cause new <a href="#condition"
 	>conditions</a
 	> to evaluate to true, and thus trigger a chain of actions.</p
-      ></div
+      ><!-- TODO: Event -->
+</div
     ><div id="rule"
     ><h3
       >Rule</h3
@@ -440,20 +441,6 @@
 	>reference</a
 	> describes in detail how to declare timers.</p
       ></div
-    ><div id="service"
-    ><h3
-      >Service</h3
-      ><p
-      >A service is an OS-level compiled plug-in module (dll/so/dylib), loaded dynamically in Affinity and providing additional building blocks for <a href="#communication-pin"
-	>communication PINs</a
-	>. Those building blocks conform with the <code
-	>Afy::IService</code
-	> interface defined in <a href="./sources/affinity_h.html"
-	>affinity.h</a
-	>. Affinity comes with a few built-in services; external services can be loaded via a <a href="#loader"
-	>loader</a
-	> statement.</p
-      ></div
     ><div id="communication-pin"
     ><h3
       >Communication PIN</h3
@@ -462,7 +449,9 @@
 	>properties</a
 	> and <a href="#value"
 	>values</a
-	>), defines the configuration of the communication. In pathSQL, once a communication PIN is inserted, its configuration can be examined or modified by adding the <code
+	>), defines the configuration of the communication, including a stack of <a href="#service"
+	>services</a
+	>. In pathSQL, once a communication PIN is inserted, its configuration can be examined or modified by adding the <code
 	>RAW</code
 	> keyword to <code
 	>SELECT</code
@@ -763,7 +752,13 @@ read-only transaction would.
       >service</a
       > dependency, in the form of a persistent <a href="#pin"
       >PIN</a
-      >. It binds a URI to the service and loads it on demand. The pathSQL statement is <a href="./pathSQL%20reference%20[definition].html#create-loader"
+      >, containing essentially 2 properties: a user-defined URI to name the loader (this URI is stored in <code
+      >afy:objectID</code
+      >), and a relative or absolute path to the loadable library (stored in <code
+      >afy:load</code
+      >). Note that the loader's name is rarely used. The name by which a service is referred to insert it into a <a href="#communication-pin"
+      >communication PIN's</a
+      > service stack is defined statically (programmatically), by the service itself (e.g. the XML service is referred to by .srv:XML, aka &quot;http://affinityng.org/service/XML&quot;). Once stored, a loader PIN tells the kernel to reload the library whenever it starts up. The pathSQL statement is <a href="./pathSQL%20reference%20[definition].html#create-loader"
       >CREATE LOADER</a
       >.</p
     ></div
@@ -884,6 +879,20 @@ read-only transaction would.
       >. In the near future, this process will be drastically simplified by substituting its custom implementation with generic <a href="#service"
       >services</a
       >.</p
+    ></div
+  ><div id="service"
+  ><h3
+    >Service</h3
+    ><p
+    >A service is an OS-level compiled plug-in module (dll/so/dylib), loaded dynamically in Affinity and providing additional building blocks for <a href="#communication-pin"
+      >communication PINs</a
+      >. Those building blocks conform with the <code
+      >Afy::IService</code
+      > interface defined in <a href="./sources/affinity_h.html"
+      >affinity.h</a
+      >. Affinity comes with a few built-in services (e.g. Bluetooth Low Energy, NFC, and Zigbee communications, XML and regex parsing, mDNS browsing, a HTTP client and server, etc.). Typically, external services are loaded via a <a href="#loader"
+      >loader</a
+      > statement.</p
     ></div
   ></div
 >
