@@ -145,6 +145,20 @@
 	  >). In Affinity, all built-in properties use prefix &quot;afy&quot; (e.g. afy:pinID).</p
 	><p
 	>QNames allow to partition entities such as class names and property names, by namespace. They help specify the semantic context in which a name should be interpreted, and can prevent collisions among identical names with different semantic meanings. This can be especially important when classification is taken into consideration. Careful selection of prefixes (with clear, distinct and meaningful semantics) yields better long-term interoperability with other applications.</p
+	><p
+	>Prefixes are defined by inserting <code
+	  >SET PREFIX</code
+	  > pseudo-statements before actual pathSQL statements, separated by semicolons. Any number of <code
+	  >SET PREFIX</code
+	  > pseudo-statements can precede a pathSQL statement, and are considered to be a part of the statement. The operational scope of <code
+	  >SET PREFIX</code
+	  > is the statement (or set of statements) it is attached to. Example:</p
+	><p
+	><code class='pathsql_snippet'> SET PREFIX p1: 'http://example/doc/my/first/prefix';<br> SET PREFIX p2: 'http://example/doc/my/second/prefix';<br> INSERT afy:objectID=.p1:test, p1:x=10, p2:name='Jack'; </code></p
+	><p
+	><code class='pathsql_snippet'> SET PREFIX p1: 'http://example/doc/my/first/prefix';<br> SELECT * from #p1:test; </code></p
+	><p
+	><code class='pathsql_snippet'> /* This will fail, since p1 and p2 are long forgotten. */<br> SELECT * from #p1:test; </code></p
 	></div
       ><div id="constants"
       ><h4

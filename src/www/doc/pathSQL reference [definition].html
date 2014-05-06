@@ -45,7 +45,8 @@
     >Synopsis:</p
     ><ul
     ><li
-      >CREATE CLASS class_name [OPTIONS( {VIEW|CLUSTERED|SOFT_DELETE} )] AS query_statement [SET afy:onEnter={${qs1}, ${qs2} [, ...]}, afy:onUpdate={${qs3}, ${qs4} [, ...]}, afy:onLeave={${qs5}, ${qs6} [, ...]}, property=value [, ...]]</li
+      >CREATE CLASS class_name AS query_statement<br
+	 /> [SET afy:onEnter={${qs1}, ${qs2} [, ...]}, afy:onUpdate={${qs3}, ${qs4} [, ...]}, afy:onLeave={${qs5}, ${qs6} [, ...]}, property=value [, ...]]</li
       ></ul
     ><p
     >Equivalent to:</p
@@ -56,29 +57,7 @@
     ><p
     >Where the query_statement is a <a href="./pathSQL%20reference%20[manipulation].html#query"
       >SELECT QUERY</a
-      >. Here's a description of the OPTIONS:</p
-    ><ul
-    ><li
-      >DEFAULT: This is the default mode (all <a href="./terminology.html#pin-id-pid"
-	>PIDs</a
-	> will be indexed by this class).<br
-	 /></li
-      ><li
-      >VIEW: Like view in relational db, it is just a query definition for usability.<br
-	 /></li
-      ><li
-      >CLUSTERED: Using clustered index to maintain all <a href="./terminology.html#pin-id-pid"
-	>PIDs</a
-	>, for increased performance. Not yet implemented.<br
-	 /></li
-      ><li
-      >SOFT_DELETE: Create an index not only for normal pins, but also for those pins marked as deleted (but not purged).<br
-	 /></li
-      ><li
-      ><em
-	>Note:</em
-	> These OPTIONS cannot be specified via the INSERT equivalent form, presently.</li
-      ></ul
+      >.</p
     ><p
     >The <code
       >afy:onEnter</code
@@ -225,16 +204,25 @@
     >Synopsis:</p
     ><ul
     ><li
-      >CREATE EVENT event_name AS query_statement</li
+      >CREATE EVENT event_name AS query_statement<br
+	 /> [SET afy:onEnter={${qs1}, ${qs2} [, ...]}, afy:onUpdate={${qs3}, ${qs4} [, ...]}, afy:onLeave={${qs5}, ${qs6} [, ...]}, property=value [, ...]]</li
       ></ul
     ><p
-    >Equivalent to:</p
-    ><ul
-    ><li
-      >CREATE CLASS event_name OPTIONS(VIEW) AS query_statement</li
-      ></ul
+    >This operates in a way similar to a class, but without any index. There is no strictly equivalent <code
+      >INSERT</code
+      > syntax for <code
+      >CREATE EVENT</code
+      >.</p
     ><p
-    >To explicit and push further its transition from a DBMS to a platform, AffinityNG now uses a distinct name for the concept of an &quot;event&quot;. While classes do recognize and produce events, they are no longer the only source of events. Upcoming event handlers and FSMs will soon provide the whole context for this evolution.</p
+    >To communicate more explicitly its transition from a DBMS to a full runtime platform, AffinityNG now uses a distinct name for the concept of an &quot;event&quot;. While classes do recognize and produce events, they are no longer the only source of events. Upcoming event handlers and FSMs will soon provide the whole context for this evolution.</p
+    ><p
+    >Example:</p
+    ><p
+    ><code class='pathsql_snippet'> SET PREFIX example: 'http://example/event';<br> <br> CREATE EVENT example:raindrops AS SELECT * WHERE EXISTS(example:dropsize) SET<br>  afy:onEnter=${UPDATE @self SET example:dropped_at=CURRENT_TIMESTAMP}; </code></p
+    ><p
+    ><code class='pathsql_snippet'> SET PREFIX example: 'http://example/event';<br> <br> INSERT example:dropsize=1.2mm;<br> INSERT example:dropsize=1.1mm;<br> </code></p
+    ><p
+    ><code class='pathsql_snippet'> SET PREFIX example: 'http://example/event';<br> SELECT * FROM example:raindrops; </code></p
     ></div
   ><div id="rule"
   ><h4
@@ -474,7 +462,7 @@ and then uses the resulting CPIN for communication (see below).
       ></li
     ><li
     ><p
-      >a VT_ARRAY: contains more than one element with the above types; defines a communication stack (e.g. <code
+      >a VT_COLLECTION: contains more than one element with the above types; defines a communication stack (e.g. <code
 	>afy:service={.srv:XML, srv:IO}</code
 	>)</p
       ></li
