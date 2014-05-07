@@ -27,6 +27,9 @@ under the License.
     #include <Windows.h>
     #include <time.h>
 #else
+    #ifdef __APPLE__
+        #include <pthread.h>
+    #endif
     #include <sys/time.h>
     #include <sys/ipc.h>
     #include <sys/sem.h>
