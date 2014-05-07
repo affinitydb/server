@@ -67,6 +67,8 @@
     >encryption</a
     >, <a href="#enumeration"
     >enumeration</a
+    >, <a href="#event"
+    >event</a
     >, <a href="#family"
     >family</a
     >, <a href="#fsm"
@@ -133,7 +135,7 @@
   >The key components of Affinity's data model can be presented on two layers:</p
   ><ol style="list-style-type: decimal;"
   ><li
-    >a base layer (plain &quot;passive&quot; data items): <a href="#pin"
+    >a base layer, mostly constituted of plain &quot;passive&quot; data items: <a href="#pin"
       >PIN</a
       >, <a href="#property"
       >property</a
@@ -143,6 +145,8 @@
       >references</a
       >), <a href="#collection"
       >collection</a
+      >, <a href="#map"
+      >map</a
       >, <a href="#class"
       >class</a
       ><br
@@ -152,7 +156,9 @@
       >condition</a
       >, <a href="#action"
       >action</a
-      >, <a href="#rule"
+      >, <a href="#event"
+      >event</a
+      > <a href="#rule"
       >rule</a
       >, <a href="#fsm"
       >FSM</a
@@ -346,6 +352,10 @@
       >A condition is a predicate, i.e. an expression evaluating to true or false: &quot;should condition X be met, do Y&quot;. Conditions are of common usage in programming languages in general, and in SQL. Those that are of particular interest in the context of the active layer of pathSQL are:</p
       ><ol style="list-style-type: decimal;"
       ><li
+	>the predicates that describe <a href="event"
+	  >events</a
+	  >,</li
+	><li
 	>the predicates of <a href="#class"
 	  >classes</a
 	  >,</li
@@ -354,9 +364,9 @@
 	  >rules</a
 	  >, and</li
 	><li
-	>the conditions that define state transitions in <a href="#fsm"
+	>the conditions of state transitions in <a href="#fsm"
 	  >FSMs</a
-	  >, and constitute building blocks for the regular expressions used in <a href="#cep"
+	  >, which constitute building blocks for the regular expressions used in <a href="#cep"
 	  >CEP</a
 	  ></li
 	></ol
@@ -388,8 +398,27 @@
 	>. Actions can cause new <a href="#condition"
 	>conditions</a
 	> to evaluate to true, and thus trigger a chain of actions.</p
-      ><!-- TODO: Event -->
-</div
+      ></div
+    ><div id="event"
+    ><h3
+      >Event</h3
+      ><p
+      >An event is the occurrence in time of a <a href="#condition"
+	>condition</a
+	>, bound to specific data items or context. An <a href="#action"
+	>action</a
+	> can be directly attached to an event, or indirectly via a <a href="#rule"
+	>rule</a
+	>, a <a href="#fsm"
+	>FSM</a
+	> etc. As soon as a type of event is described to AffinityNG (via <a href="./pathSQL%20reference%20[definition].html#create-event"
+	>CREATE EVENT</a
+	>, <a href="./pathSQL%20reference%20[definition].html#create-class"
+	>CREATE CLASS</a
+	> etc.), every future occurrence of that event will be recognized by AffinityNG, and any <a href="#action"
+	>action</a
+	> directly or indirectly attached to the event will be triggered. From the perspective of older versions of Affinity, an event is analogous to a class without an index.</p
+      ></div
     ><div id="rule"
     ><h3
       >Rule</h3
@@ -428,7 +457,7 @@
 	>conditions</a
 	> encountered at discrete points in time). In pathSQL, those correlations are described as a regular expression of a <a href="#fsm"
 	>FSM's</a
-	> transitions. CEP is not readily available in the alpha release of AffinityNG.</p
+	> transitions. CEP is not readily available in the alpha2 release of AffinityNG.</p
       ><!-- TODO: review when available -->
 </div
     ><div id="timer"
@@ -522,7 +551,7 @@
   ><h3
     >Enumeration</h3
     ><p
-    >An enumeration allows to declare inter-related symbolic values, without polluting the global namespace. This can be useful for managing states, options and conditions based on those. For a more detailed description, please visit the <a href="./pathSQL%20reference.html#create-enumeration"
+    >An enumeration allows to declare inter-related symbolic values, without polluting the global namespace. This can be useful for managing states, options and conditions based on those. For a more detailed description, please visit the <a href="./pathSQL%20reference%20[definition].html#create-enumeration"
       >reference</a
       >.</p
     ></div
@@ -536,6 +565,8 @@
     >. Typically, this <a href="#value"
     >value</a
     > is provided at query time. For example, using pathSQL, one could define:<pre>'CREATE CLASS age_limit AS select * where age >= :0;'</pre>and then query with<pre>'SELECT * FROM age_limit(18);'</pre>
+
+<!-- TODO: describe new named parameters -->
 </div
   ><div id="uncommitted-pin"
   ><h3
@@ -800,7 +831,7 @@ read-only transaction would.
       >protocol-buffer</a
       > streaming interface. At a lower level, query conditions and <a href="#class"
       >class</a
-      > predicates can be defined using expression trees (IExprTree), which enable the embedding application to develop any desired query language (e.g. sql, xquery, sparql, linq etc.), and compile it into this low-level representation. <a href="#pin"
+      > predicates can be defined using expression trees (IExprNode), which enable the embedding application to develop any desired query language (e.g. sql, xquery, sparql, linq etc.), and compile it into this low-level representation. <a href="#pin"
       >PINs</a
       > are mainly represented by the IPIN interface, which allows fine-grained control of the in-memory snapshot of a PIN and related read-write activity to the store (in the context of one specific session). Since affinity.h is primarily a kernel integration interface (rather than the client interface in a client-server model), most of the design decisions related with memory and reference management were taken by ranking performance implications with higher importance than ease of use. Here's a <a href="./interface%20[cplusplus].html"
       >link</a

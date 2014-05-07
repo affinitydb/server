@@ -36,7 +36,8 @@
 <div id="c-kernel-interface"
 ><h1
   >C++ Kernel Interface</h1
-  ><!-- TODO: many little things to review here... --><p
+  ><!-- TODO: talk a bit more about services, and direct to other sources of info... -->
+<!-- TODO: when time permits, review and complete, in more depth... --><p
   >Please read the brief <a href="./terminology.html#c-kernel-interface"
     >introduction</a
     >. The bulk of the interface is defined in <a href="./sources/affinity_h.html"
@@ -69,8 +70,8 @@
     >IPIN</a
     >, <a href="#value"
     >Value</a
-    >, <a href="#iexprtree"
-    >IExprTree</a
+    >, <a href="#iexprnode"
+    >IExprNode</a
     >, <a href="#istmt"
     >IStmt</a
     >, <a href="#icursor"
@@ -379,7 +380,7 @@
       ><p
       >Here's an example building a multi-segment class index:</p
       ><pre>
-  IExprTree * lExpr1 = NULL, * lExpr2 = NULL;
+  IExprNode * lExpr1 = NULL, * lExpr2 = NULL;
   Value lV[2];
   lV[0].setVarRef(0, mProps[0]);
   lV[1].setParam(0);
@@ -577,12 +578,12 @@
       >). This is done to delay expensive length computations until requested.</p
     ></div
   ></div
-><div id="iexprtree"
+><div id="iexprnode"
 ><h1
-  >IExprTree</h1
+  >IExprNode</h1
   ><p
   ><code
-    >IExprTree</code
+    >IExprNode</code
     > represents a node of an expression tree. Every instance is created with <code
     >ISession::expr</code
     > (or <code
@@ -600,7 +601,7 @@
     >, a <a href="#value"
     >Value</a
     > can hold an <code
-    >IExprTree</code
+    >IExprNode</code
     >, and thus <code
     >ISession::expr</code
     > can be used not only to build leaf nodes but also complete trees (in combination with logical operators such as <code
@@ -612,12 +613,12 @@
   Value lV[2];  
   lV[0].setVarRef(0, mFilePathPropID);  
   lV[1].setParam(0);  
-  IExprTree *lET1 = mSession->expr(OP_EQ, 2, lV);  
+  IExprNode *lET1 = mSession->expr(OP_EQ, 2, lV);  
   lV[0].setVarRef(0, mPIFSAttrPropID);  
-  IExprTree *lET2 = mSession->expr(OP_EXISTS, 1, lV);  
+  IExprNode *lET2 = mSession->expr(OP_EXISTS, 1, lV);  
   lV[0].set(lET1);  
   lV[1].set(lET2);  
-  CmvautoPtr<IExprTree> lET(mSession->expr(OP_LAND, 2, lV));  
+  CmvautoPtr<IExprNode> lET(mSession->expr(OP_LAND, 2, lV));  
   TVERIFYRC(lQ->addCondition(lVar,lET));  
 </pre>
 <p
@@ -626,14 +627,14 @@
     >. Internally, Affinity compiles the expression into a representation optimized for execution (<code
     >IExpr</code
     >). The methods of <code
-    >IExprTree</code
+    >IExprNode</code
     > are rarely used.</p
   ><p
   ><em
     >Note: When freeing an expression tree composed of multiple sub-trees, <code
       >destroy</code
       > should only be called on the topmost <code
-      >IExprTree</code
+      >IExprNode</code
       > object. In the example pasted here, notice how only <code
       >lET</code
       > is destroyed explicitly (not <code
@@ -682,7 +683,7 @@
   Value lV[2];
   lV[0].setVarRef(lVars[0], propid1);
   lV[1].setVarRef(lVars[1], propid2);
-  IExprTree * lExprJ = mSession->expr(OP_EQ, 2, lV);
+  IExprNode * lExprJ = mSession->expr(OP_EQ, 2, lV);
   lQ->join(lVars[0], lVars[1], lExprJ, QRY_SEMIJOIN);
 </pre>
 <p
