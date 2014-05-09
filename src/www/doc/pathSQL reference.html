@@ -299,33 +299,33 @@
 	><tbody
 	><tr class="odd"
 	  ><td align="left"
-	    >{value} Navi</td
+	    >{value}</td
 	    ><td align="left"
-	    >gate along this segment for a number of &quot;value&quot; times (e.g. prop1{3} means &quot;prop1.prop1.prop1&quot;).</td
+	    >Navigate along this segment for a number of &quot;value&quot; times (e.g. prop1{3} means &quot;prop1.prop1.prop1&quot;).</td
 	    ></tr
 	  ><tr class="even"
 	  ><td align="left"
-	    >{min, max} Navi</td
+	    >{min, max}</td
 	    ><td align="left"
-	    >gate along this segment, starting at the &quot;min&quot;-th instance and up to the &quot;max&quot;-th instance.</td
+	    >Navigate along this segment, starting at the &quot;min&quot;-th instance and up to the &quot;max&quot;-th instance.</td
 	    ></tr
 	  ><tr class="odd"
 	  ><td align="left"
-	    >{*} Same</td
+	    >{*}</td
 	    ><td align="left"
-	    >as {0, infinity}.</td
+	    >Same as {0, infinity}.</td
 	    ></tr
 	  ><tr class="even"
 	  ><td align="left"
-	    >{?} Same</td
+	    >{?}</td
 	    ><td align="left"
-	    >as {0, 1}.</td
+	    >Same as {0, 1}.</td
 	    ></tr
 	  ><tr class="odd"
 	  ><td align="left"
-	    >{+} Same</td
+	    >{+}</td
 	    ><td align="left"
-	    >as {1, infinity}.</td
+	    >Same as {1, infinity}.</td
 	    ></tr
 	  ></tbody
 	></table
@@ -635,7 +635,7 @@
       ><p
       >Format: $(expression)</p
       ><p
-      >EXPR is the compiled form of an EXPRTREE, which is mostly used internally by the database engine. An EXPR can be stored as a <a href="./terminology.html#value"
+      >EXPR is the compiled form of an EXPRTREE, which is first and foremost used internally by the database engine. An EXPR can be stored as a <a href="./terminology.html#value"
 	>value</a
 	>, but it is not evaluated automatically at INSERT/UPDATE execution time (the value of that property will always be the EXPR itself, never its evaluation). However, properties with type EXPR are evaluated automatically when they're used in expressions. E.g.</p
       ><p
@@ -656,6 +656,10 @@
       ><code class='pathsql_snippet'> UPDATE #expr_sample SET prop4=$(prop1-:0);<br> SELECT * WHERE prop4(1)=1; </code></p
       ><p
       >Note that Affinity can support missing or extraneous parameters.</p
+      ><p
+      >You can find more examples <a href="./pathSQL%20basics%20[data].html#how-to-use-lambda-expressions"
+	>here</a
+	>.</p
       ></div
     ><div id="exprtree"
     ><h3

@@ -104,10 +104,6 @@
     ><p
     ><code class='pathsql_snippet'> SET PREFIX simul: 'http://example/simul';<br> SET PREFIX control: 'http://example/control';<br> SET PREFIX world: 'http://example/world';<br> SET PREFIX meta: 'http://example/meta';<br> SET PREFIX inst: 'http://example/inst';<br> CREATE CLASS control:&quot;rt/signalable&quot; AS SELECT *<br>  WHERE EXISTS(control:&quot;rt/time/signal&quot;);<br> CREATE CLASS control:&quot;rt/physical/samples&quot; AS SELECT *<br>  WHERE EXISTS(control:&quot;rt/time/step&quot;) AND EXISTS(control:&quot;rt/sensor&quot;);<br> CREATE TIMER control:&quot;rt/source/timer&quot; INTERVAL '00:00:20'<br>  AS UPDATE control:&quot;rt/signalable&quot;<br>  SET control:&quot;rt/time/signal&quot;=EXTRACT(SECOND FROM CURRENT_TIMESTAMP),<br>   control:&quot;rt/time&quot;=CURRENT_TIMESTAMP;<br> INSERT @:1<br>  meta:description='On/Off Simulated Sensor Template (572ef13c)',<br>  afy:objectID=.simul:&quot;template/sensor/on.off.572ef13c&quot;,<br>  afy:predicate=${SELECT * WHERE EXISTS(simul:&quot;new/sensor/572ef13c&quot;)},<br>  control:&quot;template/sensor/step/handler&quot;=<br>   (CREATE CLASS control:&quot;template/sensor/step/handler/on.off.572ef13c&quot; AS SELECT *<br>    FROM control:&quot;rt/signalable&quot;<br>    WHERE control:&quot;sensor/model&quot;=.simul:&quot;template/sensor/on.off.572ef13c&quot; SET<br>    control:&quot;template/sensor&quot;=@:1,<br>    afy:onUpdate=${INSERT <br>     simul:&quot;rt/gen/spread&quot;=(SELECT simul:&quot;template/gen/spread&quot; FROM @ctx.control:&quot;template/sensor&quot;),<br>     simul:&quot;rt/gen/min&quot;=(SELECT simul:&quot;template/gen/min&quot; FROM @ctx.control:&quot;template/sensor&quot;),<br>     simul:&quot;rt/gen/max&quot;=(SELECT simul:&quot;template/gen/max&quot; FROM @ctx.control:&quot;template/sensor&quot;),<br>     simul:&quot;rt/gen/jitter&quot;=(SELECT simul:&quot;template/gen/jitter&quot; FROM @ctx.control:&quot;template/sensor&quot;) *<br>      EXTRACT(SECOND FROM CURRENT_TIMESTAMP),<br>     simul:&quot;rt/value/gen/id&quot;=.simul:&quot;value/gen/sinus&quot;,<br>     control:&quot;rt/sensor&quot;=(SELECT control:sensor FROM @self),<br>     control:&quot;rt/sensor/model&quot;=(SELECT control:&quot;sensor/model&quot; FROM @self.control:sensor),<br>     control:&quot;rt/time/step&quot;=(SELECT control:&quot;rt/time/signal&quot; FROM @self), control:&quot;rt/time&quot;=CURRENT_TIMESTAMP}),<br>  control:&quot;template/sensor/conditions&quot;={<br>   (INSERT <br>    meta:description='Condition: turned off a 572ef13c sensor',<br>    afy:objectID=.control:&quot;template/condition/572ef13c/off&quot;,<br>    afy:predicate=${SELECT * WHERE (@ IS A control:&quot;rt/physical/samples&quot; AND<br>     control:&quot;rt/sensor/model&quot;=.simul:&quot;template/sensor/on.off.572ef13c&quot; AND control:&quot;rt/value&quot; &lt; 0.5)}),<br>   (INSERT <br>    meta:description='Condition: turned on a 572ef13c sensor',<br>    afy:objectID=.control:&quot;template/condition/572ef13c/on&quot;,<br>    afy:predicate=${SELECT * WHERE (@ IS A control:&quot;rt/physical/samples&quot; AND<br>     control:&quot;rt/sensor/model&quot;=.simul:&quot;template/sensor/on.off.572ef13c&quot; AND control:&quot;rt/value&quot; &gt;= 0.5)}),<br>   (INSERT <br>    meta:description='Condition (optional): confirmed that a 572ef13c sensor was off',<br>    afy:objectID=.control:&quot;template/condition/572ef13c/off.confirmed&quot;,<br>    afy:predicate=${SELECT * WHERE (@ IS A world:appliances AND NOT EXISTS(control:&quot;rt/emergency/time&quot;) AND<br>     (control:&quot;rt/warning/time&quot;[:LAST] - control:&quot;rt/warning/time&quot;[:FIRST] &gt;= INTERVAL '00:00:05'))})},<br>  simul:&quot;template/gen/type&quot;='boolean', simul:&quot;template/gen/jitter&quot;=0,<br>  simul:&quot;template/gen/min&quot;=0, simul:&quot;template/gen/max&quot;=100,<br>  simul:&quot;template/gen/spread&quot;=1.5,<br>  afy:onEnter=<br>   ${INSERT @:20<br>    meta:description='On/Off Simulated Sensor Instance (572ef13c)',<br>    control:&quot;sensor/model&quot;=(SELECT afy:objectID FROM @ctx),<br>    control:&quot;sensor/name&quot;=(SELECT inst:name FROM @self),<br>    control:appliance=(SELECT inst:appliance FROM @self),<br>    simul:&quot;sensor/signalable&quot;=<br>     (INSERT @:30<br>      meta:description='To generate samples for sensor',<br>      control:&quot;rt/time/signal&quot;=0,<br>      control:&quot;sensor/model&quot;=(SELECT afy:objectID FROM @ctx),<br>      control:sensor=@:20)};<br> </code></p
     ><p
-    >Values can also be lambda expressions, e.g.</p
-    ><p
-    ><code class='pathsql_snippet'>INSERT<br>  trigo_sin=<br>   $(:0 - POWER(:0,3)/6 + POWER(:0,5)/120 - POWER(:0,7)/5040 + POWER(:0,9)/362880),<br>  trigo_deg2rad=$(3.141592654 * (:0 % 360) / 180);<br> INSERT val_sin30=(SELECT trigo_sin(trigo_deg2rad(30)) WHERE EXISTS(trigo_sin)); </code></p
-    ><p
     ><span class='pathsql_new'>NEW</span> Generators combined with <code
       >INSERT SELECT</code
       > for general-purpose &quot;list comprehensions&quot;:</p
@@ -124,6 +120,39 @@
     ><p
     ><code class='pathsql_snippet'>SET PREFIX acmep: 'http://acme.org/properties/';<br> INSERT acmep:&quot;length&quot;=123.1, acmep:width=456.1, acmep:name='great instrument'; </code></p
     ></div
+  ><div id="how-to-use-lambda-expressions"
+  ><h2
+    >How to use lambda expressions</h2
+    ><p
+    >Values can also be lambda expressions, e.g.</p
+    ><p
+    ><code class='pathsql_snippet'> /* Calculate the sinus function, using its Taylor series expansion. */<br> INSERT<br>  trigo_sin=<br>   $(:0 - POWER(:0,3)/6 + POWER(:0,5)/120 - POWER(:0,7)/5040 + POWER(:0,9)/362880),<br>  trigo_deg2rad=$(3.141592654 * (:0 % 360) / 180);<br> INSERT val_sin30=(SELECT trigo_sin(trigo_deg2rad(30)) WHERE EXISTS(trigo_sin)); </code></p
+    ><p
+    >It's also possible to <code
+      >SELECT</code
+      > from within a lambda expression:</p
+    ><p
+    ><code class='pathsql_snippet'> /* Calculate something with a chain of function calls. */<br> SET PREFIX lmd: 'http://docsample/example/lambda';<br> CREATE CLASS lmd:things AS SELECT * WHERE EXISTS(lmd:x);<br> INSERT afy:objectID=.lmd:evaluator2, lmd:f=$(:0 + (SELECT FIRST lmd:x FROM lmd:things));<br> INSERT afy:objectID=.lmd:evaluator1, lmd:f=$(SELECT FIRST 10 + lmd:f(:0) FROM #lmd:evaluator2);<br> INSERT lmd:x=33; </code></p
+    ><p
+    ><code class='pathsql_snippet'> SET PREFIX lmd: 'http://docsample/example/lambda';<br> SELECT lmd:f(40) from #lmd:evaluator1;<br> SELECT lmd:f(40) from #lmd:evaluator2; </code></p
+    ><p
+    >Find out more about the <a href="./pathSQL%20reference.html#expr-expression-definition"
+      >VT_EXPR</a
+      > data type, on the reference page.</p
+    ></div
+  ><div id="how-to-use-extendable-bit-arrays"
+  ><h2
+    >How to use extendable bit arrays</h2
+    ><p
+    ><a href="./pathSQL%20reference.html#bitwise-operations-on-extendable-bit-arrays"
+      >Extendable bit arrays</a
+      >, combined with their bitwise operators, provide a powerful and compact supplement of functionality for operations on sets, as well as many other use cases:</p
+    ><p
+    ><code class='pathsql_snippet'> SET PREFIX ba: 'http://docsample/example/bitarrays';<br> <br> /* Maintain a bit index of people in the ba:people class. */<br> CREATE CLASS ba:people AS SELECT * WHERE EXISTS(ba:id) SET<br>  ba:&quot;bit/index&quot;=X'0000000000000000',<br>  afy:onEnter=<br>   ${UPDATE @ctx SET ba:&quot;bit/index&quot;=SETBIT(ba:&quot;bit/index&quot;, @self.ba:id)};<br> <br> /* Have a derived class specifically for young adults. */<br> /* Note: actions of the base class are not inherited. */<br> CREATE CLASS ba:&quot;young/adults&quot; AS SELECT * FROM ba:people WHERE ba:age&gt;20 AND ba:age&lt;30 SET<br>  ba:&quot;bit/index&quot;=X'0000000000000000',<br>  afy:onEnter=<br>   ${UPDATE @ctx SET ba:&quot;bit/index&quot;=SETBIT(ba:&quot;bit/index&quot;, @self.ba:id)};<br> <br> /* Insert a bunch of people. */<br> INSERT (ba:id, ba:name, ba:age) VALUES<br>  (12, 'Alice', 34), (23, 'Fred', 25), (35, 'Jack', 56), (17, 'Eileen', 22),<br>  (19, 'Jonathan', 45), (27, 'Peter', 12); </code></p
+    ><p
+    ><code class='pathsql_snippet'> SET PREFIX ba: 'http://docsample/example/bitarrays';<br> <br> /* Show the bit arrays representing people and young adults. */<br> SELECT ba:&quot;bit/index&quot; FROM afy:Classes WHERE afy:objectID=.ba:&quot;people&quot;;<br> SELECT ba:&quot;bit/index&quot; FROM afy:Classes WHERE afy:objectID=.ba:&quot;young/adults&quot;;<br> <br> /* Obtain a bit array representing all people that are not young adults. */<br> /* WARNING: while bit arrays are extendable, '~' applied on them does not produce infinite 1s... */<br> SELECT a.ba:&quot;bit/index&quot; &amp; ~b.ba:&quot;bit/index&quot;<br>  FROM afy:Classes AS a JOIN afy:Classes AS b<br>  WHERE a.afy:objectID=.ba:people AND b.afy:objectID=.ba:&quot;young/adults&quot;; </code></p
+    ><!-- TODO: review with SETBITS / CAST(collection -> bits) becomes available... -->
+</div
   ><div id="linear-algebra"
   ><h2
     >Linear Algebra</h2

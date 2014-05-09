@@ -167,7 +167,9 @@ ssize_t sock_web( int sock, const char* path ) {
         file = "/index.html";
     } else {
         // Note (maxw): added to support links in our doc (containing %20 characters etc.).
-        strncpy( exp, path, BUF_SIZE );
+        if ( exp != path ) {
+            strncpy( exp, path, BUF_SIZE );
+        }
         url_decode( exp, exp, 0 );
         path = exp;
     }

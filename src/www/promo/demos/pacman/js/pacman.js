@@ -88,7 +88,7 @@ SIMULCTX.createClasses = function(pCompletion)
     // -- I avoid returning the inverse direction, and use some pseudo randomness (based on CURRENT_TIMESTAMP's ms).
     // -- REVIEW: now that bug 320 is fixed, reinsert 'WHERE LENGTH(simul:\"ghost/tmpv1\") > 1' when assigning tmpv4, after pre-assigning a default (n.b. I tried quickly but noticed strange side-effects, to be investigated...)
     "${UPDATE @auto SET simul:\"ghost/tmpv2\"=(SELECT REPLACE('TBLR', SUBSTR(simul:invdir, POSITION(simul:dir, simul:\"moveable/direction\"), 1), '') FROM @self)}",
-    "${UPDATE @auto SET simul:\"ghost/tmpv3\"=REPLACE(simul:\"ghost/tmpv2\"[:LAST], SUBSTR(simul:\"ghost/tmpv1\", 0, 1), '')}",
+    "${UPDATE @auto SET simul:\"ghost/tmpv3\"=REPLACE(simul:\"ghost/tmpv2\", SUBSTR(simul:\"ghost/tmpv1\", 0, 1), '')}",
     "${UPDATE @auto SET simul:\"ghost/tmpv4\"=REPLACE(simul:\"ghost/tmpv3\", SUBSTR(simul:\"ghost/tmpv1\", 1, 1), '')}",
     "${UPDATE @auto SET simul:\"ghost/tmprand\"=0}",
     "${UPDATE @auto SET simul:\"ghost/tmprand\"=(EXTRACT(FRACTIONAL FROM CURRENT_TIMESTAMP) % 2) WHERE LENGTH(simul:\"ghost/tmpv4\") > 1}",
