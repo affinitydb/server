@@ -510,10 +510,10 @@ function get_pin_info(pPID, pCallback)
   var lGetClasses =
     function()
     {
-      // REVIEW: Would be even nicer if could combine SELECT *, MEMBERSHIP(@) FROM ... in a single request...
+      // REVIEW: Would be even nicer if could combine SELECT *, DATAEVENTS(@) FROM ... in a single request...
       // REVIEW: now possible with #364...
       var _lOnSuccess = function(__pJson) { if (undefined != __pJson && __pJson.length > 0) { for (var __c in __pJson[0]['afy:value']) lInfo.classes.push(afy_with_qname(__pJson[0]['afy:value'][__c])); } lGetData(); }
-      afy_query("SELECT MEMBERSHIP(@" + pPID + ");", new QResultHandler(_lOnSuccess, null, null), {keepalive:false});
+      afy_query("SELECT DATAEVENTS(@" + pPID + ");", new QResultHandler(_lOnSuccess, null, null), {keepalive:false});
     }
   lGetClasses();
 }

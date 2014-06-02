@@ -221,7 +221,7 @@ class MvClientNotifHandler : public IStoreNotification {
 protected:
     std::string mCriterionClassName; // If this is a class notification handler, the class name.
     std::string mClientid; // If this handler was associated with a group event, remember the id.
-    ClassID mCriterionCLSID; // If this is a class notification handler, the class id.
+    DataEventID mCriterionCLSID; // If this is a class notification handler, the data event id.
     PID mCriterionPID; // If this is a pin notification handler, the pin id.
     long volatile mUseCount; // A refcount, to manage the lifetime of this object with respect to unregistrations and async callbacks.
     long volatile mTerminated; // Becomes 1 when the handler is unregistered.
@@ -243,7 +243,7 @@ public:
         mCriterionCLSID = STORE_INVALID_CLASSID;
         if ( className ) {
             mCriterionClassName = className;
-            if ( RC_OK != sess.getClassID( className, mCriterionCLSID ) || RC_OK != sess.enableClassNotifications( mCriterionCLSID, CLASS_NOTIFY_JOIN | CLASS_NOTIFY_LEAVE | CLASS_NOTIFY_CHANGE | CLASS_NOTIFY_DELETE | CLASS_NOTIFY_NEW ) ) {
+            if ( RC_OK != sess.getDataEventID( className, mCriterionCLSID ) || RC_OK != sess.enableClassNotifications( mCriterionCLSID, CLASS_NOTIFY_JOIN | CLASS_NOTIFY_LEAVE | CLASS_NOTIFY_CHANGE | CLASS_NOTIFY_DELETE | CLASS_NOTIFY_NEW ) ) {
                 fprintf( stderr, "%s:%d: couldn't enable notifications on class '%s'", __FILE__, __LINE__, className );
             }
         }

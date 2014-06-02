@@ -8,7 +8,7 @@
 <!-- begin highlighted code -->
 <div class="highlight"><pre><span class="c1">//**************************************************************************************</span>
 <span class="c1">//</span>
-<span class="c1">// Copyright © 2010-2013 GoPivotal, Inc. All rights reserved.</span>
+<span class="c1">// Copyright © 2010-2014 GoPivotal, Inc. All rights reserved.</span>
 <span class="c1">//</span>
 <span class="c1">// Licensed under the Apache License, Version 2.0 (the &quot;License&quot;);</span>
 <span class="c1">// you may not use this file except in compliance with the License.</span>
@@ -88,8 +88,8 @@
 	<span class="na">SP_OBJID</span>		<span class="o">=</span> <span class="mi">27</span><span class="p">;</span> <span class="c1">// ClassID of the class defined by this PIN. Immutable.</span>
 	<span class="na">SP_PREDICATE</span>	<span class="o">=</span> <span class="mi">28</span><span class="p">;</span> <span class="c1">// Predicate of the class defined by this PIN. Must be set at creation. Immutable.</span>
 	<span class="na">SP_COUNT</span>		<span class="o">=</span> <span class="mi">29</span><span class="p">;</span> <span class="c1">// [Not implemented yet.] Number of instances of the class defined by this PIN. Updated automatically. Cannot be set.</span>
-	<span class="na">SP_SUBCLASSES</span>	<span class="o">=</span> <span class="mi">30</span><span class="p">;</span> <span class="c1">// [Not implemented yet.] Collection of classes which are specializations of the class defined by this PIN. Updated automatically. Cannot be set.</span>
-	<span class="na">SP_SUPERCLASSES</span>	<span class="o">=</span> <span class="mi">31</span><span class="p">;</span> <span class="c1">// [Not implemented yet.] Collection of classes which are abstractions of the class defined by this PIN. Updated automatically. Cannot be set.</span>
+	<span class="na">SP_SPECIALIZATION</span><span class="o">=</span> <span class="mi">30</span><span class="p">;</span> <span class="c1">// [Not implemented yet.] Collection of data events which are specializations of this data event. Updated automatically. Cannot be set.</span>
+	<span class="na">SP_ABSTRACTION</span>	<span class="o">=</span> <span class="mi">31</span><span class="p">;</span> <span class="c1">// [Not implemented yet.] Collection of data events which are abstractions of this data event. Updated automatically. Cannot be set.</span>
 	<span class="na">SP_INDEX_INFO</span>	<span class="o">=</span> <span class="mi">32</span><span class="p">;</span> <span class="c1">// Family index information (number of segments). Immutable.</span>
 	<span class="na">SP_PROPERTIES</span>	<span class="o">=</span> <span class="mi">33</span><span class="p">;</span> <span class="c1">// Properties refered by the class. Immutable.</span>
 	<span class="na">SP_ONENTER</span>		<span class="o">=</span> <span class="mi">34</span><span class="p">;</span> <span class="c1">// Actions associated with class events.</span>
@@ -132,7 +132,7 @@
 <span class="p">}</span>
 
 <span class="kd">enum</span> <span class="n">SpecClasses</span> <span class="p">{</span>
-	<span class="na">SC_CLASSES</span>		<span class="o">=</span> <span class="mi">0</span><span class="p">;</span>	<span class="c1">// Class of classes.</span>
+	<span class="na">SC_CLASSES</span>		<span class="o">=</span> <span class="mi">0</span><span class="p">;</span>	<span class="c1">// Class of classes and data events.</span>
 	<span class="na">SC_TIMERS</span>		<span class="o">=</span> <span class="mi">1</span><span class="p">;</span>	<span class="c1">// Class of timers.</span>
 	<span class="na">SC_LISTENERS</span>	<span class="o">=</span> <span class="mi">2</span><span class="p">;</span>	<span class="c1">// Class of listeners.</span>
 	<span class="na">SC_LOADERS</span>		<span class="o">=</span> <span class="mi">3</span><span class="p">;</span>	<span class="c1">// Class of loaders for service libraries.</span>

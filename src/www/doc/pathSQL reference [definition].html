@@ -2,7 +2,7 @@
 <head>
   <meta name='viewport' content='width=device-width, initial-scale=1.0' />
   <script src='js/jquery.js' type='text/javascript'></script>
-  <script src='js/snippets_to_console.js' type='text/javascript'></script>
+  <script src='js/afysnippets.js' type='text/javascript'></script>
   <link href='css/afydoc.css' rel='stylesheet' type='text/css' media='screen and (min-device-width: 600px)' />
   <link href='../m/doc/css/afydoc.css' rel='stylesheet' type='text/css' media='screen and (max-device-width: 599px)' />
   <meta http-equiv='content-type' content='text/html; charset=utf-8'></meta>
@@ -59,13 +59,31 @@
       >SELECT QUERY</a
       >.</p
     ><p
+    >Classes combine the functionality of <a href="#create-event"
+      >events</a
+      > with that of a data index, which allows to address efficiently all instances of data complying with a class's predicate. In the following example, we ignore the event handling aspect. We only care about labeling our concept of 'songs', and building a corresponding index:</p
+    ><p
+    ><code class='pathsql_snippet'> SET PREFIX ex: 'http://doc/example/create-class';<br> <br> /* Create our class. */<br> CREATE CLASS ex:songs AS SELECT * WHERE EXISTS(ex:&quot;song/title&quot;);<br> <br> /* Create some data complying with our new class's predicate. */<br> INSERT ex:&quot;song/title&quot;='Across the Universe', ex:&quot;creation/year&quot;=1968;<br> INSERT ex:&quot;song/title&quot;='Ain''t She Sweet', ex:&quot;creation/year&quot;=1961;<br> INSERT ex:&quot;song/title&quot;='All My Loving', ex:&quot;creation/year&quot;=1963;<br> INSERT ex:&quot;song/title&quot;='All Things Must Pass', ex:&quot;creation/year&quot;=1969;<br> INSERT ex:&quot;song/title&quot;='All You Need Is Love', ex:&quot;creation/year&quot;=1967;<br> INSERT ex:&quot;song/title&quot;='Ballad of a Thin Man', ex:&quot;creation/year&quot;=1965;<br> INSERT ex:&quot;song/title&quot;='Don''t Think Twice, It''s All Right', ex:&quot;creation/year&quot;=1963;<br> INSERT ex:&quot;song/title&quot;='Born in Time', ex:&quot;creation/year&quot;=1990; </code></p
+    ><p
+    >These queries will use the data index (as opposed to scanning the whole database):</p
+    ><p
+    ><code class='pathsql_snippet'> SET PREFIX ex: 'http://doc/example/create-class';<br> SELECT ex:&quot;song/title&quot; FROM ex:songs WHERE ex:&quot;creation/year&quot; IN @[1960, 1965]; </code></p
+    ><p
+    ><code class='pathsql_snippet'> SET PREFIX ex: 'http://doc/example/create-class';<br> SELECT * FROM ex:songs; </code></p
+    ><p
+    >Note that it is possible to retrieve the parameters of a class (such as its <code
+      >afy:predicate</code
+      >), as opposed to the contents of its index, with this query:</p
+    ><p
+    ><code class='pathsql_snippet'> SET PREFIX ex: 'http://doc/example/create-class';<br> SELECT * FROM #ex:songs; </code></p
+    ><p
     >The <code
       >afy:onEnter</code
       >, <code
       >afy:onUpdate</code
       > and <code
       >afy:onLeave</code
-      > properties allow to attach actions to classes (similar to &quot;callbacks&quot;, &quot;event handlers&quot;, and &quot;triggers&quot; in RDBMSs). The implementation of those actions is expressed in pathSQL, either as a single statement (e.g. <code
+      > properties allow to attach event handlers to classes (aka &quot;actions&quot;, &quot;callbacks&quot;, or &quot;triggers&quot; in RDBMSs). The implementation of those actions is expressed in pathSQL, either as a single statement (e.g. <code
       >SET afy:onEnter=${INSERT originator=@self}</code
       >) or as a collection of statements (e.g. {<code
       >${UPDATE @auto SET fheight=(SELECT AVG(height) FROM @self.friends)}</code
@@ -103,12 +121,8 @@
       >.</p
     ><p
     >The &quot;IS A&quot; operator can be used to check whether or not a pin belongs to a class. For example, those two statements are equivalent:</p
-    ><pre
-    ><code
-      >    SELECT * WHERE afy:pinID IS A class1;  
-    SELECT * FROM class1;  
-</code
-      ></pre
+    ><p
+    ><code class='pathsql_snippet'> SET PREFIX ex: 'http://doc/example/create-class';<br> SELECT * WHERE afy:pinID IS A ex:songs;<br> SELECT * FROM ex:songs; </code></p
     ></div
   ><div id="creating-a-class-family"
   ><h4
@@ -214,7 +228,7 @@
       >CREATE EVENT</code
       >.</p
     ><p
-    >To communicate more explicitly its transition from a DBMS to a full runtime platform, AffinityNG now uses a distinct name for the concept of an &quot;event&quot;. While classes do recognize and produce events, they are no longer the only source of events. Upcoming event handlers and FSMs will soon provide the whole context for this evolution.</p
+    >To communicate more explicitly its transition from a DBMS to a full runtime platform, AffinityNG now uses a distinct name for the concept of a &quot;data event&quot;. While classes do recognize and produce data events, they are no longer the only source of events. Upcoming event handlers and FSMs will soon provide the whole context for this evolution.</p
     ><p
     >Example:</p
     ><p
@@ -359,9 +373,29 @@
     ><p
     >This statement creates a socket listener on host '127.0.0.1', port 4567. The service stack defined in afy:listen could be any meaningful combination of services, as described more in detail in the next section. Each entry of this collection can be a simple service type (like in the example above), or a reference to communication PIN, or a VT_STRUCT describing a communication channel. Each service (or communication channel) can be configured independently, but for brevity it's also possible to do simple configurations via the master PIN (e.g. here, the afy:address configures the socket of this listener).</p
     ></div
+  ><div id="create-communication-pipeline"
+  ><h4
+    >CREATE COMMUNICATION PIPELINE</h4
+    ><p
+    >Synopsis:</p
+    ><ul
+    ><li
+      >CREATE COMMUNICATION PIPELINE [name] AS {.srv:IO, .srv:XML} [SET property=expression [, ...]]</li
+      ></ul
+    ><p
+    >Equivalent to:</p
+    ><ul
+    ><li
+      >INSERT [afy:objectID='name', ] afy:service={.srv:IO, .srv:XML}[, property=expression, ...]</li
+      ></ul
+    ><p
+    >This statement creates a <a href="#communication-pins"
+      >communication pin (read on just below)</a
+      > with the specified configuration.</p
+    ></div
   ><div id="communication-pins"
   ><h4
-    >Communication PINs</h4
+    >COMMUNICATION PINs</h4
     ><!-- TODO: review in detail, make sure nothing is obsolete etc. -->
 <!-- TODO: document in detail the configuration parameters of each service -->
 </div

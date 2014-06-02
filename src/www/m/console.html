@@ -158,6 +158,8 @@
         <select name="histo_class" id="histo_class"></select><br>
         <span>Property:</span>
         <select name="histo_property" id="histo_property"></select><br>
+        <span>Group By Quantization:</span>
+        <input id="histo_groupbyquantization" value='0'></input>
         <div id="histo_query">Please select a class and a property...</div>
       </div>
       <div id='histo_area_c' class='not_selectable'>
@@ -448,7 +450,8 @@
       <div class='tutorial_step'>q("START TRANSACTION;");</div>
       <div class='tutorial_step'>for (i = 0; i &lt; statements.length; i++) { q(statements[i]); }</div>
       <div class='tutorial_step'>q("COMMIT;");</div>
-      <div class='tutorial_step'>q("SELECT name, CAST(height AS ft) FROM workers ORDER BY height;")</div>
+      <div class='tutorial_step'>q("SELECT name, CAST(height AS ft) FROM workers;")</div>
+      <!-- TODO: put back when bug #514 is fixed <div class='tutorial_step'>q("SELECT name, CAST(height AS ft) FROM workers ORDER BY height;")</div> -->
     </div>
     <div id='step13'>
       <div>Step 13</div>

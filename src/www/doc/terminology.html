@@ -2,7 +2,7 @@
 <head>
   <meta name='viewport' content='width=device-width, initial-scale=1.0' />
   <script src='js/jquery.js' type='text/javascript'></script>
-  <script src='js/snippets_to_console.js' type='text/javascript'></script>
+  <script src='js/afysnippets.js' type='text/javascript'></script>
   <link href='css/afydoc.css' rel='stylesheet' type='text/css' media='screen and (min-device-width: 600px)' />
   <link href='../m/doc/css/afydoc.css' rel='stylesheet' type='text/css' media='screen and (max-device-width: 599px)' />
   <meta http-equiv='content-type' content='text/html; charset=utf-8'></meta>
@@ -59,6 +59,8 @@
     >communication PIN</a
     >, <a href="#condition"
     >condition</a
+    >, <a href="#cpin"
+    >CPIN</a
     >, <a href="#essentials-data-model"
     >data model</a
     >, <a href="#element-id-eid"
@@ -474,7 +476,7 @@
     ><h3
       >Communication PIN</h3
       ><p
-      >Communication PINs are special PINs with dual personality. Their &quot;RAW&quot; form (i.e. their plain and simple set of <a href="#property"
+      >Communication PINs (aka &quot;CPINs&quot;) are special PINs with dual personality. Their &quot;RAW&quot; form (i.e. their plain and simple set of <a href="#property"
 	>properties</a
 	> and <a href="#value"
 	>values</a
@@ -497,6 +499,14 @@
 	> acts as a write. The <a href="./pathSQL%20reference%20[definition].html#communication-pins"
 	>reference</a
 	> describes communication PINs in more detail.</p
+      ></div
+    ><div id="cpin"
+    ><h3
+      >CPIN</h3
+      ><p
+      >Abbreviation for <a href="#communication-pin"
+	>Communication PIN</a
+	>.</p
       ></div
     ></div
   ></div
@@ -748,7 +758,7 @@
       >PINs</a
       > or <a href="#class"
       >classes</a
-      >. The notification functionality is exposed in a low-level way in the kernel (<a href="./sources/startup_h.html"
+      >. The difference between them is: Trigger used to invoke some actions (written in pathSQL) running on the kernel, while notification is introduced for invoking actions (written in client programming language) running on the client. The notification functionality is exposed in a low-level way in the kernel (<a href="./sources/startup_h.html"
       >startup.h</a
       >), and is also available via the <a href="http://en.wikipedia.org/wiki/Comet_%28programming%29"
       >comet</a

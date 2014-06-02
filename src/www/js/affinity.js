@@ -112,13 +112,13 @@ BatchingSQL.prototype.go = function()
   this.mResultPage.empty();
   this.mPages = new Array();
   var lThis = this;
-  var lReSilentOp = /(\s*start\s*transaction\s*)|(\s*commit\s*)|(\s*rollback\s*)|(\s*set\s*prefix\s)/i;
+  var lReSilentOp = /(\s*start\s*transaction\s*)|(\s*commit\s*)|(\s*rollback\s*)|(\s*set\s*prefix\s*)/i;
   var lQueries = afy_without_comments(this.mQueryAreaQ.val(), false).text.replace(/\n/g,"").replace(/;\s*$/, "").split(';');
   var lNumNonSilentQueries = lQueries.filter(function(_pQ) { return !_pQ.match(lReSilentOp); }).length;
   var lOnResults =
     function(_pJson)
     {
-      if (0 == _pJson.length || (lQueries.length > 1 && lQueries.length < _pJson.length))
+      if (0 == _pJson.length)
         return;
       var iQr = 0;
       for (var iQ = 0; iQ < lQueries.length; iQ++)
@@ -544,14 +544,18 @@ function Tutorial()
  * Displays histograms of specified properties in specified contexts,
  * using the store's native support.
  */
-function histo_LayoutCtx(pQuery, pOptions/*{draw:func}*/)
+function histo_LayoutCtx(pQuery, pOptions/*{draw:func, quantization:number}*/)
 {
   var lGetOption = function(_pWhat, _pDefault) { return (undefined != pOptions && _pWhat in pOptions) ? pOptions[_pWhat] : _pDefault; }
   var lThis = this;
   this.query = pQuery;
+  this.quantization = lGetOption('quantization', 0);
   this.draw = lGetOption('draw', null);
   this.result = {};
   this.range = {min:999999, max:1};
+  var lGetEntry = function(_pKey) { return lThis.quantization != 0 ? lThis.result[_pKey]["afy:value"][0] : lThis.result[_pKey]; }
+  this.getCount = function(_pKey) { return lGetEntry(_pKey)["afy:count"]; }
+  this.getName = function(_pKey) { return lGetEntry(_pKey)["afy:value"]; }
 }
 function histo_LayoutEngine()
 {
@@ -560,10 +564,10 @@ function histo_LayoutEngine()
     {
       if (undefined != _pJson)
       {
-        _pLayoutCtx.result = _pJson[0]["afy:value"];
+        _pLayoutCtx.result = _pLayoutCtx.quantization != 0 ? _pJson : _pJson[0]["afy:value"];
         for (var _iE in _pLayoutCtx.result)
         {
-          var _lV = parseInt(_pLayoutCtx.result[_iE]["afy:count"]);
+          var _lV = parseInt(_pLayoutCtx.getCount(_iE));
           if (_lV < _pLayoutCtx.range.min)
             _pLayoutCtx.range.min = _lV;
           if (_lV > _pLayoutCtx.range.max)
@@ -587,7 +591,7 @@ function Histogram()
   var lPanZoom = new PanZoom($("#histo_area"), 1.0);
   var lLayoutEngine = new histo_LayoutEngine();
   var lLayoutCtx = null;
-  var lQClass = null, lQProp = null;
+  var lQClass = null, lQProp = null, lQuant = 0;
   var lDoDraw = // The rendering engine.
     function()
     {
@@ -609,13 +613,13 @@ function Histogram()
         var _lX = 0;
         for (var _iE in lLayoutCtx.result)
         {
-          var _lVal = parseInt(lLayoutCtx.result[_iE]["afy:count"]);
+          var _lVal = parseInt(lLayoutCtx.getCount(_iE));
           var _lHeight = _lHUnit * _lVal;
           l2dCtx.fillStyle = "#20a0ee";
           l2dCtx.fillRect(_lX, lVPHeight - 2 - _lHeight, 20, _lHeight);
           l2dCtx.fillStyle = "#444";
           l2dCtx.rotate(-0.5 * Math.PI);
-          l2dCtx.fillText(lLayoutCtx.result[_iE]["afy:value"] + " (" + _lVal + ")", - lVPHeight + 5, _lX + 14);
+          l2dCtx.fillText(lLayoutCtx.getName(_iE) + " (" + _lVal + ")", - lVPHeight + 5, _lX + 14);
           l2dCtx.rotate(0.5 * Math.PI);
           _lX += 25;
         }
@@ -624,7 +628,7 @@ function Histogram()
   var lDoLayout =
     function()
     {
-      lLayoutCtx = new histo_LayoutCtx(afy_sanitize_semicolon($("#histo_query").text()), {draw:lDoDraw});
+      lLayoutCtx = new histo_LayoutCtx(afy_sanitize_semicolon($("#histo_query").text()), {draw:lDoDraw, quantization:lQuant});
       lLayoutEngine.doLayout(lLayoutCtx);
     }
   var lDoRefresh = function() { lDoLayout(); }
@@ -633,7 +637,15 @@ function Histogram()
     {
       if (undefined == lQClass || undefined == lQProp)
         { $("#histo_query").text("Please select a class and a property..."); return; }
-      $("#histo_query").html(afy_with_qname_prefixes("<br>SELECT HISTOGRAM(" + lQProp + ") FROM " + lQClass));
+
+      lQuant = $("#histo_groupbyquantization").val();
+      lQuant = (typeof(lQuant) == 'string' && lQuant.length > 0) ? parseInt(lQuant) : 0;
+      if (isNaN(lQuant))
+        lQuant = 0;
+
+      var _lQProp = (0 != lQuant ? ("CAST(" + lQProp + " AS INT)/" + lQuant) : lQProp);
+      var _lQuery = "SELECT HISTOGRAM(" + _lQProp + ") FROM " + lQClass + (0 != lQuant ? (" GROUP BY " + _lQProp) : "");
+      $("#histo_query").html(afy_with_qname_prefixes("<br>" + _lQuery));
       lDoRefresh();
     }
   var lDoUpdateProperties =
@@ -708,6 +720,7 @@ function Histogram()
   // Other interactions.
   $("#histo_class").change(function() { lQClass = $("#histo_class option:selected").val(); lDoUpdateProperties(); });
   $("#histo_property").change(function() { lQProp = $("#histo_property option:selected").val(); lDoUpdateQuery(); });
+  $("#histo_groupbyquantization").change(function() { lDoUpdateQuery(); });
   $("#histo_go").click(function() { lDoRefresh(); return false; });
   $("#tab-histogram").bind("activate_tab", function() { lManageWindowEvents(true); populate_classes(function() { lDoUpdateClasses(); lOnResize(); }); });
   $("#tab-histogram").bind("deactivate_tab", function() { lManageWindowEvents(false); });
@@ -913,7 +926,19 @@ $(document).ready(
       // Setup the initial query string, if one was specified (used for links from doc to console).
       var lInitialQ = location.href.match(/query\=(.*?)((&.*)|(#.*)|\0)?$/i);
       if (undefined != lInitialQ && lInitialQ.length > 0)
-        $("#query").val(unescape(lInitialQ[1].replace(/\+/g, " ")));
+      {
+        var lUnescapedCode = unescape(lInitialQ[1].replace(/\+/g, " "));
+        var lUrlTab = location.href.split('#');
+        if (lUrlTab.length > 1) { lUrlTab = lUrlTab.pop(); }
+        if (lUrlTab == "tab-batching")
+        {
+          // Restore a decent presentation (cr/lf after semicolons, and before tabs).
+          lUnescapedCode = lUnescapedCode.replace(/(\s{2,})/g, "\n$1").replace(/;(\s*)/g, ";\n$1");
+          $("#query_area_q").val(lUnescapedCode);
+        }
+        else
+          $("#query").val(lUnescapedCode);
+      }
       var lInitialStoreId = location.href.match(/storeid\=(.*?)((&.*)|(#.*)|\0)?$/i);
       if (undefined != lInitialStoreId && lInitialStoreId.length > 0)
       {

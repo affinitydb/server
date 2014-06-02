@@ -99,8 +99,9 @@ function initLogicalScene(pCompletion)
 			var _lQs1 = [];
 			_lQs1.push("INSERT simul:\"moveable/type\"='duck', simul:\"moveable/angle/x\"=0.0, simul:\"moveable/angle/y\"=0.0, simul:\"moveable/angle/z\"=0;");
 			_lQs1.push("CREATE LOADER _ble AS 'BLE';");
+			_lQs1.push("CREATE LISTENER scan_perpetual AS {.srv:BLE} SET BLE:purpose=BLEPURPOSES#SCAN_CONFIG, BLE:\"scan/mode\"=BLESCANMODES#PERPETUAL;");
 			for (var _iD = 0; _iD < SIMULCTX.mDevices.length; _iD++)
-				_lQs1.push("INSERT afy:objectID='distance" + _iD + "', afy:service={.srv:BLE}, afy:address='" + SIMULCTX.mDevices[_iD] + "', BLE:purpose=BLEPURPOSES#DISTANCE;");
+				_lQs1.push("INSERT afy:objectID='distance" + _iD + "', afy:service={.srv:BLE}, afy:address='" + SIMULCTX.mDevices[_iD] + "', BLE:purpose=BLEPURPOSES#DISTANCE;"); // , BLE:\"keep-connected\"=TRUE
 			_lSS.push(function() { SIMULCTX.queryMulti(_lQs1, new QResultHandler(_lSS.next, null, null)); });
 
 			// Go.
@@ -576,7 +577,6 @@ function beaconsEntryPoint(pCanvasId)
 // main concerns at the moment:
 // 1. deadlock issue (esp. iPhone)
 // 2. gather more info about measurement distributions, in various contexts (e.g. multimodal distr due to reflections? etc.)
-// 3. smarter stop/start scanning in service (e.g. timeout value, to avoir stop-start in an app like this one)
 
 /*
   -- Small app to gather and plot (via online console's "histogram" tab) the distribution of a beacon's measurements...
@@ -669,7 +669,7 @@ function beaconsEntryPoint(pCanvasId)
 
 /*
 	BLE shield for Arduino
-	tx service UID: 713d0000-503e-4c75-ba94-3148f18d941e
+	tx service UID: 713D0000-503E-4C75-BA94-3148F18D941E
 
 	Reserved pins:
 
@@ -707,8 +707,8 @@ function beaconsEntryPoint(pCanvasId)
 		n.b. in the Arduino IDE, all files involved are always loaded in the sketch (IOW, no need to search elsewhere)
 		n.b. Serial.println (*after* Serial.begin) + Serial Monitor, even with unsaved changes in the sketch, to debug
 		n.b. after Serial.begin, pins 0 and 1 are dedicated to serial comm...
-		n.b. to write, one *must* write via the tx service (713D0003-503E-4C75-BA94-3148F18D941E)
-		n.b. to read, one *must* subscribe via the rx service (713D0002-503E-4C75-BA94-3148F18D941E), and then process BLE notifications
+		n.b. to write, one *must* write via the tx characteristic (713D0003-503E-4C75-BA94-3148F18D941E)
+		n.b. to read, one *must* subscribe via the rx characteristic (713D0002-503E-4C75-BA94-3148F18D941E), and then process BLE notifications
 
 		SET_PIN_MODE = 0xF4 # set a pin to INPUT/OUTPUT/PWM/etc
 		PWM = 3 (!!)
@@ -743,6 +743,9 @@ function beaconsEntryPoint(pCanvasId)
 			; reading analog
 			F4 0E 02 ; set the first analog pin in analog read mode (warning: A0-A5 is in reverse order on the board, compared with D0-D13)
 			; subscribe to the rx service
+
+			; controlling the sampling frequency
+			F0 7A 00 04 f7 ; set the sampling frequency to 1024 ms (~1 sample/sec) (n.b. this is a "sysex" request)
 
 		"sysex" provides an extended, multi-byte query/response capability, e.g.
 

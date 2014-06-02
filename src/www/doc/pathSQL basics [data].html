@@ -2,7 +2,7 @@
 <head>
   <meta name='viewport' content='width=device-width, initial-scale=1.0' />
   <script src='js/jquery.js' type='text/javascript'></script>
-  <script src='js/snippets_to_console.js' type='text/javascript'></script>
+  <script src='js/afysnippets.js' type='text/javascript'></script>
   <link href='css/afydoc.css' rel='stylesheet' type='text/css' media='screen and (min-device-width: 600px)' />
   <link href='../m/doc/css/afydoc.css' rel='stylesheet' type='text/css' media='screen and (max-device-width: 599px)' />
   <meta http-equiv='content-type' content='text/html; charset=utf-8'></meta>
@@ -102,7 +102,7 @@
     ><p
     ><code class='pathsql_snippet'>INSERT @:1<br> name='Fred', bornin='France', email='fred@acme.org',<br> livesin='Chicago', age=27, friends={<br>  (INSERT @:2 name='Tony', bornin='Hungary', email='tony@acme.org',<br>   livesin='Calgary', age=76, friends={@:1, @:3}, photos={<br>    (INSERT photo_name='blue.jpg'),<br>    (INSERT photo_name='red.jpg'),<br>    (INSERT photo_name='green.jpg')}),<br>  (INSERT @:3 name='Peter', bornin='Mexico', email='peter@acme.org',<br>   livesin='Mexico', age=45, friends={@:1, @:2}, photos={<br>    (INSERT photo_name='rose.jpg'),<br>    (INSERT photo_name='petunia.jpg'),<br>    (INSERT photo_name='orchid.jpg')})},<br> photos={<br>  (INSERT photo_name='Greece.jpg'), (INSERT photo_name='Germany.jpg'),<br>  (INSERT photo_name='USA.jpg'), (INSERT photo_name='France.jpg'),<br>  (INSERT photo_name='Egypt.jpg')}; </code></p
     ><p
-    ><code class='pathsql_snippet'> SET PREFIX simul: 'http://example/simul';<br> SET PREFIX control: 'http://example/control';<br> SET PREFIX world: 'http://example/world';<br> SET PREFIX meta: 'http://example/meta';<br> SET PREFIX inst: 'http://example/inst';<br> CREATE CLASS control:&quot;rt/signalable&quot; AS SELECT *<br>  WHERE EXISTS(control:&quot;rt/time/signal&quot;);<br> CREATE CLASS control:&quot;rt/physical/samples&quot; AS SELECT *<br>  WHERE EXISTS(control:&quot;rt/time/step&quot;) AND EXISTS(control:&quot;rt/sensor&quot;);<br> CREATE TIMER control:&quot;rt/source/timer&quot; INTERVAL '00:00:20'<br>  AS UPDATE control:&quot;rt/signalable&quot;<br>  SET control:&quot;rt/time/signal&quot;=EXTRACT(SECOND FROM CURRENT_TIMESTAMP),<br>   control:&quot;rt/time&quot;=CURRENT_TIMESTAMP;<br> INSERT @:1<br>  meta:description='On/Off Simulated Sensor Template (572ef13c)',<br>  afy:objectID=.simul:&quot;template/sensor/on.off.572ef13c&quot;,<br>  afy:predicate=${SELECT * WHERE EXISTS(simul:&quot;new/sensor/572ef13c&quot;)},<br>  control:&quot;template/sensor/step/handler&quot;=<br>   (CREATE CLASS control:&quot;template/sensor/step/handler/on.off.572ef13c&quot; AS SELECT *<br>    FROM control:&quot;rt/signalable&quot;<br>    WHERE control:&quot;sensor/model&quot;=.simul:&quot;template/sensor/on.off.572ef13c&quot; SET<br>    control:&quot;template/sensor&quot;=@:1,<br>    afy:onUpdate=${INSERT <br>     simul:&quot;rt/gen/spread&quot;=(SELECT simul:&quot;template/gen/spread&quot; FROM @ctx.control:&quot;template/sensor&quot;),<br>     simul:&quot;rt/gen/min&quot;=(SELECT simul:&quot;template/gen/min&quot; FROM @ctx.control:&quot;template/sensor&quot;),<br>     simul:&quot;rt/gen/max&quot;=(SELECT simul:&quot;template/gen/max&quot; FROM @ctx.control:&quot;template/sensor&quot;),<br>     simul:&quot;rt/gen/jitter&quot;=(SELECT simul:&quot;template/gen/jitter&quot; FROM @ctx.control:&quot;template/sensor&quot;) *<br>      EXTRACT(SECOND FROM CURRENT_TIMESTAMP),<br>     simul:&quot;rt/value/gen/id&quot;=.simul:&quot;value/gen/sinus&quot;,<br>     control:&quot;rt/sensor&quot;=(SELECT control:sensor FROM @self),<br>     control:&quot;rt/sensor/model&quot;=(SELECT control:&quot;sensor/model&quot; FROM @self.control:sensor),<br>     control:&quot;rt/time/step&quot;=(SELECT control:&quot;rt/time/signal&quot; FROM @self), control:&quot;rt/time&quot;=CURRENT_TIMESTAMP}),<br>  control:&quot;template/sensor/conditions&quot;={<br>   (INSERT <br>    meta:description='Condition: turned off a 572ef13c sensor',<br>    afy:objectID=.control:&quot;template/condition/572ef13c/off&quot;,<br>    afy:predicate=${SELECT * WHERE (@ IS A control:&quot;rt/physical/samples&quot; AND<br>     control:&quot;rt/sensor/model&quot;=.simul:&quot;template/sensor/on.off.572ef13c&quot; AND control:&quot;rt/value&quot; &lt; 0.5)}),<br>   (INSERT <br>    meta:description='Condition: turned on a 572ef13c sensor',<br>    afy:objectID=.control:&quot;template/condition/572ef13c/on&quot;,<br>    afy:predicate=${SELECT * WHERE (@ IS A control:&quot;rt/physical/samples&quot; AND<br>     control:&quot;rt/sensor/model&quot;=.simul:&quot;template/sensor/on.off.572ef13c&quot; AND control:&quot;rt/value&quot; &gt;= 0.5)}),<br>   (INSERT <br>    meta:description='Condition (optional): confirmed that a 572ef13c sensor was off',<br>    afy:objectID=.control:&quot;template/condition/572ef13c/off.confirmed&quot;,<br>    afy:predicate=${SELECT * WHERE (@ IS A world:appliances AND NOT EXISTS(control:&quot;rt/emergency/time&quot;) AND<br>     (control:&quot;rt/warning/time&quot;[:LAST] - control:&quot;rt/warning/time&quot;[:FIRST] &gt;= INTERVAL '00:00:05'))})},<br>  simul:&quot;template/gen/type&quot;='boolean', simul:&quot;template/gen/jitter&quot;=0,<br>  simul:&quot;template/gen/min&quot;=0, simul:&quot;template/gen/max&quot;=100,<br>  simul:&quot;template/gen/spread&quot;=1.5,<br>  afy:onEnter=<br>   ${INSERT @:20<br>    meta:description='On/Off Simulated Sensor Instance (572ef13c)',<br>    control:&quot;sensor/model&quot;=(SELECT afy:objectID FROM @ctx),<br>    control:&quot;sensor/name&quot;=(SELECT inst:name FROM @self),<br>    control:appliance=(SELECT inst:appliance FROM @self),<br>    simul:&quot;sensor/signalable&quot;=<br>     (INSERT @:30<br>      meta:description='To generate samples for sensor',<br>      control:&quot;rt/time/signal&quot;=0,<br>      control:&quot;sensor/model&quot;=(SELECT afy:objectID FROM @ctx),<br>      control:sensor=@:20)};<br> </code></p
+    ><code class='pathsql_snippet'> SET PREFIX simul: 'http://example/d/simul';<br> SET PREFIX control: 'http://example/d/control';<br> SET PREFIX world: 'http://example/d/world';<br> SET PREFIX meta: 'http://example/d/meta';<br> SET PREFIX inst: 'http://example/d/inst';<br> CREATE CLASS control:&quot;rt/signalable&quot; AS SELECT *<br>  WHERE EXISTS(control:&quot;rt/time/signal&quot;);<br> CREATE CLASS control:&quot;rt/physical/samples&quot; AS SELECT *<br>  WHERE EXISTS(control:&quot;rt/time/step&quot;) AND EXISTS(control:&quot;rt/sensor&quot;);<br> CREATE TIMER control:&quot;rt/source/timer&quot; INTERVAL '00:00:20'<br>  AS UPDATE control:&quot;rt/signalable&quot;<br>  SET control:&quot;rt/time/signal&quot;=EXTRACT(SECOND FROM CURRENT_TIMESTAMP),<br>   control:&quot;rt/time&quot;=CURRENT_TIMESTAMP;<br> INSERT @:1<br>  meta:description='On/Off Simulated Sensor Template (572ef13c)',<br>  afy:objectID=.simul:&quot;template/sensor/on.off.572ef13c&quot;,<br>  afy:predicate=${SELECT * WHERE EXISTS(simul:&quot;new/sensor/572ef13c&quot;)},<br>  control:&quot;template/sensor/step/handler&quot;=<br>   (CREATE CLASS control:&quot;template/sensor/step/handler/on.off.572ef13c&quot; AS SELECT *<br>    FROM control:&quot;rt/signalable&quot;<br>    WHERE control:&quot;sensor/model&quot;=.simul:&quot;template/sensor/on.off.572ef13c&quot; SET<br>    control:&quot;template/sensor&quot;=@:1,<br>    afy:onUpdate=${INSERT <br>     simul:&quot;rt/gen/spread&quot;=(SELECT simul:&quot;template/gen/spread&quot; FROM @ctx.control:&quot;template/sensor&quot;),<br>     simul:&quot;rt/gen/min&quot;=(SELECT simul:&quot;template/gen/min&quot; FROM @ctx.control:&quot;template/sensor&quot;),<br>     simul:&quot;rt/gen/max&quot;=(SELECT simul:&quot;template/gen/max&quot; FROM @ctx.control:&quot;template/sensor&quot;),<br>     simul:&quot;rt/gen/jitter&quot;=(SELECT simul:&quot;template/gen/jitter&quot; FROM @ctx.control:&quot;template/sensor&quot;) *<br>      EXTRACT(SECOND FROM CURRENT_TIMESTAMP),<br>     simul:&quot;rt/value/gen/id&quot;=.simul:&quot;value/gen/sinus&quot;,<br>     control:&quot;rt/sensor&quot;=(SELECT control:sensor FROM @self),<br>     control:&quot;rt/sensor/model&quot;=(SELECT control:&quot;sensor/model&quot; FROM @self.control:sensor),<br>     control:&quot;rt/time/step&quot;=(SELECT control:&quot;rt/time/signal&quot; FROM @self), control:&quot;rt/time&quot;=CURRENT_TIMESTAMP}),<br>  control:&quot;template/sensor/conditions&quot;={<br>   (INSERT <br>    meta:description='Condition: turned off a 572ef13c sensor',<br>    afy:objectID=.control:&quot;template/condition/572ef13c/off&quot;,<br>    afy:predicate=${SELECT * WHERE (@ IS A control:&quot;rt/physical/samples&quot; AND<br>     control:&quot;rt/sensor/model&quot;=.simul:&quot;template/sensor/on.off.572ef13c&quot; AND control:&quot;rt/value&quot; &lt; 0.5)}),<br>   (INSERT <br>    meta:description='Condition: turned on a 572ef13c sensor',<br>    afy:objectID=.control:&quot;template/condition/572ef13c/on&quot;,<br>    afy:predicate=${SELECT * WHERE (@ IS A control:&quot;rt/physical/samples&quot; AND<br>     control:&quot;rt/sensor/model&quot;=.simul:&quot;template/sensor/on.off.572ef13c&quot; AND control:&quot;rt/value&quot; &gt;= 0.5)}),<br>   (INSERT <br>    meta:description='Condition (optional): confirmed that a 572ef13c sensor was off',<br>    afy:objectID=.control:&quot;template/condition/572ef13c/off.confirmed&quot;,<br>    afy:predicate=${SELECT * WHERE (@ IS A world:appliances AND NOT EXISTS(control:&quot;rt/emergency/time&quot;) AND<br>     (control:&quot;rt/warning/time&quot;[:LAST] - control:&quot;rt/warning/time&quot;[:FIRST] &gt;= INTERVAL '00:00:05'))})},<br>  simul:&quot;template/gen/type&quot;='boolean', simul:&quot;template/gen/jitter&quot;=0,<br>  simul:&quot;template/gen/min&quot;=0, simul:&quot;template/gen/max&quot;=100,<br>  simul:&quot;template/gen/spread&quot;=1.5,<br>  afy:onEnter=<br>   ${INSERT @:20<br>    meta:description='On/Off Simulated Sensor Instance (572ef13c)',<br>    control:&quot;sensor/model&quot;=(SELECT afy:objectID FROM @ctx),<br>    control:&quot;sensor/name&quot;=(SELECT inst:name FROM @self),<br>    control:appliance=(SELECT inst:appliance FROM @self),<br>    simul:&quot;sensor/signalable&quot;=<br>     (INSERT @:30<br>      meta:description='To generate samples for sensor',<br>      control:&quot;rt/time/signal&quot;=0,<br>      control:&quot;sensor/model&quot;=(SELECT afy:objectID FROM @ctx),<br>      control:sensor=@:20)};<br> </code></p
     ><p
     ><span class='pathsql_new'>NEW</span> Generators combined with <code
       >INSERT SELECT</code
@@ -166,6 +166,76 @@
     >Also, a solution to a system of linear equations can be evaluated easily. Suppose AX=B, where A is a matrix, and X and B are vectors, then X=B/A.</p
     ><p
     ><code class='pathsql_snippet'> SELECT b/a FROM #matrix1; </code></p
+    ><div id="use-case:-implementing-a-kalman-filter"
+    ><h3
+      >Use Case: Implementing A Kalman Filter</h3
+      ><p
+      >With native linear algebra, AffinityNG can integrate sophisticated signal processing solutions (expected in high-end processing &amp; control platforms), such as for instance the <a href="http://en.wikipedia.org/wiki/Kalman_filter"
+	>Kalman filter</a
+	>.</p
+      ><p
+      >Let's take the example of tracking a falling object by radar (such as described in the book <a href="http://arc.aiaa.org/doi/book/10.2514/4.867200"
+	>Fundamentals of Kalman Filtering A Practical Approach, 3rd Edition</a
+	>, chapter 4), for illustration.</p
+      ><p
+      >Suppose an object is initially at 400000 ft above a radar and has an initial velocity of 6000 ft/s toward the radar, which is located on the surface of the Earth. Let's assume that the radar measures the distance from the radar to the target (i.e. the altitude of the target), within a 10000-ft standard deviation measurement accuracy. The radar takes measurements 5 times per second. We would like to build a filter with pathSQL to estimate the altitude, velocity and acceleration of the object, without any other a priori information (e.g. not knowing the initial speed of the object).</p
+      ><p
+      >Some constants, internal matrices, and the estimated values are stored in the <code
+	>#KFFallingObject</code
+	> context PIN. For instance, <code
+	>KF_I</code
+	> is an identity matrix, <code
+	>KF_P</code
+	> is a covariance matrix, <code
+	>KF_K</code
+	> is the Kalman gain, and <code
+	>KF_XH</code
+	> is the estimated altitude:</p
+      ><p
+      ><code class='pathsql_snippet'> INSERT KF_Q=[[5e-012,1e-010,2e-009],[1e-010,3e-009,5e-008],[2e-009,5e-008,1e-006]],<br>   KF_PHI=[[1.000,0.100,5e-003],[0e+000,1.000,0.100],[0e+000,0e+000,1.000]],<br>   KF_H=[1.000,0e+000,0e+000],KF_K=[[0e+000],[0e+000],[0e+000]],<br>   KF_M=[[0e+000,0e+000,0e+000],[0e+000,0e+000,0e+000],[0e+000,0e+000,0e+000]],<br>   KF_P=[[99999999999999.000,0e+000,0e+000],[0e+000,99999999999999.000,0e+000],[0e+000,0e+000,99999999999999.000]],<br>   KF_R=[1000000.000],KF_I=[[1.000,0e+000,0e+000],[0e+000,1.000,0e+000],[0e+000,0e+000,1.000]],<br>   KF_A0=400000.0,KF_A1=-6000.0,KF_A2=-16.1,KF_TS=0.2,KF_XH=0.0,KF_XDH=0.0,KF_XDDH=0.0,<br>   afy:objectID='KFFallingObject'; </code></p
+      ><p
+      >First, let's install a class to augment each time sample with the theoretically-estimated position of the object, and the simulated radar reading (these calculations are not part of the Kalman filter per se):</p
+      ><p
+      ><code class='pathsql_snippet'> CREATE CLASS KF_SIMULATION AS SELECT * WHERE EXISTS(T) AND EXISTS(GAUSS) SET<br>  afy:onEnter = {<br>   /* Evaluate X, the theoretical position, calculated with a-priori knowledge of original speed. */<br>   ${UPDATE @self SET X = #KFFallingObject.KF_A0 + #KFFallingObject.KF_A1 * @self.T +<br>    #KFFallingObject.KF_A2 * @self.T * @self.T},<br>   /* Evaluate XS, the simulated noisy radar reading. */<br>   ${UPDATE @self SET XS = @self.X + @self.GAUSS}};<br> </code></p
+      ><p
+      >Next, install the Kalman filter calculation itself:</p
+      ><p
+      ><code class='pathsql_snippet'> CREATE CLASS KF_CALCULATION AS SELECT * WHERE T IN :0 AND EXISTS(XS) SET<br>  afy:onEnter = {<br>   ${UPDATE #KFFallingObject SET KF_M = KF_PHI * KF_P * TRANSPOSE(KF_PHI) + KF_Q},<br>   ${UPDATE @auto SET MHT = #KFFallingObject.KF_M * TRANSPOSE(#KFFallingObject.KF_H)},<br>   ${UPDATE #KFFallingObject SET KF_K = @auto.MHT * INV(KF_H * @auto.MHT * [1.0] + KF_R)},<br>   ${UPDATE #KFFallingObject SET KF_P = (KF_I - KF_K * KF_H) * KF_M},<br>   ${UPDATE @auto SET RES = @self.XS - #KFFallingObject.KF_XH - #KFFallingObject.KF_TS * #KFFallingObject.KF_XDH -<br>    0.5 * #KFFallingObject.KF_TS * #KFFallingObject.KF_TS * #KFFallingObject.KF_XDDH},<br>   ${UPDATE #KFFallingObject SET KF_XH = KF_XH + KF_XDH * KF_TS + 0.5 * KF_TS * KF_TS * KF_XDDH + KF_K[0,0] * @auto.RES},<br>   ${UPDATE #KFFallingObject SET KF_XDH = KF_XDH + KF_XDDH * KF_TS + KF_K[1,0] * @auto.RES},<br>   ${UPDATE #KFFallingObject SET KF_XDDH = KF_XDDH + KF_K[2,0] * @auto.RES},<br>   ${UPDATE @self SET XH=(SELECT FIRST KF_XH FROM #KFFallingObject),<br>    XDH=(SELECT FIRST KF_XDH FROM #KFFallingObject),<br>    XDDH=(SELECT FIRST KF_XDDH FROM #KFFallingObject)}}; </code></p
+      ><p
+      >With these preparations, we are ready to start the simulation. We will insert 5 samples per second during 50 seconds (i.e. <code
+	>T</code
+	> in {0.0s, 0.2s, 0.4s, ..., 50.0s}), with <code
+	>GAUSS</code
+	> in {random noise following Gaussian distribution with mean=0.0 and stddev=10000.0}. For each sample, our <code
+	>KF_SIMULATION</code
+	> (defined just above) simulates a typical radar reading <code
+	>XS</code
+	>, by first calculating the theoretic position <code
+	>X</code
+	>, and then adding the specified noise <code
+	>GAUSS</code
+	>. Then our <code
+	>KF_CALCULATION</code
+	> calculates the Kalman-filtered position <code
+	>XH</code
+	>, as well as the filtered speed <code
+	>XDH</code
+	> and acceleration <code
+	>XDDH</code
+	>.</p
+      ><p
+      ><code class='pathsql_snippet' pathsql_send_at_completion='event_inserted_kf_samples' loaders='CREATE LOADER _vdev AS &#39;VDEV&#39;;' dependencies='INSERT afy:objectID=&#39;KF_randomGaussian&#39;, afy:service={.srv:VDEV}, VDEV:"special/function"=VDEVSPECIALFUNC#randomGaussian, VDEV:"evaluation/parameters"=(INSERT VDEV:stddev=10000.0, VDEV:mean=0.0);'> INSERT SELECT CAST(afy:value AS DOUBLE)/5.0 AS T, (SELECT FIRST afy:content FROM #KF_randomGaussian) AS GAUSS FROM @[0,250]; </code></p
+      ><p
+      >Let's visualize the results:</p
+      ><p
+      ><code class='pathsql_snippet'> SELECT * FROM KF_CALCULATION; </code></p
+      ><p
+      ><code class='pathsql_fcurves' pathsql_listen_to='event_inserted_kf_samples'> (function() { return { title:&quot;Kalman Filter (1)&quot;, subtitle:&quot;Position Over Time&quot;, aspect:1, x:{name:&quot;Time (s)&quot;, decimals:0}, y:{name:&quot;Altitude (ft)&quot;, decimals:0}, series: [ {name:&quot;theoretical&quot;, color:&quot;#2087c6&quot;, query:&quot;SELECT T AS x, X AS y FROM KF_CALCULATION&quot;}, {name:&quot;measured&quot;, color:&quot;#8720c6&quot;, query:&quot;SELECT T AS x, XS AS y FROM KF_CALCULATION&quot;}, {name:&quot;filtered&quot;, color:&quot;#ff8c00&quot;, lwidth:2.0, query:&quot;SELECT T AS x, XH AS y FROM KF_CALCULATION&quot;}, ] };})(); </code></p
+      ><p
+      ><code class='pathsql_fcurves' pathsql_listen_to='event_inserted_kf_samples'> (function() { return { title:&quot;Kalman Filter (2)&quot;, subtitle:&quot;Speed Over Time&quot;, aspect:1, x:{name:&quot;Time (s)&quot;, decimals:0}, y:{name:&quot;Speed (ft/s)&quot;, decimals:0}, series: [ {name:&quot;theoretical&quot;, color:&quot;#2087c6&quot;, query:&quot;SELECT a.T AS x, (b.KF_A1 + b.KF_A2 * a.T) AS y FROM KF_CALCULATION AS a JOIN #KFFallingObject AS b&quot;}, {name:&quot;filtered&quot;, color:&quot;#ff8c00&quot;, lwidth:2.0, query:&quot;SELECT T AS x, XDH AS y FROM KF_CALCULATION&quot;}, ] };})(); </code></p
+      ><!-- TODO: for correctness (e.g. if user inserts the samples several times), we should use ORDER BY T in the graph queries... but it doesn't work at the moment (bug #472/?)... in the meantime I used a family for KF_CALCULATION -->
+<!-- TODO: should use units also -->
+</div
     ></div
   ><div id="how-to-classify-data"
   ><h2
@@ -272,7 +342,7 @@
       ><h4
 	>1.1 Insert a PIN with a collection property:</h4
 	><p
-	><code class='pathsql_snippet'>INSERT (prop1, prop2) VALUES ({1, 'inserted', '3'}, 2);</code></p
+	><code class='pathsql_snippet'> INSERT (afy:objectID, prop1, prop2) VALUES ('docsample_collection', {1, 'inserted', '3'}, 2); </code></p
 	></div
       ><div id="update-a-property-in-a-collection"
       ><h4
@@ -280,38 +350,26 @@
 	><p
 	>Using &quot;UPDATE ... SET ...&quot;, we can replace a property with a whole collection directly:</p
 	><p
-	><code class='pathsql_inert'>UPDATE @50001 SET prop3={3, 'update set'};</code></p
+	><code class='pathsql_snippet'>UPDATE #docsample_collection SET prop3={3, 'update set'};</code></p
 	><p
 	>Using &quot;UPDATE ... ADD ...&quot;, we can convert a property from a scalar value to a collection:</p
 	><p
-	><code class='pathsql_inert'>UPDATE @50001 ADD prop2='update add';</code></p
+	><code class='pathsql_snippet'>UPDATE #docsample_collection ADD prop2='update add';</code></p
 	></div
       ></div
     ><div id="delete-an-element-from-a-collection"
     ><h3
       >2. Delete an element from a collection</h3
       ><p
-      ><code class='pathsql_inert'>UPDATE @50001 DELETE prop1[2];</code></p
+      ><code class='pathsql_snippet'>UPDATE #docsample_collection DELETE prop1[1];</code></p
       ></div
     ><div id="query-on-collections"
     ><h3
       >3. Query on collections</h3
       ><p
       >Here are a few examples of queries that can be run against the PIN created in section 1.1:</p
-      ><blockquote
-      ><ol style="list-style-type: decimal;"
-	><li
-	  >SELECT * WHERE 1 IN prop1;<br
-	     /></li
-	  ><li
-	  >SELECT * WHERE {1,2} IN prop1;<br
-	     /></li
-	  ><li
-	  >SELECT * WHERE 1 = prop1; -- equivalent to example 1.</li
-	  ><li
-	  >SELECT * WHERE {1,2} = prop1; -- equivalent to example 2.</li
-	  ></ol
-	></blockquote
+      ><p
+      ><code class='pathsql_snippet'> SELECT * WHERE 1 IN prop1;<br> SELECT * WHERE {1,'3'} IN prop1;<br> SELECT * WHERE 1 = prop1; /* equivalent to example 1 */<br> SELECT * WHERE {1,'3'} = prop1; /* equivalent to example 2 */ </code></p
       ></div
     ></div
   ><div id="how-to-index-properties"

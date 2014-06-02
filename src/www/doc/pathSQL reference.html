@@ -2,7 +2,7 @@
 <head>
   <meta name='viewport' content='width=device-width, initial-scale=1.0' />
   <script src='js/jquery.js' type='text/javascript'></script>
-  <script src='js/snippets_to_console.js' type='text/javascript'></script>
+  <script src='js/afysnippets.js' type='text/javascript'></script>
   <link href='css/afydoc.css' rel='stylesheet' type='text/css' media='screen and (min-device-width: 600px)' />
   <link href='../m/doc/css/afydoc.css' rel='stylesheet' type='text/css' media='screen and (max-device-width: 599px)' />
   <meta http-equiv='content-type' content='text/html; charset=utf-8'></meta>
@@ -1669,6 +1669,12 @@
 	    ><td align="left"
 	    >return the value of property after resetting the bit specified by bitIndex; works on integer types as well as VT_BSTR</td
 	    ></tr
+	  ><tr class="even"
+	  ><td align="left"
+	    >BITFIELD(property, bitIndex, length)</td
+	    ><td align="left"
+	    >return the part of property which begins from the bit specified by bitIndex with the length in bits.</td
+	    ></tr
 	  ></tbody
 	></table
       ><p
@@ -1859,31 +1865,31 @@
 	    ></tr
 	  ><tr class="even"
 	  ><td align="left"
-	    >Norm(array)</td
+	    >NORM(array)</td
 	    ><td align="left"
 	    >Returns the norm of a vector, which is informally a measure of the length of the vector.</td
 	    ></tr
 	  ><tr class="odd"
 	  ><td align="left"
-	    >Trace(array)</td
+	    >TRACE(array)</td
 	    ><td align="left"
 	    >Returns the trace of a square matrix, which is the sum of diagonal elements in the matrix.</td
 	    ></tr
 	  ><tr class="even"
 	  ><td align="left"
-	    >Det(array)</td
+	    >DET(array)</td
 	    ><td align="left"
 	    >Returns the determinant of a square matrix.</td
 	    ></tr
 	  ><tr class="odd"
 	  ><td align="left"
-	    >Inv(array)</td
+	    >INV(array)</td
 	    ><td align="left"
 	    >Returns the inverse of a square matrix.</td
 	    ></tr
 	  ><tr class="even"
 	  ><td align="left"
-	    >Rank(array)</td
+	    >RANK(array)</td
 	    ><td align="left"
 	    >Returns the rank of a matrix, which is the number of linearly independent row or column vectors.</td
 	    ></tr

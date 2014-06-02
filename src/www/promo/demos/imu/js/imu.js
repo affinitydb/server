@@ -103,11 +103,11 @@ function initLogicalScene(pCompletion)
       _lQs1.push("INSERT afy:objectID='distance', afy:service={.srv:BLE}, afy:address='" + _lDeviceAddr + "', BLE:purpose=BLEPURPOSES#DISTANCE_CONNECTED;");
 			_lQs1.push("SELECT * FROM #acceleration;");
 			_lQs1.push("SELECT * FROM #compass;");
-			_lQs2.push("UPDATE #acceleration SET afy:content=1;");
-			_lQs2.push("UPDATE #acceleration_period SET afy:content=10;"); // update readings every 100ms (as opposed to default: 1s)
-			_lQs2.push("UPDATE #compass SET afy:content=1;");
-			_lQs2.push("UPDATE #compass_period SET afy:content=10;"); // update readings every 100ms (as opposed to default: 1s)
-			_lQs2.push("UPDATE #gyro SET afy:content=7;");
+			_lQs2.push("UPDATE #acceleration SET afy:content=X'01';");
+			_lQs2.push("UPDATE #acceleration_period SET afy:content=X'0A';"); // update readings every 100ms (as opposed to default: 1s)
+			_lQs2.push("UPDATE #compass SET afy:content=X'01';");
+			_lQs2.push("UPDATE #compass_period SET afy:content=X'0A';"); // update readings every 100ms (as opposed to default: 1s)
+			_lQs2.push("UPDATE #gyro SET afy:content=X'07';");
 			_lSS.push(function() { SIMULCTX.queryMulti(_lQs1, new QResultHandler(_lSS.next, null, null)); });
 			_lSS.push(function() { setTimeout(_lSS.next, 2000); }); // Review...
 			_lSS.push(function() { SIMULCTX.queryMulti(_lQs2, new QResultHandler(_lSS.next, null, null)); });
@@ -345,9 +345,9 @@ function imuEntryPoint(pCanvasId)
 				lPause = !lPause;
 				$("#mini_console").css("display", lPause ? "block" : "none");
 				// Try to save some battery life...
-				_lQs.push("UPDATE #acceleration SET afy:content=" + (lPause ? "0" : "1") + ";");
-				_lQs.push("UPDATE #compass SET afy:content=" + (lPause ? "0" : "1") + ";");
-				_lQs.push("UPDATE #gyro SET afy:content=" + (lPause ? "0" : "7") + ";");
+				_lQs.push("UPDATE #acceleration SET afy:content=" + (lPause ? "X'00'" : "X'01'") + ";");
+				_lQs.push("UPDATE #compass SET afy:content=" + (lPause ? "X'00'" : "X'01'") + ";");
+				_lQs.push("UPDATE #gyro SET afy:content=" + (lPause ? "X'00'" : "X'07'") + ";");
 			}
 			// TODO: other manual interactions (maybe)
 			if (_lQs.length > 0)

@@ -68,8 +68,8 @@
 <span class="cp">#define	STARTUP_REDUCED_DURABILITY	0x0100											</span><span class="cm">/**&lt; no log flush on transaction commit for improved performance */</span><span class="cp"></span>
 <span class="cp">#define	STARTUP_LOG_PREALLOC		0x0200											</span><span class="cm">/**&lt; pre-allocate log files */</span><span class="cp"></span>
 <span class="cp">#define	STARTUP_TOUCH_FILE			0x0400											</span><span class="cm">/**&lt; change file access date if even only read access */</span><span class="cp"></span>
-<span class="cp">#define STARTUP_NO_LOAD				0x0800											</span><span class="cm">/**&lt; don&#39;t load classes/timers/listeners until the first session is created */</span><span class="cp"></span>
-<span class="cp">#define STARTUP_SAFE				0x1000											</span><span class="cm">/**&lt; disable classes/timers/listeners actions */</span><span class="cp"></span>
+<span class="cp">#define STARTUP_NO_LOAD				0x0800											</span><span class="cm">/**&lt; don&#39;t load events/timers/listeners until the first session is created */</span><span class="cp"></span>
+<span class="cp">#define STARTUP_SAFE				0x1000											</span><span class="cm">/**&lt; disable events/timers/listeners actions */</span><span class="cp"></span>
 
 <span class="cp">#define	STARTUP_MODE_DESKTOP		0x0000											</span><span class="cm">/**&lt; database is running as a part of a desktop application */</span><span class="cp"></span>
 <span class="cp">#define	STARTUP_MODE_SERVER			0x8000											</span><span class="cm">/**&lt; database is opened on a server */</span><span class="cp"></span>
@@ -123,7 +123,7 @@
 	<span class="p">};</span>
 	<span class="k">struct</span> <span class="n">EventData</span> <span class="p">{</span>
 		<span class="n">NotificationEventType</span>		<span class="n">type</span><span class="p">;</span>
-		<span class="n">ClassID</span>				<span class="n">cid</span><span class="p">;</span>
+		<span class="n">DataEventID</span>				<span class="n">cid</span><span class="p">;</span>
 	<span class="p">};</span>
 	<span class="cm">/**</span>
 <span class="cm">	 * event descriptor</span>
