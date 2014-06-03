@@ -22,7 +22,7 @@
 <span class="c1">// License for the specific language governing permissions and limitations</span>
 <span class="c1">// under the License.</span>
 <span class="c1">//</span>
-<span class="c1">// Written by Mark Venguerov 2010-2012</span>
+<span class="c1">// Written by Mark Venguerov 2010-2014</span>
 <span class="c1">//</span>
 <span class="c1">//**************************************************************************************</span>
 
@@ -269,59 +269,40 @@
 		<span class="na">OP_MOVE</span>			<span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// Move the element specified by Value::eid after the element specified by Value::ui (an eid in this case).</span>
 		<span class="na">OP_MOVE_BEFORE</span>	<span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// Move the element specified by Value::eid before the element specified by Value::ui (an eid in this case).</span>
 		<span class="na">OP_DELETE</span>		<span class="o">=</span> <span class="mi">5</span><span class="p">;</span> <span class="c1">// Delete the whole property, or a single collection element if Value::ui (an eid in this case) is specified.</span>
-		<span class="na">OP_EDIT</span>			<span class="o">=</span> <span class="mi">6</span><span class="p">;</span> <span class="c1">// Edit a string (VT_STRING or VT_BSTR) or bits (VT_UINT, VT_UINT64).</span>
-		<span class="na">OP_RENAME</span>		<span class="o">=</span> <span class="mi">7</span><span class="p">;</span> <span class="c1">// Rename the property, i.e. replace the Value::property itself (with the number specified in Value::ui). Value::type must be VT_URIID.</span>
-		<span class="na">OP_PLUS</span>			<span class="o">=</span> <span class="mi">8</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = (v1 + this instance).</span>
-		<span class="na">OP_MINUS</span>		<span class="o">=</span> <span class="mi">9</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = (v1 - this instance).</span>
-		<span class="na">OP_MUL</span>			<span class="o">=</span> <span class="mi">10</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = (v1 * this instance).</span>
-		<span class="na">OP_DIV</span>			<span class="o">=</span> <span class="mi">11</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = (v1 / this instance).</span>
-		<span class="na">OP_MOD</span>			<span class="o">=</span> <span class="mi">12</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = v1 % this instance (remainder of division).</span>
-		<span class="na">OP_NEG</span>			<span class="o">=</span> <span class="mi">13</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with -v1. The value specified in this instance is ignored.</span>
-		<span class="na">OP_NOT</span>			<span class="o">=</span> <span class="mi">14</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with ~v1 or !v1 or -v1, depending on the type.</span>
-		<span class="na">OP_AND</span>			<span class="o">=</span> <span class="mi">15</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = (v1 bitand this instance).</span>
-		<span class="na">OP_OR</span>			<span class="o">=</span> <span class="mi">16</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = (v1 bitor this instance).</span>
-		<span class="na">OP_XOR</span>			<span class="o">=</span> <span class="mi">17</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = (v1 xor this instance).</span>
-		<span class="na">OP_LSHIFT</span>		<span class="o">=</span> <span class="mi">18</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = (v1 &lt;&lt; this instance).</span>
-		<span class="na">OP_RSHIFT</span>		<span class="o">=</span> <span class="mi">19</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = (v1 &gt;&gt; this instance).</span>
-		<span class="na">OP_MIN</span>			<span class="o">=</span> <span class="mi">20</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = min(v1, this instance).</span>
-		<span class="na">OP_MAX</span>			<span class="o">=</span> <span class="mi">21</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = max(v1, this instance).</span>
-		<span class="na">OP_ABS</span>			<span class="o">=</span> <span class="mi">22</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = abs(v1). The value specified in this instance is ignored.</span>
-		<span class="na">OP_LN</span>			<span class="o">=</span> <span class="mi">23</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = ln(v1). The value specified in this instance is ignored.</span>
-		<span class="na">OP_EXP</span>			<span class="o">=</span> <span class="mi">24</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = exp(v1). The value specified in this instance is ignored.</span>
-		<span class="na">OP_POW</span>			<span class="o">=</span> <span class="mi">25</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = pow(v1,this instance).</span>
-		<span class="na">OP_SQRT</span>			<span class="o">=</span> <span class="mi">26</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = sqrt(v1). The value specified in this instance is ignored.</span>
-		<span class="na">OP_SIN</span>			<span class="o">=</span> <span class="mi">27</span><span class="p">;</span> <span class="c1">// Sine.</span>
-		<span class="na">OP_COS</span>			<span class="o">=</span> <span class="mi">28</span><span class="p">;</span> <span class="c1">// Cosine.</span>
-		<span class="na">OP_TAN</span>			<span class="o">=</span> <span class="mi">29</span><span class="p">;</span> <span class="c1">// Tangent.</span>
-		<span class="na">OP_ASIN</span>			<span class="o">=</span> <span class="mi">30</span><span class="p">;</span> <span class="c1">// Arcsine.</span>
-		<span class="na">OP_ACOS</span>			<span class="o">=</span> <span class="mi">31</span><span class="p">;</span> <span class="c1">// Arccosine.</span>
-		<span class="na">OP_ATAN</span>			<span class="o">=</span> <span class="mi">32</span><span class="p">;</span> <span class="c1">// Arctangent.</span>
-		<span class="na">OP_FLOOR</span>		<span class="o">=</span> <span class="mi">33</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = floor(v1). The value specified in this instance is ignored.</span>
-		<span class="na">OP_CEIL</span>			<span class="o">=</span> <span class="mi">34</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = ceil(v1). The value specified in this instance is ignored.</span>
-		<span class="na">OP_CONCAT</span>		<span class="o">=</span> <span class="mi">35</span><span class="p">;</span> <span class="c1">// Concatenate this value to the stored value.</span>
-		<span class="na">OP_LOWER</span>		<span class="o">=</span> <span class="mi">36</span><span class="p">;</span> <span class="c1">// Replace the stored value with its lower-case equivalent. The value specified in this instance is ignored.</span>
-		<span class="na">OP_UPPER</span>		<span class="o">=</span> <span class="mi">37</span><span class="p">;</span> <span class="c1">// Replace the stored value with its upper-case equivalent. The value specified in this instance is ignored.</span>
-		<span class="na">OP_TONUM</span>		<span class="o">=</span> <span class="mi">38</span><span class="p">;</span> <span class="c1">// Coerce the stored value to any of numeric types (VT_INT - VT_DOUBLE).</span>
-		<span class="na">OP_TOINUM</span>		<span class="o">=</span> <span class="mi">39</span><span class="p">;</span> <span class="c1">// Coerce the stored value to an integer numeric type (VT_INT - VT_UINT64).</span>
-		<span class="na">OP_CAST</span>			<span class="o">=</span> <span class="mi">40</span><span class="p">;</span> <span class="c1">// Coerce the stored value to the type defined by tghe second argument.</span>
-	<span class="p">}</span>
-	<span class="c1">// For string/stream value editing (Value::op == OP_EDIT).</span>
-	<span class="c1">// Allows to insert, delete and replace ranges.</span>
-	<span class="kd">message</span> <span class="nc">StrEdit</span> <span class="p">{</span>
-		<span class="k">optional</span> <span class="kt">string</span> <span class="na">str</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span> <span class="c1">// For Value::type == VT_STRING. Specifies the characters to be inserted in the existing string. Can be empty.</span>
-		<span class="k">optional</span> <span class="kt">bytes</span>	<span class="na">bstr</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span> <span class="c1">// For Value::type == VT_BSTR. Specifies the bytes to be inserted in the existing string. Can be empty.</span>
-		<span class="k">required</span> <span class="kt">uint32</span> <span class="na">length</span> <span class="o">=</span> <span class="mi">3</span><span class="p">;</span> <span class="c1">// Specifies how many characters/bytes should be deleted from the original string, before insertion. Can be 0.</span>
-		<span class="k">optional</span> <span class="kt">uint64</span> <span class="na">offset</span> <span class="o">=</span> <span class="mi">4</span><span class="p">;</span> <span class="c1">// Specifies the offset at which StrEdit::length should be deleted, and StrEdit::str/StrEdit::bstr should be inserted.</span>
-	<span class="p">}</span>
-	<span class="c1">// To change multiple bits in an integer (Value::op == OP_EDIT).</span>
-	<span class="kd">message</span> <span class="nc">BitEdit</span> <span class="p">{</span>
-		<span class="k">required</span> <span class="kt">uint32</span> <span class="na">bits</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
-		<span class="k">required</span> <span class="kt">uint32</span> <span class="na">mask</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
-	<span class="p">}</span>
-	<span class="c1">// To change multiple bits in an 64-bit integer (Value::op == OP_EDIT).</span>
-	<span class="kd">message</span> <span class="nc">BitEdit64</span> <span class="p">{</span>
-		<span class="k">required</span> <span class="kt">uint64</span> <span class="na">bits</span> <span class="o">=</span> <span class="mi">1</span><span class="p">;</span>
-		<span class="k">required</span> <span class="kt">uint64</span> <span class="na">mask</span> <span class="o">=</span> <span class="mi">2</span><span class="p">;</span>
+		<span class="na">OP_RENAME</span>		<span class="o">=</span> <span class="mi">6</span><span class="p">;</span> <span class="c1">// Rename the property, i.e. replace the Value::property itself (with the number specified in Value::ui). Value::type must be VT_URIID.</span>
+		<span class="na">OP_PLUS</span>			<span class="o">=</span> <span class="mi">7</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = (v1 + this instance).</span>
+		<span class="na">OP_MINUS</span>		<span class="o">=</span> <span class="mi">8</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = (v1 - this instance).</span>
+		<span class="na">OP_MUL</span>			<span class="o">=</span> <span class="mi">9</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = (v1 * this instance).</span>
+		<span class="na">OP_DIV</span>			<span class="o">=</span> <span class="mi">10</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = (v1 / this instance).</span>
+		<span class="na">OP_MOD</span>			<span class="o">=</span> <span class="mi">11</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = v1 % this instance (remainder of division).</span>
+		<span class="na">OP_NEG</span>			<span class="o">=</span> <span class="mi">12</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with -v1. The value specified in this instance is ignored.</span>
+		<span class="na">OP_NOT</span>			<span class="o">=</span> <span class="mi">13</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with ~v1 or !v1 or -v1, depending on the type.</span>
+		<span class="na">OP_AND</span>			<span class="o">=</span> <span class="mi">14</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = (v1 bitand this instance).</span>
+		<span class="na">OP_OR</span>			<span class="o">=</span> <span class="mi">15</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = (v1 bitor this instance).</span>
+		<span class="na">OP_XOR</span>			<span class="o">=</span> <span class="mi">16</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = (v1 xor this instance).</span>
+		<span class="na">OP_LSHIFT</span>		<span class="o">=</span> <span class="mi">17</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = (v1 &lt;&lt; this instance).</span>
+		<span class="na">OP_RSHIFT</span>		<span class="o">=</span> <span class="mi">18</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = (v1 &gt;&gt; this instance).</span>
+		<span class="na">OP_MIN</span>			<span class="o">=</span> <span class="mi">19</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = min(v1, this instance).</span>
+		<span class="na">OP_MAX</span>			<span class="o">=</span> <span class="mi">20</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = max(v1, this instance).</span>
+		<span class="na">OP_ABS</span>			<span class="o">=</span> <span class="mi">21</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = abs(v1). The value specified in this instance is ignored.</span>
+		<span class="na">OP_LN</span>			<span class="o">=</span> <span class="mi">22</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = ln(v1). The value specified in this instance is ignored.</span>
+		<span class="na">OP_EXP</span>			<span class="o">=</span> <span class="mi">23</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = exp(v1). The value specified in this instance is ignored.</span>
+		<span class="na">OP_POW</span>			<span class="o">=</span> <span class="mi">24</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = pow(v1,this instance).</span>
+		<span class="na">OP_SQRT</span>			<span class="o">=</span> <span class="mi">25</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = sqrt(v1). The value specified in this instance is ignored.</span>
+		<span class="na">OP_SIN</span>			<span class="o">=</span> <span class="mi">26</span><span class="p">;</span> <span class="c1">// Sine.</span>
+		<span class="na">OP_COS</span>			<span class="o">=</span> <span class="mi">27</span><span class="p">;</span> <span class="c1">// Cosine.</span>
+		<span class="na">OP_TAN</span>			<span class="o">=</span> <span class="mi">28</span><span class="p">;</span> <span class="c1">// Tangent.</span>
+		<span class="na">OP_ASIN</span>			<span class="o">=</span> <span class="mi">29</span><span class="p">;</span> <span class="c1">// Arcsine.</span>
+		<span class="na">OP_ACOS</span>			<span class="o">=</span> <span class="mi">30</span><span class="p">;</span> <span class="c1">// Arccosine.</span>
+		<span class="na">OP_ATAN</span>			<span class="o">=</span> <span class="mi">31</span><span class="p">;</span> <span class="c1">// Arctangent.</span>
+		<span class="na">OP_FLOOR</span>		<span class="o">=</span> <span class="mi">32</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = floor(v1). The value specified in this instance is ignored.</span>
+		<span class="na">OP_CEIL</span>			<span class="o">=</span> <span class="mi">33</span><span class="p">;</span> <span class="c1">// Replace the stored value v1 with v2 = ceil(v1). The value specified in this instance is ignored.</span>
+		<span class="na">OP_CONCAT</span>		<span class="o">=</span> <span class="mi">34</span><span class="p">;</span> <span class="c1">// Concatenate this value to the stored value.</span>
+		<span class="na">OP_LOWER</span>		<span class="o">=</span> <span class="mi">35</span><span class="p">;</span> <span class="c1">// Replace the stored value with its lower-case equivalent. The value specified in this instance is ignored.</span>
+		<span class="na">OP_UPPER</span>		<span class="o">=</span> <span class="mi">36</span><span class="p">;</span> <span class="c1">// Replace the stored value with its upper-case equivalent. The value specified in this instance is ignored.</span>
+		<span class="na">OP_TONUM</span>		<span class="o">=</span> <span class="mi">37</span><span class="p">;</span> <span class="c1">// Coerce the stored value to any of numeric types (VT_INT - VT_DOUBLE).</span>
+		<span class="na">OP_TOINUM</span>		<span class="o">=</span> <span class="mi">38</span><span class="p">;</span> <span class="c1">// Coerce the stored value to an integer numeric type (VT_INT - VT_UINT64).</span>
+		<span class="na">OP_CAST</span>			<span class="o">=</span> <span class="mi">39</span><span class="p">;</span> <span class="c1">// Coerce the stored value to the type defined by tghe second argument.</span>
 	<span class="p">}</span>
 	<span class="c1">// For structs, collections and ranges.</span>
 	<span class="kd">message</span> <span class="nc">VArray</span> <span class="p">{</span>
@@ -375,13 +356,10 @@
 	<span class="k">optional</span> <span class="kt">uint32</span>		<span class="na">eid</span>			<span class="o">=</span> <span class="mi">18</span> <span class="p">[</span><span class="k">default</span> <span class="o">=</span> <span class="mi">4294967295</span><span class="p">];</span> <span class="c1">// The pivot around which Value::op == OP_ADD* or OP_MOVE* operate.</span>
 	<span class="k">optional</span> <span class="kt">uint32</span>		<span class="na">meta</span>		<span class="o">=</span> <span class="mi">19</span><span class="p">;</span> <span class="c1">// Specialized additional specifiers, combination of MetaProps elements.</span>
 
-	<span class="k">optional</span> <span class="n">StrEdit</span>	<span class="na">edit</span>		<span class="o">=</span> <span class="mi">20</span><span class="p">;</span> <span class="c1">// String editing specification, Value::op == OP_EDIT.</span>
-	<span class="k">optional</span> <span class="kt">uint32</span>		<span class="na">units</span>		<span class="o">=</span> <span class="mi">21</span><span class="p">;</span> <span class="c1">// [Enum to be provided soon.] Unit of measurement. Can be used with Value::type == VT_FLOAT or VT_DOUBLE.</span>
-	<span class="k">optional</span> <span class="n">VEnum</span>		<span class="na">enu</span>			<span class="o">=</span> <span class="mi">22</span><span class="p">;</span> <span class="c1">// The VT_ENUM value.</span>
-	<span class="k">optional</span> <span class="n">VMap</span>		<span class="na">map</span>			<span class="o">=</span> <span class="mi">23</span><span class="p">;</span> <span class="c1">// The VT_MAP value.</span>
-	<span class="k">optional</span> <span class="n">BitEdit</span>	<span class="na">bedt</span>		<span class="o">=</span> <span class="mi">24</span><span class="p">;</span> <span class="c1">// Bit editing operation, Value::op == OP_EDIT.</span>
-	<span class="k">optional</span> <span class="n">BitEdit64</span>	<span class="na">bedt64</span>		<span class="o">=</span> <span class="mi">25</span><span class="p">;</span> <span class="c1">// Bit editing operation for 64-bit integers, Value::op == OP_EDIT.</span>
-	<span class="k">optional</span> <span class="n">AArray</span>		<span class="na">arr</span>			<span class="o">=</span> <span class="mi">26</span><span class="p">;</span> <span class="c1">// Fixed size array.</span>
+	<span class="k">optional</span> <span class="kt">uint32</span>		<span class="na">units</span>		<span class="o">=</span> <span class="mi">20</span><span class="p">;</span> <span class="c1">// [Enum to be provided soon.] Unit of measurement. Can be used with Value::type == VT_FLOAT or VT_DOUBLE.</span>
+	<span class="k">optional</span> <span class="n">VEnum</span>		<span class="na">enu</span>			<span class="o">=</span> <span class="mi">21</span><span class="p">;</span> <span class="c1">// The VT_ENUM value.</span>
+	<span class="k">optional</span> <span class="n">VMap</span>		<span class="na">map</span>			<span class="o">=</span> <span class="mi">22</span><span class="p">;</span> <span class="c1">// The VT_MAP value.</span>
+	<span class="k">optional</span> <span class="n">AArray</span>		<span class="na">arr</span>			<span class="o">=</span> <span class="mi">23</span><span class="p">;</span> <span class="c1">// Fixed size array.</span>
 
 	<span class="k">optional</span> <span class="kt">uint64</span>		<span class="na">cid</span>			<span class="o">=</span> <span class="mi">128</span><span class="p">;</span> <span class="c1">// Client-side ID. Allows identifying the statement generated this result.</span>
 <span class="p">}</span>
