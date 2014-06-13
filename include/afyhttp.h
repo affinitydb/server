@@ -35,6 +35,7 @@ extern "C" {
 #define AFYD_QUERY_ALIAS "/db"
 #define AFYD_CREATE_ALIAS "/create"
 #define AFYD_DROP_ALIAS "/drop"
+#define AFYD_SHUTDOWN_ALIAS "/shutdown"
 
 #if defined( __cplusplus )
 }

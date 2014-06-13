@@ -90,6 +90,9 @@ function NavTabs()
 function BatchingSQL()
 {
   var lThis = this;
+  this.mQtabIndex = 0;
+  this.mQtabCode = [];
+  $('button[id*="query_tab"]').each(function(_pI, _pE) { lThis.mQtabCode.push(""); });
   this.mQueryAreaQ = $("#query_area_q");
   this.mResultList = $("#result_area_selector");
   this.mResultPage = $("#result_area_page");
@@ -104,6 +107,27 @@ function BatchingSQL()
       $.each(lThis.mPages, function(_pI, _pE) { _pE.ui.css("display", "none"); });
       if (_lCurPage >= 0 && _lCurPage < lThis.mPages.length)
         lThis.mPages[_lCurPage].ui.css("display", "block");
+    });
+  $("#query_tab_name").change(function() { $("#query_tab" + (lThis.mQtabIndex + 1)).text($(this).val()); });
+  var lReQtabIdx = /^query_tab([0-9])$/;
+  $('button[id*="query_tab"]').click(
+    function()
+    {
+      // Determine the index of the new selected tab.
+      var _lTargetId = $(this).attr('id');
+      var _lTargetIdx = lReQtabIdx.exec(_lTargetId);
+      if (undefined == _lTargetIdx)
+        return;
+      _lTargetIdx = parseInt(_lTargetIdx[1]) - 1;
+
+      // Store contents of old tab and switch to new tab.
+      // Review: really store somewhere? affinity? cookie? persist.js? other?
+      lThis.mQtabCode[lThis.mQtabIndex] = $("#query_area_q").val();
+      $("#query_tab" + (lThis.mQtabIndex + 1)).removeClass("qtab-selected");
+      lThis.mQtabIndex = _lTargetIdx;
+      $("#query_tab" + (lThis.mQtabIndex + 1)).addClass("qtab-selected");
+      $("#query_area_q").val(lThis.mQtabCode[lThis.mQtabIndex]);
+      $("#query_tab_name").val($(this).text());
     });
 }
 BatchingSQL.prototype.go = function()

@@ -131,7 +131,7 @@ function afy_setup_preferred_prefixes(pAll, pCompletion)
   afy_add_qnprefix(null, 'afy', 'http://affinityng.org/builtin');
   afy_add_qnprefix(null, 'srv', 'http://affinityng.org/service');
   if (pAll)
-    afy_query("SELECT * FROM \"http://localhost/afy/preferredPrefixes\"", new QResultHandler(lOnPrefixes, null, null), {longnames:true});
+    afy_query("SELECT * FROM \"http://localhost/afy/preferredPrefixes\"", new QResultHandler(lOnPrefixes, function() {}, null), {longnames:true});
   else if (pCompletion)
     pCompletion();
 }

@@ -149,6 +149,7 @@ protected:
     TGroupEvents mGroupEvents;
 public:
     // Review: Could decide to clear orphaned events in mClientEvents, in a destructor.
+    virtual ~MainNotificationHandler() {}
     virtual void notify( NotificationEvent *events,unsigned nEvents,uint64_t txid );
 public:
     void registerClient( IStoreNotification* pClient );

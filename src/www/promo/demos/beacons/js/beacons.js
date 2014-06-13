@@ -398,6 +398,8 @@ function beaconsEntryPoint(pCanvasId)
 					if (0 == _ldBRaw)
 						_ldBRaw = -ldBMin;
 					var _lS = 0.2 + 0.2 * Math.max(0.1, Math.abs(_ldBRaw) - ldBMin); // 3 * lNormalized[_iC];
+					if (isNaN(_lS))
+						continue;
 					lMarkers.corners[_iC].m.getSceneGraph().setTransform([_lS, 0, 0, 0, 0, _lS, 0, 0, 0, 0, _lS, 0, _lPos[0], _lPos[1], _lPos[2], 1]);
 				}
 			}

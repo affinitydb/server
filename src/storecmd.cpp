@@ -85,7 +85,8 @@ public:
               #ifdef Darwin
                 proc_pidpath( getpid(), lExeDir, sizeof(lExeDir) );
               #else
-                readlink( "/proc/self/exe", lExeDir, sizeof(lExeDir) );
+                if ( -1 == readlink( "/proc/self/exe", lExeDir, sizeof(lExeDir) ) )
+                  LOG_LINE(kLogError, "Could not retrieve executable's directory\n");
               #endif
               char * lExeDirLastSlash = strrchr( lExeDir, '/' );
               if ( lExeDirLastSlash && 1 + size_t(lExeDirLastSlash - lExeDir) < sizeof(lExeDir) )
@@ -126,7 +127,21 @@ public:
             }
         }
         AffinityInstance( void * pStoreCtx ) : storeCtx( ( AfyCtx )pStoreCtx ), useCount( 0 ), bAfyEngine( 1 ) {}
-        ~AffinityInstance() { if ( !bAfyEngine ) { storeCtx->shutdown(); } delete notificationHandler; }
+        ~AffinityInstance() {
+            if ( storeCtx && !bAfyEngine ) {
+                // Make sure the calling thread is entitled to shutdown.
+                ISession * lDummy = storeCtx->startSession();
+                if ( lDummy ) {
+                    lDummy->terminate();
+                }
+                storeCtx->shutdown();
+                storeCtx = NULL;
+            }
+            if ( notificationHandler ) {
+                delete notificationHandler;
+                notificationHandler = NULL;
+            }
+        }
     public:
         long refcount() { return useCount; }
         long addref() { return InterlockedIncrement( &useCount ); }

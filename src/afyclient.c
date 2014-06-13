@@ -147,13 +147,13 @@ int afyc_sql( afyc_t* db, const char* query, const char* method,
     int blen, qlen, rd, used, elen = 0;
     int meth = 0;
     char clen_str[40], soffset[40], slimit[40];
-    
+
     soffset[0] = '\0';
     slimit[0] = '\0';
     clen_str[0] = '\0';
 
-    if ( offset ) { snprintf( soffset, sizeof(soffset), "&off=%u", offset ); }
-    if ( limit ) { snprintf( slimit, sizeof(slimit), "&lim=%u", limit ); }
+    if ( offset ) { snprintf( soffset, sizeof(soffset), "&off=%lu", ( unsigned long )offset ); }
+    if ( limit ) { snprintf( slimit, sizeof(slimit), "&lim=%lu", ( unsigned long )limit ); }
 
     if ( query ) { elen = url_encode_len( query, 0, NULL ); }
 
@@ -209,8 +209,8 @@ int afyc_sql( afyc_t* db, const char* query, const char* method,
         db->url = 0;
         if ( db->ka ) {         /* keep-alive */
             if ( query ) {      /* Content-Length known */
-                sprintf( clen_str, "Content-Length: %d\r\n", 
-                         strlen(POST_QUERY)+elen );
+                sprintf( clen_str, "Content-Length: %lu\r\n", 
+                         ( unsigned long )strlen(POST_QUERY)+elen );
             } else {
                 sprintf( clen_str, "Transfer-Encoding: chunked\r\n" );
                 db->chunked = 1;
@@ -348,7 +348,7 @@ ssize_t afyc_write( afyc_t* db, const void* out, size_t out_len ) {
             chunk = url_encode( (char*)out+off, db->buf, AFYC_BUF_SIZE, &used );
             if ( db->chunked ) {
                 exp[0] = '\0';
-                elen = snprintf( exp, 10, "%x\r\n", chunk );
+                elen = snprintf( exp, 10, "%lx\r\n", ( unsigned long )chunk );
                 rd = sock_write( db->sock, exp, elen );
                 if ( rd <= 0 ) { continue; }
             }

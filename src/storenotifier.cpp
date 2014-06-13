@@ -40,6 +40,8 @@ using namespace Afy;
 
 #ifdef WIN32
 #define _LX_FM "%016I64X"
+#elif defined(__APPLE__)
+#define _LX_FM "%016llX"
 #else
 #define _LX_FM "%016LX"
 #endif
@@ -117,7 +119,7 @@ void WaitableEvent::signal( void* pOrg, TReasons const* pReasons ) {
     _signal();
     if ( pReasons ) {
         char lOrg[64];
-        snprintf( lOrg, sizeof(lOrg), "%x", ( size_t )pOrg );
+        snprintf( lOrg, sizeof(lOrg), "%lux", ( unsigned long )pOrg );
         TReasonsByOrg::iterator iO = mReasons.find( lOrg );
         if ( mReasons.end() == iO ) {
             iO = mReasons.insert( TReasonsByOrg::value_type( lOrg, TReasons() ) ).first;
@@ -252,7 +254,7 @@ public:
         }
         // TODO: create persistent registration record, if not already there (will require session)
     }
-    ~MvClientNotifHandler() { if ( mSynchroGroup ) { mSynchroGroup->release(); mSynchroGroup = NULL; } }
+    virtual ~MvClientNotifHandler() { if ( mSynchroGroup ) { mSynchroGroup->release(); mSynchroGroup = NULL; } }
 public:
     virtual void notify( NotificationEvent *events,unsigned nEvents,uint64_t txid ) {
         if ( mTerminated ) {
@@ -421,8 +423,10 @@ RC afy_regNotifi( MainNotificationHandler& mainh, ISession& sess, char const* ty
         WaitableEvent* wegroup = mainh.allocGroupEvent( clientid );
         handler = new MvClientNotifHandler( sess, wegroup, notifparam, NULL, persistent, clientid );
         handler->getPersistentRegPIN( persistentReg );
-        snprintf( lOutput, sizeof( lOutput ), "{\"%x\":\""_LX_FM"\"}", ( size_t )handler, persistentReg.pid );
-    } else if ( 0 == strcmp( type, "pin" ) ) {
+        snprintf( lOutput, sizeof( lOutput ), "{\"%lux\":\""_LX_FM"\"}", ( unsigned long )handler, persistentReg.pid );
+    }
+#if 0
+    else if ( 0 == strcmp( type, "pin" ) ) {
         PID lPID;
         lPID.ident = STORE_OWNER;
         lPID.pid = STORE_INVALID_PID;
@@ -437,9 +441,10 @@ RC afy_regNotifi( MainNotificationHandler& mainh, ISession& sess, char const* ty
             WaitableEvent* wegroup = mainh.allocGroupEvent( clientid );
             handler = new MvClientNotifHandler( sess, wegroup, NULL, &lPID, persistent, clientid );
             handler->getPersistentRegPIN( persistentReg );
-            snprintf( lOutput, sizeof( lOutput ), "{\"%x\":\""_LX_FM"\"}", ( size_t )handler, persistentReg.pid );
+            snprintf( lOutput, sizeof( lOutput ), "{\"%lux\":\""_LX_FM"\"}", ( unsigned long )handler, persistentReg.pid );
         }
     }
+#endif
     if ( !handler ) {
         snprintf( lOutput, sizeof( lOutput ), "{}" );
     } else {
@@ -461,7 +466,7 @@ RC afy_unregNotifi( MainNotificationHandler& mainh, ISession& sess, char const* 
     char const* response = "[]";
     char lOutput[1024];
     lOutput[0] = 0;
-    if ( 1 == sscanf( notifparam, "%x", ( size_t* )&handler ) && mainh.checkClient( ( MvClientNotifHandler* )handler ) ) {
+    if ( 1 == sscanf( notifparam, "%lux", ( unsigned long* )&handler ) && mainh.checkClient( ( MvClientNotifHandler* )handler ) ) {
         MvClientNotifHandler* h = ( MvClientNotifHandler* )handler;
         h->terminate(); // Unblock any possible waiting request.
         mainh.unregisterClient( h ); // Unregister this client.
@@ -490,7 +495,7 @@ RC afy_waitNotifi( MainNotificationHandler& mainh, ISession& sess, char const* n
     WaitableEvent* wegroup = NULL;
     for (;;) {
         // If notifparam is specified, wait on that specific handler.
-        if ( notifparam && 1 == sscanf( notifparam, "%x", ( size_t* )&handler ) && mainh.checkClient( ( MvClientNotifHandler* )handler ) ) {
+        if ( notifparam && 1 == sscanf( notifparam, "%lux", ( unsigned long* )&handler ) && mainh.checkClient( ( MvClientNotifHandler* )handler ) ) {
             MvClientNotifHandler* h = ( MvClientNotifHandler* )handler;
             WaitableEvent::TReasonsByOrg lReasons;
             h->waitNotif( timeout, &lReasons );

@@ -71,20 +71,20 @@ int sock_listener( int port ) {
     list = socket( AF_INET, SOCK_STREAM, 0 );
     if ( list < 0 ) { exit( EXIT_FAILURE ); }
     res = setsockopt( list, SOL_SOCKET, SO_REUSEADDR,
-		      (void*)&opt, sizeof(opt) );
+                      (void*)&opt, sizeof(opt) );
     if ( res < 0 ) {
-	fprintf( stderr, "could not set SO_REUSEADDR (%s)\n",
-		 s_strerror(s_errno) );
+        fprintf( stderr, "could not set SO_REUSEADDR (%s)\n",
+                 s_strerror(s_errno) );
     }
     // Note:
     //   For the time being we mostly expect LAN access;
     //   some scenarios clearly benefit from turning
     //   nagle off.
     res = setsockopt( list, IPPROTO_TCP, TCP_NODELAY,
-		      (char*)&opt, sizeof(opt) );
+                      (char*)&opt, sizeof(opt) );
     if ( res < 0 ) {
-	fprintf( stderr, "could not set TCP_NODELAY (%s)\n",
-		 s_strerror(s_errno) );
+        fprintf( stderr, "could not set TCP_NODELAY (%s)\n",
+                 s_strerror(s_errno) );
     }
   
     addr.sin_family = AF_INET;
@@ -92,18 +92,28 @@ int sock_listener( int port ) {
     addr.sin_port = htons( port );
     res = bind( list, (struct sockaddr*)&addr, sizeof( addr ) );
     if ( res < 0 ) {
-	fprintf( stderr, "could not bind to port %u (%s)\n", 
+        fprintf( stderr, "could not bind to port %u (%s)\n", 
                  port, s_strerror(s_errno) );
-	exit( EXIT_FAILURE ); 
+        exit( EXIT_FAILURE ); 
     }
     res = listen( list, SOMAXCONN );
     if ( res < 0 ) { 
-	fprintf( stderr, "could not listen on port %u (%s)\n", 
+        fprintf( stderr, "could not listen on port %u (%s)\n", 
                  port, s_strerror(s_errno) );
-	exit( EXIT_FAILURE ); 
+        exit( EXIT_FAILURE ); 
     }
     
     return list;
+}
+
+int sock_select( int sock, unsigned timeoutInS ) {
+    fd_set lSet;
+    struct timeval lTo;
+    FD_ZERO(&lSet);
+    FD_SET(sock, &lSet);
+    lTo.tv_sec = (long)timeoutInS;
+    lTo.tv_usec = 0;
+    return select( sock + 1, &lSet, (fd_set *) 0, (fd_set *) 0, &lTo );
 }
 
 ssize_t sock_read( int sock, void* bufp, size_t size ) {
@@ -122,7 +132,7 @@ ssize_t sock_write( int sock, const void* bufp, size_t blen ) {
     size_t wlen;
     ssize_t res = 1;
     for ( wlen = 0; res > 0 && wlen < blen;  ) {
-	res = send( sock, buf+wlen, blen-wlen, 0 );
+        res = send( sock, buf+wlen, blen-wlen, 0 );
         if ( res > 0 ) { wlen += res; }
     }
     if ( res < 0 ) { return res; }
@@ -139,8 +149,8 @@ int sock_close( int sock ) {
     int res;
     res = shutdown( sock, SHUT_RDWR );
     if ( res < 0 ) {
-	fprintf( stderr, "[%s] client disconnect: %s\n", ltime(), 
-		 s_strerror(s_errno) );
+        fprintf( stderr, "[%s] client disconnect: %s\n", ltime(), 
+                 s_strerror(s_errno) );
     }
     closesocket( sock );
     return res;

@@ -153,7 +153,7 @@ int main( int argc, char* argv[] ) {
         } else {
             fprintf( stderr, "pathsql> " );
             cmd[0] = '\0';
-            fgets( cmd, MAX_CMD, stdin );
+            if ( NULL == fgets( cmd, MAX_CMD, stdin ) ) { break; }
             if ( cmd[0] == '\0' ) { fputc( '\n', stderr ); break; }
             cmd_len = chomp( cmd );
             end = strchr( cmd, ';' );

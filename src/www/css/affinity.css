@@ -22,6 +22,8 @@ tr.selected { background-color:#a2a2a2; }
 .tutorial_button_run { font-size:.6em; line-height:1.4em; padding:0; margin:0; border:solid 1px #000; background-color:#0f80cc; color:#fff; width:125px; text-align:center; cursor:pointer; }
 .tab-highlighted { opacity:0.4; }
 .tab-selected { background-color:#0f80cc; }
+.qtab-button { background-color:#c3c3c3; border-radius:0px; border-style:solid; }
+.qtab-selected { background-color:#0f80cc; border-style:dotted; }
 .logo-highlighted { cursor:pointer; }
 .qrt_cnt { overflow:hidden; position:absolute; top:0; left:0; right:20px; bottom:20px; border:none; }
 .qrt_table { border:none; width:100%; border-collapse:collapse; font-size:0.85em; position:absolute; }

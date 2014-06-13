@@ -91,7 +91,7 @@ function initLogicalScene(pCompletion)
 				// _lQs1.push("INSERT afy:objectID='acceleration', afy:service={.srv:BLE}, afy:address='" + _lDeviceAddr + "', BLE:\"characteristic/write\"='f000aa12-0451-4000-b000-000000000000', BLE:\"characteristic/read\"='f000aa11-0451-4000-b000-000000000000', BLE:\"characteristic/purpose\"='accelerometer', BLE:\"characteristic/evaluator\"={x=$(CAST(:0 AS INT)/64.0), y=$(CAST(:1 AS INT)/64.0), z=$(CAST(:2 AS INT)/-64.0)}; -- in g");
 
 			// The moveable objects.
-			var _lQs1 = [], _lQs2 = [];
+			var _lQs1 = [];
 			var _lDeviceAddr = "8AD608B8-3C38-4B34-B53C-352AA679FB1E"; // "687A5860-B3E1-4911-A815-1DA60129DB8E"; // "47E70978-EECF-48C5-88C8-883B83A53D96"; // Michael's: 687A5860-B3E1-4911-A815-1DA60129DB8E; mine: 47E70978-EECF-48C5-88C8-883B83A53D96.
 			_lQs1.push("INSERT simul:\"moveable/type\"='duck', simul:\"moveable/angle/x\"=0.0, simul:\"moveable/angle/y\"=0.0, simul:\"moveable/angle/z\"=0;");
 			_lQs1.push("INSERT afy:objectID=.srv:BLE, afy:load='BLE';");
@@ -100,17 +100,13 @@ function initLogicalScene(pCompletion)
 			_lQs1.push("INSERT afy:objectID='compass', afy:service={.srv:BLE}, afy:address='" + _lDeviceAddr + "', BLE:\"characteristic/write\"='f000aa32-0451-4000-b000-000000000000', BLE:\"characteristic/read\"='f000aa31-0451-4000-b000-000000000000', BLE:\"characteristic/purpose\"='compass', BLE:\"characteristic/evaluator\"={x=$(((:1<<8 | :0) - 65536*(:1&128)/128) * -0.030517578125 * 0.000001),y=$(((:3<<8 | :2) - 65536*(:3&128)/128) * -0.030517578125 * 0.000001),z=$(((:5<<8 | :4) - 65536*(:5&128)/128) * 0.030517578125 * 0.000001)};");//{x=$((((:1 - 256*(:1 & 128)/128)<<8) | :0) * -0.030517578125 * 0.000001), y=$((((:3 - 256*(:3 & 128)/128)<<8) | :2) * -0.030517578125 * 0.000001), z=$((((:5 - 256*(:5 & 128)/128)<<8) | :4) * 0.030517578125 * 0.000001)}, BLE:\"characteristic/units\"=0T;");
 			_lQs1.push("INSERT afy:objectID='compass_period', afy:service={.srv:BLE}, afy:address='" + _lDeviceAddr + "', BLE:\"characteristic/write\"='f000aa33-0451-4000-b000-000000000000', BLE:\"characteristic/read\"='f000aa31-0451-4000-b000-000000000000', BLE:\"characteristic/purpose\"='compass_period';");
 			_lQs1.push("INSERT afy:objectID='gyro', afy:service={.srv:BLE}, afy:address='" + _lDeviceAddr + "', BLE:\"characteristic/write\"='f000aa52-0451-4000-b000-000000000000', BLE:\"characteristic/read\"='f000aa51-0451-4000-b000-000000000000', BLE:\"characteristic/purpose\"='gyro', BLE:\"characteristic/evaluator\"={x=$((:3<<8 | :2) * 0.00762939453125), y=$((:1<<8 | :0) * -0.00762939453125), z=$((:5<<8 | :4) * 0.00762939453125)}; -- in deg/S");
-      _lQs1.push("INSERT afy:objectID='distance', afy:service={.srv:BLE}, afy:address='" + _lDeviceAddr + "', BLE:purpose=BLEPURPOSES#DISTANCE_CONNECTED;");
-			_lQs1.push("SELECT * FROM #acceleration;");
-			_lQs1.push("SELECT * FROM #compass;");
-			_lQs2.push("UPDATE #acceleration SET afy:content=X'01';");
-			_lQs2.push("UPDATE #acceleration_period SET afy:content=X'0A';"); // update readings every 100ms (as opposed to default: 1s)
-			_lQs2.push("UPDATE #compass SET afy:content=X'01';");
-			_lQs2.push("UPDATE #compass_period SET afy:content=X'0A';"); // update readings every 100ms (as opposed to default: 1s)
-			_lQs2.push("UPDATE #gyro SET afy:content=X'07';");
+      _lQs1.push("INSERT afy:objectID='distance', afy:service={.srv:BLE}, afy:address='" + _lDeviceAddr + "', BLE:purpose=BLEPURPOSES#DISTANCE;");
+			_lQs1.push("UPDATE #acceleration SET afy:content=X'01';");
+			_lQs1.push("UPDATE #acceleration_period SET afy:content=X'0A';"); // update readings every 100ms (as opposed to default: 1s)
+			_lQs1.push("UPDATE #compass SET afy:content=X'01';");
+			_lQs1.push("UPDATE #compass_period SET afy:content=X'0A';"); // update readings every 100ms (as opposed to default: 1s)
+			_lQs1.push("UPDATE #gyro SET afy:content=X'07';");
 			_lSS.push(function() { SIMULCTX.queryMulti(_lQs1, new QResultHandler(_lSS.next, null, null)); });
-			_lSS.push(function() { setTimeout(_lSS.next, 2000); }); // Review...
-			_lSS.push(function() { SIMULCTX.queryMulti(_lQs2, new QResultHandler(_lSS.next, null, null)); });
 
 			// Go.
 			_lSS.push(pCompletion);

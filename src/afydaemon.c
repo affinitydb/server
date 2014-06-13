@@ -67,22 +67,22 @@ ssize_t http_resp( int sock, int code, const char* desc, const char* header,
     char err[BUF_SIZE+1], conlen[20+1];
     int elen;
     ssize_t r, rt;
-    
+
     if ( explain ) { 
         if ( expl_len == 0 ) { expl_len = strlen( explain ); }
-        snprintf( conlen, 20, "%d", expl_len ); 
+        snprintf( conlen, 20, "%lu", ( unsigned long )expl_len ); 
     }
     elen = snprintf( err, BUF_SIZE, 
-		     "HTTP/1.1 %d %s" CRLF
-		     "Server: %s %1.2f" CRLF
-		     "%s"       /* extra headers */
+                     "HTTP/1.1 %d %s" CRLF
+                     "Server: %s %1.2f" CRLF
+                     "%s"       /* extra headers */
                      "%s%s%s"   /* optional Content-length: %d \r\n */
                      CRLF,
                      code, desc, AFYD_NAME, AFYD_VERS, 
-		     header ? header : "", explain ? LENGTH : "", 
+                     header ? header : "", explain ? LENGTH : "", 
                      explain ? conlen : "", explain ? CRLF : "" );
     if ( code >= 300 ) {		/* only log on error codes */
-	LOG_LINE( kLogError, explain );
+        LOG_LINE( kLogError, explain );
     }
     if ( afyd_verbose ) {
         LOG_LINE( kLogInfo, "response headers: %s", err );
@@ -104,7 +104,7 @@ off_t fdsize( int fd ) {
     struct stat stats;
 
     if ( fstat( fd, &stats ) != 0 ) { 
-	return -1;              /* -1 means no such file */
+        return -1;              /* -1 means no such file */
     }
     return stats.st_size;
 }
@@ -187,18 +187,18 @@ ssize_t sock_web( int sock, const char* path ) {
     fd = open( docroot_len ? docroot : (index ? exp : path), O_RDONLY );
 
     if ( fd < 0 ) {
-	if ( errno == ENOENT ) {
-	    elen = snprintf( exp, BUF_SIZE, "%d file %s%s not found: %s",
-			     HTTP_NOT_FOUND, path, file, strerror(errno) );
-	    return http_resp( sock, HTTP_NOT_FOUND, HTTP_NOT_FOUND_DESC, 
+        if ( errno == ENOENT ) {
+            elen = snprintf( exp, BUF_SIZE, "%d file %s%s not found: %s",
+                             HTTP_NOT_FOUND, path, file, strerror(errno) );
+            return http_resp( sock, HTTP_NOT_FOUND, HTTP_NOT_FOUND_DESC, 
                               NULL, exp, 0 );
-	} else {
-	    elen = snprintf( exp, BUF_SIZE, 
+        } else {
+            elen = snprintf( exp, BUF_SIZE, 
                              "%d file access %s%s forbidden: %s",
-			     HTTP_FORBID, path, file, strerror(errno) );
-	    return http_resp( sock, HTTP_FORBID, HTTP_FORBID_DESC, 
+                             HTTP_FORBID, path, file, strerror(errno) );
+            return http_resp( sock, HTTP_FORBID, HTTP_FORBID_DESC, 
                               NULL, exp, 0 );
-	}
+        }
     }
     
     ext = strrchr( index ? exp : path, '.' ); if ( ext ) { ext++; }
@@ -219,9 +219,9 @@ ssize_t sock_web( int sock, const char* path ) {
 
 int parse_command( const char* cmd ) { 
     if ( strncmp( GET, cmd, strlen( GET ) ) == 0 ) {
-	return METHOD_GET;
+        return METHOD_GET;
     } else if ( strncmp( POST, cmd, strlen( POST ) ) == 0 ) {
-	return METHOD_POST;
+        return METHOD_POST;
     } 
     return -1;
 }
@@ -353,7 +353,7 @@ int parse_params( char* str, cgi_params_t* cgi, query_params_t* params,
     char *sp, *ap, *arg, *val = 0, *endp;
     for ( n = 0, sp = strsep( &str, "&" ); sp; sp = strsep( &str, "&" ) ) {
         ap = sp;
-	arg = strsep( &ap, "=" );
+        arg = strsep( &ap, "=" );
         len = strcspn( arg, "0123456789" );
         if ( len > 0 ) {
             for ( find = -1, i = 0; find < 0 && i < PARAMS; i++ ) {
@@ -425,13 +425,15 @@ const char* alias[] = {
     "",
     AFYD_QUERY_ALIAS,
     AFYD_CREATE_ALIAS,
-    AFYD_DROP_ALIAS
+    AFYD_DROP_ALIAS,
+    AFYD_SHUTDOWN_ALIAS
 };
 
 #define CGI_STATIC 0
 #define CGI_QUERY 1
 #define CGI_CREATE 2
 #define CGI_DROP 3
+#define CGI_SHUTDOWN 4
 
 int match_cgi( const char* sep, const char* path ) {
     if ( match_alias( AFYD_QUERY_ALIAS, sep, path ) ) {
@@ -440,6 +442,8 @@ int match_cgi( const char* sep, const char* path ) {
         return CGI_CREATE;
     } else if ( match_alias( AFYD_DROP_ALIAS, sep, path ) ) {
         return CGI_DROP;
+    } else if ( match_alias( AFYD_SHUTDOWN_ALIAS, sep, path ) ) {
+        return CGI_SHUTDOWN;
     } else {
         return CGI_STATIC;
     }
@@ -463,63 +467,6 @@ pthread_t* thread = NULL;
 pthread_t thread_main = 0;
 int thread_max = 0, thread_size = 0, thread_start = 0;
 volatile int thread_running = 0;
-
-int thread_tracked( pthread_t th ) {
-    int i;
-    for ( i = 0; i <= thread_max; i++ ) {
-        if ( thread[i] == th ) { return 1; }
-    }
-    return 0;
-}
-
-int thread_killall( pthread_t exclude, uint32_t usec ) {
-    int i, target;
-    uint32_t elapsed ;
-    pthread_t self = pthread_self();
-    pthread_t self_tracked;
-    pthread_mutex_lock( &thread_mutex );
-    self_tracked = thread_tracked( self ) ? self : 0;
-    target = (exclude ? 1 : 0) + (self_tracked ? 1 : 0);
-    intr = 1;
-    for ( i = 0; i <= thread_max; i++ ) {
-        if ( thread[i] && thread[i] != exclude && thread[i] != self_tracked ) {
-            pthread_kill( thread[i], SIGUSR1 );
-        }
-    }
-    pthread_mutex_unlock( &thread_mutex );
-
-    elapsed = 0;
-    LOG_LINE( kLogInfo, "thread_killall target = %d\n", target );
-    for ( i = thread_running; thread_running > target && elapsed < usec ; ) {
-        usleep( 10 );
-        elapsed += 10;
-        if ( thread_running < i ) {
-            i = thread_running;
-            LOG_LINE( kLogInfo, "threads left = %d\n", i );
-        }
-    }
-    LOG_LINE( kLogInfo, "done left = %d\n", i );
-
-    intr = 0;
-
-    return thread_running <= target ? 1 : 0;
-}
-
-int thread_cancelall( pthread_t exclude ) {
-    int i;
-    pthread_t self = pthread_self();
-    pthread_t self_tracked;
-    pthread_mutex_lock( &thread_mutex );
-    self_tracked = thread_tracked( self ) ? self : 0;
-    
-    for ( i = 0; i <= thread_max; i++ ) {
-        if ( thread[i] && thread[i] != exclude && thread[i] != self_tracked ) {
-            pthread_cancel( thread[i] );
-        }
-    }
-    pthread_mutex_unlock( &thread_mutex );
-    return 1;
-}
 
 int thread_init( int n ) {
     int ret;
@@ -591,6 +538,21 @@ int thread_delete( pthread_t th ) {
     return deleted;
 }
 
+void threads_join() {
+    int i, tm = thread_max;
+    pthread_t th;
+    void * res;
+    for ( i = 0; i < tm; i++ ) {
+        pthread_mutex_lock( &thread_mutex );
+        th = thread[i];
+        thread[i] = 0;
+        pthread_mutex_unlock( &thread_mutex );
+        if ( th != 0 ) {
+            pthread_join( th, &res );
+        }
+    }
+}
+
 int sock_cgi( int sock, int method, int action, char* path, char* body, 
               int blen, int bsz, int clen, void* storemgr, int auto_create,
               afy_connection_ctx_t** cctxp, char* req, 
@@ -629,6 +591,14 @@ int sock_cgi( int sock, int method, int action, char* path, char* body,
         LOG_LINE( kLogInfo, "page limit=%u\n", page.lim );
     }
  
+    if ( action == CGI_SHUTDOWN ) {
+        intr++;
+        http_resp( sock, HTTP_OK,
+           HTTP_OK_DESC,
+           TYPE MIME_HTML CRLF,
+           "shutdown started", 0 );
+        return 1;
+    }
     if ( action == CGI_DROP ) {
         if ( external_db ) { // REVIEW: With multi-store this has become a way too coarse test; but mvengine is a secondary matter at the moment.
             http_resp( sock, HTTP_INT, "can not DROP afyengine store",
@@ -812,7 +782,7 @@ int sock_cgi( int sock, int method, int action, char* path, char* body,
         }
     } else if ( method == METHOD_POST ) { 
         /* if the input is pathsql we have to read it all into a string */
-	if ( strcmp( cgi.input, "pathsql" ) == 0 ) {
+        if ( strcmp( cgi.input, "pathsql" ) == 0 ) {
             if ( clen < 0 ) {
                 isclose = 1;
                 buf = malloc( MAX_POST+1 ); 
@@ -838,24 +808,24 @@ int sock_cgi( int sock, int method, int action, char* path, char* body,
                 clen = blen + rd;
                 if ( clen >= bsz-blen ) {
                     /* @@ 1MB is hardcoded to match MAX_POST */
-		    http_resp( sock, HTTP_LARGE, HTTP_LARGE_DESC, NULL, 
+                    http_resp( sock, HTTP_LARGE, HTTP_LARGE_DESC, NULL, 
                                "http POST too large > 1MB\n", 0 );
                     if ( alloc ) { free( body ); }
                     return 0;
                 }
             } else if ( blen < clen ) { /* need to read more */
                 /* if there is enough space, but it in the callers buffer */
-		if ( clen-blen > bsz-blen ) {
-		    buf = malloc( clen+1 ); 
+                if ( clen-blen > bsz-blen ) {
+                    buf = malloc( clen+1 ); 
                     if ( !buf ) {
                         http_resp( sock, HTTP_UNAVAIL, HTTP_UNAVAIL_DESC, 
                                    NULL, "out of memory\n", 0 );
                         return 0;
                     }
                     alloc = 1;
-		    memcpy( buf, body, blen ); /* copy what we have */
+                    memcpy( buf, body, blen ); /* copy what we have */
                     body = buf;
-		}
+                }
                 rd = sock_read( sock, body+blen, clen-blen );
                 if ( rd < clen-blen ) {
                     http_resp( sock, HTTP_BAD, HTTP_BAD_DESC, NULL,
@@ -863,12 +833,12 @@ int sock_cgi( int sock, int method, int action, char* path, char* body,
                     if ( alloc ) { free( body ); }
                     return 0;
                 }
-	    }
+            }
             body[clen] = '\0';
             if ( afyd_verbose > 1 ) {
                 LOG_LINE( kLogInfo, "request post: %s", body );
             }
-	    parse_params( body, &cgi, &qparams, &page );
+            parse_params( body, &cgi, &qparams, &page );
             query_print( &qparams, kLogDebug );
 
             if ( !cgi.query ) {
@@ -949,7 +919,7 @@ int sock_cgi( int sock, int method, int action, char* path, char* body,
                 return 0;
 #endif
             }
-	} else if ( strcmp( cgi.input, "proto" ) == 0 ) {
+        } else if ( strcmp( cgi.input, "proto" ) == 0 ) {
             if ( strcmp( cgi.output, "proto" ) == 0 ) {
                 ctx.sock = sock;
                 ctx.buf = body;
@@ -963,7 +933,7 @@ int sock_cgi( int sock, int method, int action, char* path, char* body,
             }
         }
     } else {
-	LOG_LINE( kLogError, "invalid command, internal error" );
+        LOG_LINE( kLogError, "invalid command, internal error" );
     }
 #else
     sock_write( sock, HELLO, strlen( HELLO ) );
@@ -997,10 +967,10 @@ int auth_extract( char* auth, char** user, char** pass ) {
     
     alen = (int)strlen(auth);
     for ( i = 0, j = 0; i < alen; i++ ) { /* strip non b64 chars in-place */
-	if ( alpha[(int)auth[i]] >= 0 ) {
-	    auth[j] = auth[i];
-	    j++;
-	}
+        if ( alpha[(int)auth[i]] >= 0 ) {
+            auth[j] = auth[i];
+            j++;
+        }
     }
     alen = j;
     slen = alen/4;
@@ -1009,9 +979,9 @@ int auth_extract( char* auth, char** user, char** pass ) {
     /* convert in place */
     /* abcd -> 123 */
     for ( i = 0, res = auth, ptr = auth; i < slen; i++, ptr += 4, res += 3 ) {
-	res[0] = alpha[(int)ptr[0]]<<2|alpha[(int)ptr[1]]>>4; /* 6+2 */
-	res[1] = alpha[(int)ptr[1]]<<4|alpha[(int)ptr[2]]>>2; /* 4+4 */
-	res[2] = alpha[(int)ptr[2]]<<6|alpha[(int)ptr[3]];	  /* 2+6 */
+        res[0] = alpha[(int)ptr[0]]<<2|alpha[(int)ptr[1]]>>4; /* 6+2 */
+        res[1] = alpha[(int)ptr[1]]<<4|alpha[(int)ptr[2]]>>2; /* 4+4 */
+        res[2] = alpha[(int)ptr[2]]<<6|alpha[(int)ptr[3]];	  /* 2+6 */
     }
     auth[slen*3] = '\0';
     
@@ -1058,32 +1028,32 @@ ssize_t sock_server( int client, void* storemgr, int auto_create, afy_connection
 
     /* skip \r\n\r\n */
     body += 2;                  /* keep \r\n for last header! */
-    *body = '\0';		/* end of header marker */
+    *body = '\0';               /* end of header marker */
     body += 2; 
     blen = rlen - (int)(body - req);
 
     /* parse request line comments show ^ for parsing stage */
-    space = strchr( req, ' ' );	/* GET^/path HTTP/1.1 */
+    space = strchr( req, ' ' );       /* GET^/path HTTP/1.1 */
     if ( space ) { 
-	*space = '\0'; 
+        *space = '\0'; 
     } else {
-	http_resp( client, HTTP_INT, HTTP_INT_DESC, NULL, exp, 0 );
-	return 0;
+        http_resp( client, HTTP_INT, HTTP_INT_DESC, NULL, exp, 0 );
+        return 0;
     }
     cmd = parse_command( req );
     if ( cmd < 0 ) {
-	elen = snprintf( exp, BUF_SIZE, 
-			 "unsupported HTTP command: %s\n", req );
-	http_resp( client, HTTP_UNIMPL, HTTP_UNIMPL_DESC, NULL, exp, 0 );
-	*space = ' ';		/* undo edit? */
-	return 0;
+        elen = snprintf( exp, BUF_SIZE, 
+                         "unsupported HTTP command: %s\n", req );
+        http_resp( client, HTTP_UNIMPL, HTTP_UNIMPL_DESC, NULL, exp, 0 );
+        *space = ' ';               /* undo edit? */
+        return 0;
     }
 
-    path = space+1;		/* GET /path^HTTP/1.1 */
+    path = space+1;               /* GET /path^HTTP/1.1 */
     pend = strpbrk( path, " " );
     if ( !pend ) { 
-	http_resp( client, HTTP_INT, HTTP_INT_DESC, NULL, exp, 0 );
-	return 0;
+        http_resp( client, HTTP_INT, HTTP_INT_DESC, NULL, exp, 0 );
+        return 0;
     }
 
     pold = *pend; *pend = '\0';
@@ -1100,7 +1070,7 @@ ssize_t sock_server( int client, void* storemgr, int auto_create, afy_connection
     /* if not matching /db/ path alias, serve via static web server */
     if ( !cgi ) {
         if ( !www_service ) { 
-	    http_resp( client, HTTP_FORBID, HTTP_FORBID_DESC, NULL, 
+            http_resp( client, HTTP_FORBID, HTTP_FORBID_DESC, NULL, 
                        "no static web service as docroot unspecified\n", 0 );
             return 0;
         }
@@ -1113,27 +1083,27 @@ ssize_t sock_server( int client, void* storemgr, int auto_create, afy_connection
             LOG_LINE( kLogInfo, "request headers: %s", headers );
         }
 
-	clen = -1;    /* POST uses Content-Length header if present */
-	if ( cmd == METHOD_POST ) {
+        clen = -1;    /* POST uses Content-Length header if present */
+        if ( cmd == METHOD_POST ) {
             content_len = http_parse( headers, CRLF LENGTH,strlen(CRLF LENGTH),
                                       &undo, &end );
             if ( content_len ) {
                 clen = strtol( content_len, &end2, 10 );
                 if ( end != end2 || end2 == content_len ) {
-		    http_resp( client, HTTP_INT, HTTP_INT_DESC, NULL, exp, 0 );
-		    return 0;
+                    http_resp( client, HTTP_INT, HTTP_INT_DESC, NULL, exp, 0 );
+                    return 0;
                 }
-		if ( clen > MAX_POST ) {
-		    http_resp( client, HTTP_LARGE, HTTP_LARGE_DESC, NULL, 
+                if ( clen > MAX_POST ) {
+                    http_resp( client, HTTP_LARGE, HTTP_LARGE_DESC, NULL, 
                                "http POST too large > 1MB\n", 0 );
-		    return 0;
-		}
+                    return 0;
+                }
                 undo_parse( undo, end );
             }
-	}
+        }
 
         /* parse auth header if present  */
-	auth = strstr( headers, CRLF AUTH );
+        auth = strstr( headers, CRLF AUTH );
         if ( auth ) {
             auth += strlen(CRLF AUTH); /* Authorization: ^ */
             method = auth;
@@ -1151,7 +1121,7 @@ ssize_t sock_server( int client, void* storemgr, int auto_create, afy_connection
                            " supported", 0 );
                 return 0;
             }
-	
+
             auth = mend+1;
             aend = strpbrk( auth, " " CRLF ); /* Authorization: <method>^ */
             if ( aend ) { aold = *aend; *aend = '\0'; }
@@ -1161,32 +1131,33 @@ ssize_t sock_server( int client, void* storemgr, int auto_create, afy_connection
                 return 0;
             }
         }
-	
+
 #if 0
         /* temporarily disable this until we have auth support in afyclient */
         /* auth is mandatory for CGI_CREATE & CGI_DROP */
-	if ( !auth && ( cgi == CGI_CREATE || cgi == CGI_DROP ) ) { 
-	    http_resp( client, HTTP_UNAUTH, HTTP_UNAUTH_DESC, 
+        if ( !auth && ( cgi == CGI_CREATE || cgi == CGI_DROP ) ) { 
+            http_resp( client, HTTP_UNAUTH, HTTP_UNAUTH_DESC, 
                        WWW_AUTH BASIC CRLF, NULL, 0 );
-	    return 0;
-	}
+            return 0;
+        }
 #endif
 
-	/* dont undo auth edits its more complex so do it last */
-	/* *mend = mold; *aend = aold; */ 
+        /* dont undo auth edits its more complex so do it last */
+        /* *mend = mold; *aend = aold; */ 
 
-	/* no HTTP Keep-Alive for now */
+        /* no HTTP Keep-Alive for now */
 
         query = path + strlen( alias[cgi] );
         query += strspn( query, CGI_SEP ); /* skip "/?" chars */
         if ( intr ) { return 0; }
-	return sock_cgi( client, cmd, cgi, path, 
+        return sock_cgi( client, cmd, cgi, path, 
                          body, blen, BUF_SIZE-(int)(body-req), 
                          clen, storemgr, auto_create, cctxp, query, user, pass );
     }
 }
 
 void* thread_container( void* arg ) {
+    ssize_t reason = 0;
     thread_arg_t* tctx;
     afy_connection_ctx_t* cctx = NULL;
     pthread_t me = pthread_self();
@@ -1197,13 +1168,15 @@ void* thread_container( void* arg ) {
     tctx = (thread_arg_t*)arg;
     do {} 
     while ( !intr && 
-            sock_server( tctx->sock, tctx->storemgr, tctx->auto_create, &cctx ) );
+            ( sock_select( tctx->sock, 1 ) <= 0 ||
+              0 != ( reason = sock_server( tctx->sock, tctx->storemgr, tctx->auto_create, &cctx ) ) ) );
     sock_close( tctx->sock );
     if ( cctx ) { afy_term_connection( cctx ); }
     free( arg );
 
-    thread_delete( me );
-    pthread_detach( me );
+    if ( 0 != reason && thread_delete( me ) ) {
+      pthread_detach( me );
+    }
     return NULL;			/* exit thread */
 }
 
@@ -1241,14 +1214,6 @@ const char* abs_dir( const char* dir, const char* curdir ) {
     }
 
     return res;
-}
-
-int afydaemon_stop( uint32_t usec ) {
-    if ( !thread_killall( 0, usec ) ) {
-        thread_cancelall( 0 );
-        return 0;
-    }
-    return 1;
 }
 
 #ifndef WIN32
@@ -1389,43 +1354,53 @@ int afydaemon( void *ctx, const char* www, const char* store,
     sock_init();
     list = sock_listener( port );
 
-    intr_hook( 0 );
+    intr_hook( SIGINT );
     thread_init( THREAD_MAX );
     
     storemgr = afy_init( ctx );
     
-    while ( 1 ) {
+    while ( !intr ) {
         pthread_mutex_lock( &main_mutex ); /* barrier stop accepting */
         pthread_mutex_unlock( &main_mutex ); /* connections until done */
-	/* wait for next client */
-	client = accept( list, NULL, NULL );
+        /* wait for next client */
+
+        if ( sock_select( list, 2 ) <= 0 ) { continue; }
+        client = accept( list, NULL, NULL );
         if ( client < 0 ) { continue; }
-	
-	arg = (thread_arg_t*)malloc( sizeof(thread_arg_t) );
-	if ( !arg ) { 
-	    LOG_LINE( kLogError, "out of memory" ); 
+
+        arg = (thread_arg_t*)malloc( sizeof(thread_arg_t) );
+        if ( !arg ) { 
+            LOG_LINE( kLogError, "out of memory" ); 
             return 0;
-	}
-	arg->storemgr = storemgr;
-	arg->sock = client;
+        }
+        arg->storemgr = storemgr;
+        arg->sock = client;
         arg->auto_create = auto_create;
-	/* no thread pooling, create/exit on each request (or keep-alive connection) */
-	/* Note: the assumed, correct usage of keep-alive connections is dedicated to 1 store/identity - we should verify/assert this... */
-	res = pthread_create( &child, NULL, thread_container, (void*)arg );
-	if ( res != 0 ) {
-	    elen = snprintf( exp, BUF_SIZE, "pthread_create failed: %s", 
-			     strerror(errno) );
-	    /* overloaded? */
-	    http_resp( client, HTTP_UNAVAIL, HTTP_UNAVAIL_DESC, NULL, exp, 0 );
-	    closesocket( client );
-	}
+        /* no thread pooling, create/exit on each request (or keep-alive connection) */
+        /* Note: the assumed, correct usage of keep-alive connections is dedicated to 1 store/identity - we should verify/assert this... */
+        res = pthread_create( &child, NULL, thread_container, (void*)arg );
+        if ( res != 0 ) {
+            elen = snprintf( exp, BUF_SIZE, "pthread_create failed: %s", 
+                 strerror(errno) );
+            /* overloaded? */
+            http_resp( client, HTTP_UNAVAIL, HTTP_UNAVAIL_DESC, NULL, exp, 0 );
+            closesocket( client );
+        }
     }
+
+    fprintf( stdout, "Waiting for server threads...\n" );
+    threads_join();
+    fprintf( stdout, "  ... done waiting for server threads.\n" );
+
     if ( storedir_alloc ) { free( (void*)storedir ); }
 #ifdef AFFINITY_LINK
+    fprintf( stdout, "Shutting down stores...\n" );
     afy_term( storemgr );
+    fprintf( stdout, "  ... done shutting down stores.\n" );
 #endif
     intr_unhook();
     loggingTerm();
+    return 1;
 }
 
 #ifdef DYNAMIC_LIBRARY

@@ -160,7 +160,7 @@ int pthread_create( pthread_t* t, const pthread_attr_t* attr,
     *t = res;
     return 0;
 }
-int pthread_detach( pthread_t* t ) {
+int pthread_detach( pthread_t th ) {
     _endthread();
     return 0;
 }

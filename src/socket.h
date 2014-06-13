@@ -27,6 +27,7 @@ extern "C" {
     int sock_init( void );
     int sock_connect( const char* host, int port );
     int sock_listener( int port );
+    int sock_select( int sock, unsigned timeoutInS );
     ssize_t sock_read( int sock, void* buf, size_t size );
     ssize_t sock_write( int sock, const void* buf, size_t blen );
     int sock_halfshut( int sock );

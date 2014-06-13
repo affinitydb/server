@@ -153,9 +153,10 @@ const char* ltime( void );
 #define pthread_self() ((pthread_t)GetCurrentThreadId())
     int pthread_create( pthread_t* t, const pthread_attr_t* attr, 
                         void* (*start)(void*), void* arg );
-    int pthread_detach( pthread_t* t );
+    int pthread_detach( pthread_t th );
     int pthread_kill( pthread_t th, int sig );
 #define pthread_cancel(th) TerminateThread((HANDLE)th,0)
+#define pthread_join(th, res) WaitForSingleObject((HANDLE)th, INFINITE);
 
 #define pthread_mutex_init( m, n ) *(m) = CreateMutex( NULL, 0, NULL )
 #define pthread_mutex_destroy( m ) CloseHandle( *(m) )

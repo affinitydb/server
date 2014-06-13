@@ -91,6 +91,18 @@
     </div>
     <div id='batching_left'>
       <div id='query_area'>
+        <div id='query_tabs'>
+          <!-- for now start with a hard-coded number of tabs... probably good enough -->
+          <button id='query_tab1' class='qtab-button qtab-selected'>Task 1</button>
+          <button id='query_tab2' class='qtab-button'>Task 2</button>
+          <button id='query_tab3' class='qtab-button'>Task 3</button>
+          <button id='query_tab4' class='qtab-button'>Task 4</button>
+          <button id='query_tab5' class='qtab-button'>Task 5</button>
+          <button id='query_tab6' class='qtab-button'>Task 6</button>
+          &nbsp;&nbsp;
+          <span>Selected Task:</span>
+          <input id='query_tab_name' value='Task 1'></input>
+        </div>
         <textarea id='query_area_q' cols=10 autocorrect='off' autocapitalize='off'></textarea>
         <button id='query_area_go'>go</button>
       </div>
